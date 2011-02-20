@@ -1,0 +1,43 @@
+.PHONY: all clean distribution regressions install
+
+PREFIX=@PREFIX@
+LIBRARY=@LIBRARY@
+HEADERS=@HEADERS@
+
+all:
+	make -C src all || exit
+	@echo
+	@echo
+	@echo ---[ Concurrency Kit has built successfully. You may now \"make install\".
+
+regressions:
+	make -C regressions all || exit
+	@echo ---[ Regressions have built successfully.
+
+install: all
+	mkdir -p $(PREFIX)/$(LIBRARY) || exit
+	mkdir -p $(PREFIX)/$(HEADERS) || exit
+	cp src/libck* $(PREFIX)/$(LIBRARY) || exit
+	chmod 744 $(PREFIX)/$(LIBRARY)/libck* || exit
+	cp include/*.h $(PREFIX)/$(HEADERS) || exit
+	chmod 644 $(PREFIX)/$(HEADERS)/ck_*.h || exit
+	mkdir -p $(PREFIX)/$(HEADERS)/gcc || exit
+	cp -r include/gcc/* $(PREFIX)/$(HEADERS)/gcc || exit
+	chmod 755 $(PREFIX)/$(HEADERS)/gcc
+	chmod 644 $(PREFIX)/$(HEADERS)/gcc/ck_*.h $(PREFIX)/$(HEADERS)/gcc/*/ck_*.h || exit
+
+uninstall: 
+	rm -f $(PREFIX)/$(LIBRARY)/libck*
+	rm -f $(PREFIX)/$(HEADERS)/ck_*.h
+	rm -f $(PREFIX)/$(HEADERS)/gcc/ck_*.h
+	rm -f $(PREFIX)/$(HEADERS)/gcc/*/ck_*.h
+
+clean:
+	make -C src clean
+	make -C regressions clean
+	rm -f *~ *.o
+
+distribution: clean
+	rm -f build/ck.build
+	rm -f build/regressions.build
+	rm -f Makefile

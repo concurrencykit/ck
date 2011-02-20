@@ -1,0 +1,285 @@
+#!/bin/sh
+#
+# Copyright © 2009, 2010 Samy Al Bahra.
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions
+# are met:
+# 1. Redistributions of source code must retain the above copyright
+#    notice, this list of conditions and the following disclaimer.
+# 2. Redistributions in binary form must reproduce the above copyright
+#    notice, this list of conditions and the following disclaimer in the
+#    documentation and/or other materials provided with the distribution.
+#
+# THIS SOFTWARE IS PROVIDED BY THE AUTHOR AND CONTRIBUTORS ``AS IS'' AND
+# ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+# ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR OR CONTRIBUTORS BE LIABLE
+# FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+# DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+# OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+# HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+# LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+# OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+# SUCH DAMAGE.
+#
+
+REQUIRE_HEADER="stdbool.h stdint.h"
+GENERATE_FILE="build/ck.build"
+
+EXIT_SUCCESS=0
+EXIT_FAILURE=1
+
+BUILD="$PWD/build/ck.build"
+CFLAGS="$CFLAGS -Wall -I../include -pipe"
+PREFIX=${PREFIX:-"/usr/local"}
+HEADERS=${HEADERS:-"include"}
+LIBRARY=${LIBRARY:-"lib"}
+
+export CFLAGS
+export PREFIX
+LC_ALL=C
+export LC_ALL
+
+if test -n "${BASH_VERSION+set}" && (set -o posix) >/dev/null 2>&1; then
+ 	set -o posix
+fi
+
+trap epilog 1 2 3 6
+
+epilog()
+{
+	rm -f .1.c .1
+}
+
+assert()
+{
+
+	if test "$#" -eq 2; then
+		fail=$2
+		print=true
+	elif test "$#" -eq 3; then
+		fail=$3
+		print=echo
+	else
+		echo "Usage: assert <test> <fail string> or assert <test> <success string> <fail string>" 1>&2
+		exit $EXIT_FAILURE
+	fi
+
+	if test -z "$1"; then
+		echo "failed  [$fail]"
+		exit $EXIT_FAILURE
+	else
+		${print} "success [$1]"
+	fi
+}
+
+generate()
+{
+	sed "s/@PROFILE@/$PROFILE/g;s#@CC@#$CC#g;s/@HEADERS@/$HEADERS/g;s/@LIBRARY@/$LIBRARY/g;s#@PREFIX@#$PREFIX#g" \
+		$1 > $2
+}
+
+
+for option in $*; do
+	value=`echo "$option" | cut -f 2 -d=`
+
+	case "$option" in
+	--help)
+		echo "./configure"
+		echo "  --cflags=N     Compilation flags"
+		echo "  --compiler=N   Use compiler \"N\""
+		echo "  --headers=N    Headers sub-direcotry (default is \"${HEADERS}\")"
+		echo "  --library=N    Libraries sub-directory (default is \"${LIBRARY}\")"
+		echo "  --prefix=N     Installs library files in \"N\""
+		echo "  --profile=N    Use build profile \"N\""
+		exit $EXIT_SUCCESS
+		;;
+	--profile=*)
+		PROFILE=$value
+		;;
+	--compiler=*)
+		CC=$value
+		;;
+	--prefix=*)
+		PREFIX=$value
+		;;
+	--cflags=*)
+		CFLAGS=$CFLAGS $value
+		;;
+	--headers=*)
+		HEADERS=$value
+		;;
+	--library=*)
+		LIBRARY=$value
+		;;
+	*)
+		echo "./configure [--help]"
+		exit $EXIT_FAILURE
+		;;
+	esac
+done
+
+if test "$PROFILE"; then
+	printf "Using user-specified profile....."
+
+	if test ! -f build/ck.build.$PROFILE; then
+		echo "failed [$PROFILE]";
+		exit $EXIT_FAILURE
+	fi
+
+	echo "success [$PROFILE]"
+	printf "Generating build files..........."
+	generate build/ck.build.in build/ck.build
+	generate build/regressions.build.in build/regressions.build
+	generate Makefile.in Makefile
+	echo "success"
+	exit $EXIT_SUCCESS
+fi
+
+printf "Detecting operating system......."
+SYSTEM=`uname -s 2> /dev/null`
+case "$SYSTEM" in
+	"SunOS")
+		SYSTEM=solaris
+		;;
+	"Linux"|"uClinux")
+		SYSTEM=linux
+		;;
+	"FreeBSD"|"GNU/kFreeBSD")
+		SYSTEM=freebsd
+		;;
+	"NetBSD")
+		SYSTEM=netbsd
+		;;
+	"OpenBSD")
+		SYSTEM=openbsd
+		;;
+	"DragonFly")
+		SYSTEM=dragonflybsd
+		;;
+	"Darwin")
+		SYSTEM=darwin
+		;;
+	*)
+		SYSTEM=
+		;;
+esac
+
+assert "$SYSTEM" "$SYSTEM" "unsupported"
+
+printf "Detecting machine architecture..."
+PLATFORM=`uname -m 2> /dev/null`
+case $PLATFORM in
+	"macppc"|"Power Macintosh"|"powerpc")
+		PLATFORM=ppc32
+		ENVIRONMENT=32
+		assert "$PLATFORM $ENVIRONMENT" "$PLATFORM $ENVIRONMENT" "unsupported"
+		;;
+	"sun4u"|"sun4v"|"sparc64")
+		PLATFORM=sparcv9
+		ENVIRONMENT=64
+		;;
+	i386|i486|i586|i686|i586_i686|pentium*|athlon*|k5|k6|k6_2|k6_3)
+		if test "$SYSTEM" == "darwin"; then
+			ENVIRONMENT=64
+			PLATFORM=x86_64
+		else
+			PLATFORM=x86
+			ENVIRONMENT=32
+			assert "" "" "unsupported"
+		fi
+		;;
+	"amd64"|"x86_64")
+		PLATFORM=x86_64
+		ENVIRONMENT=64
+		;;
+	"i86pc")
+		ISA=`isainfo -n 2> /dev/null || echo i386`
+		case "$ISA" in
+			"amd64")
+				PLATFORM=x86_64
+				ENVIRONMENT=64
+				;;
+			*)
+				PLATFORM=x86
+				ENVIRONMENT=32
+				assert "$PLATFORM $ENVIRONMENT" "$PLATFORM $ENVIRONMENT" "unsupported"
+				;;
+		esac
+		;;
+	"ppc64")
+		PLATFORM=ppc64
+		ENVIRONMENT=64
+		assert "$PLATFORM $ENVIRONMENT" "$PLATFORM $ENVIRONMENT" "unsupported"
+		;;
+	*)
+		PLATFORM=
+		;;
+esac
+
+assert "$PLATFORM" "$PLATFORM" "unsupported"
+
+if test "$ENVIRONMENT" -eq 32; then
+	CFLAGS="-m32 $CFLAGS"
+elif test "$ENVIRONMENT" -eq 64; then
+	CFLAGS="-m64 $CFLAGS"
+fi
+
+# Platform will be used as a macro.
+PROFILE="${PROFILE:-$PLATFORM}"
+PLATFORM="__${PLATFORM}__"
+
+printf "Finding suitable compiler........"
+CC=`which "${CC:-cc}"`
+assert "$CC" "not found"
+
+# Make sure GCC 4.X, the only supported compiler, is being used.
+cat << EOF > .1.c
+int main(void) {
+#if defined(__GNUC__) && (__GNUC__ >= 4)
+	return (0);
+#else
+	return (1);
+#endif
+}
+EOF
+
+$CC -o .1 .1.c
+./.1
+r=$?
+rm -f .1.c .1
+
+if test "$r" -ne 0; then
+	assert "" "update compiler"
+else
+	echo "success [$CC]"
+fi
+
+for i in $REQUIRE_HEADER; do
+	printf "Checking header file usability..."
+
+	cat << EOF > .1.c
+#include <$i>
+int main(void){return(0);}
+EOF
+	$CC -o .1 .1.c 2> /dev/null
+	hf_s=$?
+
+	rm -f .1 .1.c
+	if test $hf_s -eq 0; then
+		echo "success [$i]"
+	else
+		echo "failed  [$i]"
+		exit $EXIT_FAILURE
+	fi
+done
+
+printf "Generating build files..........."
+
+generate build/ck.build.in build/ck.build
+generate build/regressions.build.in build/regressions.build
+generate Makefile.in Makefile
+
+echo "success"
