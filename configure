@@ -77,7 +77,7 @@ assert()
 
 generate()
 {
-	sed "s/@PROFILE@/$PROFILE/g;s#@CC@#$CC#g;s/@HEADERS@/$HEADERS/g;s/@LIBRARY@/$LIBRARY/g;s#@PREFIX@#$PREFIX#g" \
+	sed "s/@PROFILE@/$PROFILE/g;s#@CC@#$CC#g;s#@HEADERS@#$HEADERS#g;s#@LIBRARY@#$LIBRARY#g;s#@PREFIX@#$PREFIX#g" \
 		$1 > $2
 }
 
