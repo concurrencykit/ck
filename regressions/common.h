@@ -99,6 +99,8 @@ rdtsc(void)
 
         __asm__ __volatile__("rd %%tick, %0" : "=r" (r) :: "memory");
         return r;
+#else
+	return 0;
 #endif
 }
 
