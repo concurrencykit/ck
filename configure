@@ -182,7 +182,7 @@ case $PLATFORM in
 		ENVIRONMENT=64
 		;;
 	i386|i486|i586|i686|i586_i686|pentium*|athlon*|k5|k6|k6_2|k6_3)
-		if test "$SYSTEM" == "darwin"; then
+		if test "$SYSTEM" = "darwin"; then
 			ENVIRONMENT=64
 			PLATFORM=x86_64
 		else
