@@ -1,2 +1,7 @@
 #include "../ck_clh.h"
-#include "benchmark.h"
+
+#ifdef THROUGHPUT
+#include "throughput.h"
+#elif defined(LATENCY)
+#include "latency.h"
+#endif

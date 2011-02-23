@@ -4,6 +4,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "../../common.h"
+
 #ifndef ITERATIONS
 #define ITERATIONS (128000)
 #endif
@@ -14,30 +16,6 @@ struct entry {
 };
 CK_RING(entry, entry_ring)
 static CK_RING_INSTANCE(entry_ring) ring;
-
-static inline uint64_t
-rdtsc(void)
-{
-#if defined(__x86_64__) || defined(__x86__)
-        uint32_t eax = 0, edx;
-
-        __asm__ __volatile__("cpuid;"
-                             "rdtsc;"
-                                : "+a" (eax), "=d" (edx)
-                                :
-                                : "%ecx", "%ebx", "memory");
-
-        __asm__ __volatile__("xorl %%eax, %%eax;"
-                             "cpuid;"
-                                :
-                                :
-                                : "%eax", "%ebx", "%ecx", "%edx", "memory");
-
-        return (((uint64_t)edx << 32) | eax);
-#else
-	return 0;
-#endif
-}
 
 int
 main(int argc, char *argv[])

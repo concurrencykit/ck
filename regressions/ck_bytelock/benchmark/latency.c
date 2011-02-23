@@ -3,6 +3,8 @@
 #include <inttypes.h>
 #include <stdio.h>
 
+#include "../../common.h"
+
 #ifndef STEPS 
 #define STEPS 1000000
 #endif
@@ -67,36 +69,6 @@ rwlock_read_unlock(rwlock_t *rw)
 
         ck_pr_dec_uint(&rw->readers);
         return;
-}
-
-static inline uint64_t
-rdtsc(void)
-{
-#if defined(__x86_64__) || defined(__x86__)
-        uint32_t eax = 0, edx;
-
-        __asm__ __volatile__("cpuid;"
-                             "rdtsc;"
-                                : "+a" (eax), "=d" (edx)
-                                :
-                                : "%ecx", "%ebx", "memory");
-
-        __asm__ __volatile__("xorl %%eax, %%eax;"
-                             "cpuid;"
-                                :
-                                :
-                                : "%eax", "%ebx", "%ecx", "%edx", "memory");
-
-        return (((uint64_t)edx << 32) | eax);
-#elif defined(__sparcv9__)
-	return 0;
-#if 0
-	uint64_t r;
-
-	__asm__ __volatile__("rd %%ticks, %0" : "=r" (r) :: "memory");
-	return r;
-#endif
-#endif
 }
 
 int

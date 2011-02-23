@@ -1,2 +1,7 @@
 #include "../ck_ticket_pb.h"
-#include "benchmark.h"
+
+#ifdef THROUGHPUT
+#include "throughput.h"
+#elif defined(LATENCY)
+#include "latency.h"
+#endif

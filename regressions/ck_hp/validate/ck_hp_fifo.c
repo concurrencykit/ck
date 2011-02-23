@@ -2,28 +2,13 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <pthread.h>
-
 #include <ck_hp_fifo.h>
 
-#ifdef __linux__
-#include <sched.h>
-#include <unistd.h>
-#include <sys/types.h>
-#include <sys/syscall.h>
-#endif
+#include "../../common.h"
 
 #ifndef ITERATIONS
 #define ITERATIONS 128 
 #endif
-
-#ifndef CORES
-#define CORES 8
-#endif
-
-struct affinity {
-        uint32_t delta;
-        uint32_t request;
-};
 
 struct context {
 	unsigned int tid;
@@ -44,36 +29,6 @@ static struct affinity a;
 static int size;
 static unsigned int barrier;
 static unsigned int e_barrier;
-
-#ifdef __linux__
-#ifndef gettid
-static pid_t
-gettid(void)
-{
-        return syscall(__NR_gettid);
-}
-#endif
-
-static int
-aff_iterate(struct affinity *acb)
-{
-        cpu_set_t s;
-        int c;
-
-        c = ck_pr_faa_32(&acb->request, acb->delta);
-        CPU_ZERO(&s);
-        CPU_SET(c % CORES, &s);
-
-        return sched_setaffinity(gettid(), sizeof(s), &s);
-}
-#else
-static int
-aff_iterate(struct affinity *acb)
-{
-	acb = NULL;
-        return (0);
-}
-#endif
 
 static void *
 test(void *c)
@@ -142,7 +97,6 @@ main(int argc, char *argv[])
 		exit(EXIT_FAILURE);
 	}
 
-	a.request = 0;
 	a.delta = atoi(argv[2]);
 
 	nthr = atoi(argv[1]);

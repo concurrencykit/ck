@@ -5,25 +5,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#ifdef __linux__
-#include <sched.h>
-#include <unistd.h>
-#include <sys/types.h>
-#include <sys/syscall.h>
-#endif
-
-#ifndef CORES
-#define CORES 8
-#endif
+#include "../../common.h"
 
 #ifndef STEPS
 #define STEPS 1000000
 #endif
-
-struct affinity {
-	uint32_t delta;
-	uint32_t request;
-};
 
 struct example {
         uint64_t a;
@@ -35,37 +21,6 @@ static struct example global CK_CC_CACHELINE;
 static ck_sequence_t seqlock CK_CC_CACHELINE = CK_SEQUENCE_INITIALIZER;
 static unsigned int barrier;
 static struct affinity affinerator;
-
-#ifdef __linux__
-#ifndef gettid
-static pid_t
-gettid(void)
-{
-        return syscall(__NR_gettid);
-}
-#endif
-
-static int
-aff_iterate(struct affinity *acb)
-{
-        cpu_set_t s;
-        int c;
-
-        c = ck_pr_faa_32(&acb->request, acb->delta);
-        CPU_ZERO(&s);
-        CPU_SET(c % CORES, &s);
-
-        return sched_setaffinity(gettid(), sizeof(s), &s);
-}
-#else
-static int
-aff_iterate(struct affinity *acb)
-{
-	acb = NULL;
-        return (0);
-}
-#endif
-
 
 static void *
 consumer(void *unused)

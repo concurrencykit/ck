@@ -10,6 +10,7 @@ all:
 	make -C ./ck_bytelock/benchmark all
 	make -C ./ck_sequence/validate all 
 	make -C ./ck_stack/validate all
+	make -C ./ck_stack/benchmark all
 	make -C ./ck_ring/validate all
 	make -C ./ck_hp/validate all
 
@@ -23,6 +24,7 @@ clean:
 	make -C ./ck_bytelock/benchmark clean 
 	make -C ./ck_sequence/validate clean
 	make -C ./ck_stack/validate clean
+	make -C ./ck_stack/benchmark clean 
 	make -C ./ck_ring/validate clean
 	make -C ./ck_hp/validate clean 
 

@@ -11,28 +11,10 @@
 
 #include <ck_pr.h>
 
-#ifdef __linux__
-#include <sched.h>
-#include <unistd.h>
-#include <sys/types.h>
-#include <sys/syscall.h>
-#endif
-
-#ifndef CORES 
-#define CORES 8
-#endif
+#include "../../common.h"
 
 /* 8! = 40320, evenly divide 1 .. 8 processor workload. */
 #define WORKLOAD (40320 * 2056)
-
-#ifndef ITERATE
-#define ITERATE 65536
-#endif
-
-struct affinity {
-	uint32_t delta;
-	uint32_t request;
-};
 
 struct block {
 	unsigned int tid;
@@ -44,80 +26,6 @@ static uint64_t *count;
 static uint64_t nthr;
 
 static uint64_t object[2] CK_CC_CACHELINE;
-
-#ifdef __linux__
-#ifndef gettid
-static pid_t
-gettid(void)
-{
-	return syscall(__NR_gettid);
-}
-#endif
-
-static int
-aff_iterate(struct affinity *acb)
-{
-	cpu_set_t s;
-	int c;
-
-	c = ck_pr_faa_32(&acb->request, acb->delta);
-	CPU_ZERO(&s);
-	CPU_SET(c % CORES, &s);
-
-	return sched_setaffinity(gettid(), sizeof(s), &s);
-}
-#else
-static int
-aff_iterate(struct affinity *acb)
-{
-	acb = NULL;
-	return (0);
-}
-#endif
-
-__attribute__((used)) static void
-gen_lock(void)
-{
-#ifdef LOCK_STATE
-	LOCK_STATE;
-#endif
-
-#ifdef LOCK
-	LOCK;
-#endif
-}
-
-__attribute__((used)) static void
-gen_unlock(void)
-{
-#ifdef LOCK_STATE
-	LOCK_STATE;
-#endif
-
-#ifdef UNLOCK
-	UNLOCK;
-#endif
-}
-
-static inline uint64_t
-rdtsc(void)
-{
-        uint32_t eax = 0, edx;
-
-        __asm__ __volatile__("cpuid;"
-                             "rdtsc;"
-                                : "+a" (eax), "=d" (edx)
-                                :
-                                : "%rcx", "%rbx", "memory");
-
-        __asm__ __volatile__("xorl %%eax, %%eax;"
-                             "cpuid;"
-                                :
-                                :
-                                : "%rax", "%rbx", "%rcx", "%rdx", "memory");
-
-        return (((uint64_t)edx << 32) | eax);
-}
 
 static void *
 fairness(void *null)

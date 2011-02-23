@@ -1,6 +1,5 @@
 /*
  * Copyright 2010 Samy Al Bahra.
- * Copyright 2010 Message Systems, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -43,23 +42,14 @@
 
 #include <ck_pr.h>
 
-#ifdef __linux__
-#include <sched.h>
-#include <unistd.h>
-#include <sys/types.h>
-#include <sys/syscall.h>
-#endif
-
-#ifndef CORES 
-#define CORES 8
-#endif
-
 #include <ck_backoff.h>
 #include <ck_cc.h>
 #include <ck_pr.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <ck_hp.h>
+
+#include "../../common.h"
 
 #define STACK_CONTAINER(T, M, N) CK_CC_CONTAINER(stack_entry_t, T, M, N)
 
@@ -95,43 +85,7 @@ hp_stack_t stack = {NULL, NULL};
 ck_hp_t stack_hp;
 
 STACK_CONTAINER(struct node, stack_entry, stack_container)
-
-struct affinity {
-	uint32_t delta;
-	uint32_t request;
-};
-
 static struct affinity a;
-
-#ifdef __linux__
-#ifndef gettid
-static pid_t
-gettid(void)
-{
-        return syscall(__NR_gettid);
-}
-#endif
-
-static int
-aff_iterate(struct affinity *acb)
-{
-        cpu_set_t s;
-        int c;
-
-        c = ck_pr_faa_32(&acb->request, acb->delta);
-        CPU_ZERO(&s);
-        CPU_SET(c % CORES, &s);
-
-        return sched_setaffinity(gettid(), sizeof(s), &s);
-}
-#else
-static int
-aff_iterate(struct affinity *acb)
-{
-	acb = NULL;
-        return (0);
-}
-#endif
 
 /*
  * Stack producer operation safe for multiple unique producers and multiple consumers.

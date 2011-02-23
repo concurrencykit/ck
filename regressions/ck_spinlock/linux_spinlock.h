@@ -1,5 +1,6 @@
+#include <ck_cc.h>
 
-static inline void
+CK_CC_INLINE static void
 spin_lock(volatile unsigned int *lock)
 {
 #ifdef __x86_64__
@@ -20,7 +21,7 @@ spin_lock(volatile unsigned int *lock)
           return;
 }
 
-static inline void
+CK_CC_INLINE static void
 spin_unlock(volatile unsigned int *lock)
 {
 #ifdef __x86_64__

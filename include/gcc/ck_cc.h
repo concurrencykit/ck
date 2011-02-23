@@ -33,6 +33,7 @@
  * Suppress unused warnings.
  */
 #define CK_CC_UNUSED __attribute__((unused))
+#define CK_CC_USED   __attribute__((used))
 
 /*
  * If optimizations are turned on, then force inlining.

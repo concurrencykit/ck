@@ -12,16 +12,7 @@
 #include <ck_pr.h>
 #include <ck_spinlock.h>
 
-#ifdef __linux__
-#include <sched.h>
-#include <unistd.h>
-#include <sys/types.h>
-#include <sys/syscall.h>
-#endif
-
-#ifndef CORES 
-#define CORES 8
-#endif
+#include "../../common.h"
 
 /* 8! = 40320, evenly divide 1 .. 8 processor workload. */
 #define WORKLOAD (40320 * 2056)
@@ -29,11 +20,6 @@
 #ifndef ITERATE
 #define ITERATE 65536
 #endif
-
-struct affinity {
-	uint32_t delta;
-	uint32_t request;
-};
 
 struct block {
 	unsigned int tid;
@@ -48,37 +34,7 @@ int critical __attribute__((aligned(64)));
 
 LOCK_DEFINE;
 
-#ifdef __linux__
-#ifndef gettid
-static pid_t
-gettid(void)
-{
-	return syscall(__NR_gettid);
-}
-#endif
-
-static int
-aff_iterate(struct affinity *acb)
-{
-	cpu_set_t s;
-	int c;
-
-	c = ck_pr_faa_32(&acb->request, acb->delta);
-	CPU_ZERO(&s);
-	CPU_SET(c % CORES, &s);
-
-	return sched_setaffinity(gettid(), sizeof(s), &s);
-}
-#else
-static int
-aff_iterate(struct affinity *acb)
-{
-	acb = NULL;
-	return (0);
-}
-#endif
-
-__attribute__((used)) static void
+CK_CC_USED static void
 gen_lock(void)
 {
 #ifdef LOCK_STATE
@@ -90,7 +46,7 @@ gen_lock(void)
 #endif
 }
 
-__attribute__((used)) static void
+CK_CC_USED static void
 gen_unlock(void)
 {
 #ifdef LOCK_STATE
@@ -217,66 +173,6 @@ main(int argc, char *argv[])
 
 	printf("# average     : %15" PRIu64 "\n", v);
 	printf("# deviation   : %.2f (%.2f%%)\n\n", sqrt(d / nthr), (sqrt(d / nthr) / v) * 100.00);
-
-#if 0
-	fprintf(stderr, "Creating threads (latency)...");
-	for (i = 0; i < nthr; i++) {
-		if (pthread_create(&threads[i], NULL, latency, context + i)) {
-			fprintf(stderr, "ERROR: Could not create thread %d\n", i);
-			exit(EXIT_FAILURE);
-		}
-	}
-	fprintf(stderr, "done\n");
-#endif
-
-#if 0
-	ck_pr_store_uint(&ready, 1);
-	sleep(5);
-
-	fprintf(stderr, "Waiting for threads to finish latency test...");
-	for (i = 0; i < nthr; i++)
-		pthread_join(threads[i], NULL);
-	fprintf(stderr, "done\n\n");
-
-	ck_pr_store_uint(&ready, 0);
-	v = 0;
-
-	for (i = 0; i < nthr; i++) {
-		printf("# %2d LatencyT: %15" PRIu64 "\n", i, count[i]);
-		v += count[i];
-	}
-
-	printf("#     Latency: %15" PRIu64 "\n\n", v / nthr);
-
-	fprintf(stderr, "Creating threads (workload)...");
-	for (i = 0; i < nthr; i++) {
-		if (pthread_create(&threads[i], NULL, workload, context + i)) {
-			fprintf(stderr, "ERROR: Could not create thread %" PRIu64 "\n", i);
-			exit(EXIT_FAILURE);
-		}
-	}
-	fprintf(stderr, "done\n");
-
-	ck_pr_store_uint(&ready, 1);
-	{
-		struct timeval tim, ti;
-		double t1, t2;
-
-		fprintf(stderr, "Waiting for threads to finish workload test...");
-
-		gettimeofday(&tim, NULL);
-
-		for (i = 0; i < nthr; i++)
-			pthread_join(threads[i], NULL);
-
-		gettimeofday(&ti, NULL);
-		fprintf(stderr, "done\n\n");
-		t1 = tim.tv_sec+(tim.tv_usec/1000000.0);
-		t2 = ti.tv_sec+(ti.tv_usec/1000000.0);
-		printf("# workload   : %.6lf seconds elapsed\n", t2 - t1);
-	}
-	ck_pr_store_uint(&ready, 0);
-#endif
 
 	return (0);
 }

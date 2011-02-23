@@ -14,30 +14,13 @@
 #include <sys/time.h>
 #include <unistd.h>
 
-#ifdef __linux__
-#include <sched.h>
-#include <sys/types.h>
-#include <sys/syscall.h>
-#endif
-
-#ifndef CORES
-#define CORES 8 
-#endif
-
-#ifndef CACHE_LINE_SIZE
-#define CACHE_LINE_SIZE 64
-#endif
+#include "../../common.h"
 
 #ifndef ITEMS
 #define ITEMS (5765760 * 2)
 #endif
 
 #define TVTOD(tv) ((tv).tv_sec+((tv).tv_usec / (double)1000000))
-
-struct affinity {
-        uint32_t delta;
-        uint32_t request;
-};
 
 struct entry {
 	int value;
@@ -62,41 +45,10 @@ static ck_stack_t stack CK_CC_CACHELINE;
 CK_STACK_CONTAINER(struct entry, next, getvalue)
 #endif
 
-static struct affinity affinerator;
+static struct affinity affinerator = AFFINITY_INITIALIZER;
 static unsigned long long nthr;
 static volatile unsigned int barrier = 0;
 static unsigned int critical;
-
-#ifdef __linux__
-#ifndef gettid
-static pid_t
-gettid(void)
-{
-        return syscall(__NR_gettid);
-}
-#endif
-
-static int
-aff_iterate(struct affinity *acb)
-{
-        cpu_set_t s;
-        int c;
-
-        c = ck_pr_faa_32(&acb->request, acb->delta);
-
-        CPU_ZERO(&s);
-        CPU_SET(c % CORES, &s);
-
-        return sched_setaffinity(gettid(), sizeof(s), &s);
-}
-#else
-static int
-aff_iterate(struct affinity *acb)
-{
-	acb = NULL;
-	return (0);
-}
-#endif
 
 static void *
 stack_thread(void *unused CK_CC_UNUSED)
@@ -245,7 +197,6 @@ main(int argc, char *argv[])
 
 	srand(getpid());
 
-	affinerator.request = 0;
 	affinerator.delta = d;
 	n = ITEMS / nthr;
 

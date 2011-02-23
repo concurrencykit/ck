@@ -1,7 +1,7 @@
 .PHONY: clean
 
 all: ck_ticket ck_mcs ck_dec ck_cas ck_fas ck_clh linux_spinlock \
-     ck_ticket_pb ck_anderson test_and_set 
+     ck_ticket_pb ck_anderson
 
 linux_spinlock: linux_spinlock.c
 	$(CC) $(CFLAGS) -o linux_spinlock linux_spinlock.c
@@ -11,9 +11,6 @@ ck_ticket_pb: ck_ticket_pb.c
 
 ck_clh: ck_clh.c
 	$(CC) $(CFLAGS) -o ck_clh ck_clh.c
-
-test_and_set: test_and_set.c
-	$(CC) $(CFLAGS) -o test_and_set test_and_set.c
 
 ck_anderson: ck_anderson.c
 	$(CC) $(CFLAGS) -o ck_anderson ck_anderson.c

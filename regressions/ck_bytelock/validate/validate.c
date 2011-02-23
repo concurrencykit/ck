@@ -12,25 +12,11 @@
 #include <ck_pr.h>
 #include <ck_bytelock.h>
 
-#ifdef __linux__
-#include <sched.h>
-#include <unistd.h>
-#include <sys/types.h>
-#include <sys/syscall.h>
-#endif
-
-#ifndef CORES 
-#define CORES 8
-#endif
+#include "../../common.h"
 
 #ifndef ITERATE
-#define ITERATE 128000 
+#define ITERATE 5000000
 #endif
-
-struct affinity {
-	uint32_t delta;
-	uint32_t request;
-};
 
 struct block {
 	unsigned int tid;
@@ -39,44 +25,13 @@ struct block {
 static struct affinity a;
 static unsigned int locked = 0;
 static int nthr;
-
 static ck_bytelock_t lock = CK_BYTELOCK_INITIALIZER;
-
-#ifdef __linux__
-#ifndef gettid
-static pid_t
-gettid(void)
-{
-	return syscall(__NR_gettid);
-}
-#endif
-
-static int
-aff_iterate(struct affinity *acb)
-{
-	cpu_set_t s;
-	int c;
-
-	c = ck_pr_faa_32(&acb->request, acb->delta);
-	CPU_ZERO(&s);
-	CPU_SET(c % CORES, &s);
-
-	return sched_setaffinity(gettid(), sizeof(s), &s);
-}
-#else
-static int
-aff_iterate(struct affinity *acb)
-{
-	acb = NULL;
-	return (0);
-}
-#endif
 
 static void *
 thread(void *null)
 {
 	struct block *context = null;
-	int i = 1000000;
+	int i = ITERATE;
 	unsigned int l;
 
         if (aff_iterate(&a)) {
@@ -170,7 +125,6 @@ main(int argc, char *argv[])
 	}
 
 	a.delta = atoi(argv[2]);
-	a.request = 0;
 
 	fprintf(stderr, "Creating threads (mutual exclusion)...");
 	for (i = 0; i < nthr; i++) {
