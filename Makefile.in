@@ -1,5 +1,6 @@
 .PHONY: all clean distribution regressions install
 
+CFLAGS=@CFLAGS@
 PREFIX=@PREFIX@
 LIBRARY=@LIBRARY@
 HEADERS=@HEADERS@

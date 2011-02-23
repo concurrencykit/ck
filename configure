@@ -1,6 +1,7 @@
 #!/bin/sh
 #
 # Copyright © 2009, 2010 Samy Al Bahra.
+# Copyright © 2011 Devon H. O'Dell <devon.odell@gmail.com>
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -77,13 +78,18 @@ assert()
 
 generate()
 {
-	sed "s/@PROFILE@/$PROFILE/g;s#@CC@#$CC#g;s#@HEADERS@#$HEADERS#g;s#@LIBRARY@#$LIBRARY#g;s#@PREFIX@#$PREFIX#g" \
+	sed -e "s#@PROFILE@#$PROFILE#g" \
+	    -e "s#@CC@#$CC#g"           \
+ 	    -e "s#@CFLAGS@#$CFLAGS#g"   \
+ 	    -e "s#@HEADERS@#$HEADERS#g" \
+	    -e "s#@LIBRARY@#$LIBRARY#g" \
+	    -e "s#@PREFIX@#$PREFIX#g"   \
 		$1 > $2
 }
 
 
 for option in $*; do
-	value=`echo "$option" | cut -f 2 -d=`
+	value=`echo "$option" | sed -e 's/^[^=]*=\(.*\)/\1/'`
 
 	case "$option" in
 	--help)
@@ -106,7 +112,7 @@ for option in $*; do
 		PREFIX=$value
 		;;
 	--cflags=*)
-		CFLAGS=$CFLAGS $value
+		CFLAGS="$CFLAGS $value"
 		;;
 	--headers=*)
 		HEADERS=$value
@@ -182,14 +188,49 @@ case $PLATFORM in
 		ENVIRONMENT=64
 		;;
 	i386|i486|i586|i686|i586_i686|pentium*|athlon*|k5|k6|k6_2|k6_3)
-		if test "$SYSTEM" = "darwin"; then
-			ENVIRONMENT=64
-			PLATFORM=x86_64
-		else
-			PLATFORM=x86
-			ENVIRONMENT=32
-			assert "" "" "unsupported"
-		fi
+		case $SYSTEM in
+			darwin)
+				ENVIRONMENT=64
+				PLATFORM=x86_64
+				;;
+			freebsd)
+				PLATFORM=x86
+				ENVIRONMENT=32
+
+				# FreeBSD doesn't give us a nice way to determine the CPU
+				# class of the running system, reporting any 32-bit x86
+				# architecture as i386. 486 is its minimum supported CPU
+				# class and cmpxchg8b was implemented first in i586.
+				dmesg | grep -q "486-class"
+				if test "$?" -eq 0; then
+					assert "" "" "Must have an i586 class or higher CPU"
+				fi
+
+				# FreeBSD still generates code for 486-class CPUs as its
+				# default 32-bit target, but we need 586 at the least.
+				echo "$CFLAGS" | grep -q 'march='
+				if test "$?" -ne 0; then
+					# Needed for cmpxchg8b
+					CFLAGS="$CFLAGS -march=i586"
+				fi
+				;;
+			linux)
+				case $PLATFORM in
+					i386|i486)
+						assert "" "" "Must have an i586 class or higher CPU"
+						;;
+				esac
+
+				PLATFORM=x86
+				ENVIRONMENT=32
+				;;
+			
+			*)
+				PLATFORM=x86
+				ENVIRONMENT=32
+				assert "$PLATFORM $ENVIRONMENT" "$PLATFORM $ENVIRONMENT" "unsupported"
+				;;
+		esac
 		;;
 	"amd64"|"x86_64")
 		PLATFORM=x86_64
