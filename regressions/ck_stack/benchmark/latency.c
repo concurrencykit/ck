@@ -40,7 +40,25 @@ main(void)
 
 		a += e - s;
 	}
-	printf("     push_spinlock: %16" PRIu64 "\n", a / STEPS / (sizeof(entry) / sizeof(*entry)));
+	printf("     spinlock_push: %16" PRIu64 "\n", a / STEPS / (sizeof(entry) / sizeof(*entry)));
+
+	a = 0;
+	for (i = 0; i < STEPS; i++) {
+		ck_stack_init(&stack);
+
+		for (j = 0; j < sizeof(entry) / sizeof(*entry); j++)
+			ck_stack_push_spnc(&stack, entry + j);
+
+		s = rdtsc();
+		for (j = 0; j < sizeof(entry) / sizeof(*entry); j++) {
+			ck_spinlock_fas_lock(&mutex);
+			r = ck_stack_pop_npsc(&stack);
+			ck_spinlock_fas_unlock(&mutex);
+		}
+		e = rdtsc();
+		a += e - s;
+	}
+	printf("      spinlock_pop: %16" PRIu64 "\n", a / STEPS / (sizeof(entry) / sizeof(*entry)));
 
 #ifdef CK_F_STACK_PUSH_UPMC
 	a = 0;
