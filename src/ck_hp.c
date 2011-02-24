@@ -173,7 +173,7 @@ ck_hp_member_scan(ck_stack_entry_t *entry, unsigned int degree, void *pointer)
 			if (hazard == pointer) 
 				return (true);
 		}
-	} while (entry = CK_STACK_NEXT(entry));
+	} while ((entry = CK_STACK_NEXT(entry)) != NULL);
 
 	return (false);
 }
