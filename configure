@@ -96,8 +96,8 @@ for option in $*; do
 		echo "./configure"
 		echo "  --cflags=N     Compilation flags"
 		echo "  --compiler=N   Use compiler \"N\""
-		echo "  --headers=N    Headers sub-direcotry (default is \"${HEADERS}\")"
-		echo "  --library=N    Libraries sub-directory (default is \"${LIBRARY}\")"
+		echo "  --headers=N    Headers subdirectory (default is \"${HEADERS}\")"
+		echo "  --library=N    Libraries subdirectory (default is \"${LIBRARY}\")"
 		echo "  --prefix=N     Installs library files in \"N\""
 		echo "  --profile=N    Use build profile \"N\""
 		exit $EXIT_SUCCESS
