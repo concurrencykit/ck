@@ -4,6 +4,7 @@ all:
 	make -C ./ck_spinlock/validate all
 	make -C ./ck_spinlock/benchmark all
 	make -C ./ck_fifo/validate all
+	make -C ./ck_fifo/benchmark all
 	make -C ./ck_pr/validate all 
 	make -C ./ck_pr/benchmark all
 	make -C ./ck_bytelock/validate all
@@ -18,6 +19,7 @@ clean:
 	make -C ./ck_spinlock/validate clean
 	make -C ./ck_spinlock/benchmark clean
 	make -C ./ck_fifo/validate clean
+	make -C ./ck_fifo/benchmark clean 
 	make -C ./ck_pr/validate clean 
 	make -C ./ck_pr/benchmark clean
 	make -C ./ck_bytelock/validate clean
