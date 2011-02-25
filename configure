@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Copyright © 2009, 2010 Samy Al Bahra.
+# Copyright © 2009-2011 Samy Al Bahra.
 # Copyright © 2011 Devon H. O'Dell <devon.odell@gmail.com>
 # All rights reserved.
 #
@@ -32,11 +32,9 @@ GENERATE_FILE="build/ck.build"
 EXIT_SUCCESS=0
 EXIT_FAILURE=1
 
+MAINTAINER='sbahra@repnop.org'
 BUILD="$PWD/build/ck.build"
-CFLAGS="$CFLAGS -Wall -I../include -pipe"
 PREFIX=${PREFIX:-"/usr/local"}
-HEADERS=${HEADERS:-"include"}
-LIBRARY=${LIBRARY:-"lib"}
 
 export CFLAGS
 export PREFIX
@@ -87,37 +85,50 @@ generate()
 		$1 > $2
 }
 
+generate_stdout()
+{
+
+	echo
+	echo "           PROFILE = $PROFILE"
+	echo "                CC = $CC"
+	echo " Additional CFLAGS = $CFLAGS"
+	echo
+	echo "Headers will be installed in $HEADERS"
+	echo "Libraries will be installed in $LIBRARY"
+}
 
 for option in $*; do
 	value=`echo "$option" | sed -e 's/^[^=]*=\(.*\)/\1/'`
 
 	case "$option" in
 	--help)
-		echo "./configure"
-		echo "  --cflags=N     Compilation flags"
-		echo "  --compiler=N   Use compiler \"N\""
-		echo "  --headers=N    Headers subdirectory (default is \"${HEADERS}\")"
-		echo "  --library=N    Libraries subdirectory (default is \"${LIBRARY}\")"
-		echo "  --prefix=N     Installs library files in \"N\""
-		echo "  --profile=N    Use build profile \"N\""
+		echo "Usage: ./configure [OPTIONS]"
+		echo
+		echo "The following options may be used for cross-building."
+		echo "  --profile=N       Use custom build profile (use in conjunction with \$CC)"
+		echo
+		echo "The following options may be used to modify installation behavior."
+		echo "  --includedir=N    Headers directory (default is ${PREFIX}/include)"
+		echo "  --libdir=N        Libraries directory (default is ${PREFIX}/lib)"
+		echo "  --prefix=N        Installs library files in N (default is $PREFIX)"
+		echo
+		echo "The following environment variables may be used:"
+		echo "   CC       C compiler command"
+		echo "   CFLAGS   C compiler flags"
+		echo
+		echo "Report bugs to ${MAINTAINER}."
 		exit $EXIT_SUCCESS
 		;;
 	--profile=*)
 		PROFILE=$value
 		;;
-	--compiler=*)
-		CC=$value
-		;;
 	--prefix=*)
 		PREFIX=$value
 		;;
-	--cflags=*)
-		CFLAGS="$CFLAGS $value"
-		;;
-	--headers=*)
+	--includedir=*)
 		HEADERS=$value
 		;;
-	--library=*)
+	--libdir=*)
 		LIBRARY=$value
 		;;
 	*)
@@ -127,11 +138,19 @@ for option in $*; do
 	esac
 done
 
+HEADERS=${HEADERS:-"${PREFIX}/include"}
+LIBRARY=${LIBRARY:-"${PREFIX}/lib"}
+
 if test "$PROFILE"; then
 	printf "Using user-specified profile....."
 
+	if test -z "$CC"; then
+		echo "failed [specify compiler]"
+		exit $EXIT_FAILURE
+	fi
+
 	if test ! -f build/ck.build.$PROFILE; then
-		echo "failed [$PROFILE]";
+		echo "failed [$PROFILE]"
 		exit $EXIT_FAILURE
 	fi
 
@@ -141,6 +160,7 @@ if test "$PROFILE"; then
 	generate build/regressions.build.in build/regressions.build
 	generate Makefile.in Makefile
 	echo "success"
+	generate_stdout
 	exit $EXIT_SUCCESS
 fi
 
@@ -262,12 +282,6 @@ esac
 
 assert "$PLATFORM" "$PLATFORM" "unsupported"
 
-if test "$ENVIRONMENT" -eq 32; then
-	CFLAGS="-m32 $CFLAGS"
-elif test "$ENVIRONMENT" -eq 64; then
-	CFLAGS="-m64 $CFLAGS"
-fi
-
 # Platform will be used as a macro.
 PROFILE="${PROFILE:-$PLATFORM}"
 PLATFORM="__${PLATFORM}__"
@@ -324,3 +338,4 @@ generate build/regressions.build.in build/regressions.build
 generate Makefile.in Makefile
 
 echo "success"
+generate_stdout

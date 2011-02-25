@@ -30,7 +30,7 @@
 
 #include <ck_cc.h>
 #include <stdbool.h>
-#include <stdint.h>
+#include <ck_stdint.h>
 #include <limits.h>
 
 #if defined(__x86_64__)
