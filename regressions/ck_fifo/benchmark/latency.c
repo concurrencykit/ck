@@ -7,11 +7,11 @@
 #include "../../common.h"
 
 #ifndef ENTRIES
-#define ENTRIES 1024
+#define ENTRIES 4096 
 #endif
 
 #ifndef STEPS
-#define STEPS 4000
+#define STEPS 40000
 #endif
 
 int
@@ -25,13 +25,13 @@ main(void)
 
 #if   defined(CK_F_FIFO_SPSC)
 	ck_fifo_spsc_t spsc_fifo;
-	ck_fifo_spsc_entry_t spsc_entry[4096];
+	ck_fifo_spsc_entry_t spsc_entry[ENTRIES];
 	ck_fifo_spsc_entry_t spsc_stub;
 #endif
 
 #if defined(CK_F_FIFO_MPMC)
 	ck_fifo_mpmc_t mpmc_fifo;
-	ck_fifo_mpmc_entry_t mpmc_entry[4096];
+	ck_fifo_mpmc_entry_t mpmc_entry[ENTRIES];
 	ck_fifo_mpmc_entry_t mpmc_stub;
 #endif
 
@@ -41,7 +41,7 @@ main(void)
 		ck_fifo_spsc_init(&spsc_fifo, &spsc_stub);
 
 		s = rdtsc();
-		for (j = 0; j < sizeof(spsc_entry) / sizeof(*spsc_entry); j++) {
+		for (j = 0; j < ENTRIES; j++) {
 			ck_spinlock_fas_lock(&mutex);
 			ck_fifo_spsc_enqueue(&spsc_fifo, spsc_entry + j, NULL);
 			ck_spinlock_fas_unlock(&mutex);
@@ -55,11 +55,11 @@ main(void)
 	a = 0;
 	for (i = 0; i < STEPS; i++) {
 		ck_fifo_spsc_init(&spsc_fifo, &spsc_stub);
-		for (j = 0; j < sizeof(spsc_entry) / sizeof(*spsc_entry); j++)
+		for (j = 0; j < ENTRIES; j++)
 			ck_fifo_spsc_enqueue(&spsc_fifo, spsc_entry + j, NULL);
 
 		s = rdtsc();
-		for (j = 0; j < sizeof(spsc_entry) / sizeof(*spsc_entry); j++) {
+		for (j = 0; j < ENTRIES; j++) {
 			ck_spinlock_fas_lock(&mutex);
 			ck_fifo_spsc_dequeue(&spsc_fifo, &r);
 			ck_spinlock_fas_unlock(&mutex);
@@ -74,7 +74,7 @@ main(void)
 		ck_fifo_spsc_init(&spsc_fifo, &spsc_stub);
 
 		s = rdtsc();
-		for (j = 0; j < sizeof(spsc_entry) / sizeof(*spsc_entry); j++)
+		for (j = 0; j < ENTRIES; j++)
 			ck_fifo_spsc_enqueue(&spsc_fifo, spsc_entry + j, NULL);
 		e = rdtsc();
 
@@ -85,11 +85,11 @@ main(void)
 	a = 0;
 	for (i = 0; i < STEPS; i++) {
 		ck_fifo_spsc_init(&spsc_fifo, &spsc_stub);
-		for (j = 0; j < sizeof(spsc_entry) / sizeof(*spsc_entry); j++)
+		for (j = 0; j < ENTRIES; j++)
 			ck_fifo_spsc_enqueue(&spsc_fifo, spsc_entry + j, NULL);
 
 		s = rdtsc();
-		for (j = 0; j < sizeof(spsc_entry) / sizeof(*spsc_entry); j++)
+		for (j = 0; j < ENTRIES; j++)
 			ck_fifo_spsc_dequeue(&spsc_fifo, &r);
 		e = rdtsc();
 		a += e - s;
@@ -103,7 +103,7 @@ main(void)
 		ck_fifo_mpmc_init(&mpmc_fifo, &mpmc_stub);
 
 		s = rdtsc();
-		for (j = 0; j < sizeof(mpmc_entry) / sizeof(*mpmc_entry); j++)
+		for (j = 0; j < ENTRIES; j++)
 			ck_fifo_mpmc_enqueue(&mpmc_fifo, mpmc_entry + j, NULL);
 		e = rdtsc();
 
@@ -114,11 +114,11 @@ main(void)
 	a = 0;
 	for (i = 0; i < STEPS; i++) {
 		ck_fifo_mpmc_init(&mpmc_fifo, &mpmc_stub);
-		for (j = 0; j < sizeof(mpmc_entry) / sizeof(*mpmc_entry); j++)
+		for (j = 0; j < ENTRIES; j++)
 			ck_fifo_mpmc_enqueue(&mpmc_fifo, mpmc_entry + j, NULL);
 
 		s = rdtsc();
-		for (j = 0; j < sizeof(mpmc_entry) / sizeof(*mpmc_entry); j++)
+		for (j = 0; j < ENTRIES; j++)
 			ck_fifo_mpmc_dequeue(&mpmc_fifo, &r);
 		e = rdtsc();
 		a += e - s;

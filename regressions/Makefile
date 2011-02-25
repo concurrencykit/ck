@@ -14,6 +14,7 @@ all:
 	make -C ./ck_stack/benchmark all
 	make -C ./ck_ring/validate all
 	make -C ./ck_hp/validate all
+	make -C ./ck_hp/benchmark all
 
 clean:
 	make -C ./ck_spinlock/validate clean
@@ -29,4 +30,5 @@ clean:
 	make -C ./ck_stack/benchmark clean 
 	make -C ./ck_ring/validate clean
 	make -C ./ck_hp/validate clean 
+	make -C ./ck_hp/benchmark clean 
 
