@@ -35,8 +35,6 @@
 
 #if defined(__x86_64__)
 #include "gcc/x86_64/ck_pr.h"
-#elif defined(__x86__)
-#include "gcc/x86/ck_pr.h"
 #elif defined(__sparcv9__)
 #include "gcc/sparcv9/ck_pr.h"
 #elif defined(__GNUC__)

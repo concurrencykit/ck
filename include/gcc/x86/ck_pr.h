@@ -53,6 +53,42 @@
 #endif
 
 /*
+ * Prevent speculative execution in busy-wait loops (P4 <=)
+ * or "predefined delay".
+ */
+CK_CC_INLINE static void
+ck_pr_stall(void)
+{
+	__asm__ __volatile__("pause" ::: "memory");
+	return;
+}
+
+/*
+ * IA32 has strong memory ordering guarantees, so memory
+ * fences are enabled if and only if the user specifies that
+ * that the program will be using non-temporal instructions.
+ * Otherwise, an optimization barrier is used in order to prevent
+ * compiler re-ordering of loads and stores across the barrier.
+ */
+#define CK_PR_FENCE(T, I)				\
+	CK_CC_INLINE static void			\
+	ck_pr_fence_strict_##T(void)			\
+	{						\
+		__asm__ __volatile__(I ::: "memory");	\
+	}						\
+	CK_CC_INLINE static void ck_pr_fence_##T(void)	\
+	{						\
+		__asm__ __volatile__("" ::: "memory");	\
+	}
+
+CK_PR_FENCE(load, "lfence")
+CK_PR_FENCE(load_depends, "")
+CK_PR_FENCE(store, "sfence")
+CK_PR_FENCE(memory, "mfence")
+
+#undef CK_PR_FENCE
+
+/*
  * Atomic fetch-and-store operations.
  */
 #define CK_PR_FAS(S, M, T, C, I)				\
@@ -517,8 +553,11 @@ ck_pr_cas_##S##_##W##_value(T *t, T c[W], T s[W], T *v)	\
 CK_PR_CAS_V(char, 8, char)
 CK_PR_CAS_V(int, 2, int)
 CK_PR_CAS_V(uint, 2, unsigned int)
+CK_PR_CAS_V(64, 1, uint64_t)
 CK_PR_CAS_V(16, 4, uint16_t)
 CK_PR_CAS_V(8, 8, uint8_t)
+
+#define ck_pr_cas_64_value(A, B, C, D) ck_pr_cas_64_1_value((A), &(B), &(C), (D))
 
 #undef CK_PR_CAS_V
 

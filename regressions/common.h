@@ -78,7 +78,7 @@ aff_iterate(struct affinity *acb CK_CC_UNUSED)
 CK_CC_INLINE static uint64_t
 rdtsc(void)
 {
-#if defined(__x86__) || defined(__x86_64__)
+#if defined(__x86_64__)
         uint32_t eax = 0, edx;
 
         __asm__ __volatile__("cpuid;"
