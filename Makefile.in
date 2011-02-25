@@ -16,22 +16,22 @@ regressions:
 	@echo ---[ Regressions have built successfully.
 
 install: all
-	mkdir -p $(PREFIX)/$(LIBRARY) || exit
-	mkdir -p $(PREFIX)/$(HEADERS) || exit
-	cp src/libck* $(PREFIX)/$(LIBRARY) || exit
-	chmod 744 $(PREFIX)/$(LIBRARY)/libck* || exit
-	cp include/*.h $(PREFIX)/$(HEADERS) || exit
-	chmod 644 $(PREFIX)/$(HEADERS)/ck_*.h || exit
-	mkdir -p $(PREFIX)/$(HEADERS)/gcc || exit
-	cp -r include/gcc/* $(PREFIX)/$(HEADERS)/gcc || exit
-	chmod 755 $(PREFIX)/$(HEADERS)/gcc
-	chmod 644 $(PREFIX)/$(HEADERS)/gcc/ck_*.h $(PREFIX)/$(HEADERS)/gcc/*/ck_*.h || exit
+	mkdir -p $(LIBRARY) || exit
+	mkdir -p $(HEADERS) || exit
+	cp src/libck* $(LIBRARY) || exit
+	chmod 744 $(LIBRARY)/libck* || exit
+	cp include/*.h $(HEADERS) || exit
+	chmod 644 $(HEADERS)/ck_*.h || exit
+	mkdir -p $(HEADERS)/gcc || exit
+	cp -r include/gcc/* $(HEADERS)/gcc || exit
+	chmod 755 $(HEADERS)/gcc
+	chmod 644 $(HEADERS)/gcc/ck_*.h $(HEADERS)/gcc/*/ck_*.h || exit
 
 uninstall: 
-	rm -f $(PREFIX)/$(LIBRARY)/libck*
-	rm -f $(PREFIX)/$(HEADERS)/ck_*.h
-	rm -f $(PREFIX)/$(HEADERS)/gcc/ck_*.h
-	rm -f $(PREFIX)/$(HEADERS)/gcc/*/ck_*.h
+	rm -f $(LIBRARY)/libck*
+	rm -f $(HEADERS)/ck_*.h
+	rm -f $(HEADERS)/gcc/ck_*.h
+	rm -f $(HEADERS)/gcc/*/ck_*.h
 
 clean:
 	make -C src clean
