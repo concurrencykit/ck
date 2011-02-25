@@ -37,8 +37,6 @@
 #define CK_F_PR_CAS_32_2_VALUE
 #define CK_F_PR_CAS_32_VALUE
 #define CK_F_PR_CAS_64
-#define CK_F_PR_CAS_64_1
-#define CK_F_PR_CAS_64_1_VALUE
 #define CK_F_PR_CAS_64_VALUE
 #define CK_F_PR_CAS_8
 #define CK_F_PR_CAS_8_8
@@ -88,14 +86,6 @@
 #define CK_F_PR_FAS_INT
 #define CK_F_PR_FAS_PTR
 #define CK_F_PR_FAS_UINT
-#define CK_F_PR_FENCE_LOAD
-#define CK_F_PR_FENCE_LOAD_DEPENDS
-#define CK_F_PR_FENCE_MEMORY
-#define CK_F_PR_FENCE_STORE
-#define CK_F_PR_FENCE_STRICT_LOAD
-#define CK_F_PR_FENCE_STRICT_LOAD_DEPENDS
-#define CK_F_PR_FENCE_STRICT_MEMORY
-#define CK_F_PR_FENCE_STRICT_STORE
 #define CK_F_PR_INC_16
 #define CK_F_PR_INC_16_ZERO
 #define CK_F_PR_INC_32
@@ -152,9 +142,9 @@
 #define CK_F_PR_OR_INT
 #define CK_F_PR_OR_PTR
 #define CK_F_PR_OR_UINT
-#define CK_F_PR_STALL
 #define CK_F_PR_STORE_16
 #define CK_F_PR_STORE_32
+#define CK_F_PR_STORE_64
 #define CK_F_PR_STORE_8
 #define CK_F_PR_STORE_CHAR
 #define CK_F_PR_STORE_INT
