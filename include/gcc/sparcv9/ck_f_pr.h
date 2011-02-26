@@ -6,6 +6,7 @@
 #define CK_F_PR_FAS_UINT
 #define CK_F_PR_FAS_INT
 #define CK_F_PR_CAS_32
+#define CK_F_PR_CAS_32_VALUE
 #define CK_F_PR_CAS_UINT
 #define CK_F_PR_CAS_INT
 #define CK_F_PR_CAS_UINT_VALUE
