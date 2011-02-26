@@ -833,7 +833,9 @@ CK_PR_N_Z_S(8, uint8_t)
 
 #endif /* CK_F_PR_LOAD_8 && CK_F_PR_CAS_8_VALUE */
 
+#undef CK_PR_N_Z_S
 #undef CK_PR_N_S
+#undef CK_PR_N_Z
 #undef CK_PR_N
 
 #define CK_PR_FAA(S, M, T, C)											\
