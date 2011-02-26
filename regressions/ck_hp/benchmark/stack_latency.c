@@ -25,7 +25,8 @@
  */
 
 #include <ck_hp.h>
-#include <ck_hp_fifo.h>
+#include <ck_hp_stack.h>
+#include <ck_stack.h>
 #include <inttypes.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -41,55 +42,55 @@
 #define STEPS 40000
 #endif
 
-static ck_hp_fifo_t fifo;
-static ck_hp_t fifo_hp;
+static ck_stack_t stack;
+static ck_hp_t stack_hp;
 
 int
 main(void)
 {
-	void *r;
+	ck_hp_record_t record;
+	ck_stack_entry_t entry[ENTRIES];
 	uint64_t s, e, a;
 	unsigned int i;
 	unsigned int j;
-	ck_hp_fifo_entry_t hp_entry[ENTRIES];
-	ck_hp_fifo_entry_t hp_stub;
-	ck_hp_record_t record;
+	void *r;
 
-	ck_hp_init(&fifo_hp, CK_HP_FIFO_SLOTS_COUNT, 1000000, NULL);
-
-	r = malloc(CK_HP_FIFO_SLOTS_SIZE);
+	ck_hp_init(&stack_hp, CK_HP_STACK_SLOTS_COUNT, 1000000, NULL);
+	r = malloc(CK_HP_STACK_SLOTS_SIZE);
 	if (r == NULL) {
 		fprintf(stderr, "ERROR: Failed to allocate slots.\n");
 		exit(EXIT_FAILURE);
 	}
-	ck_hp_subscribe(&fifo_hp, &record, r);
+	ck_hp_subscribe(&stack_hp, &record, (void *)r);
 
 	a = 0;
 	for (i = 0; i < STEPS; i++) {
-		ck_hp_fifo_init(&fifo, &hp_stub);
+		ck_stack_init(&stack);
 
 		s = rdtsc();
 		for (j = 0; j < ENTRIES; j++)
-			ck_hp_fifo_enqueue_mpmc(&record, &fifo, hp_entry + j, NULL);
+			ck_hp_stack_push_mpmc(&stack, entry + j);
 		e = rdtsc();
 
 		a += e - s;
 	}
-	printf("ck_hp_fifo_enqueue_mpmc: %16" PRIu64 "\n", a / STEPS / ENTRIES);
+	printf("ck_hp_stack_push_mpmc: %16" PRIu64 "\n", a / STEPS / ENTRIES);
 
 	a = 0;
 	for (i = 0; i < STEPS; i++) {
-		ck_hp_fifo_init(&fifo, &hp_stub);
+		ck_stack_init(&stack);
+
 		for (j = 0; j < ENTRIES; j++)
-			ck_hp_fifo_enqueue_mpmc(&record, &fifo, hp_entry + j, NULL);
+			ck_hp_stack_push_mpmc(&stack, entry + j);
 
 		s = rdtsc();
-		for (j = 0; j < ENTRIES; j++)
-			ck_hp_fifo_dequeue_mpmc(&record, &fifo, &r);
+		for (j = 0; j < ENTRIES; j++) {
+			r = ck_hp_stack_pop_mpmc(&record, &stack);
+		}
 		e = rdtsc();
 		a += e - s;
 	}
-	printf("ck_hp_fifo_dequeue_mpmc: %16" PRIu64 "\n", a / STEPS / ENTRIES);
+	printf(" ck_hp_stack_pop_mpmc: %16" PRIu64 "\n", a / STEPS / ENTRIES);
 
 	return 0;
 }
