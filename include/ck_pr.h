@@ -175,6 +175,122 @@ CK_PR_BIN(or, ptr, void, uintptr_t, |, void *)
 
 #endif /* CK_F_PR_LOAD_PTR && CK_F_PR_CAS_PTR_VALUE */
 
+#if defined(CK_F_PR_LOAD_64) && defined(CK_F_PR_CAS_64_VALUE)
+
+#ifndef CK_F_PR_ADD_64
+#define CK_F_PR_ADD_64
+CK_PR_BIN_S(add, 64, uint64_t, +)
+#endif /* CK_F_PR_ADD_64 */
+
+#ifndef CK_F_PR_SUB_64
+#define CK_F_PR_SUB_64
+CK_PR_BIN_S(sub, 64, uint64_t, -)
+#endif /* CK_F_PR_SUB_64 */
+
+#ifndef CK_F_PR_AND_64
+#define CK_F_PR_AND_64
+CK_PR_BIN_S(and, 64, uint64_t, &)
+#endif /* CK_F_PR_AND_64 */
+
+#ifndef CK_F_PR_XOR_64
+#define CK_F_PR_XOR_64
+CK_PR_BIN_S(xor, 64, uint64_t, ^)
+#endif /* CK_F_PR_XOR_64 */
+
+#ifndef CK_F_PR_OR_64
+#define CK_F_PR_OR_64
+CK_PR_BIN_S(or, 64, uint64_t, |)
+#endif /* CK_F_PR_OR_64 */
+
+#endif /* CK_F_PR_LOAD_64 && CK_F_PR_CAS_64_VALUE */
+
+#if defined(CK_F_PR_LOAD_32) && defined(CK_F_PR_CAS_32_VALUE)
+
+#ifndef CK_F_PR_ADD_32
+#define CK_F_PR_ADD_32
+CK_PR_BIN_S(add, 32, uint32_t, +)
+#endif /* CK_F_PR_ADD_32 */
+
+#ifndef CK_F_PR_SUB_32
+#define CK_F_PR_SUB_32
+CK_PR_BIN_S(sub, 32, uint32_t, -)
+#endif /* CK_F_PR_SUB_32 */
+
+#ifndef CK_F_PR_AND_32
+#define CK_F_PR_AND_32
+CK_PR_BIN_S(and, 32, uint32_t, &)
+#endif /* CK_F_PR_AND_32 */
+
+#ifndef CK_F_PR_XOR_32
+#define CK_F_PR_XOR_32
+CK_PR_BIN_S(xor, 32, uint32_t, ^)
+#endif /* CK_F_PR_XOR_32 */
+
+#ifndef CK_F_PR_OR_32
+#define CK_F_PR_OR_32
+CK_PR_BIN_S(or, 32, uint32_t, |)
+#endif /* CK_F_PR_OR_32 */
+
+#endif /* CK_F_PR_LOAD_32 && CK_F_PR_CAS_32_VALUE */
+
+#if defined(CK_F_PR_LOAD_16) && defined(CK_F_PR_CAS_16_VALUE)
+
+#ifndef CK_F_PR_ADD_16
+#define CK_F_PR_ADD_16
+CK_PR_BIN_S(add, 16, uint16_t, +)
+#endif /* CK_F_PR_ADD_16 */
+
+#ifndef CK_F_PR_SUB_16
+#define CK_F_PR_SUB_16
+CK_PR_BIN_S(sub, 16, uint16_t, -)
+#endif /* CK_F_PR_SUB_16 */
+
+#ifndef CK_F_PR_AND_16
+#define CK_F_PR_AND_16
+CK_PR_BIN_S(and, 16, uint16_t, &)
+#endif /* CK_F_PR_AND_16 */
+
+#ifndef CK_F_PR_XOR_16
+#define CK_F_PR_XOR_16
+CK_PR_BIN_S(xor, 16, uint16_t, ^)
+#endif /* CK_F_PR_XOR_16 */
+
+#ifndef CK_F_PR_OR_16
+#define CK_F_PR_OR_16
+CK_PR_BIN_S(or, 16, uint16_t, |)
+#endif /* CK_F_PR_OR_16 */
+
+#endif /* CK_F_PR_LOAD_16 && CK_F_PR_CAS_16_VALUE */
+
+#if defined(CK_F_PR_LOAD_8) && defined(CK_F_PR_CAS_8_VALUE)
+
+#ifndef CK_F_PR_ADD_8
+#define CK_F_PR_ADD_8
+CK_PR_BIN_S(add, 8, uint8_t, +)
+#endif /* CK_F_PR_ADD_8 */
+
+#ifndef CK_F_PR_SUB_8
+#define CK_F_PR_SUB_8
+CK_PR_BIN_S(sub, 8, uint8_t, -)
+#endif /* CK_F_PR_SUB_8 */
+
+#ifndef CK_F_PR_AND_8
+#define CK_F_PR_AND_8
+CK_PR_BIN_S(and, 8, uint8_t, &)
+#endif /* CK_F_PR_AND_8 */
+
+#ifndef CK_F_PR_XOR_8
+#define CK_F_PR_XOR_8
+CK_PR_BIN_S(xor, 8, uint8_t, ^)
+#endif /* CK_F_PR_XOR_8 */
+
+#ifndef CK_F_PR_OR_8
+#define CK_F_PR_OR_8
+CK_PR_BIN_S(or, 8, uint8_t, |)
+#endif /* CK_F_PR_OR_8 */
+
+#endif /* CK_F_PR_LOAD_8 && CK_F_PR_CAS_8_VALUE */
+
 #undef CK_PR_BIN_S
 #undef CK_PR_BIN
 
@@ -198,7 +314,7 @@ CK_PR_BIN(or, ptr, void, uintptr_t, |, void *)
 
 #ifndef CK_F_PR_BTC_INT
 #define CK_F_PR_BTC_INT
-CK_PR_BTX_S(btc, int, int, ^, 0+)
+CK_PR_BTX_S(btc, int, int, ^,)
 #endif /* CK_F_PR_BTC_INT */
 
 #ifndef CK_F_PR_BTR_INT
@@ -208,7 +324,7 @@ CK_PR_BTX_S(btr, int, int, &, ~)
 
 #ifndef CK_F_PR_BTS_INT
 #define CK_F_PR_BTS_INT
-CK_PR_BTX_S(bts, int, int, |, 0+)
+CK_PR_BTX_S(bts, int, int, |,)
 #endif /* CK_F_PR_BTS_INT */
 
 #endif /* CK_F_PR_LOAD_INT && CK_F_PR_CAS_INT_VALUE */
@@ -217,7 +333,7 @@ CK_PR_BTX_S(bts, int, int, |, 0+)
 
 #ifndef CK_F_PR_BTC_UINT
 #define CK_F_PR_BTC_UINT
-CK_PR_BTX_S(btc, uint, unsigned int, ^, 0+)
+CK_PR_BTX_S(btc, uint, unsigned int, ^,)
 #endif /* CK_F_PR_BTC_UINT */
 
 #ifndef CK_F_PR_BTR_UINT
@@ -227,7 +343,7 @@ CK_PR_BTX_S(btr, uint, unsigned int, &, ~)
 
 #ifndef CK_F_PR_BTS_UINT
 #define CK_F_PR_BTS_UINT
-CK_PR_BTX_S(bts, uint, unsigned int, |, 0+)
+CK_PR_BTX_S(bts, uint, unsigned int, |,)
 #endif /* CK_F_PR_BTS_UINT */
 
 #endif /* CK_F_PR_LOAD_UINT && CK_F_PR_CAS_UINT_VALUE */
@@ -236,7 +352,7 @@ CK_PR_BTX_S(bts, uint, unsigned int, |, 0+)
 
 #ifndef CK_F_PR_BTC_PTR
 #define CK_F_PR_BTC_PTR
-CK_PR_BTX(btc, ptr, void, uintptr_t, ^, void *, 0+)
+CK_PR_BTX(btc, ptr, void, uintptr_t, ^, void *,)
 #endif /* CK_F_PR_BTC_PTR */
 
 #ifndef CK_F_PR_BTR_PTR
@@ -246,10 +362,67 @@ CK_PR_BTX(btr, ptr, void, uintptr_t, &, void *, ~)
 
 #ifndef CK_F_PR_BTS_PTR
 #define CK_F_PR_BTS_PTR
-CK_PR_BTX(bts, ptr, void, uintptr_t, |, void *, 0+)
+CK_PR_BTX(bts, ptr, void, uintptr_t, |, void *,)
 #endif /* CK_F_PR_BTS_PTR */
 
 #endif /* CK_F_PR_LOAD_PTR && CK_F_PR_CAS_PTR_VALUE */
+
+#if defined(CK_F_PR_LOAD_64) && defined(CK_F_PR_CAS_64_VALUE)
+
+#ifndef CK_F_PR_BTC_64
+#define CK_F_PR_BTC_64
+CK_PR_BTX_S(btc, 64, uint64_t, ^,)
+#endif /* CK_F_PR_BTC_64 */
+
+#ifndef CK_F_PR_BTR_64
+#define CK_F_PR_BTR_64
+CK_PR_BTX_S(btr, 64, uint64_t, &, ~)
+#endif /* CK_F_PR_BTR_64 */
+
+#ifndef CK_F_PR_BTS_64
+#define CK_F_PR_BTS_64
+CK_PR_BTX_S(bts, 64, uint64_t, |,)
+#endif /* CK_F_PR_BTS_64 */
+
+#endif /* CK_F_PR_LOAD_64 && CK_F_PR_CAS_64_VALUE */
+
+#if defined(CK_F_PR_LOAD_32) && defined(CK_F_PR_CAS_32_VALUE)
+
+#ifndef CK_F_PR_BTC_32
+#define CK_F_PR_BTC_32
+CK_PR_BTX_S(btc, 32, uint32_t, ^,)
+#endif /* CK_F_PR_BTC_32 */
+
+#ifndef CK_F_PR_BTR_32
+#define CK_F_PR_BTR_32
+CK_PR_BTX_S(btr, 32, uint32_t, &, ~)
+#endif /* CK_F_PR_BTR_32 */
+
+#ifndef CK_F_PR_BTS_32
+#define CK_F_PR_BTS_32
+CK_PR_BTX_S(bts, 32, uint32_t, |,)
+#endif /* CK_F_PR_BTS_32 */
+
+#endif /* CK_F_PR_LOAD_32 && CK_F_PR_CAS_32_VALUE */
+
+#if defined(CK_F_PR_LOAD_16) && defined(CK_F_PR_CAS_16_VALUE)
+
+#ifndef CK_F_PR_BTC_16
+#define CK_F_PR_BTC_16
+CK_PR_BTX_S(btc, 16, uint16_t, ^,)
+#endif /* CK_F_PR_BTC_16 */
+
+#ifndef CK_F_PR_BTR_16
+#define CK_F_PR_BTR_16
+CK_PR_BTX_S(btr, 16, uint16_t, &, ~)
+#endif /* CK_F_PR_BTR_16 */
+
+#ifndef CK_F_PR_BTS_16
+#define CK_F_PR_BTS_16
+CK_PR_BTX_S(bts, 16, uint16_t, |,)
+#endif /* CK_F_PR_BTS_16 */
+
+#endif /* CK_F_PR_LOAD_16 && CK_F_PR_CAS_16_VALUE */
 
 #undef CK_PR_BTX_S
 #undef CK_PR_BTX
@@ -375,6 +548,102 @@ CK_PR_UNARY_Z(dec, ptr, void, uintptr_t, -, void *, 1)
 
 #endif /* CK_F_PR_LOAD_PTR && CK_F_PR_CAS_PTR_VALUE */
 
+#if defined(CK_F_PR_LOAD_64) && defined(CK_F_PR_CAS_64_VALUE)
+
+#ifndef CK_F_PR_INC_64
+#define CK_F_PR_INC_64
+CK_PR_UNARY_S(inc, add, 64, uint64_t)
+#endif /* CK_F_PR_INC_64 */
+
+#ifndef CK_F_PR_INC_64_ZERO
+#define CK_F_PR_INC_64_ZERO
+CK_PR_UNARY_Z_S(inc, 64, uint64_t, +, UINT64_MAX)
+#endif /* CK_F_PR_INC_64_ZERO */
+
+#ifndef CK_F_PR_DEC_64
+#define CK_F_PR_DEC_64
+CK_PR_UNARY_S(dec, sub, 64, uint64_t)
+#endif /* CK_F_PR_DEC_64 */
+
+#ifndef CK_F_PR_DEC_64_ZERO
+#define CK_F_PR_DEC_64_ZERO
+CK_PR_UNARY_Z_S(dec, 64, uint64_t, -, 1)
+#endif /* CK_F_PR_DEC_64_ZERO */
+
+#endif /* CK_F_PR_LOAD_64 && CK_F_PR_CAS_64_VALUE */
+
+#if defined(CK_F_PR_LOAD_32) && defined(CK_F_PR_CAS_32_VALUE)
+
+#ifndef CK_F_PR_INC_32
+#define CK_F_PR_INC_32
+CK_PR_UNARY_S(inc, add, 32, uint32_t)
+#endif /* CK_F_PR_INC_32 */
+
+#ifndef CK_F_PR_INC_32_ZERO
+#define CK_F_PR_INC_32_ZERO
+CK_PR_UNARY_Z_S(inc, 32, uint32_t, +, UINT32_MAX)
+#endif /* CK_F_PR_INC_32_ZERO */
+
+#ifndef CK_F_PR_DEC_32
+#define CK_F_PR_DEC_32
+CK_PR_UNARY_S(dec, sub, 32, uint32_t)
+#endif /* CK_F_PR_DEC_32 */
+
+#ifndef CK_F_PR_DEC_32_ZERO
+#define CK_F_PR_DEC_32_ZERO
+CK_PR_UNARY_Z_S(dec, 32, uint32_t, -, 1)
+#endif /* CK_F_PR_DEC_32_ZERO */
+
+#endif /* CK_F_PR_LOAD_32 && CK_F_PR_CAS_32_VALUE */
+
+#if defined(CK_F_PR_LOAD_16) && defined(CK_F_PR_CAS_16_VALUE)
+
+#ifndef CK_F_PR_INC_16
+#define CK_F_PR_INC_16
+CK_PR_UNARY_S(inc, add, 16, uint16_t)
+#endif /* CK_F_PR_INC_16 */
+
+#ifndef CK_F_PR_INC_16_ZERO
+#define CK_F_PR_INC_16_ZERO
+CK_PR_UNARY_Z_S(inc, 16, uint16_t, +, UINT16_MAX)
+#endif /* CK_F_PR_INC_16_ZERO */
+
+#ifndef CK_F_PR_DEC_16
+#define CK_F_PR_DEC_16
+CK_PR_UNARY_S(dec, sub, 16, uint16_t)
+#endif /* CK_F_PR_DEC_16 */
+
+#ifndef CK_F_PR_DEC_16_ZERO
+#define CK_F_PR_DEC_16_ZERO
+CK_PR_UNARY_Z_S(dec, 16, uint16_t, -, 1)
+#endif /* CK_F_PR_DEC_16_ZERO */
+
+#endif /* CK_F_PR_LOAD_16 && CK_F_PR_CAS_16_VALUE */
+
+#if defined(CK_F_PR_LOAD_8) && defined(CK_F_PR_CAS_8_VALUE)
+
+#ifndef CK_F_PR_INC_8
+#define CK_F_PR_INC_8
+CK_PR_UNARY_S(inc, add, 8, uint8_t)
+#endif /* CK_F_PR_INC_8 */
+
+#ifndef CK_F_PR_INC_8_ZERO
+#define CK_F_PR_INC_8_ZERO
+CK_PR_UNARY_Z_S(inc, 8, uint8_t, +, UINT8_MAX)
+#endif /* CK_F_PR_INC_8_ZERO */
+
+#ifndef CK_F_PR_DEC_8
+#define CK_F_PR_DEC_8
+CK_PR_UNARY_S(dec, sub, 8, uint8_t)
+#endif /* CK_F_PR_DEC_8 */
+
+#ifndef CK_F_PR_DEC_8_ZERO
+#define CK_F_PR_DEC_8_ZERO
+CK_PR_UNARY_Z_S(dec, 8, uint8_t, -, 1)
+#endif /* CK_F_PR_DEC_8_ZERO */
+
+#endif /* CK_F_PR_LOAD_8 && CK_F_PR_CAS_8_VALUE */
+
 #undef CK_PR_UNARY_Z_S
 #undef CK_PR_UNARY_S
 #undef CK_PR_UNARY_Z
@@ -394,7 +663,23 @@ CK_PR_UNARY_Z(dec, ptr, void, uintptr_t, -, void *, 1)
 		return;												\
 	}
 
-#define CK_PR_N_S(K, S, M, P) CK_PR_N(K, S, M, M, P, M)
+#define CK_PR_N_Z(S, M, T, C)											\
+	CK_CC_INLINE static void										\
+	ck_pr_neg_##S##_zero(M *target, bool *zero)								\
+	{													\
+		T previous;											\
+		C punt;												\
+		punt = (C)ck_pr_load_##S(target);								\
+		previous = (T)punt;										\
+		while (ck_pr_cas_##S##_value(target, (C)previous, (C)(-previous), &previous) == false)		\
+			ck_pr_stall();										\
+														\
+		*zero = previous == 0;										\
+		return;												\
+	}
+
+#define CK_PR_N_S(K, S, M, P)	CK_PR_N(K, S, M, M, P, M)
+#define CK_PR_N_Z_S(S, M) 	CK_PR_N_Z(S, M, M, M)
 
 #if defined(CK_F_PR_LOAD_CHAR) && defined(CK_F_PR_CAS_CHAR_VALUE)
 
@@ -407,6 +692,11 @@ CK_PR_N_S(not, char, char, ~)
 #define CK_F_PR_NEG_CHAR
 CK_PR_N_S(neg, char, char, -)
 #endif /* CK_F_PR_NEG_CHAR */
+
+#ifndef CK_F_PR_NEG_CHAR_ZERO
+#define CK_F_PR_NEG_CHAR_ZERO
+CK_PR_N_Z_S(char, char)
+#endif /* CK_F_PR_NEG_CHAR_ZERO */
 
 #endif /* CK_F_PR_LOAD_CHAR && CK_F_PR_CAS_CHAR_VALUE */
 
@@ -422,6 +712,11 @@ CK_PR_N_S(not, int, int, ~)
 CK_PR_N_S(neg, int, int, -)
 #endif /* CK_F_PR_NEG_INT */
 
+#ifndef CK_F_PR_NEG_INT_ZERO
+#define CK_F_PR_NEG_INT_ZERO
+CK_PR_N_Z_S(int, int)
+#endif /* CK_F_PR_NEG_INT_ZERO */
+
 #endif /* CK_F_PR_LOAD_INT && CK_F_PR_CAS_INT_VALUE */
 
 #if defined(CK_F_PR_LOAD_UINT) && defined(CK_F_PR_CAS_UINT_VALUE)
@@ -435,6 +730,11 @@ CK_PR_N_S(not, uint, unsigned int, ~)
 #define CK_F_PR_NEG_UINT
 CK_PR_N_S(neg, uint, unsigned int, -)
 #endif /* CK_F_PR_NEG_UINT */
+
+#ifndef CK_F_PR_NEG_UINT_ZERO
+#define CK_F_PR_NEG_UINT_ZERO
+CK_PR_N_Z_S(uint, unsigned int)
+#endif /* CK_F_PR_NEG_UINT_ZERO */
 
 #endif /* CK_F_PR_LOAD_UINT && CK_F_PR_CAS_UINT_VALUE */
 
@@ -450,7 +750,88 @@ CK_PR_N(not, ptr, void, uintptr_t, ~, void *)
 CK_PR_N(neg, ptr, void, uintptr_t, -, void *)
 #endif /* CK_F_PR_NEG_PTR */
 
+#ifndef CK_F_PR_NEG_PTR_ZERO
+#define CK_F_PR_NEG_PTR_ZERO
+CK_PR_N_Z(ptr, void, uintptr_t, void *)
+#endif /* CK_F_PR_NEG_PTR_ZERO */
+
 #endif /* CK_F_PR_LOAD_PTR && CK_F_PR_CAS_PTR_VALUE */
+
+#if defined(CK_F_PR_LOAD_64) && defined(CK_F_PR_CAS_64_VALUE)
+
+#ifndef CK_F_PR_NOT_64
+#define CK_F_PR_NOT_64
+CK_PR_N_S(not, 64, uint64_t, ~)
+#endif /* CK_F_PR_NOT_64 */
+
+#ifndef CK_F_PR_NEG_64
+#define CK_F_PR_NEG_64
+CK_PR_N_S(neg, 64, uint64_t, -)
+#endif /* CK_F_PR_NEG_64 */
+
+#ifndef CK_F_PR_NEG_64_ZERO
+#define CK_F_PR_NEG_64_ZERO
+CK_PR_N_Z_S(64, uint64_t)
+#endif /* CK_F_PR_NEG_64_ZERO */
+
+#endif /* CK_F_PR_LOAD_64 && CK_F_PR_CAS_64_VALUE */
+
+#if defined(CK_F_PR_LOAD_32) && defined(CK_F_PR_CAS_32_VALUE)
+
+#ifndef CK_F_PR_NOT_32
+#define CK_F_PR_NOT_32
+CK_PR_N_S(not, 32, uint32_t, ~)
+#endif /* CK_F_PR_NOT_32 */
+
+#ifndef CK_F_PR_NEG_32
+#define CK_F_PR_NEG_32
+CK_PR_N_S(neg, 32, uint32_t, -)
+#endif /* CK_F_PR_NEG_32 */
+
+#ifndef CK_F_PR_NEG_32_ZERO
+#define CK_F_PR_NEG_32_ZERO
+CK_PR_N_Z_S(32, uint32_t)
+#endif /* CK_F_PR_NEG_32_ZERO */
+
+#endif /* CK_F_PR_LOAD_32 && CK_F_PR_CAS_32_VALUE */
+
+#if defined(CK_F_PR_LOAD_16) && defined(CK_F_PR_CAS_16_VALUE)
+
+#ifndef CK_F_PR_NOT_16
+#define CK_F_PR_NOT_16
+CK_PR_N_S(not, 16, uint16_t, ~)
+#endif /* CK_F_PR_NOT_16 */
+
+#ifndef CK_F_PR_NEG_16
+#define CK_F_PR_NEG_16
+CK_PR_N_S(neg, 16, uint16_t, -)
+#endif /* CK_F_PR_NEG_16 */
+
+#ifndef CK_F_PR_NEG_16_ZERO
+#define CK_F_PR_NEG_16_ZERO
+CK_PR_N_Z_S(16, uint16_t)
+#endif /* CK_F_PR_NEG_16_ZERO */
+
+#endif /* CK_F_PR_LOAD_16 && CK_F_PR_CAS_16_VALUE */
+
+#if defined(CK_F_PR_LOAD_8) && defined(CK_F_PR_CAS_8_VALUE)
+
+#ifndef CK_F_PR_NOT_8
+#define CK_F_PR_NOT_8
+CK_PR_N_S(not, 8, uint8_t, ~)
+#endif /* CK_F_PR_NOT_8 */
+
+#ifndef CK_F_PR_NEG_8
+#define CK_F_PR_NEG_8
+CK_PR_N_S(neg, 8, uint8_t, -)
+#endif /* CK_F_PR_NEG_8 */
+
+#ifndef CK_F_PR_NEG_8_ZERO
+#define CK_F_PR_NEG_8_ZERO
+CK_PR_N_Z_S(8, uint8_t)
+#endif /* CK_F_PR_NEG_8_ZERO */
+
+#endif /* CK_F_PR_LOAD_8 && CK_F_PR_CAS_8_VALUE */
 
 #undef CK_PR_N_S
 #undef CK_PR_N
@@ -539,6 +920,62 @@ CK_PR_FAS(ptr, void, void *)
 #endif /* CK_F_PR_FAS_PTR */
 
 #endif /* CK_F_PR_LOAD_PTR && CK_F_PR_CAS_PTR_VALUE */
+
+#if defined(CK_F_PR_LOAD_64) && defined(CK_F_PR_CAS_64_VALUE)
+
+#ifndef CK_F_PR_FAA_64
+#define CK_F_PR_FAA_64
+CK_PR_FAA_S(64, uint64_t)
+#endif /* CK_F_PR_FAA_64 */
+
+#ifndef CK_F_PR_FAS_64
+#define CK_F_PR_FAS_64
+CK_PR_FAS_S(64, uint64_t)
+#endif /* CK_F_PR_FAS_64 */
+
+#endif /* CK_F_PR_LOAD_64 && CK_F_PR_CAS_64_VALUE */
+
+#if defined(CK_F_PR_LOAD_32) && defined(CK_F_PR_CAS_32_VALUE)
+
+#ifndef CK_F_PR_FAA_32
+#define CK_F_PR_FAA_32
+CK_PR_FAA_S(32, uint32_t)
+#endif /* CK_F_PR_FAA_32 */
+
+#ifndef CK_F_PR_FAS_32
+#define CK_F_PR_FAS_32
+CK_PR_FAS_S(32, uint32_t)
+#endif /* CK_F_PR_FAS_32 */
+
+#endif /* CK_F_PR_LOAD_32 && CK_F_PR_CAS_32_VALUE */
+
+#if defined(CK_F_PR_LOAD_16) && defined(CK_F_PR_CAS_16_VALUE)
+
+#ifndef CK_F_PR_FAA_16
+#define CK_F_PR_FAA_16
+CK_PR_FAA_S(16, uint16_t)
+#endif /* CK_F_PR_FAA_16 */
+
+#ifndef CK_F_PR_FAS_16
+#define CK_F_PR_FAS_16
+CK_PR_FAS_S(16, uint16_t)
+#endif /* CK_F_PR_FAS_16 */
+
+#endif /* CK_F_PR_LOAD_16 && CK_F_PR_CAS_16_VALUE */
+
+#if defined(CK_F_PR_LOAD_8) && defined(CK_F_PR_CAS_8_VALUE)
+
+#ifndef CK_F_PR_FAA_8
+#define CK_F_PR_FAA_8
+CK_PR_FAA_S(8, uint8_t)
+#endif /* CK_F_PR_FAA_8 */
+
+#ifndef CK_F_PR_FAS_8
+#define CK_F_PR_FAS_8
+CK_PR_FAS_S(8, uint8_t)
+#endif /* CK_F_PR_FAS_8 */
+
+#endif /* CK_F_PR_LOAD_8 && CK_F_PR_CAS_8_VALUE */
 
 #undef CK_PR_FAA_S
 #undef CK_PR_FAS_S
