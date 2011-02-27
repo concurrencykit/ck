@@ -37,39 +37,43 @@
 #include "../../common.h"
 
 static int done = 0;
-static unsigned int count = 0;
 static struct affinity a;
 static int nthr;
+static int tid;
 static ck_barrier_centralized_t barrier = CK_BARRIER_CENTRALIZED_INITIALIZER;
+struct counter {
+	uint64_t value;
+} CK_CC_CACHELINE;
+struct counter *counters;
 
 static void *
 thread(void *null CK_CC_UNUSED)
 {
 	ck_barrier_centralized_state_t state = CK_BARRIER_CENTRALIZED_STATE_INITIALIZER;
-	unsigned int counter = 0;
+	int id;
 
+	id = ck_pr_faa_int(&tid, 1);	
 	aff_iterate(&a);
 
 	while (ck_pr_load_int(&done) == 0) {
 		ck_barrier_centralized(&barrier, &state, nthr);
-		++counter;
+		ck_pr_inc_64(&counters[id].value);
 		ck_barrier_centralized(&barrier, &state, nthr);
-		++counter;
+		ck_pr_inc_64(&counters[id].value);
 		ck_barrier_centralized(&barrier, &state, nthr);
-		++counter;
+		ck_pr_inc_64(&counters[id].value);
 		ck_barrier_centralized(&barrier, &state, nthr);
-		++counter;
+		ck_pr_inc_64(&counters[id].value);
 		ck_barrier_centralized(&barrier, &state, nthr);
-		++counter;
+		ck_pr_inc_64(&counters[id].value);
 		ck_barrier_centralized(&barrier, &state, nthr);
-		++counter;
+		ck_pr_inc_64(&counters[id].value);
 		ck_barrier_centralized(&barrier, &state, nthr);
-		++counter;
+		ck_pr_inc_64(&counters[id].value);
 		ck_barrier_centralized(&barrier, &state, nthr);
-		++counter;
+		ck_pr_inc_64(&counters[id].value);
 	}
 
-	ck_pr_add_uint(&count, counter);
 	return (NULL);
 }
 
@@ -77,6 +81,7 @@ int
 main(int argc, char *argv[])
 {
 	pthread_t *threads;
+	uint64_t count;
 	int i;
 
 	if (argc != 3) {
@@ -95,6 +100,12 @@ main(int argc, char *argv[])
                 fprintf(stderr, "ERROR: Could not allocate thread structures\n"); 
                 exit(EXIT_FAILURE); 
         } 
+
+	counters = calloc(sizeof(struct counter), nthr);
+	if (counters == NULL) {
+		fprintf(stderr, "ERROR: Could not allocate counters\n");
+		exit(EXIT_FAILURE);
+	}
  
         a.delta = atoi(argv[2]); 
  
@@ -109,9 +120,10 @@ main(int argc, char *argv[])
 
 	sleep(10);
 
+	count = 0;
 	ck_pr_store_int(&done, 1);
 	for (i = 0; i < nthr; ++i) 
-		pthread_join(threads[i], NULL);
+		count += counters[i].value;
 	printf("%d %16" PRIu64 "\n", nthr, count);
 
 	return (0);
