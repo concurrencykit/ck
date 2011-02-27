@@ -158,6 +158,7 @@ if test "$PROFILE"; then
 	printf "Generating build files..........."
 	generate build/ck.build.in build/ck.build
 	generate build/regressions.build.in build/regressions.build
+	generate build/ck.pc.in build/ck.pc
 	generate Makefile.in Makefile
 	echo "success"
 	generate_stdout
@@ -335,6 +336,7 @@ printf "Generating build files..........."
 
 generate build/ck.build.in build/ck.build
 generate build/regressions.build.in build/regressions.build
+generate build/ck.pc.in build/ck.pc
 generate Makefile.in Makefile
 
 echo "success"
