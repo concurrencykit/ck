@@ -123,7 +123,7 @@ main(int argc, char *argv[])
 	count = 0;
 	ck_pr_store_int(&done, 1);
 	for (i = 0; i < nthr; ++i) 
-		count += counters[i].value;
+		count += ck_pr_load_64(&counters[i].value);
 	printf("%d %16" PRIu64 "\n", nthr, count);
 
 	return (0);
