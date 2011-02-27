@@ -62,6 +62,8 @@ thread(void *null CK_CC_UNUSED)
 	int i = 0;
 	int counter;
 
+	aff_iterate(&a);
+
 	ck_pr_inc_int(&barrier_wait);
 	while (ck_pr_load_int(&barrier_wait) != nthr)
 		ck_pr_stall();
