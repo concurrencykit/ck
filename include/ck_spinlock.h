@@ -99,7 +99,7 @@ ck_spinlock_anderson_lock(struct ck_spinlock_anderson *lock,
 	 * to reallocate beginning slots to more than one thread. To avoid this
 	 * use a compare-and-swap.
 	 */
-	if (lock->wrap) {
+	if (lock->wrap != 0) {
 		position = ck_pr_load_uint(&lock->next);
 
 		do {
@@ -108,11 +108,12 @@ ck_spinlock_anderson_lock(struct ck_spinlock_anderson *lock,
 			else
 				next = position + 1;
 		} while (ck_pr_cas_uint_value(&lock->next, position, next, &position) == false);
-	} else
-		position = ck_pr_faa_uint(&lock->next, 1);
 
-	/* Make sure to wrap around. */
-	position %= count;
+		position %= count;
+	} else {
+		position = ck_pr_faa_uint(&lock->next, 1);
+		position &= count - 1;
+	}
 
 	/* Spin until slot is marked as unlocked. First slot is initialized to false. */
 	while (ck_pr_load_uint(&lock->slots[position].locked) == true)
