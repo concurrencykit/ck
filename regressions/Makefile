@@ -7,6 +7,8 @@ all:
 	make -C ./ck_fifo/benchmark all
 	make -C ./ck_pr/validate all 
 	make -C ./ck_pr/benchmark all
+	make -C ./ck_barrier/validate all
+	make -C ./ck_barrier/benchmark all
 	make -C ./ck_bytelock/validate all
 	make -C ./ck_bytelock/benchmark all
 	make -C ./ck_sequence/validate all 
@@ -23,6 +25,8 @@ clean:
 	make -C ./ck_fifo/benchmark clean 
 	make -C ./ck_pr/validate clean 
 	make -C ./ck_pr/benchmark clean
+	make -C ./ck_barrier/validate clean 
+	make -C ./ck_barrier/benchmark clean 
 	make -C ./ck_bytelock/validate clean
 	make -C ./ck_bytelock/benchmark clean 
 	make -C ./ck_sequence/validate clean
