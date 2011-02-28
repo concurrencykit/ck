@@ -120,6 +120,21 @@ CK_PR_FAS_S(8,  uint8_t,  "xchgb")
 /*
  * Atomic load-from-memory operations.
  */
+CK_CC_INLINE static uint64_t
+ck_pr_load_64(uint64_t *target)
+{
+	uint64_t r;
+
+	__asm__ __volatile__("movq %0, %%xmm0;"
+			     "movq %%xmm0, %1;"
+				: "+m" (*target),
+				  "=m" (r)
+				:
+				: "memory", "%xmm0");
+
+	return (r);
+}
+
 #define CK_PR_LOAD(S, M, T, C, I)				\
 	CK_CC_INLINE static T					\
 	ck_pr_load_##S(M *target)				\
@@ -149,14 +164,16 @@ CK_PR_LOAD_S(8,  uint8_t,  "movb")
 CK_CC_INLINE static void 
 ck_pr_load_32_2(uint32_t target[2], uint32_t v[2])
 {
-	__asm__ __volatile__("movl %%edx, %%ecx;"
+	__asm__ __volatile__("pushl %%ebx;"
+			     "movl %%edx, %%ecx;"
 			     "movl %%eax, %%ebx;"
 			     CK_PR_LOCK_PREFIX "cmpxchg8b %0;"
+			     "popl %%ebx;"
 				: "+m" (*(uint32_t *)target),
 				  "=a" (v[0]),
 				  "=d" (v[1])
 				:
-				: "ebx", "ecx", "memory", "cc");
+				: "ecx", "memory", "cc");
 	return;
 }
 
@@ -189,26 +206,10 @@ CK_PR_LOAD_2(8, 8, uint8_t)
 CK_CC_INLINE static void
 ck_pr_store_64(uint64_t *target, uint64_t val)
 {
-	union {
-		uint64_t s;
-		uint32_t v[2];
-	} set;
-	
-	union {
-		uint64_t c;
-		uint32_t v[2];
-	} comp;
-
-	set.s = val;
-	comp.c = *target;
-
-	__asm__ __volatile__(CK_PR_LOCK_PREFIX "cmpxchg8b %0;"
+	__asm__ __volatile__("movq %1, %0;"
 				: "+m" (*target)
-				: "a"  (comp.v[0]),
-				  "d"  (comp.v[1]),
-				  "b"  (set.v[0]),
-				  "c"  (set.v[1])
-				: "memory", "cc");
+				: "y" (val)
+				: "memory");
 }
 
 #define CK_PR_STORE(S, M, T, C, I)				\
@@ -431,14 +432,19 @@ ck_pr_cas_32_2(uint32_t target[2], uint32_t compare[2], uint32_t set[2])
 {
 	bool z;
 
-	__asm__ __volatile__("movl %4, %%eax;"
-			     "leal %4, %%edx;"
+	__asm__ __volatile__("pushl %%ebx;"
+			     "pushl %%ecx;"
+			     "movl 0(%2), %%ebx;"
+			     "movl 4(%2), %%ecx;"
+                             "movl %3, %%eax;"
+			     "leal %3, %%edx;"
 			     "movl 4(%%edx), %%edx;"
-			     CK_PR_LOCK_PREFIX "cmpxchg8b %0; setz %1"
+			     CK_PR_LOCK_PREFIX "cmpxchg8b %0; setz %1;"
+			     "popl %%ecx;"
+			     "popl %%ebx;"
 				: "+m" (*target),
-				  "=q" (z)
-				: "b"  (set[0]),
-				  "c"  (set[1]),
+				  "=m" (z)
+				: "q"  (set),
 				  "m"  (compare)
 				: "memory", "cc", "%eax", "%edx");
 	return (bool)z;
@@ -467,13 +473,18 @@ ck_pr_cas_64(uint64_t *t, uint64_t c, uint64_t s)
 	set.s = s;
 	comp.c = c;
 
-	__asm__ __volatile__(CK_PR_LOCK_PREFIX "cmpxchg8b %0; setz %1;"
+	__asm__ __volatile__("pushl %%ebx;"
+			     "pushl %%ecx;"
+			     "movl 0(%4), %%ebx;"
+			     "movl 4(%4), %%ecx;"
+			     CK_PR_LOCK_PREFIX "cmpxchg8b %0; setz %1;"
+			     "popl %%ecx;"
+			     "popl %%ebx;"
 				: "+m" (*t),
 				  "=q" (z)
 				: "a"  (comp.v[0]),
 				  "d"  (comp.v[1]),
-				  "b"  (set.v[0]),
-				  "c"  (set.v[1])
+				  "q"  (set.v)
 				: "memory", "cc");
 	return (bool)z;
 }
@@ -495,15 +506,27 @@ ck_pr_cas_64_value(uint64_t *t, uint64_t c, uint64_t s, uint64_t *v)
 	set.s = s;
 	comp.c = c;
 
-	__asm__ __volatile__(CK_PR_LOCK_PREFIX "cmpxchg8b %0; setz %3;"
+	/*
+	 * Note the setz being done in memory. This is because if we allow
+	 * gcc to pick a register, it seems to want to pick BL, which is
+	 * obviously clobbered as soon as we pop EBX. The rest of the
+	 * registers are taken, so we don't have any outside storage for
+	 * this. This also affects ck_pr_cas_32_2_value.
+	 */
+	__asm__ __volatile__("pushl %%ebx;"
+			     "pushl %%ecx;"
+			     "movl 0(%6), %%ebx;"
+			     "movl 4(%6), %%ecx;"
+			     CK_PR_LOCK_PREFIX "cmpxchg8b %0; setz %3;"
+			     "popl %%ecx;"
+			     "popl %%ebx;"
 				: "+m" (*t),
 				  "=a" (val[0]),
 				  "=d" (val[1]),
-				  "=q" (z)
+				  "=m" (z)
 				: "a"  (comp.v[0]),
 				  "d"  (comp.v[1]),
-				  "b"  (set.v[0]),
-				  "c"  (set.v[1])
+				  "q"  (set.v)
 				: "memory", "cc");
 	return (bool)z;
 }
@@ -513,16 +536,20 @@ ck_pr_cas_32_2_value(uint32_t target[2], uint32_t compare[2], uint32_t set[2], u
 {
 	bool z;
 
-	__asm__ __volatile__(CK_PR_LOCK_PREFIX "cmpxchg8b %0;"
-			     "setz %3"
+	__asm__ __volatile__("pushl %%ebx;"
+			     "pushl %%ecx;"
+			     "movl 0(%4), %%ebx;"
+			     "movl 4(%4), %%ecx;"
+			     CK_PR_LOCK_PREFIX "cmpxchg8b %0; setz %3;"
+			     "popl %%ecx;"
+			     "popl %%ebx;"
 				: "+m" (*target),
 				  "=a" (v[0]),
 				  "=d" (v[1]),
-				  "=q" (z)
+				  "=m" (z)
 				: "a" (compare[0]),
 				  "d" (compare[1]),
-				  "b" (set[0]),
-				  "c" (set[1])
+				  "q" (set)
 				: "memory", "cc");
 	return (bool)z;
 }
@@ -553,11 +580,8 @@ ck_pr_cas_##S##_##W##_value(T *t, T c[W], T s[W], T *v)	\
 CK_PR_CAS_V(char, 8, char)
 CK_PR_CAS_V(int, 2, int)
 CK_PR_CAS_V(uint, 2, unsigned int)
-CK_PR_CAS_V(64, 1, uint64_t)
 CK_PR_CAS_V(16, 4, uint16_t)
 CK_PR_CAS_V(8, 8, uint8_t)
-
-#define ck_pr_cas_64_value(A, B, C, D) ck_pr_cas_64_1_value((A), &(B), &(C), (D))
 
 #undef CK_PR_CAS_V
 
