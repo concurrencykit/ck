@@ -116,7 +116,7 @@ struct ck_ring {
 	unsigned int size;
 	unsigned int mask;
 	void **ring;
-} CK_CC_PACKED;
+};
 typedef struct ck_ring ck_ring_t;
 
 /*

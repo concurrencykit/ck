@@ -351,7 +351,7 @@ ck_spinlock_dec_unlock(struct ck_spinlock_dec *lock)
 struct ck_spinlock_ticket {
 	unsigned int next;
 	unsigned int position;
-} CK_CC_PACKED;
+};
 typedef struct ck_spinlock_ticket ck_spinlock_ticket_t;
 
 #define CK_SPINLOCK_TICKET_INITIALIZER {.next = 0, .position = 0}
