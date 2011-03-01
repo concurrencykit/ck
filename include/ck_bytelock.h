@@ -47,7 +47,7 @@ struct ck_bytelock {
 	unsigned int owner;
 	unsigned int n_readers;
 	uint8_t readers[CK_MD_CACHELINE - sizeof(unsigned int) * 2] CK_CC_ALIGN(8);
-} CK_CC_PACKED;
+};
 typedef struct ck_bytelock ck_bytelock_t;
 
 #define CK_BYTELOCK_INITIALIZER { 0, 0, {0} }

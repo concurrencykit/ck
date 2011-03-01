@@ -47,7 +47,7 @@ struct ck_fifo_spsc {
 	struct ck_fifo_spsc_entry *tail;
 	struct ck_fifo_spsc_entry *head_snapshot;
 	struct ck_fifo_spsc_entry *garbage;
-} CK_CC_PACKED;
+};
 typedef struct ck_fifo_spsc ck_fifo_spsc_t;
 
 CK_CC_INLINE static void
@@ -139,7 +139,7 @@ ck_fifo_spsc_recycle(struct ck_fifo_spsc *fifo)
 struct ck_fifo_mpmc_entry;
 struct ck_fifo_mpmc_pointer {
 	struct ck_fifo_mpmc_entry *pointer;
-	char *generation;
+	char *generation CK_CC_PACKED;
 } CK_CC_ALIGN(16);
 
 struct ck_fifo_mpmc_entry {
@@ -154,7 +154,7 @@ struct ck_fifo_mpmc {
 	struct ck_fifo_mpmc_pointer tail;
 	struct ck_fifo_mpmc_entry *head_snapshot;
 	struct ck_fifo_mpmc_pointer garbage;
-} CK_CC_PACKED;
+};
 typedef struct ck_fifo_mpmc ck_fifo_mpmc_t;
 
 CK_CC_INLINE static void
