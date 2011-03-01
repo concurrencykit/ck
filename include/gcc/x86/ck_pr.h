@@ -491,17 +491,10 @@ ck_pr_cas_64_value(uint64_t *t, uint64_t c, uint64_t s, uint64_t *v)
 	} comp;
 	uint32_t *val = (uint32_t *)v;
 
-	set.s = s;
-	comp.c = c;
+	ck_pr_store_64(&comp.c, c)
+	ck_pr_store_64(&set.s, s);
 
 #ifdef __PIC__
-	/*
-	 * Note the setz being done in memory. This is because if we allow
-	 * gcc to pick a register, it seems to want to pick BL, which is
-	 * obviously clobbered as soon as we pop EBX. The rest of the
-	 * registers are taken, so we don't have any outside storage for
-	 * this. This also affects ck_pr_cas_32_2_value.
-	 */
 	__asm__ __volatile__("pushl %%ebx;"
 			     "movl %7, %%ebx;"
 			     CK_PR_LOCK_PREFIX "cmpxchg8b %a3; setz %2;"
@@ -509,7 +502,7 @@ ck_pr_cas_64_value(uint64_t *t, uint64_t c, uint64_t s, uint64_t *v)
 				: "=a" (val[0]),
 				  "=d" (val[1]),
 				  "=q" (z)
-				: "p"  (t),
+				: "p"  (&t[0]),
 				  "a"  (comp.v[0]),
 				  "d"  (comp.v[1]),
 				  "c"  (set.v[1]),
@@ -577,12 +570,12 @@ ck_pr_cas_32_2_value(uint32_t target[2], uint32_t compare[2], uint32_t set[2], u
 #ifdef __PIC__
 	__asm__ __volatile__("pushl %%ebx;"
 			     "movl %7, %%ebx;"
-			     CK_PR_LOCK_PREFIX "cmpxchg8b %a4; setz %2;"
+			     CK_PR_LOCK_PREFIX "cmpxchg8b %a3; setz %2;"
 			     "popl %%ebx;"
 				: "=a" (v[0]),
 				  "=d" (v[1]),
 				  "=q" (z)
-				: "p"  (target),
+				: "p"  (&target[0]),
 				  "a"  (compare[0]),
 				  "d"  (compare[1]),
 				  "c"  (set[1]),
