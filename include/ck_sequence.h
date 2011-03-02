@@ -50,9 +50,6 @@ ck_sequence_read_begin(struct ck_sequence *sq)
 {
 	uint32_t current;
 
-	/* Avoid fetching an old sequence number. */
-	ck_pr_fence_load();
-
 	for (;;) {
 		current = ck_pr_load_uint(&sq->sequence);
 
