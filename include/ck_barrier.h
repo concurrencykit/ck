@@ -216,14 +216,6 @@ ck_barrier_combining_aux(struct ck_barrier_combining *barrier,
 			 struct ck_barrier_combining_group *tnode,
 			 unsigned int sense)
 {
-
-	/* Incrementing a leaf's count is unnecessary. */
-	if (tnode->lchild == NULL) {
-		ck_barrier_combining_aux(barrier, tnode->parent, sense);
-		ck_pr_store_uint(&tnode->sense, ~tnode->sense);
-		return;
-	}
-
 	if (ck_pr_faa_uint(&tnode->count, 1) == tnode->k - 1) {
 		if (tnode->parent != NULL)
 			ck_barrier_combining_aux(barrier, tnode->parent, sense);
