@@ -58,9 +58,8 @@ static void *
 thread(void *null CK_CC_UNUSED)
 {
 	ck_barrier_centralized_state_t state = CK_BARRIER_CENTRALIZED_STATE_INITIALIZER;
-	int j;
+	int j, counter;
 	int i = 0;
-	int counter;
 
 	aff_iterate(&a);
 

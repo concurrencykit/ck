@@ -51,40 +51,31 @@
 
 static struct affinity a;
 static int nthr;
+static int ngroups;
 static int counters[ENTRIES];
 static ck_barrier_combining_t barrier;
 static int barrier_wait;
 
 static void *
-thread(void *null CK_CC_UNUSED)
+thread(void *group)
 {
-	ck_barrier_combining_entry_t *tnode;
 	ck_barrier_combining_state_t state = CK_BARRIER_COMBINING_STATE_INITIALIZER;
-	int j;
+	int j, counter;
 	int i = 0;
-	int counter;
 
 	aff_iterate(&a);
 
-	tnode = malloc(sizeof(ck_barrier_combining_entry_t));
-	if (tnode == NULL) {
-		fprintf(stderr, "Could not allocate thread barrier entry\n");
-		exit(EXIT_FAILURE);
-	}
-
-	ck_barrier_combining_entry_init(&barrier, tnode);
-
 	ck_pr_inc_int(&barrier_wait);
-	while (ck_pr_load_int(&barrier_wait) != nthr)
+	while (ck_pr_load_int(&barrier_wait) != (nthr * ngroups))
 		ck_pr_stall();
 
 	for (j = 0; j < ITERATE; j++) {
 		i = j++ & (ENTRIES - 1);
 		ck_pr_inc_int(&counters[i]);
-		ck_barrier_combining(&barrier, tnode, &state);
+		ck_barrier_combining(&barrier, group, &state);
 		counter = ck_pr_load_int(&counters[i]);
-		if (counter != nthr * (j / ENTRIES + 1)) {
-			fprintf(stderr, "FAILED [%d:%d]: %d != %d\n", i, j - 1, counter, nthr);
+		if (counter != nthr * ngroups * (j / ENTRIES + 1)) {
+			fprintf(stderr, "FAILED [%d:%d]: %d != %d\n", i, j - 1, counter, nthr * ngroups);
 			exit(EXIT_FAILURE);
 		}
 	}
@@ -96,38 +87,55 @@ int
 main(int argc, char *argv[])
 {
 	pthread_t *threads;
-	ck_barrier_combining_entry_t *init_root;
+	ck_barrier_combining_group_t *groupings;
+	ck_barrier_combining_group_t *init_root;
 	int i;
 
-	init_root = malloc(sizeof(ck_barrier_combining_entry_t));
+	init_root = malloc(sizeof(ck_barrier_combining_group_t));
 	if (init_root == NULL) {
 		fprintf(stderr, "ERROR: Could not allocate initial barrier structure\n");
 		exit(EXIT_FAILURE);
 	}	
 	ck_barrier_combining_init(&barrier, init_root);
 
-	if (argc != 3) {
-		fprintf(stderr, "Usage: correct <number of threads> <affinity delta>\n");
+	if (argc != 4) {
+		fprintf(stderr, "Usage: correct <total groups> <threads per group> <affinity delta>\n");
 		exit(EXIT_FAILURE);
 	}
 
-	nthr = atoi(argv[1]);
+	ngroups = atoi(argv[1]);
+	if (ngroups <= 0) {
+		fprintf(stderr, "ERROR: Number of groups must be greater than 0\n");
+		exit(EXIT_FAILURE);
+	}
+
+	nthr = atoi(argv[2]);
 	if (nthr <= 0) {
 		fprintf(stderr, "ERROR: Number of threads must be greater than 0\n");
 		exit(EXIT_FAILURE);
 	}
 
-	threads = malloc(sizeof(pthread_t) * nthr);
+	groupings = malloc(sizeof(ck_barrier_combining_group_t) * ngroups);
+	if (groupings == NULL) {
+		fprintf(stderr, "Could not allocate thread barrier grouping structures\n");
+		exit(EXIT_FAILURE);
+	}
+
+	threads = malloc(sizeof(pthread_t) * nthr * ngroups);
 	if (threads == NULL) {
 		fprintf(stderr, "ERROR: Could not allocate thread structures\n");
 		exit(EXIT_FAILURE);
 	}
 
-	a.delta = atoi(argv[2]);
+	a.delta = atoi(argv[3]);
+
+	for (i = 0; i < ngroups; i++) {
+		ck_barrier_combining_group_init(&barrier, groupings + i, nthr);
+	}
 
 	fprintf(stderr, "Creating threads (barrier)...");
-	for (i = 0; i < nthr; i++) {
-		if (pthread_create(&threads[i], NULL, thread, NULL)) {
+	for (i = 0; i < (nthr * ngroups); i++) {
+		if (pthread_create(&threads[i], NULL, thread, groupings + (i % ngroups))) {
 			fprintf(stderr, "ERROR: Could not create thread %d\n", i);
 			exit(EXIT_FAILURE);
 		}
@@ -135,7 +143,7 @@ main(int argc, char *argv[])
 	fprintf(stderr, "done\n");
 
 	fprintf(stderr, "Waiting for threads to finish correctness regression...");
-	for (i = 0; i < nthr; i++)
+	for (i = 0; i < (nthr * ngroups); i++)
 		pthread_join(threads[i], NULL);
 	fprintf(stderr, "done (passed)\n");
 

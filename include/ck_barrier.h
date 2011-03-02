@@ -75,17 +75,17 @@ ck_barrier_centralized(struct ck_barrier_centralized *barrier,
 #ifndef CK_F_BARRIER_COMBINING
 #define CK_F_BARRIER_COMBINING
 
-struct ck_barrier_combining_entry {
+struct ck_barrier_combining_group {
 	unsigned int k;
 	unsigned int count;
 	unsigned int sense;
-	struct ck_barrier_combining_entry *parent;
-	struct ck_barrier_combining_entry *lchild;
-	struct ck_barrier_combining_entry *rchild;
-	struct ck_barrier_combining_entry *next;
+	struct ck_barrier_combining_group *parent;
+	struct ck_barrier_combining_group *lchild;
+	struct ck_barrier_combining_group *rchild;
+	struct ck_barrier_combining_group *next;
 };
 
-typedef struct ck_barrier_combining_entry ck_barrier_combining_entry_t;
+typedef struct ck_barrier_combining_group ck_barrier_combining_group_t;
 
 struct ck_barrier_combining_state {
 	unsigned int sense;
@@ -96,15 +96,15 @@ typedef struct ck_barrier_combining_state ck_barrier_combining_state_t;
 #define CK_BARRIER_COMBINING_STATE_INITIALIZER {~0}
 
 struct ck_barrier_combining {
-	struct ck_barrier_combining_entry *root;
+	struct ck_barrier_combining_group *root;
 	ck_spinlock_fas_t mutex;
 };
 
 typedef struct ck_barrier_combining ck_barrier_combining_t;
 
 struct ck_barrier_combining_queue {
-	struct ck_barrier_combining_entry *head;
-	struct ck_barrier_combining_entry *tail;
+	struct ck_barrier_combining_group *head;
+	struct ck_barrier_combining_group *tail;
 };
 
 CK_CC_INLINE static void
@@ -116,7 +116,7 @@ ck_barrier_combining_queue_init(struct ck_barrier_combining_queue *queue)
 
 CK_CC_INLINE static void
 ck_barrier_combining_queue_enqueue(struct ck_barrier_combining_queue *queue,
-				   struct ck_barrier_combining_entry *node_value)
+				   struct ck_barrier_combining_group *node_value)
 {
 
 	node_value->next = NULL;
@@ -132,10 +132,10 @@ ck_barrier_combining_queue_enqueue(struct ck_barrier_combining_queue *queue,
 	return;
 }
 
-CK_CC_INLINE static struct ck_barrier_combining_entry *
+CK_CC_INLINE static struct ck_barrier_combining_group *
 ck_barrier_combining_queue_dequeue(struct ck_barrier_combining_queue *queue)
 {
-	struct ck_barrier_combining_entry *front = NULL;
+	struct ck_barrier_combining_group *front = NULL;
 
 	if (queue->head != NULL) {
 		front = queue->head;
@@ -147,7 +147,7 @@ ck_barrier_combining_queue_dequeue(struct ck_barrier_combining_queue *queue)
 
 CK_CC_INLINE static void
 ck_barrier_combining_init(struct ck_barrier_combining *root, 
-			  struct ck_barrier_combining_entry *init_root)
+			  struct ck_barrier_combining_group *init_root)
 {
 
 	init_root->k = 0;
@@ -160,9 +160,9 @@ ck_barrier_combining_init(struct ck_barrier_combining *root,
 }
 
 CK_CC_INLINE static bool
-ck_barrier_combining_try_insert(struct ck_barrier_combining_entry *parent,
-				struct ck_barrier_combining_entry *tnode,
-				struct ck_barrier_combining_entry **child)
+ck_barrier_combining_try_insert(struct ck_barrier_combining_group *parent,
+				struct ck_barrier_combining_group *tnode,
+				struct ck_barrier_combining_group **child)
 {
 
 	if (*child == NULL) {
@@ -177,15 +177,16 @@ ck_barrier_combining_try_insert(struct ck_barrier_combining_entry *parent,
 }
 
 CK_CC_INLINE static void
-ck_barrier_combining_entry_init(struct ck_barrier_combining *root,
-				struct ck_barrier_combining_entry *tnode)
+ck_barrier_combining_group_init(struct ck_barrier_combining *root,
+				struct ck_barrier_combining_group *tnode,
+				unsigned int nthr)
 {
-	struct ck_barrier_combining_entry *node;
+	struct ck_barrier_combining_group *node;
 	struct ck_barrier_combining_queue queue;
 
 	ck_barrier_combining_queue_init(&queue);
 
-	tnode->k = 1;
+	tnode->k = nthr;
 	tnode->count = 0;
 	tnode->sense = 0;
 	tnode->lchild = tnode->rchild = NULL;
@@ -212,7 +213,7 @@ leave:
 
 CK_CC_INLINE static void
 ck_barrier_combining_aux(struct ck_barrier_combining *barrier,
-			 struct ck_barrier_combining_entry *tnode,
+			 struct ck_barrier_combining_group *tnode,
 			 unsigned int sense)
 {
 
@@ -239,11 +240,13 @@ ck_barrier_combining_aux(struct ck_barrier_combining *barrier,
 
 CK_CC_INLINE static void
 ck_barrier_combining(struct ck_barrier_combining *barrier,
-		     struct ck_barrier_combining_entry *tnode,
+		     struct ck_barrier_combining_group *tnode,
 		     struct ck_barrier_combining_state *state)
 {
 	ck_barrier_combining_aux(barrier, tnode, state->sense);
 	state->sense = ~state->sense;
+
+	return;
 }
 #endif /* CK_F_BARRIER_COMBINING */
 
