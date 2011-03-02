@@ -64,6 +64,8 @@ thread(void *null CK_CC_UNUSED)
 	int i = 0;
 	int counter;
 
+	aff_iterate(&a);
+
 	tnode = malloc(sizeof(ck_barrier_combining_entry_t));
 	if (tnode == NULL) {
 		fprintf(stderr, "Could not allocate thread barrier entry\n");
@@ -71,8 +73,6 @@ thread(void *null CK_CC_UNUSED)
 	}
 
 	ck_barrier_combining_entry_init(&barrier, tnode);
-
-	aff_iterate(&a);
 
 	ck_pr_inc_int(&barrier_wait);
 	while (ck_pr_load_int(&barrier_wait) != nthr)
@@ -89,7 +89,6 @@ thread(void *null CK_CC_UNUSED)
 		}
 	}
 
-	free(tnode);
 	return (NULL);
 }
 
@@ -97,8 +96,8 @@ int
 main(int argc, char *argv[])
 {
 	pthread_t *threads;
-	int i;
 	ck_barrier_combining_entry_t *init_root;
+	int i;
 
 	init_root = malloc(sizeof(ck_barrier_combining_entry_t));
 	if (init_root == NULL) {
@@ -140,7 +139,6 @@ main(int argc, char *argv[])
 		pthread_join(threads[i], NULL);
 	fprintf(stderr, "done (passed)\n");
 
-	free(init_root);
 	return (0);
 }
 

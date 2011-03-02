@@ -1,17 +1,17 @@
 .PHONY: clean distribution
 
-OBJECTS=validate combining_validate 
+OBJECTS=ck_barrier_centralized ck_barrier_combining
 
 all: $(OBJECTS)
 
-validate: validate.c ../../../include/ck_barrier.h
-	$(CC) $(CFLAGS) -o validate validate.c -lpthread
+ck_barrier_centralized: ck_barrier_centralized.c ../../../include/ck_barrier.h
+	$(CC) $(CFLAGS) -o ck_barrier_centralized ck_barrier_centralized.c
 
-combining_validate: combining_validate.c ../../../include/ck_barrier.h
-	$(CC) $(CFLAGS) -o combining_validate combining_validate.c -lpthread
+ck_barrier_combining: ck_barrier_combining.c ../../../include/ck_barrier.h
+	$(CC) $(CFLAGS) -o ck_barrier_combining ck_barrier_combining.c
 
 clean:
 	rm -rf *.dSYM *~ *.o $(OBJECTS)
 
 include ../../../build/regressions.build
-CFLAGS+=-D_GNU_SOURCE -O0 -ggdb
+CFLAGS+=-D_GNU_SOURCE -lpthread
