@@ -150,7 +150,13 @@ hazard_compare(const void *a, const void *b)
 	x = a;
 	y = b;
 
-	return (*(char *)x - *(char *)y);
+	if (*x < *y) {
+		return -1;
+	} else if (*x == *y) {
+		return 0;
+	}
+
+	return 1;
 }
 
 CK_CC_INLINE static bool
