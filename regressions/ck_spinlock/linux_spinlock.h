@@ -4,7 +4,7 @@ CK_CC_INLINE static void
 spin_lock(volatile unsigned int *lock)
 {
 #ifdef __x86_64__
-            asm volatile(
+            __asm__ __volatile__(
                     "\n1:\t"
                     "lock ; decl %0\n\t"
                     "jns 2f\n"
@@ -25,7 +25,7 @@ CK_CC_INLINE static void
 spin_unlock(volatile unsigned int *lock)
 {
 #ifdef __x86_64__
-        asm volatile("movl $1,%0" :"=m" (*lock) :: "memory");
+        __asm__ __volatile__("movl $1,%0" :"=m" (*lock) :: "memory");
 #else
 	*lock = 0;
         return;

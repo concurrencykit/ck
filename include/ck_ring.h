@@ -148,6 +148,7 @@ CK_CC_INLINE static bool
 ck_ring_dequeue_spsc(struct ck_ring *ring, void *data)
 {
 	unsigned int consumer, producer;
+	void *value;
 
 	consumer = ck_pr_load_uint(&ring->c_head);
 	producer = ck_pr_load_uint(&ring->p_tail);
@@ -156,7 +157,8 @@ ck_ring_dequeue_spsc(struct ck_ring *ring, void *data)
 		return (false);
 
 	ck_pr_fence_load();
-	*(void **)data = ck_pr_load_ptr(ring->ring + consumer);
+	value = ck_pr_load_ptr(ring->ring + consumer);
+	ck_pr_store_ptr(data, value);
 	ck_pr_store_uint(&ring->c_head, (consumer + 1) & ring->mask);
 
 	return (true);

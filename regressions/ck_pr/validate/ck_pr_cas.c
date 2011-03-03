@@ -145,11 +145,13 @@ main(void)
 	CK_PR_CAS_B(8);
 #endif
 
+#ifdef CK_F_PR_CAS_64_VALUE
 	uint64_t a = 0xffffffffaaaaaaaa, b = 0x8888888800000000;
 
-	printf("%" PRIx64 " -> ", b);
+	printf("%" PRIx64 " (%" PRIx64 ") -> ", b, a);
 	ck_pr_cas_64_value(&a, a, b, &b);
-	printf("%" PRIx64 "\n", b);
+	printf("%" PRIx64 " (%" PRIx64 ")\n", b, a);
+#endif
 
 	return (0);
 }
