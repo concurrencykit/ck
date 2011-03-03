@@ -164,37 +164,10 @@ CK_PR_LOAD_S(8,  uint8_t,  "movb")
 CK_CC_INLINE static void 
 ck_pr_load_32_2(uint32_t target[2], uint32_t v[2])
 {
-#ifdef __PIC__
-	uint32_t ebxt;
-
-	__asm__ __volatile__("movl %%ebx, %3;"
-			     "movl %%edx, %%ecx;"
-			     "movl %%eax, %%ebx;"
-			     CK_PR_LOCK_PREFIX "cmpxchg8b %a2;"
-			     "movl %3, %%ebx;"
-#if (__GNUC__ * 100 + __GNUC_MINOR__) >= 403
-				: "+m" (*(uint32_t *)target),
-#else
-				: "=m" (*(uint32_t *)target),
-#endif
-				  "=a" (v[0]),
-				  "=d" (v[1])
-				: "m"  (ebxt)
-				: "%ecx", "memory", "cc");
-#else
-	__asm__ __volatile__("movl %%edx, %%ecx;"
-			     "movl %%eax, %%ebx;"
-			     CK_PR_LOCK_PREFIX "cmpxchg8b %0;"
-#if (__GNUC__ * 100 + __GNUC_MINOR__) >= 403
-				: "+m" (*(uint32_t *)target),
-#else
-				: "=m" (*(uint32_t *)target),
-#endif
-				  "=a" (v[0]),
-				  "=d" (v[1])
-				:
-				: "%ebx", "%ecx", "memory", "cc");
-#endif
+	__asm__ __volatile__("movq %1, %0;"
+				: "=m" (*(uint64_t *)target)
+				: "y"  (*(uint64_t *)v)
+				: "%xmm0", "memory");
 	return;
 }
 
