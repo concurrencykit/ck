@@ -491,7 +491,7 @@ ck_pr_cas_64_value(uint64_t *t, uint64_t c, uint64_t s, uint64_t *v)
 	} comp;
 	uint32_t *val = (uint32_t *)v;
 
-	ck_pr_store_64(&comp.c, c)
+	ck_pr_store_64(&comp.c, c);
 	ck_pr_store_64(&set.s, s);
 
 #ifdef __PIC__
