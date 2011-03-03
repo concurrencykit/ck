@@ -165,20 +165,31 @@ CK_CC_INLINE static void
 ck_pr_load_32_2(uint32_t target[2], uint32_t v[2])
 {
 #ifdef __PIC__
-	__asm__ __volatile__("pushl %%ebx;"
+	uint32_t ebxt;
+
+	__asm__ __volatile__("movl %%ebx, %3;"
 			     "movl %%edx, %%ecx;"
 			     "movl %%eax, %%ebx;"
 			     CK_PR_LOCK_PREFIX "cmpxchg8b %a2;"
-			     "popl %%ebx;"
-				: "=a" (v[0]),
+			     "movl %3, %%ebx;"
+#if (__GNUC__ * 100 + __GNUC_MINOR__) >= 403
+				: "+m" (*(uint32_t *)target),
+#else
+				: "=m" (*(uint32_t *)target),
+#endif
+				  "=a" (v[0]),
 				  "=d" (v[1])
-				: "p"  (&target[0])
+				: "m"  (ebxt)
 				: "%ecx", "memory", "cc");
 #else
 	__asm__ __volatile__("movl %%edx, %%ecx;"
 			     "movl %%eax, %%ebx;"
 			     CK_PR_LOCK_PREFIX "cmpxchg8b %0;"
+#if (__GNUC__ * 100 + __GNUC_MINOR__) >= 403
 				: "+m" (*(uint32_t *)target),
+#else
+				: "=m" (*(uint32_t *)target),
+#endif
 				  "=a" (v[0]),
 				  "=d" (v[1])
 				:
@@ -443,33 +454,43 @@ ck_pr_cas_64(uint64_t *t, uint64_t c, uint64_t s)
 		uint64_t s;
 		uint32_t v[2];
 	} set;
-	
-	union {
-		uint64_t c;
-		uint32_t v[2];
-	} comp;
 
-	ck_pr_store_64(&set.s, s);
-	ck_pr_store_64(&comp.c, c);
+	uint64_t A;
 
 #ifdef __PIC__
-	__asm__ __volatile__("pushl %%ebx;"
+	uint32_t ebxt;
+#endif
+
+
+	ck_pr_store_64(&set.s, s);
+
+#ifdef __PIC__
+	__asm__ __volatile__("movl %%ebx, %6;"
 			     "movl %5, %%ebx;"
-			     CK_PR_LOCK_PREFIX "cmpxchg8b %0; setz %1;"
-			     "popl %%ebx;"
-				: "+m" (*t),
-				  "=adc" (z)
-				: "a"  (comp.v[0]),
-				  "d"  (comp.v[1]),
+			     CK_PR_LOCK_PREFIX "cmpxchg8b %0; setz %2;"
+			     "movl %6, %%ebx;"
+#if (__GNUC__ * 100 + __GNUC_MINOR__) >= 403
+				: "+m" (*(uint32_t *)t),
+#else
+				: "=m" (*(uint32_t *)t),
+#endif
+				  "=A" (A),
+				  "=q" (z)
+				: "A"  (c),
 				  "c"  (set.v[1]),
-				  "m"  (set.v[0])
+				  "m"  (set.v[0]),
+				  "m"  (ebxt)
 				: "memory", "cc");
 #else
-	__asm__ __volatile__(CK_PR_LOCK_PREFIX "cmpxchg8b %0; setz %1;"
-				: "+m" (*t),
+	__asm__ __volatile__(CK_PR_LOCK_PREFIX "cmpxchg8b %0; setz %2;"
+#if (__GNUC__ * 100 + __GNUC_MINOR__) >= 403
+				: "+m" (*(uint32_t *)t),
+#else
+				: "=m" (*(uint32_t *)t),
+#endif
+				  "=A" (A),
 				  "=q" (z)
-				: "a"  (comp.v[0]),
-				  "d"  (comp.v[1]),
+				: "A"  (c),
 				  "b"  (set.v[0]),
 				  "c"  (set.v[1])
 				: "memory", "cc");
@@ -485,37 +506,43 @@ ck_pr_cas_64_value(uint64_t *t, uint64_t c, uint64_t s, uint64_t *v)
 		uint64_t s;
 		uint32_t v[2];
 	} set;
-	union {
-		uint64_t c;
-		uint32_t v[2];
-	} comp;
 	uint32_t *val = (uint32_t *)v;
 
-	ck_pr_store_64(&comp.c, c);
+#ifdef __PIC__
+	uint32_t ebxt;
+#endif
+
 	ck_pr_store_64(&set.s, s);
 
 #ifdef __PIC__
-	__asm__ __volatile__("pushl %%ebx;"
+	__asm__ __volatile__("movl %%ebx, %7;"
+			     "movl %6, %%ebx;"
+			     CK_PR_LOCK_PREFIX "cmpxchg8b %0; setz %3;"
 			     "movl %7, %%ebx;"
-			     CK_PR_LOCK_PREFIX "cmpxchg8b %a3; setz %2;"
-			     "popl %%ebx;"
-				: "=a" (val[0]),
-				  "=d" (val[1]),
-				  "=q" (z)
-				: "p"  (&t[0]),
-				  "a"  (comp.v[0]),
-				  "d"  (comp.v[1]),
-				  "c"  (set.v[1]),
-				  "m"  (set.v[0])
-				: "memory", "cc");
+#if (__GNUC__ * 100 + __GNUC_MINOR__) >= 403
+				: "+m" (*(uint32_t *)t),
 #else
-	__asm__ __volatile__(CK_PR_LOCK_PREFIX "cmpxchg8b %0; setz %3;"
-				: "+m" (*t),
+				: "=m" (*(uint32_t *)t),
+#endif
 				  "=a" (val[0]),
 				  "=d" (val[1]),
 				  "=q" (z)
-				: "a"  (comp.v[0]),
-				  "d"  (comp.v[1]),
+				: "A"  (c),
+				  "c"  (set.v[1]),
+				  "m"  (set.v[0]),
+				  "m"  (ebxt)
+				: "memory", "cc");
+#else
+	__asm__ __volatile__(CK_PR_LOCK_PREFIX "cmpxchg8b %0; setz %3;"
+#if (__GNUC__ * 100 + __GNUC_MINOR__) >= 403
+				: "+m" (*(uint32_t *)t),
+#else
+				: "=m" (*(uint32_t *)t),
+#endif
+				  "=a" (val[0]),
+				  "=d" (val[1]),
+				  "=q" (z)
+				: "A"  (c),
 				  "b"  (set.v[0]),
 				  "c"  (set.v[1])
 				: "memory", "cc");
@@ -529,21 +556,35 @@ ck_pr_cas_32_2(uint32_t t[2], uint32_t c[2], uint32_t s[2])
 {
 	bool z;
 
+	uint64_t A;
+
 #ifdef __PIC__
-	__asm__ __volatile__("pushl %%ebx;"
+	uint32_t ebxt;
+
+	__asm__ __volatile__("movl %%ebx, %6;"
 			     "movl %5, %%ebx;"
-			     CK_PR_LOCK_PREFIX "cmpxchg8b %a1; setz %0;"
-			     "popl %%ebx;"
-				: "=q" (z)
-				: "p"  (&t[0]),
-				  "a"  (c[0]),
-				  "d"  (c[1]),
+			     CK_PR_LOCK_PREFIX "cmpxchg8b %0; setz %2;"
+			     "movl %6, %%ebx;"
+#if (__GNUC__ * 100 + __GNUC_MINOR__) >= 403
+				: "+m" (*(uint32_t *)t),
+#else
+				: "=m" (*(uint32_t *)t),
+#endif
+				  "=A" (A),
+				  "=q" (z)
+				: "A"  (c),
 				  "c"  (s[1]),
-				  "m"  (s[0])
+				  "m"  (s[0]),
+				  "m"  (ebxt)
 				: "memory", "cc");
 #else
-	__asm__ __volatile__(CK_PR_LOCK_PREFIX "cmpxchg8b %0; setz %1;"
-				: "+m" (*t),
+	__asm__ __volatile__(CK_PR_LOCK_PREFIX "cmpxchg8b %0; setz %2;"
+#if (__GNUC__ * 100 + __GNUC_MINOR__) >= 403
+				: "+m" (*(uint32_t *)t),
+#else
+				: "=m" (*(uint32_t *)t),
+#endif
+				  "=A" (A),
 				  "=q" (z)
 				: "a"  (c[0]),
 				  "d"  (c[1]),
@@ -568,27 +609,36 @@ ck_pr_cas_32_2_value(uint32_t target[2], uint32_t compare[2], uint32_t set[2], u
 	bool z;
 
 #ifdef __PIC__
-	__asm__ __volatile__("pushl %%ebx;"
+	uint32_t ebxt;
+
+	__asm__ __volatile__("movl %%ebx, %7;"
+			     "movl %6, %%ebx;"
+			     CK_PR_LOCK_PREFIX "cmpxchg8b %0; setz %3;"
 			     "movl %7, %%ebx;"
-			     CK_PR_LOCK_PREFIX "cmpxchg8b %a3; setz %2;"
-			     "popl %%ebx;"
-				: "=a" (v[0]),
-				  "=d" (v[1]),
-				  "=q" (z)
-				: "p"  (&target[0]),
-				  "a"  (compare[0]),
-				  "d"  (compare[1]),
-				  "c"  (set[1]),
-				  "m"  (set[0])
-				: "memory", "cc");
+#if (__GNUC__ * 100 + __GNUC_MINOR__) >= 403
+				: "+m" (*(uint32_t *)target),
 #else
-	__asm__ __volatile__(CK_PR_LOCK_PREFIX "cmpxchg8b %0; setz %3;"
-				: "+m" (*target),
+				: "=m" (*(uint32_t *)target),
+#endif
 				  "=a" (v[0]),
 				  "=d" (v[1]),
 				  "=q" (z)
-				: "a" (compare[0]),
-				  "d" (compare[1]),
+				: "A"  (compare),
+				  "c"  (set[1]),
+				  "m"  (set[0]),
+				  "m"  (ebxt)
+				: "memory", "cc");
+#else
+	__asm__ __volatile__(CK_PR_LOCK_PREFIX "cmpxchg8b %0; setz %3;"
+#if (__GNUC__ * 100 + __GNUC_MINOR__) >= 403
+				: "+m" (*(uint32_t *)target),
+#else
+				: "=m" (*(uint32_t *)target),
+#endif
+				  "=a" (v[0]),
+				  "=d" (v[1]),
+				  "=q" (z)
+				: "A" (compare),
 				  "b" (set[0]),
 				  "c" (set[1])
 				: "memory", "cc");
