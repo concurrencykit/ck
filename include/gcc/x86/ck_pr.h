@@ -675,8 +675,6 @@ CK_PR_CAS_V(8, 8, uint8_t)
 	CK_PR_BT_S(K, 32, uint32_t, #K "l %2, %0")		\
 	CK_PR_BT_S(K, 16, uint16_t, #K "w %w2, %0")
 
-/* TODO: GCC's intrinsic atomics for btc and bts don't work for 64-bit. */
-
 CK_PR_GENERATE(btc)
 CK_PR_GENERATE(bts)
 CK_PR_GENERATE(btr)
