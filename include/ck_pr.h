@@ -303,7 +303,7 @@ CK_PR_BIN_S(or, 8, uint8_t, |)
 		punt = ck_pr_load_##S(target);							\
 		previous = (T)punt;								\
 		while (ck_pr_cas_##S##_value(target, (C)previous,				\
-			(C)(previous P (R (1 << offset))), &previous) == false)			\
+			(C)(previous P (R ((T)1 << offset))), &previous) == false)		\
 				ck_pr_stall();							\
 		return ((previous >> offset) & 1);						\
 	}
