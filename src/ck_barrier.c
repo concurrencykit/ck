@@ -30,6 +30,44 @@
 #include <ck_pr.h>
 #include <ck_spinlock.h>
 
+#include <stdio.h>
+
+/*
+ * Algorithm from: http://graphics.stanford.edu/~seander/bithacks.html
+ */
+CK_CC_INLINE static unsigned int
+ck_barrier_internal_log(unsigned int v)
+{
+	static const unsigned int b[] = {0xAAAAAAAA, 0xCCCCCCCC, 0xF0F0F0F0, 
+					 0xFF00FF00, 0xFFFF0000};
+
+	register unsigned int r = (v & b[0]) != 0;
+	int i;
+
+	for (i = 4; i > 0; i--) {
+		r |= ((v & b[i]) != 0) << i;
+	}
+
+	return (r);
+}
+
+/*
+ * Algorithm from:  http://graphics.stanford.edu/~seander/bithacks.html
+ */
+CK_CC_INLINE static unsigned int
+ck_barrier_internal_power_2(unsigned int v)
+{
+	--v;
+	v |= v >> 1;
+	v |= v >> 2;
+	v |= v >> 4;
+	v |= v >> 8;
+	v |= v >> 16;
+	++v;
+
+	return (v);
+}
+
 struct ck_barrier_combining_queue {
 	struct ck_barrier_combining_group *head;
 	struct ck_barrier_combining_group *tail;
@@ -60,7 +98,6 @@ CK_CC_INLINE static void
 ck_barrier_combining_queue_enqueue(struct ck_barrier_combining_queue *queue,
 				   struct ck_barrier_combining_group *node_value)
 {
-
 	node_value->next = NULL;
 
 	if (queue->head == NULL) {
@@ -92,7 +129,6 @@ ck_barrier_combining_try_insert(struct ck_barrier_combining_group *parent,
 				struct ck_barrier_combining_group *tnode,
 				struct ck_barrier_combining_group **child)
 {
-
 	if (*child == NULL) {
 		*child = tnode;
 		tnode->parent = parent;
@@ -109,7 +145,6 @@ ck_barrier_combining_aux(struct ck_barrier_combining *barrier,
 			 struct ck_barrier_combining_group *tnode,
 			 unsigned int sense)
 {
-
 	if (ck_pr_faa_uint(&tnode->count, 1) == tnode->k - 1) {
 		if (tnode->parent != NULL)
 			ck_barrier_combining_aux(barrier, tnode->parent, sense);
@@ -163,7 +198,6 @@ void
 ck_barrier_combining_init(struct ck_barrier_combining *root, 
 			  struct ck_barrier_combining_group *init_root)
 {
-
 	init_root->k = 0;
 	init_root->count = 0;
 	init_root->sense = 0;
@@ -178,9 +212,80 @@ ck_barrier_combining(struct ck_barrier_combining *barrier,
 		     struct ck_barrier_combining_group *tnode,
 		     struct ck_barrier_combining_state *state)
 {
-
 	ck_barrier_combining_aux(barrier, tnode, state->sense);
 	state->sense = ~state->sense;
+	return;
+}
+
+void
+ck_barrier_dissemination_flags_init(struct ck_barrier_dissemination_flags *allflags,
+				    int nthr)
+{
+	int i, j, k, size, offset;
+
+	size = (ck_barrier_internal_log(ck_barrier_internal_power_2(nthr)));
+	for (i = 0; i < nthr; ++i) {
+		for (k = 0, offset = 1; k < size; ++k, offset = 1) {
+			/* Determine the thread's partner, j, for the current round. */
+			offset <<= k;
+			if ((nthr & (nthr - 1)) == 0)
+				j = (i + offset) & (nthr - 1);
+			else
+				j = (i + offset) % nthr;
+
+			/* Set the thread's partner for round k. */
+			allflags[i].pflags[0][k] = &allflags[j].tflags[0][k];
+			allflags[i].pflags[1][k] = &allflags[j].tflags[1][k];
+			/* Set the thread's flags to false. */
+			allflags[i].tflags[0][k] = allflags[i].tflags[1][k] = 0;
+		}
+	}
+
+	return;
+}
+
+void
+ck_barrier_dissemination_state_init(struct ck_barrier_dissemination_state *state)
+{
+	state->parity = 0;
+	state->sense = ~0;
+	return;
+}
+
+int
+ck_barrier_dissemination_size(unsigned int nthr)
+{
+	return (ck_barrier_internal_log(ck_barrier_internal_power_2(nthr)));
+}
+
+void
+ck_barrier_dissemination(struct ck_barrier_dissemination_flags *allflags,
+			 struct ck_barrier_dissemination_state *state,
+			 int tid,
+			 int nthr)
+{
+	int i, size;
+
+	size = (ck_barrier_internal_log(ck_barrier_internal_power_2(nthr)));
+	for (i = 0; i < size; ++i) {
+		/* Unblock current partner. */
+		ck_pr_store_uint(allflags[tid].pflags[state->parity][i], state->sense);
+
+		/* Wait until some other thread unblocks this one. */
+		while (ck_pr_load_uint(&allflags[tid].tflags[state->parity][i]) != state->sense)
+			ck_pr_stall();
+	}
+
+	/*
+	 * Dissemination barriers use two sets of flags to prevent race conditions
+	 * between successive calls to the barrier. It also uses
+	 * a sense reversal technique to avoid re-initialization of the flags
+	 * for every two calls to the barrier.
+	 */
+	if (state->parity == 1)
+		state->sense = ~state->sense;
+	state->parity = 1 - state->parity;
+
 	return;
 }
 

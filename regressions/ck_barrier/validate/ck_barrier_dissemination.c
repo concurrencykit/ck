@@ -51,31 +51,32 @@
 
 static struct affinity a;
 static int nthr;
-static int ngroups;
+static int tid;
 static int counters[ENTRIES];
-static ck_barrier_combining_t barrier;
 static int barrier_wait;
 
 static void *
-thread(void *group)
+thread(void *allflags)
 {
-	ck_barrier_combining_state_t state = CK_BARRIER_COMBINING_STATE_INITIALIZER;
-	int j, counter;
+	ck_barrier_dissemination_state_t state = CK_BARRIER_DISSEMINATION_STATE_INITIALIZER;
+	int j, k, counter, id;
 	int i = 0;
 
 	aff_iterate(&a);
 
+	id = ck_pr_faa_int(&tid, 1);
+
 	ck_pr_inc_int(&barrier_wait);
-	while (ck_pr_load_int(&barrier_wait) != (nthr * ngroups))
+	while (ck_pr_load_int(&barrier_wait) != nthr)
 		ck_pr_stall();
 
-	for (j = 0; j < ITERATE; j++) {
+	for (j = 0, k = 0; j < ITERATE; j++, k++) {
 		i = j++ & (ENTRIES - 1);
 		ck_pr_inc_int(&counters[i]);
-		ck_barrier_combining(&barrier, group, &state);
+		ck_barrier_dissemination(allflags, &state, id, nthr);
 		counter = ck_pr_load_int(&counters[i]);
-		if (counter != nthr * ngroups * (j / ENTRIES + 1)) {
-			fprintf(stderr, "FAILED [%d:%d]: %d != %d\n", i, j - 1, counter, nthr * ngroups);
+		if (counter != nthr * (j / ENTRIES + 1)) {
+			fprintf(stderr, "FAILED [%d:%d]: %d != %d\n", i, j - 1, counter, nthr);
 			exit(EXIT_FAILURE);
 		}
 	}
@@ -86,55 +87,47 @@ thread(void *group)
 int
 main(int argc, char *argv[])
 {
+	ck_barrier_dissemination_flags_t *allflags;
 	pthread_t *threads;
-	ck_barrier_combining_group_t *groupings;
-	ck_barrier_combining_group_t *init_root;
-	int i;
+	int i, size;
 
-	init_root = malloc(sizeof(ck_barrier_combining_group_t));
-	if (init_root == NULL) {
-		fprintf(stderr, "ERROR: Could not allocate initial barrier structure\n");
-		exit(EXIT_FAILURE);
-	}	
-	ck_barrier_combining_init(&barrier, init_root);
-
-	if (argc != 4) {
-		fprintf(stderr, "Usage: correct <total groups> <threads per group> <affinity delta>\n");
+	if (argc != 3) {
+		fprintf(stderr, "Usage: correct <number of threads> <affinity delta>\n");
 		exit(EXIT_FAILURE);
 	}
 
-	ngroups = atoi(argv[1]);
-	if (ngroups <= 0) {
-		fprintf(stderr, "ERROR: Number of groups must be greater than 0\n");
-		exit(EXIT_FAILURE);
-	}
-
-	nthr = atoi(argv[2]);
+	nthr = atoi(argv[1]);
 	if (nthr <= 0) {
 		fprintf(stderr, "ERROR: Number of threads must be greater than 0\n");
 		exit(EXIT_FAILURE);
 	}
 
-	groupings = malloc(sizeof(ck_barrier_combining_group_t) * ngroups);
-	if (groupings == NULL) {
-		fprintf(stderr, "Could not allocate thread barrier grouping structures\n");
-		exit(EXIT_FAILURE);
-	}
-
-	threads = malloc(sizeof(pthread_t) * nthr * ngroups);
+	threads = malloc(sizeof(pthread_t) * nthr);
 	if (threads == NULL) {
 		fprintf(stderr, "ERROR: Could not allocate thread structures\n");
 		exit(EXIT_FAILURE);
 	}
 
-	a.delta = atoi(argv[3]);
+	a.delta = atoi(argv[2]);
 
-	for (i = 0; i < ngroups; i++)
-		ck_barrier_combining_group_init(&barrier, groupings + i, nthr);
+	allflags = malloc(sizeof(ck_barrier_dissemination_flags_t) * nthr);
+	if (allflags == NULL) {
+		fprintf(stderr, "ERROR: Could not allocate thread structures\n");
+		exit(EXIT_FAILURE);
+	}
+
+	size = ck_barrier_dissemination_size(nthr);
+	for (i = 0; i < nthr; i++) {
+		allflags[i].tflags[0] = malloc(sizeof(unsigned int) * size);
+		allflags[i].tflags[1] = malloc(sizeof(unsigned int) * size);
+		allflags[i].pflags[0] = malloc(sizeof(unsigned int *) * size);
+		allflags[i].pflags[1] = malloc(sizeof(unsigned int *) * size);
+	}
+	ck_barrier_dissemination_flags_init(allflags, nthr);
 
 	fprintf(stderr, "Creating threads (barrier)...");
-	for (i = 0; i < (nthr * ngroups); i++) {
-		if (pthread_create(&threads[i], NULL, thread, groupings + (i % ngroups))) {
+	for (i = 0; i < nthr; i++) {
+		if (pthread_create(&threads[i], NULL, thread, allflags)) {
 			fprintf(stderr, "ERROR: Could not create thread %d\n", i);
 			exit(EXIT_FAILURE);
 		}
@@ -142,9 +135,10 @@ main(int argc, char *argv[])
 	fprintf(stderr, "done\n");
 
 	fprintf(stderr, "Waiting for threads to finish correctness regression...");
-	for (i = 0; i < (nthr * ngroups); i++)
+	for (i = 0; i < nthr; i++)
 		pthread_join(threads[i], NULL);
 	fprintf(stderr, "done (passed)\n");
+
 
 	return (0);
 }

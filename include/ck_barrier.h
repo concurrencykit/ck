@@ -82,4 +82,30 @@ void ck_barrier_combining(ck_barrier_combining_t *,
 			  ck_barrier_combining_group_t *,
 			  ck_barrier_combining_state_t *);
 
+struct ck_barrier_dissemination_flags {
+	unsigned int *tflags[2];
+	unsigned int **pflags[2];
+};
+typedef struct ck_barrier_dissemination_flags ck_barrier_dissemination_flags_t;
+
+struct ck_barrier_dissemination_state {
+	int parity;
+	unsigned int sense;
+};
+typedef struct ck_barrier_dissemination_state ck_barrier_dissemination_state_t;
+
+#define CK_BARRIER_DISSEMINATION_STATE_INITIALIZER {0, ~0}
+
+void ck_barrier_dissemination_flags_init(ck_barrier_dissemination_flags_t *,
+				   	 int);
+
+void ck_barrier_dissemination_state_init(ck_barrier_dissemination_state_t *);
+
+int ck_barrier_dissemination_size(unsigned int);
+
+void ck_barrier_dissemination(ck_barrier_dissemination_flags_t *,
+			      ck_barrier_dissemination_state_t *,
+			      int,
+			      int);
+
 #endif /* _CK_BARRIER_H */
