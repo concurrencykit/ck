@@ -67,28 +67,9 @@ ck_pr_stall(void)
 CK_PR_FENCE(load_depends, "")
 CK_PR_FENCE(store, "")
 CK_PR_FENCE(load, "")
+CK_PR_FENCE(memory, "membar #MemIssue")
 
 #undef CK_PR_FENCE
-
-/*
- * Regular loads and stores are not ordered with respect to each other
- * in TSO.
- */
-CK_CC_INLINE static void
-ck_pr_fence_strict_memory(void)
-{
-
-	__asm__ __volatile__("membar #MemIssue" ::: "memory");
-	return;
-}
-
-CK_CC_INLINE static void
-ck_pr_fence_memory(void)
-{
-
-	__asm__ __volatile__("membar #MemIssue" ::: "memory");
-	return;
-}
 
 #define CK_PR_LOAD(S, M, T, C, I)				\
 	CK_CC_INLINE static T					\
