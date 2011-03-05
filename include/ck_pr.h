@@ -31,7 +31,7 @@
 #include <ck_cc.h>
 #include <ck_stdint.h>
 #include <stdbool.h>
-#include <limits.h>
+#include <ck_limits.h>
 
 #if defined(__x86_64__)
 #include "gcc/x86_64/ck_pr.h"
@@ -39,6 +39,8 @@
 #include "gcc/x86/ck_pr.h"
 #elif defined(__sparcv9__)
 #include "gcc/sparcv9/ck_pr.h"
+#elif defined(__ppc64__)
+#include "gcc/ppc64/ck_pr.h"
 #elif defined(__GNUC__)
 #include "gcc/ck_pr.h"
 #else
@@ -447,7 +449,7 @@ CK_PR_BTX_S(bts, 16, uint16_t, |,)
 		previous = (T)punt;										\
 		while (ck_pr_cas_##S##_value(target, (C)previous, (C)(previous P 1), &previous) == false)	\
 			ck_pr_stall();										\
-		*zero = previous == Z;										\
+		*zero = previous == (T)Z;									\
 		return;												\
 	}
 
