@@ -33,7 +33,7 @@
 #include <stdio.h>
 
 /*
- * Algorithm from: http://graphics.stanford.edu/~seander/bithacks.html
+ * Log and power_2 algorithms from: http://graphics.stanford.edu/~seander/bithacks.html
  */
 CK_CC_INLINE static unsigned int
 ck_barrier_internal_log(unsigned int v)
@@ -51,9 +51,6 @@ ck_barrier_internal_log(unsigned int v)
 	return (r);
 }
 
-/*
- * Algorithm from:  http://graphics.stanford.edu/~seander/bithacks.html
- */
 CK_CC_INLINE static unsigned int
 ck_barrier_internal_power_2(unsigned int v)
 {
@@ -225,9 +222,8 @@ ck_barrier_dissemination_flags_init(struct ck_barrier_dissemination_flags *allfl
 
 	size = (ck_barrier_internal_log(ck_barrier_internal_power_2(nthr)));
 	for (i = 0; i < nthr; ++i) {
-		for (k = 0, offset = 1; k < size; ++k, offset = 1) {
+		for (k = 0, offset = 1; k < size; ++k, offset <<= 1) {
 			/* Determine the thread's partner, j, for the current round. */
-			offset <<= k;
 			if ((nthr & (nthr - 1)) == 0)
 				j = (i + offset) & (nthr - 1);
 			else
