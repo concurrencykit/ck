@@ -274,7 +274,6 @@ case $PLATFORM in
 	"ppc64")
 		PLATFORM=ppc64
 		ENVIRONMENT=64
-		assert "$PLATFORM $ENVIRONMENT" "$PLATFORM $ENVIRONMENT" "unsupported"
 		;;
 	*)
 		PLATFORM=
