@@ -61,7 +61,7 @@ ck_pr_stall(void)
         }                                               \
         CK_CC_INLINE static void ck_pr_fence_##T(void)  \
         {                                               \
-                __asm__ __volatile__(I ::: "memory");  \
+                __asm__ __volatile__(I ::: "memory");   \
         }
 
 CK_PR_FENCE(load_depends, "")
