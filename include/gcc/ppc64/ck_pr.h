@@ -333,4 +333,52 @@ CK_PR_UNARY_S(int, int, "w")
 #undef CK_PR_UNARY_S
 #undef CK_PR_UNARY
 
+CK_CC_INLINE static void *
+ck_pr_faa_ptr(void *target, uintptr_t delta)
+{
+	uintptr_t previous, r;
+
+	__asm__ __volatile__("isync;"
+			     "1:"
+			     "ldarx %0, 0, %2;"
+			     "add %1, %3, %0;"
+			     "stdcx. %1, 0, %2;"
+			     "bne-  1b;"
+			     "lwsync;"
+				: "=&r" (previous),
+				  "=&r" (r)
+				: "r"   (target),
+				  "r"   (delta)	
+				: "memory", "cc");
+
+	return (void *)(previous);
+}
+
+#define CK_PR_FAA(S, T, W)						\
+	CK_CC_INLINE static T						\
+	ck_pr_faa_##S(T *target, T delta)				\
+	{								\
+		T previous, r;						\
+		__asm__ __volatile__("isync;"				\
+				     "1:"				\
+				     "l" W "arx %0, 0, %2;"		\
+				     "add %1, %3, %0;"			\
+				     "st" W "cx. %1, 0, %2;"		\
+				     "bne-  1b;"			\
+				     "lwsync;"				\
+					: "=&r" (previous),		\
+					  "=&r" (r)			\
+					: "r"   (target),		\
+					  "r"   (delta)			\
+					: "memory", "cc");		\
+		return (previous);					\
+	}
+
+CK_PR_FAA(64, uint64_t, "d")
+CK_PR_FAA(32, uint32_t, "w")
+CK_PR_FAA(uint, unsigned int, "w")
+CK_PR_FAA(int, int, "w")
+
+#undef CK_PR_FAA
+
 #endif /* _CK_PR_PPC64_H */

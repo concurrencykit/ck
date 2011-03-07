@@ -61,3 +61,8 @@
 #define CK_F_PR_NEG_32
 #define CK_F_PR_NEG_UINT
 #define CK_F_PR_NEG_INT
+#define CK_F_PR_FAA_32
+#define CK_F_PR_FAA_64
+#define CK_F_PR_FAA_PTR
+#define CK_F_PR_FAA_UINT
+#define CK_F_PR_FAA_INT
