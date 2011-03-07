@@ -78,6 +78,7 @@ CK_CC_INLINE static bool
 ck_fifo_spsc_dequeue(struct ck_fifo_spsc *fifo, void *value)
 {
 	struct ck_fifo_spsc_entry *stub, *entry;
+	void *store;
 
 	/*
 	 * The head pointer is guaranteed to always point to a stub entry.
@@ -90,7 +91,8 @@ ck_fifo_spsc_dequeue(struct ck_fifo_spsc *fifo, void *value)
 	if (entry == NULL)
 		return (false);
 
-	*(void **)value = ck_pr_load_ptr(&entry->value);
+	store = ck_pr_load_ptr(&entry->value);
+	ck_pr_store_ptr(value, store);
 	ck_pr_store_ptr(&fifo->head, entry);
 	return (true);
 }
