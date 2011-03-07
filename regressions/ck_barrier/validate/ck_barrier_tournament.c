@@ -55,23 +55,24 @@ static int counters[ENTRIES];
 static int barrier_wait;
 
 static void *
-thread(void *barrier)
+thread(void *rounds)
 {
-	ck_barrier_dissemination_state_t state;
-	int j, k, counter;
+	ck_barrier_tournament_state_t state;
+	int j, counter;
 	int i = 0;
 
 	aff_iterate(&a);
-	ck_barrier_dissemination_state_init(&state);
+
+	ck_barrier_tournament_state_init(&state);
 
 	ck_pr_inc_int(&barrier_wait);
 	while (ck_pr_load_int(&barrier_wait) != nthr)
 		ck_pr_stall();
 
-	for (j = 0, k = 0; j < ITERATE; j++, k++) {
+	for (j = 0; j < ITERATE; j++) {
 		i = j++ & (ENTRIES - 1);
 		ck_pr_inc_int(&counters[i]);
-		ck_barrier_dissemination(barrier, &state);
+		ck_barrier_tournament(rounds, &state);
 		counter = ck_pr_load_int(&counters[i]);
 		if (counter != nthr * (j / ENTRIES + 1)) {
 			fprintf(stderr, "FAILED [%d:%d]: %d != %d\n", i, j - 1, counter, nthr);
@@ -85,10 +86,10 @@ thread(void *barrier)
 int
 main(int argc, char *argv[])
 {
-	ck_barrier_dissemination_t *barrier;
-	ck_barrier_dissemination_internal_t **barrier_internal;
 	pthread_t *threads;
-	int i, size;
+	ck_barrier_tournament_round_t **rounds;
+	int i;
+	unsigned int size;
 
 	if (argc != 3) {
 		fprintf(stderr, "Usage: correct <number of threads> <affinity delta>\n");
@@ -107,33 +108,27 @@ main(int argc, char *argv[])
 		exit(EXIT_FAILURE);
 	}
 
-	a.delta = atoi(argv[2]);
-
-	barrier = malloc(sizeof(ck_barrier_dissemination_t) * nthr);
-	if (barrier == NULL) {
+	rounds = malloc(sizeof(ck_barrier_tournament_round_t *) * nthr);
+	if (rounds == NULL) {
 		fprintf(stderr, "ERROR: Could not allocate barrier structures\n");
 		exit(EXIT_FAILURE);
 	}
 
-	barrier_internal = malloc(sizeof(ck_barrier_dissemination_internal_t *) * nthr);
-	if (barrier_internal == NULL) {
-		fprintf(stderr, "ERROR: Could not allocate barrier structures\n");
-		exit(EXIT_FAILURE);
-	}
-
-	size = ck_barrier_dissemination_size(nthr);
+	size = ck_barrier_tournament_size(nthr);
 	for (i = 0; i < nthr; ++i) {
-		barrier_internal[i] = malloc(sizeof(ck_barrier_dissemination_internal_t) * size);
-		if (barrier_internal[i] == NULL) {
+		rounds[i] = malloc(sizeof(ck_barrier_tournament_round_t) * size);
+		if (rounds[i] == NULL) {
 			fprintf(stderr, "ERROR: Could not allocate barrier structures\n");
 			exit(EXIT_FAILURE);
 		}
 	}
-	ck_barrier_dissemination_init(barrier, barrier_internal, nthr);
+	ck_barrier_tournament_round_init(rounds, nthr);
+
+	a.delta = atoi(argv[2]);
 
 	fprintf(stderr, "Creating threads (barrier)...");
 	for (i = 0; i < nthr; i++) {
-		if (pthread_create(&threads[i], NULL, thread, barrier)) {
+		if (pthread_create(&threads[i], NULL, thread, rounds)) {
 			fprintf(stderr, "ERROR: Could not create thread %d\n", i);
 			exit(EXIT_FAILURE);
 		}
