@@ -156,8 +156,25 @@ ck_pr_cas_64_value(uint64_t *target, uint64_t compare, uint64_t set, uint64_t *v
 CK_CC_INLINE static bool
 ck_pr_cas_ptr_value(void *target, void *compare, void *set, void *value)
 {
+	void *previous;
 
-	return ck_pr_cas_64_value(target, (uint64_t)compare, (uint64_t)set, value);
+        __asm__ __volatile__("isync;"
+			     "1:"
+			     "ldarx %0, 0, %1;"
+			     "cmpd  0, %0, %3;"
+			     "bne-  2f;"
+			     "stdcx. %2, 0, %1;"
+			     "bne-  1b;"
+			     "2:"
+			     "lwsync;"
+                                : "=&r" (previous)
+                                : "r"   (target),
+				  "r"   (set),
+                                  "r"   (compare)
+                                : "memory", "cc");
+
+        ck_pr_store_ptr(value, previous);
+        return (previous == compare);
 }
 
 CK_CC_INLINE static bool
@@ -186,8 +203,24 @@ ck_pr_cas_64(uint64_t *target, uint64_t compare, uint64_t set)
 CK_CC_INLINE static bool
 ck_pr_cas_ptr(void *target, void *compare, void *set)
 {
+	void *previous;
 
-	return ck_pr_cas_64(target, (uint64_t)compare, (uint64_t)set);
+        __asm__ __volatile__("isync;"
+			     "1:"
+			     "ldarx %0, 0, %1;"
+			     "cmpd  0, %0, %3;"
+			     "bne-  2f;"
+			     "stdcx. %2, 0, %1;"
+			     "bne-  1b;"
+			     "2:"
+			     "lwsync;"
+                                : "=&r" (previous)
+                                : "r"   (target),
+				  "r"   (set),
+                                  "r"   (compare)
+                                : "memory", "cc");
+
+        return (previous == compare);
 }
 
 #define CK_PR_CAS(N, T)							\
@@ -238,4 +271,66 @@ CK_PR_CAS(uint, unsigned int)
 CK_PR_CAS(int, int)
 
 #undef CK_PR_CAS
+
+#define CK_PR_FAS(N, M, T, W)					\
+	CK_CC_INLINE static T					\
+	ck_pr_fas_##N(M *target, T v)				\
+	{							\
+		T previous;					\
+		__asm__ __volatile__("isync;"			\
+				     "1:"			\
+				     "l" W "arx %0, 0, %1;"	\
+				     "st" W "cx. %2, 0, %1;"	\
+				     "bne- 1b;"			\
+				     "lwsync;"			\
+					: "=&r" (previous)	\
+					: "r"   (target),	\
+					  "r"   (v)		\
+					: "memory", "cc");	\
+		return (previous);				\
+	}
+
+CK_PR_FAS(64, uint64_t, uint64_t, "d")
+CK_PR_FAS(32, uint32_t, uint32_t, "w")
+CK_PR_FAS(ptr, void, void *, "d")
+CK_PR_FAS(int, int, int, "w")
+CK_PR_FAS(uint, unsigned int, unsigned int, "w")
+
+#undef CK_PR_FAS
+
+#define CK_PR_UNARY(O, N, M, T, I, W)				\
+	CK_CC_INLINE static void				\
+	ck_pr_##O##_##N(M *target)				\
+	{							\
+		T previous;					\
+		__asm__ __volatile__("1:"			\
+				     "l" W "arx %0, 0, %1;"	\
+				      I ";"			\
+				     "st" W "cx. %0, 0, %1;"	\
+				     "bne-  1b;"		\
+					: "=&r" (previous)	\
+					: "r"   (target)	\
+					: "memory", "cc");	\
+		return;						\
+	}
+
+CK_PR_UNARY(inc, ptr, void, void *, "addic %0, %0, 1", "d")
+CK_PR_UNARY(dec, ptr, void, void *, "addic %0, %0, -1", "d")
+CK_PR_UNARY(not, ptr, void, void *, "not %0, %0", "d")
+CK_PR_UNARY(neg, ptr, void, void *, "neg %0, %0", "d")
+
+#define CK_PR_UNARY_S(S, T, W)					\
+	CK_PR_UNARY(inc, S, T, T, "addic %0, %0, 1", W)		\
+	CK_PR_UNARY(dec, S, T, T, "addic %0, %0, -1", W)	\
+	CK_PR_UNARY(not, S, T, T, "not %0, %0", W)		\
+	CK_PR_UNARY(neg, S, T, T, "neg %0, %0", W)
+
+CK_PR_UNARY_S(64, uint64_t, "d")
+CK_PR_UNARY_S(32, uint32_t, "w")
+CK_PR_UNARY_S(uint, unsigned int, "w")
+CK_PR_UNARY_S(int, int, "w")
+
+#undef CK_PR_UNARY_S
+#undef CK_PR_UNARY
+
 #endif /* _CK_PR_PPC64_H */
