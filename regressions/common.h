@@ -97,8 +97,25 @@ rdtsc(void)
 #elif defined(__sparcv9__)
         uint64_t r;
 
-        __asm__ __volatile__("rd %%tick, %0" : "=r" (r) :: "memory");
+        __asm__ __volatile__("rd %%tick, %0"
+				: "=r" (r)
+				:
+				: "memory");
         return r;
+#elif defined(__ppc64__)
+     uint32_t high, low, snapshot;
+
+     do {
+	  __asm__ __volatile__("isync;"
+			       "mftbu %0;"
+			       "mftb  %1;"
+			       "mftbu %2;"
+				: "=r" (high), "=r" (low), "=r" (snapshot)
+				:
+				: "memory");
+     } while (snapshot != high);
+
+     return (((uint64_t)high << 32) | low);
 #else
 	return 0;
 #endif
