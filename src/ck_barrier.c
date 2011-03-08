@@ -30,8 +30,6 @@
 #include <ck_pr.h>
 #include <ck_spinlock.h>
 
-#include <stdio.h>
-
 struct ck_barrier_combining_queue {
 	struct ck_barrier_combining_group *head;
 	struct ck_barrier_combining_group *tail;
@@ -91,7 +89,12 @@ ck_barrier_centralized(struct ck_barrier_centralized *barrier,
 
 	return;
 }
-
+/*
+ * This implementation of software combining tree barriers
+ * uses level order traversal to insert new thread groups 
+ * into the barrier's tree. We use a queue to implement this
+ * traversal.
+ */
 CK_CC_INLINE static void
 ck_barrier_combining_queue_enqueue(struct ck_barrier_combining_queue *queue,
 				   struct ck_barrier_combining_group *node_value)
@@ -123,41 +126,46 @@ ck_barrier_combining_queue_dequeue(struct ck_barrier_combining_queue *queue)
 	return (front);
 }
 
-CK_CC_INLINE static bool
-ck_barrier_combining_try_insert(struct ck_barrier_combining_group *parent,
-				struct ck_barrier_combining_group *tnode,
-				struct ck_barrier_combining_group **child)
+CK_CC_INLINE static void
+ck_barrier_combining_insert(struct ck_barrier_combining_group *parent,
+			    struct ck_barrier_combining_group *tnode,
+			    struct ck_barrier_combining_group **child)
 {
 
-	if (*child == NULL) {
-		*child = tnode;
-		tnode->parent = parent;
-		parent->k++;
+	*child = tnode;
+	tnode->parent = parent;
+	/*
+	 * After inserting, we must increment the parent group's count for
+	 * number of threads expected to reach it; otherwise, the
+	 * barrier may end prematurely.
+	 */
+	++parent->k;
+
+	return;
+}
+
+/*
+ * This tries to insert a new thread group as a child of the given
+ * parent group.
+ */
+CK_CC_INLINE static bool
+ck_barrier_combining_try_insert(struct ck_barrier_combining_group *parent,
+				struct ck_barrier_combining_group *tnode)
+{
+
+	if (parent->lchild == NULL) {
+		ck_barrier_combining_insert(parent, tnode, &parent->lchild);
+
+		return (true);
+	}
+
+	if (parent->rchild == NULL) {
+		ck_barrier_combining_insert(parent, tnode, &parent->rchild);
 
 		return (true);
 	}
 
 	return (false);
-}
-
-static void
-ck_barrier_combining_aux(struct ck_barrier_combining *barrier,
-			 struct ck_barrier_combining_group *tnode,
-			 unsigned int sense)
-{
-
-	if (ck_pr_faa_uint(&tnode->count, 1) == tnode->k - 1) {
-		if (tnode->parent != NULL)
-			ck_barrier_combining_aux(barrier, tnode->parent, sense);
-
-		ck_pr_store_uint(&tnode->count, 0);
-		ck_pr_store_uint(&tnode->sense, ~tnode->sense);
-	} else {
-		while (sense != ck_pr_load_uint(&tnode->sense))
-			ck_pr_stall();
-	}
-
-	return;
 }
 
 void
@@ -175,17 +183,23 @@ ck_barrier_combining_group_init(struct ck_barrier_combining *root,
 	tnode->sense = 0;
 	tnode->lchild = tnode->rchild = NULL;
 
+	/*
+	 * The lock here simplifies insertion logic (no CAS required in this case).
+	 * It prevents concurrent threads from overwriting insertions.
+	 */
 	ck_spinlock_fas_lock(&root->mutex);
 	ck_barrier_combining_queue_enqueue(&queue, root->root);
 	while (queue.head != NULL) {
 		node = ck_barrier_combining_queue_dequeue(&queue);
 
-		if (ck_barrier_combining_try_insert(node, tnode, &node->lchild) == true)
+		/* Attempt to insert the new group as a child of the current node. */
+		if (ck_barrier_combining_try_insert(node, tnode) == true)
 			goto leave;
 
-		if (ck_barrier_combining_try_insert(node, tnode, &node->rchild) == true)
-			goto leave;
-
+		/* 
+		 * If unsuccessful, try inserting as a child of the children of the
+		 * current node.
+		 */
 		ck_barrier_combining_queue_enqueue(&queue, node->lchild);
 		ck_barrier_combining_queue_enqueue(&queue, node->rchild);
 	}
@@ -209,6 +223,36 @@ ck_barrier_combining_init(struct ck_barrier_combining *root,
 	return;
 }
 
+static void
+ck_barrier_combining_aux(struct ck_barrier_combining *barrier,
+			 struct ck_barrier_combining_group *tnode,
+			 unsigned int sense)
+{
+
+	/*
+	 * If this is the last thread in the group,
+	 * it moves on to the parent group. Otherwise, it
+	 * spins on this group's sense.
+	 */
+	if (ck_pr_faa_uint(&tnode->count, 1) == tnode->k - 1) {
+		if (tnode->parent != NULL)
+			ck_barrier_combining_aux(barrier, tnode->parent, sense);
+
+		/*
+		 * Once the thread returns from its parent(s), it reinitializes
+		 * the group's arrival count and frees the threads waiting at
+		 * this group.
+		 */
+		ck_pr_store_uint(&tnode->count, 0);
+		ck_pr_store_uint(&tnode->sense, ~tnode->sense);
+	} else {
+		while (sense != ck_pr_load_uint(&tnode->sense))
+			ck_pr_stall();
+	}
+
+	return;
+}
+
 void
 ck_barrier_combining(struct ck_barrier_combining *barrier,
 		     struct ck_barrier_combining_group *tnode,
@@ -216,6 +260,8 @@ ck_barrier_combining(struct ck_barrier_combining *barrier,
 {
 
 	ck_barrier_combining_aux(barrier, tnode, state->sense);
+
+	/* Set the thread's private sense for the next barrier. */
 	state->sense = ~state->sense;
 	return;
 }
@@ -240,7 +286,13 @@ ck_barrier_dissemination_init(struct ck_barrier_dissemination *barrier,
 
 	for (i = 0; i < nthr; ++i) {
 		for (k = 0, offset = 1; k < size; ++k, offset <<= 1) {
-			/* Determine the thread's partner, j, for the current round. */
+			/* 
+			 * Determine the thread's partner, j, for the current round, k.
+			 * Partners are chosen such that by the completion of the barrier,
+			 * every thread has been directly (having one of its flag set) or
+			 * indirectly (having one of its partners's flags set) signaled
+			 * by every other thread in the barrier. 
+			 */
 			if ((nthr & (nthr - 1)) == 0)
 				j = (i + offset) & (nthr - 1);
 			else
@@ -293,9 +345,9 @@ ck_barrier_dissemination(struct ck_barrier_dissemination *barrier,
 
 	/*
 	 * Dissemination barriers use two sets of flags to prevent race conditions
-	 * between successive calls to the barrier. It also uses
-	 * a sense reversal technique to avoid re-initialization of the flags
-	 * for every two calls to the barrier.
+	 * between successive calls to the barrier. Parity indicates which set will
+	 * be used for the next barrier. They also use a sense reversal technique 
+	 * to avoid re-initialization of the flags for every two calls to the barrier.
 	 */
 	if (state->parity == 1)
 		state->sense = ~state->sense;
@@ -304,6 +356,13 @@ ck_barrier_dissemination(struct ck_barrier_dissemination *barrier,
 	return;
 }
 
+/*
+ * This is a tournament barrier implementation. Threads are statically
+ * assigned roles to perform for each round of the barrier. Winners
+ * move on to the next round, while losers spin in their current rounds
+ * on their own flags. During the last round, the champion of the tournament
+ * sets the last flag that begins the wakeup process.
+ */
 static unsigned int ck_barrier_tournament_tid;
 
 void
@@ -323,10 +382,7 @@ ck_barrier_tournament_round_init(struct ck_barrier_tournament_round **rounds,
 
 	size = ck_barrier_tournament_size(nthr);
 	for (i = 0; i < nthr; ++i) {
-		/*
-		 * By intializing this outside of the inner loop, we can avoid
-		 * checking k > 0 for every iteration.
-		 */
+		/* The first role is always DROPOUT. */
 		rounds[i][0].flag = 0;
 		rounds[i][0].role = DROPOUT;
 		for (k = 1, twok = 2, twokm1 = 1; k < size; ++k, twokm1 = twok, twok <<= 1) {
@@ -341,6 +397,8 @@ ck_barrier_tournament_round_init(struct ck_barrier_tournament_round **rounds,
 			}
 			if (imod2k == twokm1)
 				rounds[i][k].role = LOSER;
+
+			/* There is exactly one cHAMPION in a tournament barrier. */
 			else if ((i == 0) && (twok >= nthr))
 				rounds[i][k].role = CHAMPION;
 
@@ -368,10 +426,14 @@ ck_barrier_tournament(struct ck_barrier_tournament_round **rounds,
 	int round = 1;
 
 	for (;; ++round) {
-		switch (rounds[state->vpid][round].role) { // MIGHT NEED TO USE CK_PR_LOAD
+		switch (rounds[state->vpid][round].role) { // MIGHT NEED TO USE CK_PR_LOAD***
 		case BYE:
 			break;
 		case CHAMPION:
+			/*
+			 * The CHAMPION waits until it wins the tournament; it then
+			 * sets the final flag before the wakeup phase of the barrier.
+			 */
 			while (ck_pr_load_uint(&rounds[state->vpid][round].flag) != state->sense)
 				ck_pr_stall();
 			ck_pr_store_uint(rounds[state->vpid][round].opponent, state->sense);
@@ -381,12 +443,20 @@ ck_barrier_tournament(struct ck_barrier_tournament_round **rounds,
 			/* NOTREACHED */
 			break;
 		case LOSER:
+			/*
+			 * LOSERs set the flags of their opponents and wait until
+			 * their opponents release them after the tournament is over.
+			 */
 			ck_pr_store_uint(rounds[state->vpid][round].opponent, state->sense);
 			while (ck_pr_load_uint(&rounds[state->vpid][round].flag) != state->sense)
 				ck_pr_stall();
 			goto wakeup;
 			break;
 		case WINNER:
+			/*
+			 * WINNERs wait until their current opponent sets their flag; they then
+			 * continue to the next round of the tournament.
+			 */
 			while (ck_pr_load_uint(&rounds[state->vpid][round].flag) != state->sense)
 				ck_pr_stall();
 			break;
@@ -394,7 +464,7 @@ ck_barrier_tournament(struct ck_barrier_tournament_round **rounds,
 	}
 wakeup:
 	for (round -= 1;; --round) {
-		switch (rounds[state->vpid][round].role) { // MIGHT NEED TO USE CK_PR_LOAD
+		switch (rounds[state->vpid][round].role) { // MIGHT NEED TO USE CK_PR_LOAD***
 		case BYE:
 			break;
 		case CHAMPION:
@@ -407,6 +477,10 @@ wakeup:
 			/* NOTREACHED */
 			break;
 		case WINNER:
+			/* 
+			 * Winners inform their old opponents the tournament is over
+			 * by setting their flags.
+			 */
 			ck_pr_store_uint(rounds[state->vpid][round].opponent, state->sense);
 			break;
 		}
@@ -427,22 +501,33 @@ ck_barrier_mcs_init(struct ck_barrier_mcs *barrier,
 
 	for (i = 0; i < nthr; ++i) {
 		for (j = 0; j < 4; ++j) {
-			barrier[i].havechild[j] = ((i << 2) + j < nthr - 1) 	?
-						  ~0 		     	 	:
+			/*
+			 If there are still threads that don't have parents,
+			 * add it as a child.
+			 */
+			barrier[i].havechild[j] = ((i << 2) + j < nthr - 1) ?
+						  ~0 :
 						   0;
+
+			/*
+			 * Childnotready is initialized to havechild to ensure
+			 * a thread does not wait for a child that does not exist.
+			 */
 			barrier[i].childnotready[j] = barrier[i].havechild[j];
 		}
 
-		barrier[i].parent = (i == 0) 						?
-				    &barrier[i].dummy					:
+		/* The root thread does not have a parent. */
+		barrier[i].parent = (i == 0) ?
+				    &barrier[i].dummy :
 				    &barrier[(i - 1) >> 2].childnotready[(i - 1) & 3];
 
-		barrier[i].children[0] = ((i << 1) + 1 >= nthr)			?
-					 &barrier[i].dummy			:
+		/* Leaf threads do not have any children. */
+		barrier[i].children[0] = ((i << 1) + 1 >= nthr)	?
+					 &barrier[i].dummy :
 					 &barrier[(i << 1) + 1].parentsense;
 
-		barrier[i].children[1] = ((i << 1) + 2 >= nthr)			?
-					 &barrier[i].dummy			:
+		barrier[i].children[1] = ((i << 1) + 2 >= nthr)	?
+					 &barrier[i].dummy :
 					 &barrier[(i << 1) + 2].parentsense;
 
 		barrier[i].parentsense = 0;
@@ -489,19 +574,29 @@ ck_barrier_mcs(struct ck_barrier_mcs *barrier,
                struct ck_barrier_mcs_state *state)
 {
 
+	/*
+	 * Wait until all children have reached the barrier and are done waiting
+	 * for their children.
+	 */
 	while (ck_barrier_mcs_check_children(barrier[state->vpid].childnotready) == false)
 		ck_pr_stall();
+
+	/* Reinitialize for next barrier. */
 	ck_barrier_mcs_reinitialize_children(&barrier[state->vpid]);
 
+	/* Inform parent thread and its children have arrived at the barrier. */
 	ck_pr_store_uint(barrier[state->vpid].parent, 0);
 
+	/* Wait until parent indicates all threads have arrived at the barrier. */
 	if (state->vpid != 0) {
 		while (ck_pr_load_uint(&barrier[state->vpid].parentsense) != state->sense)
 			ck_pr_stall();
 	}
 
+	/* Inform children of successful barrier. */
 	ck_pr_store_uint(barrier[state->vpid].children[0], state->sense);
 	ck_pr_store_uint(barrier[state->vpid].children[1], state->sense);
+
 	state->sense = ~state->sense;
 
 	return;
