@@ -49,13 +49,13 @@ void ck_barrier_centralized(ck_barrier_centralized_t *,
 			    unsigned int);
 
 struct ck_barrier_combining_group {
-	struct ck_barrier_combining_group *parent;
-	struct ck_barrier_combining_group *lchild;
-	struct ck_barrier_combining_group *rchild;
-	struct ck_barrier_combining_group *next;
 	unsigned int k;
 	unsigned int count;
 	unsigned int sense;
+	struct ck_barrier_combining_group *parent;
+	struct ck_barrier_combining_group *left;
+	struct ck_barrier_combining_group *right;
+	struct ck_barrier_combining_group *next;
 } CK_CC_CACHELINE;
 typedef struct ck_barrier_combining_group ck_barrier_combining_group_t;
 
@@ -82,14 +82,17 @@ void ck_barrier_combining(ck_barrier_combining_t *,
 			  ck_barrier_combining_group_t *,
 			  ck_barrier_combining_state_t *);
 
-struct ck_barrier_dissemination_internal {
+struct ck_barrier_dissemination_flag {
 	unsigned int tflag;
 	unsigned int *pflag;
 };
-typedef struct ck_barrier_dissemination_internal ck_barrier_dissemination_internal_t;
+typedef struct ck_barrier_dissemination_flag ck_barrier_dissemination_flag_t;
 
 struct ck_barrier_dissemination {
-	struct ck_barrier_dissemination_internal *flags[2];
+	unsigned int nthr;
+	unsigned int size;
+	unsigned int tid;
+	struct ck_barrier_dissemination_flag *flags[2];
 };
 typedef struct ck_barrier_dissemination ck_barrier_dissemination_t;
 struct ck_barrier_dissemination_state {
@@ -100,10 +103,11 @@ struct ck_barrier_dissemination_state {
 typedef struct ck_barrier_dissemination_state ck_barrier_dissemination_state_t;
 
 void ck_barrier_dissemination_init(ck_barrier_dissemination_t *,
-				   ck_barrier_dissemination_internal_t **,
+				   ck_barrier_dissemination_flag_t **,
 				   unsigned int);
 
-void ck_barrier_dissemination_state_init(ck_barrier_dissemination_state_t *);
+void ck_barrier_dissemination_subscribe(ck_barrier_dissemination_t *,
+					ck_barrier_dissemination_state_t *);
 
 unsigned int ck_barrier_dissemination_size(unsigned int);
 
@@ -123,20 +127,13 @@ struct ck_barrier_tournament_state {
 };
 typedef struct ck_barrier_tournament_state ck_barrier_tournament_state_t;
 
-void
-ck_barrier_tournament_state_init(ck_barrier_tournament_state_t *);
-
-void
-ck_barrier_tournament_round_init(ck_barrier_tournament_round_t **,
-				 unsigned int);
-
+void ck_barrier_tournament_state_init(ck_barrier_tournament_state_t *);
+void ck_barrier_tournament_round_init(ck_barrier_tournament_round_t **, unsigned int);
 unsigned int ck_barrier_tournament_size(unsigned int);
-
-void
-ck_barrier_tournament(ck_barrier_tournament_round_t **,
-		      ck_barrier_tournament_state_t *);
+void ck_barrier_tournament(ck_barrier_tournament_round_t **, ck_barrier_tournament_state_t *);
 
 struct ck_barrier_mcs {
+	unsigned int tid;
 	unsigned int *children[2];
 	unsigned int childnotready[4];
 	unsigned int dummy;
@@ -152,16 +149,9 @@ struct ck_barrier_mcs_state {
 };
 typedef struct ck_barrier_mcs_state ck_barrier_mcs_state_t;
 
-void
-ck_barrier_mcs_init(ck_barrier_mcs_t *,
-		    unsigned int);
-
-void
-ck_barrier_mcs_state_init(ck_barrier_mcs_state_t *);
-
-void
-ck_barrier_mcs(ck_barrier_mcs_t *,
-	       ck_barrier_mcs_state_t *);
+void ck_barrier_mcs_init(ck_barrier_mcs_t *, unsigned int);
+void ck_barrier_mcs_subscribe(ck_barrier_mcs_t *, ck_barrier_mcs_state_t *);
+void ck_barrier_mcs(ck_barrier_mcs_t *, ck_barrier_mcs_state_t *);
 
 #endif /* _CK_BARRIER_H */
 

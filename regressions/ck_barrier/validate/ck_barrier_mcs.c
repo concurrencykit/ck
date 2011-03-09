@@ -55,15 +55,16 @@ static int counters[ENTRIES];
 static int barrier_wait;
 
 static void *
-thread(void *barrier)
+thread(void *b)
 {
+	ck_barrier_mcs_t *barrier = b;
 	ck_barrier_mcs_state_t state;
 	int j, counter;
 	int i = 0;
 
 	aff_iterate(&a);
 
-	ck_barrier_mcs_state_init(&state);
+	ck_barrier_mcs_subscribe(barrier, &state);
 
 	ck_pr_inc_int(&barrier_wait);
 	while (ck_pr_load_int(&barrier_wait) != nthr)

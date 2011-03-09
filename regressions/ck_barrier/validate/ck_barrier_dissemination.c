@@ -55,14 +55,15 @@ static int counters[ENTRIES];
 static int barrier_wait;
 
 static void *
-thread(void *barrier)
+thread(void *b)
 {
+	ck_barrier_dissemination_t *barrier = b;
 	ck_barrier_dissemination_state_t state;
 	int j, k, counter;
 	int i = 0;
 
 	aff_iterate(&a);
-	ck_barrier_dissemination_state_init(&state);
+	ck_barrier_dissemination_subscribe(barrier, &state);
 
 	ck_pr_inc_int(&barrier_wait);
 	while (ck_pr_load_int(&barrier_wait) != nthr)
@@ -86,7 +87,7 @@ int
 main(int argc, char *argv[])
 {
 	ck_barrier_dissemination_t *barrier;
-	ck_barrier_dissemination_internal_t **barrier_internal;
+	ck_barrier_dissemination_flag_t **barrier_internal;
 	pthread_t *threads;
 	int i, size;
 
@@ -115,7 +116,7 @@ main(int argc, char *argv[])
 		exit(EXIT_FAILURE);
 	}
 
-	barrier_internal = malloc(sizeof(ck_barrier_dissemination_internal_t *) * nthr);
+	barrier_internal = malloc(sizeof(ck_barrier_dissemination_flag_t *) * nthr);
 	if (barrier_internal == NULL) {
 		fprintf(stderr, "ERROR: Could not allocate barrier structures\n");
 		exit(EXIT_FAILURE);
@@ -123,7 +124,7 @@ main(int argc, char *argv[])
 
 	size = ck_barrier_dissemination_size(nthr);
 	for (i = 0; i < nthr; ++i) {
-		barrier_internal[i] = malloc(sizeof(ck_barrier_dissemination_internal_t) * size);
+		barrier_internal[i] = malloc(sizeof(ck_barrier_dissemination_flag_t) * size);
 		if (barrier_internal[i] == NULL) {
 			fprintf(stderr, "ERROR: Could not allocate barrier structures\n");
 			exit(EXIT_FAILURE);
