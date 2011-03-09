@@ -89,6 +89,7 @@ ck_barrier_centralized(struct ck_barrier_centralized *barrier,
 
 	return;
 }
+
 /*
  * This implementation of software combining tree barriers
  * uses level order traversal to insert new thread groups 
