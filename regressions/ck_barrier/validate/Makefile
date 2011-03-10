@@ -23,4 +23,4 @@ clean:
 	rm -rf *.dSYM *~ *.o $(OBJECTS)
 
 include ../../../build/regressions.build
-CFLAGS+=-D_GNU_SOURCE -lpthread
+CFLAGS+=-D_GNU_SOURCE -lpthread -ggdb -O0

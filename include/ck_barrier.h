@@ -115,11 +115,17 @@ void ck_barrier_dissemination(ck_barrier_dissemination_t *,
 			      ck_barrier_dissemination_state_t *);
 
 struct ck_barrier_tournament_round {
-	enum {BYE, CHAMPION, DROPOUT, LOSER, WINNER} role;
+	int role;
 	unsigned int *opponent;
 	unsigned int flag;
 };
 typedef struct ck_barrier_tournament_round ck_barrier_tournament_round_t;
+
+struct ck_barrier_tournament {
+	unsigned int tid;
+	struct ck_barrier_tournament_round **rounds;
+};
+typedef struct ck_barrier_tournament ck_barrier_tournament_t;
 
 struct ck_barrier_tournament_state {
 	unsigned int sense;
@@ -127,10 +133,10 @@ struct ck_barrier_tournament_state {
 };
 typedef struct ck_barrier_tournament_state ck_barrier_tournament_state_t;
 
-void ck_barrier_tournament_state_init(ck_barrier_tournament_state_t *);
-void ck_barrier_tournament_round_init(ck_barrier_tournament_round_t **, unsigned int);
+void ck_barrier_tournament_subscribe(ck_barrier_tournament_t *, ck_barrier_tournament_state_t *);
+void ck_barrier_tournament_init(ck_barrier_tournament_t *, ck_barrier_tournament_round_t **, unsigned int);
 unsigned int ck_barrier_tournament_size(unsigned int);
-void ck_barrier_tournament(ck_barrier_tournament_round_t **, ck_barrier_tournament_state_t *);
+void ck_barrier_tournament(ck_barrier_tournament_t *, ck_barrier_tournament_state_t *);
 
 struct ck_barrier_mcs {
 	unsigned int tid;

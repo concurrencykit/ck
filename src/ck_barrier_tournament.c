@@ -37,52 +37,64 @@
  * on their own flags. During the last round, the champion of the tournament
  * sets the last flag that begins the wakeup process.
  */
-static unsigned int ck_barrier_tournament_tid;
+
+enum {
+	CK_BARRIER_TOURNAMENT_BYE,
+	CK_BARRIER_TOURNAMENT_CHAMPION,
+	CK_BARRIER_TOURNAMENT_DROPOUT,
+	CK_BARRIER_TOURNAMENT_LOSER,
+	CK_BARRIER_TOURNAMENT_WINNER
+};
 
 void
-ck_barrier_tournament_state_init(ck_barrier_tournament_state_t *state)
+ck_barrier_tournament_subscribe(struct ck_barrier_tournament *barrier,
+				struct ck_barrier_tournament_state *state)
 {
 
 	state->sense = ~0;
-	state->vpid = ck_pr_faa_uint(&ck_barrier_tournament_tid, 1);
+	state->vpid = ck_pr_faa_uint(&barrier->tid, 1);
 	return;
 }
 
 void
-ck_barrier_tournament_round_init(struct ck_barrier_tournament_round **rounds,
-                                 unsigned int nthr)
+ck_barrier_tournament_init(struct ck_barrier_tournament *barrier,
+			   struct ck_barrier_tournament_round **rounds,
+			   unsigned int nthr)
 {
 	unsigned int i, k, size, twok, twokm1, imod2k;
 
+	ck_pr_store_uint(&barrier->tid, 0);
 	size = ck_barrier_tournament_size(nthr);
+
 	for (i = 0; i < nthr; ++i) {
-		/* The first role is always DROPOUT. */
+		/* The first role is always CK_BARRIER_TOURNAMENT_DROPOUT. */
 		rounds[i][0].flag = 0;
-		rounds[i][0].role = DROPOUT;
+		rounds[i][0].role = CK_BARRIER_TOURNAMENT_DROPOUT;
 		for (k = 1, twok = 2, twokm1 = 1; k < size; ++k, twokm1 = twok, twok <<= 1) {
 			rounds[i][k].flag = 0;
 
 			imod2k = i & (twok - 1);
 			if (imod2k == 0) {
 				if ((i + twokm1 < nthr) && (twok < nthr))
-					rounds[i][k].role = WINNER;
+					rounds[i][k].role = CK_BARRIER_TOURNAMENT_WINNER;
 				else if (i + twokm1 >= nthr)
-					rounds[i][k].role = BYE;
+					rounds[i][k].role = CK_BARRIER_TOURNAMENT_BYE;
 			}
+
 			if (imod2k == twokm1)
-				rounds[i][k].role = LOSER;
-
-			/* There is exactly one champion in a tournament barrier. */
+				rounds[i][k].role = CK_BARRIER_TOURNAMENT_LOSER;
 			else if ((i == 0) && (twok >= nthr))
-				rounds[i][k].role = CHAMPION;
+				rounds[i][k].role = CK_BARRIER_TOURNAMENT_CHAMPION;
 
-			if (rounds[i][k].role == LOSER)
+			if (rounds[i][k].role == CK_BARRIER_TOURNAMENT_LOSER)
 				rounds[i][k].opponent = &rounds[i - twokm1][k].flag;
-			else if (rounds[i][k].role == WINNER || rounds[i][k].role == CHAMPION)
+			else if (rounds[i][k].role == CK_BARRIER_TOURNAMENT_WINNER ||
+				 rounds[i][k].role == CK_BARRIER_TOURNAMENT_CHAMPION)
 				rounds[i][k].opponent = &rounds[i + twokm1][k].flag;  
 		}
 	}
 
+	ck_pr_store_ptr(&barrier->rounds, rounds);
 	return;
 }
 
@@ -94,41 +106,42 @@ ck_barrier_tournament_size(unsigned int nthr)
 }
 
 void
-ck_barrier_tournament(struct ck_barrier_tournament_round **rounds,
+ck_barrier_tournament(struct ck_barrier_tournament *barrier,
                       struct ck_barrier_tournament_state *state)
 {
+	struct ck_barrier_tournament_round **rounds = ck_pr_load_ptr(&barrier->rounds);
 	int round = 1;
 
 	for (;; ++round) {
 		switch (rounds[state->vpid][round].role) { // MIGHT NEED TO USE CK_PR_LOAD***
-		case BYE:
+		case CK_BARRIER_TOURNAMENT_BYE:
 			break;
-		case CHAMPION:
+		case CK_BARRIER_TOURNAMENT_CHAMPION:
 			/*
-			 * The CHAMPION waits until it wins the tournament; it then
+			 * The CK_BARRIER_TOURNAMENT_CHAMPION waits until it wins the tournament; it then
 			 * sets the final flag before the wakeup phase of the barrier.
 			 */
 			while (ck_pr_load_uint(&rounds[state->vpid][round].flag) != state->sense)
 				ck_pr_stall();
+
 			ck_pr_store_uint(rounds[state->vpid][round].opponent, state->sense);
 			goto wakeup;
-			break;
-		case DROPOUT:
+		case CK_BARRIER_TOURNAMENT_DROPOUT:
 			/* NOTREACHED */
 			break;
-		case LOSER:
+		case CK_BARRIER_TOURNAMENT_LOSER:
 			/*
-			 * LOSERs set the flags of their opponents and wait until
+			 * CK_BARRIER_TOURNAMENT_LOSERs set the flags of their opponents and wait until
 			 * their opponents release them after the tournament is over.
 			 */
 			ck_pr_store_uint(rounds[state->vpid][round].opponent, state->sense);
 			while (ck_pr_load_uint(&rounds[state->vpid][round].flag) != state->sense)
 				ck_pr_stall();
+
 			goto wakeup;
-			break;
-		case WINNER:
+		case CK_BARRIER_TOURNAMENT_WINNER:
 			/*
-			 * WINNERs wait until their current opponent sets their flag; they then
+			 * CK_BARRIER_TOURNAMENT_WINNERs wait until their current opponent sets their flag; they then
 			 * continue to the next round of the tournament.
 			 */
 			while (ck_pr_load_uint(&rounds[state->vpid][round].flag) != state->sense)
@@ -136,21 +149,22 @@ ck_barrier_tournament(struct ck_barrier_tournament_round **rounds,
 			break;
 		}
 	}
+
 wakeup:
-	for (round -= 1;; --round) {
+	for (round -= 1 ;; --round) {
 		switch (rounds[state->vpid][round].role) { // MIGHT NEED TO USE CK_PR_LOAD***
-		case BYE:
+		case CK_BARRIER_TOURNAMENT_BYE:
 			break;
-		case CHAMPION:
+		case CK_BARRIER_TOURNAMENT_CHAMPION:
 			/* NOTREACHED */
 			break;
-		case DROPOUT:
+		case CK_BARRIER_TOURNAMENT_DROPOUT:
 			goto leave;
 			break;
-		case LOSER:
+		case CK_BARRIER_TOURNAMENT_LOSER:
 			/* NOTREACHED */
 			break;
-		case WINNER:
+		case CK_BARRIER_TOURNAMENT_WINNER:
 			/* 
 			 * Winners inform their old opponents the tournament is over
 			 * by setting their flags.

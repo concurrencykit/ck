@@ -53,17 +53,17 @@ static struct affinity a;
 static int nthr;
 static int counters[ENTRIES];
 static int barrier_wait;
+static ck_barrier_tournament_t barrier;
 
 static void *
-thread(void *rounds)
+thread(CK_CC_UNUSED void *unused)
 {
 	ck_barrier_tournament_state_t state;
 	int j, counter;
 	int i = 0;
 
 	aff_iterate(&a);
-
-	ck_barrier_tournament_state_init(&state);
+	ck_barrier_tournament_subscribe(&barrier, &state);
 
 	ck_pr_inc_int(&barrier_wait);
 	while (ck_pr_load_int(&barrier_wait) != nthr)
@@ -72,13 +72,17 @@ thread(void *rounds)
 	for (j = 0; j < ITERATE; j++) {
 		i = j++ & (ENTRIES - 1);
 		ck_pr_inc_int(&counters[i]);
-		ck_barrier_tournament(rounds, &state);
+		ck_barrier_tournament(&barrier, &state);
 		counter = ck_pr_load_int(&counters[i]);
 		if (counter != nthr * (j / ENTRIES + 1)) {
 			fprintf(stderr, "FAILED [%d:%d]: %d != %d\n", i, j - 1, counter, nthr);
 			exit(EXIT_FAILURE);
 		}
 	}
+
+	ck_pr_inc_int(&barrier_wait);
+	while (ck_pr_load_int(&barrier_wait) != nthr * 2)
+		ck_pr_stall();
 
 	return (NULL);
 }
@@ -101,6 +105,7 @@ main(int argc, char *argv[])
 		fprintf(stderr, "ERROR: Number of threads must be greater than 0\n");
 		exit(EXIT_FAILURE);
 	}
+	a.delta = atoi(argv[2]);
 
 	threads = malloc(sizeof(pthread_t) * nthr);
 	if (threads == NULL) {
@@ -122,13 +127,12 @@ main(int argc, char *argv[])
 			exit(EXIT_FAILURE);
 		}
 	}
-	ck_barrier_tournament_round_init(rounds, nthr);
 
-	a.delta = atoi(argv[2]);
+	ck_barrier_tournament_init(&barrier, rounds, nthr);
 
 	fprintf(stderr, "Creating threads (barrier)...");
 	for (i = 0; i < nthr; i++) {
-		if (pthread_create(&threads[i], NULL, thread, rounds)) {
+		if (pthread_create(&threads[i], NULL, thread, NULL)) {
 			fprintf(stderr, "ERROR: Could not create thread %d\n", i);
 			exit(EXIT_FAILURE);
 		}
@@ -139,7 +143,6 @@ main(int argc, char *argv[])
 	for (i = 0; i < nthr; i++)
 		pthread_join(threads[i], NULL);
 	fprintf(stderr, "done (passed)\n");
-
 
 	return (0);
 }
