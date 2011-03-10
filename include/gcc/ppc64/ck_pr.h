@@ -333,6 +333,44 @@ CK_PR_UNARY_S(int, int, "w")
 #undef CK_PR_UNARY_S
 #undef CK_PR_UNARY
 
+#define CK_PR_BINARY(O, N, M, T, I, W)				\
+	CK_CC_INLINE static void				\
+	ck_pr_##O##_##N(M *target, T delta)			\
+	{							\
+		T previous;					\
+		__asm__ __volatile__("1:"			\
+				     "l" W "arx %0, 0, %1;"	\
+				      I " %0, %2, %0;"		\
+				     "st" W "cx. %0, 0, %1;"	\
+				     "bne-  1b;"		\
+					: "=&r" (previous)	\
+					: "r"   (target),	\
+					  "r"   (delta)		\
+					: "memory", "cc");	\
+		return;						\
+	}
+
+CK_PR_BINARY(and, ptr, void, uintptr_t, "and", "d")
+CK_PR_BINARY(add, ptr, void, uintptr_t, "add", "d")
+CK_PR_BINARY(or, ptr, void, uintptr_t, "or", "d")
+CK_PR_BINARY(sub, ptr, void, uintptr_t, "sub", "d")
+CK_PR_BINARY(xor, ptr, void, uintptr_t, "xor", "d")
+
+#define CK_PR_BINARY_S(S, T, W)			\
+	CK_PR_BINARY(and, S, T, T, "and", W)	\
+	CK_PR_BINARY(add, S, T, T, "add", W)	\
+	CK_PR_BINARY(or, S, T, T, "or", W)	\
+	CK_PR_BINARY(sub, S, T, T, "subf", W)	\
+	CK_PR_BINARY(xor, S, T, T, "xor", W)
+
+CK_PR_BINARY_S(64, uint64_t, "d")
+CK_PR_BINARY_S(32, uint32_t, "w")
+CK_PR_BINARY_S(uint, unsigned int, "w")
+CK_PR_BINARY_S(int, int, "w")
+
+#undef CK_PR_BINARY_S
+#undef CK_PR_BINARY
+
 CK_CC_INLINE static void *
 ck_pr_faa_ptr(void *target, uintptr_t delta)
 {
