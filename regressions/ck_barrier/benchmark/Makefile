@@ -4,8 +4,8 @@ OBJECTS=throughput
 
 all: $(OBJECTS)
 
-throughput: throughput.c ../../../include/ck_barrier.h ../../../src/ck_barrier.c
-	$(CC) $(CFLAGS) -o throughput throughput.c ../../../src/ck_barrier.c
+throughput: throughput.c ../../../include/ck_barrier.h ../../../src/ck_barrier_centralized.c
+	$(CC) $(CFLAGS) -o throughput throughput.c ../../../src/ck_barrier_centralized.c
 
 clean:
 	rm -rf *.dSYM *~ *.o $(OBJECTS)
