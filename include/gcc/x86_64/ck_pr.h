@@ -45,21 +45,6 @@
 /* Minimum requirements for the CK_PR interface are met. */
 #define CK_F_PR
 
-/*
- * There is a bug first generation AMD Opteron processors'
- * with cpuid family 0Fh and models less than 40h when it
- * comes to read-modify write operations after load/store
- * sequence.
- *
- * For more details, please see:
- * 	- http://bugzilla.kernel.org/show_bug.cgi?id=11305#c2
- */
-#ifdef __CK_PR_AMD_RMW_BUG__
-#define CK_PR_AMD_RMW() { __asm__ __volatile__("lfence" ::: "memory"); }
-#else
-#define CK_PR_AMD_RMW()
-#endif
-
 #ifdef CK_MD_UMP
 #define CK_PR_LOCK_PREFIX
 #else
@@ -173,7 +158,6 @@ ck_pr_load_64_2(uint64_t target[2], uint64_t v[2])
 				  "=d" (v[1])
 				:
 				: "rbx", "rcx", "memory", "cc");
-	CK_PR_AMD_RMW();
 	return;
 }
 
@@ -242,7 +226,6 @@ CK_PR_STORE_S(8,  uint8_t, "movb")
 					  "+q" (d)			\
 					:				\
 					: "memory", "cc");		\
-		CK_PR_AMD_RMW();					\
 		return (d);						\
 	}
 
@@ -369,7 +352,6 @@ CK_PR_GENERATE(xor)
 					: "q"   (set),				\
 					  "a"   (compare)			\
 					: "memory", "cc");			\
-		CK_PR_AMD_RMW();						\
 		return z;							\
 	}
 
@@ -405,8 +387,7 @@ CK_PR_CAS_S(8,  uint8_t,  "cmpxchgb")
 					: "q"   (set),				\
 					  "a"   (compare)			\
 					: "memory", "cc");			\
-		CK_PR_AMD_RMW();						\
-		return (bool)z;							\
+		return z;							\
 	}
 
 CK_PR_CAS_O(ptr, void, void *, char, "q", "rax")
@@ -442,8 +423,7 @@ ck_pr_cas_64_2(uint64_t target[2], uint64_t compare[2], uint64_t set[2])
 				  "c"  (set[1]),
 				  "q"  (compare)
 				: "memory", "cc", "%rax", "%rdx");
-	CK_PR_AMD_RMW();
-	return (bool)z;
+	return z;
 }
 
 CK_CC_INLINE static bool
@@ -468,8 +448,7 @@ ck_pr_cas_64_2_value(uint64_t target[2], uint64_t compare[2], uint64_t set[2], u
 				  "b" (set[0]),
 				  "c" (set[1])
 				: "memory", "cc");
-	CK_PR_AMD_RMW();
-	return (bool)z;
+	return z;
 }
 
 CK_CC_INLINE static bool
@@ -517,8 +496,7 @@ CK_PR_CAS_V(8, 16, uint8_t)
 					  "=q" (c)			\
 					: "q"  ((P)b)			\
 					: "memory", "cc");		\
-		CK_PR_AMD_RMW();					\
-		return (bool)c;						\
+		return c;						\
 	}
 
 #define CK_PR_BT_S(K, S, T, I) CK_PR_BT(K, S, T, T, T, I)
