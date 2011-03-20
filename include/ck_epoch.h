@@ -85,6 +85,31 @@ ck_epoch_init(struct ck_epoch *global,
 	return;
 }
 
+CK_CC_INLINE static struct ck_epoch_record *
+ck_epoch_recycle(struct ck_epoch *global)
+{
+	struct ck_epoch_record *record;
+	ck_stack_entry_t *cursor;
+	unsigned int status;
+
+	if (ck_pr_load_uint(&global->n_free) == 0)
+		return (NULL);
+
+	CK_STACK_FOREACH(&global->records, cursor) {
+		record = ck_epoch_record_container(cursor);
+
+		if (ck_pr_load_uint(&record->status) == CK_EPOCH_FREE) {
+			status = ck_pr_fas_uint(&record->status, CK_EPOCH_USED);
+			if (status == CK_EPOCH_FREE) {
+				ck_pr_dec_uint(&global->n_free);
+				return record;
+			}
+		}
+	}
+
+	return NULL;
+}
+
 CK_CC_INLINE static void
 ck_epoch_register(struct ck_epoch *global, struct ck_epoch_record *record)
 {
@@ -109,6 +134,7 @@ ck_epoch_unregister(struct ck_epoch_record *record)
 {
 
 	record->status = CK_EPOCH_FREE;
+	ck_pr_inc_uint(&record->global->n_free);
 	ck_pr_fence_store();
 	return;
 }
@@ -220,7 +246,6 @@ ck_epoch_flush(struct ck_epoch_record *record)
 
 	ck_epoch_update(record->global, record);
 	ck_epoch_start(record);
-
 	return;
 }
 
