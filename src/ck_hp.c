@@ -78,6 +78,8 @@ ck_hp_init(struct ck_hp *state,
 	state->n_subscribers = 0;
 	state->n_free = 0;
 	ck_stack_init(&state->subscribers);
+	ck_pr_fence_store();
+
 	return;
 }
 
