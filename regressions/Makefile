@@ -11,6 +11,7 @@ all:
 	make -C ./ck_barrier/benchmark all
 	make -C ./ck_bytelock/validate all
 	make -C ./ck_bytelock/benchmark all
+	make -C ./ck_epoch/validate all
 	make -C ./ck_sequence/validate all 
 	make -C ./ck_stack/validate all
 	make -C ./ck_stack/benchmark all
@@ -29,6 +30,7 @@ clean:
 	make -C ./ck_barrier/benchmark clean 
 	make -C ./ck_bytelock/validate clean
 	make -C ./ck_bytelock/benchmark clean 
+	make -C ./ck_epoch/validate clean
 	make -C ./ck_sequence/validate clean
 	make -C ./ck_stack/validate clean
 	make -C ./ck_stack/benchmark clean 
