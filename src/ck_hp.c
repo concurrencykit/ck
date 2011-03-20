@@ -134,7 +134,6 @@ ck_hp_subscribe(struct ck_hp *state,
 	entry->state = CK_HP_USED;
 	entry->global = state;
 	entry->pointers = pointers;
-	entry->pointers = pointers;
 	entry->n_pending = 0;
 	ck_stack_init(&entry->pending);
 	ck_stack_push_upmc(&state->subscribers, &entry->global_entry);
