@@ -27,7 +27,6 @@
 #ifndef _CK_EPOCH_H
 #define _CK_EPOCH_H
 
-#include <ck_backoff.h>
 #include <ck_cc.h>
 #include <ck_pr.h>
 #include <ck_stack.h>
