@@ -70,7 +70,7 @@ main(int argc, char *argv[])
 		fprintf(stderr, "ERROR: Failed to allocate slot.\n");
 		exit(EXIT_FAILURE);
 	}
-	ck_hp_subscribe(&state, &record[0], pointers);
+	ck_hp_register(&state, &record[0], pointers);
 	ck_hp_flush(&record[0]);
 
 	entry = malloc(sizeof *entry);
@@ -94,7 +94,7 @@ main(int argc, char *argv[])
 		fprintf(stderr, "ERROR: Failed to allocate slot.\n");
 		exit(EXIT_FAILURE);
 	}
-	ck_hp_subscribe(&state, &record[1], pointers);
+	ck_hp_register(&state, &record[1], pointers);
 	ck_hp_flush(&record[1]);
 
 	entry = malloc(sizeof *entry);

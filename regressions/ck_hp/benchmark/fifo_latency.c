@@ -62,7 +62,7 @@ main(void)
 		fprintf(stderr, "ERROR: Failed to allocate slots.\n");
 		exit(EXIT_FAILURE);
 	}
-	ck_hp_subscribe(&fifo_hp, &record, r);
+	ck_hp_register(&fifo_hp, &record, r);
 
 	a = 0;
 	for (i = 0; i < STEPS; i++) {

@@ -92,7 +92,7 @@ ck_hp_set_threshold(struct ck_hp *state, unsigned int threshold)
 }
 
 void
-ck_hp_unsubscribe(struct ck_hp_record *entry)
+ck_hp_unregister(struct ck_hp_record *entry)
 {
 
 	ck_pr_store_int(&entry->state, CK_HP_FREE);
@@ -126,7 +126,7 @@ ck_hp_recycle(struct ck_hp *global)
 }
 
 void
-ck_hp_subscribe(struct ck_hp *state,
+ck_hp_register(struct ck_hp *state,
 		struct ck_hp_record *entry,
 		void **pointers)
 {

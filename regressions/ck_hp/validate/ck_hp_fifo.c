@@ -70,7 +70,7 @@ test(void *c)
                 exit(EXIT_FAILURE);
         }
 
-	ck_hp_subscribe(&fifo_hp, &record, malloc(sizeof(void *) * 2));
+	ck_hp_register(&fifo_hp, &record, malloc(sizeof(void *) * 2));
 	ck_pr_inc_uint(&barrier);
 	while (ck_pr_load_uint(&barrier) < (unsigned int)nthr);
 

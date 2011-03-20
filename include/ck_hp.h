@@ -93,8 +93,8 @@ ck_hp_clear(struct ck_hp_record *record)
 
 void ck_hp_init(ck_hp_t *, unsigned int, unsigned int, ck_hp_destructor_t);
 void ck_hp_set_threshold(ck_hp_t *, unsigned int);
-void ck_hp_subscribe(ck_hp_t *, ck_hp_record_t *, void **);
-void ck_hp_unsubscribe(ck_hp_record_t *);
+void ck_hp_register(ck_hp_t *, ck_hp_record_t *, void **);
+void ck_hp_unregister(ck_hp_record_t *);
 ck_hp_record_t *ck_hp_recycle(ck_hp_t *);
 void ck_hp_flush(ck_hp_record_t *);
 void ck_hp_free(ck_hp_record_t *, ck_hp_hazard_t *, void *, void *);

@@ -75,7 +75,7 @@ thread(void *unused)
 
 	unused = NULL;
 	pointers = malloc(sizeof(void *));
-	ck_hp_subscribe(&stack_hp, &record, pointers);
+	ck_hp_register(&stack_hp, &record, pointers);
 
 	if (aff_iterate(&a)) {
 		perror("ERROR: failed to affine thread");
