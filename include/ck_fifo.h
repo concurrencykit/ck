@@ -28,6 +28,7 @@
 #ifndef _CK_FIFO_H
 #define _CK_FIFO_H
 
+#include <ck_backoff.h>
 #include <ck_cc.h>
 #include <ck_md.h>
 #include <ck_pr.h>
@@ -178,6 +179,7 @@ CK_CC_INLINE static void
 ck_fifo_mpmc_enqueue(struct ck_fifo_mpmc *fifo, struct ck_fifo_mpmc_entry *entry, void *value)
 {
 	struct ck_fifo_mpmc_pointer tail, next, update;
+	ck_backoff_t backoff = CK_BACKOFF_INITIALIZER;
 
 	/*
 	 * Prepare the upcoming node and make sure to commit the updates
@@ -195,8 +197,10 @@ ck_fifo_mpmc_enqueue(struct ck_fifo_mpmc *fifo, struct ck_fifo_mpmc_entry *entry
 		next.generation = ck_pr_load_ptr(&tail.pointer->next.generation);
 		next.pointer = ck_pr_load_ptr(&tail.pointer->next.pointer);
 
-		if (ck_pr_load_ptr(&fifo->tail.generation) != tail.generation)
+		if (ck_pr_load_ptr(&fifo->tail.generation) != tail.generation) {
+			ck_backoff_eb(&backoff);
 			continue;
+		}
 
 		if (next.pointer != NULL) {
 			/*
@@ -217,6 +221,8 @@ ck_fifo_mpmc_enqueue(struct ck_fifo_mpmc *fifo, struct ck_fifo_mpmc_entry *entry
 			update.generation = next.generation + 1;
 			if (ck_pr_cas_ptr_2(&tail.pointer->next, &next, &update) == true)
 				break;
+
+			ck_backoff_eb(&backoff);
 		}
 	}
 
@@ -230,6 +236,7 @@ CK_CC_INLINE static bool
 ck_fifo_mpmc_dequeue(struct ck_fifo_mpmc *fifo, void *value)
 {
 	struct ck_fifo_mpmc_pointer head, tail, next, update;
+	ck_backoff_t backoff = CK_BACKOFF_INITIALIZER;
 
 	for (;;) {
 		head.generation = ck_pr_load_ptr(&fifo->head.generation);
@@ -262,28 +269,12 @@ ck_fifo_mpmc_dequeue(struct ck_fifo_mpmc *fifo, void *value)
 			update.generation = head.generation + 1;
 			if (ck_pr_cas_ptr_2(&fifo->head, &head, &update) == true)
 				break;
+
+			ck_backoff_eb(&backoff);
 		}
 	}
 
 	return (true);
-}
-
-CK_CC_INLINE static struct ck_fifo_mpmc_entry *
-ck_fifo_mpmc_recycle(struct ck_fifo_mpmc *fifo)
-{
-	struct ck_fifo_mpmc_pointer garbage;
-	struct ck_fifo_mpmc_entry *p;
-
-	garbage.generation = ck_pr_load_ptr(&fifo->garbage.generation);
-	garbage.pointer = ck_pr_load_ptr(&fifo->garbage.pointer);
-	p = ck_pr_load_ptr(&fifo->head_snapshot);
-
-	if (garbage.pointer == p) {
-		p = ck_pr_load_ptr(&fifo->head.pointer);
-		ck_pr_store_ptr(&fifo->head_snapshot, p);
-	}
-
-	return (NULL);
 }
 
 #define CK_FIFO_MPMC_ISEMPTY(f)	((f)->head.pointer->next.pointer == NULL)
