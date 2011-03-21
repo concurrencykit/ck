@@ -59,9 +59,10 @@ struct ck_epoch_record {
 typedef struct ck_epoch_record ck_epoch_record_t;
 
 struct ck_epoch {
+	unsigned int epoch;
+	char pad[CK_MD_CACHELINE - sizeof(unsigned int)];
 	ck_stack_t records;
 	unsigned int threshold;
-	unsigned int epoch;
 	unsigned int n_free;
 	ck_epoch_destructor_t destroy;
 };
