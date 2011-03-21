@@ -205,7 +205,7 @@ ck_epoch_start(struct ck_epoch_record *record)
 
 			ck_stack_init(&record->pending[epoch]);
 
-			record->epoch = g_epoch;
+			ck_pr_store_uint(&record->epoch, g_epoch);
 			record->delta = 0;
 			break;
 		}
