@@ -106,6 +106,7 @@ ck_hp_fifo_dequeue_mpmc(ck_hp_record_t *record,
 			void *value)
 {
 	struct ck_hp_fifo_entry *head, *tail, *next;
+	ck_backoff_t backoff = CK_BACKOFF_INITIALIZER;
 
 	for (;;) {
 		tail = ck_pr_load_ptr(&fifo->tail);
