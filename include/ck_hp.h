@@ -76,6 +76,7 @@ ck_hp_set(struct ck_hp_record *record, unsigned int i, void *pointer)
 {
 
 	ck_pr_store_ptr(&record->pointers[i], pointer);
+	ck_pr_fence_store();
 	return;
 }
 
