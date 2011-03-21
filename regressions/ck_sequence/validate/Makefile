@@ -12,4 +12,4 @@ clean:
 	rm -rf *~ *.o $(OBJECTS) *.dSYM
 
 include ../../../build/regressions.build
-CFLAGS+=-lpthread -D_GNU_SOURCE -ggdb
+CFLAGS+=-pthread -D_GNU_SOURCE -ggdb

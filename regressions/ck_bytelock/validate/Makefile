@@ -5,7 +5,7 @@ OBJECTS=validate
 all: $(OBJECTS)
 
 validate: validate.c
-	$(CC) $(CFLAGS) -o validate validate.c -lpthread
+	$(CC) $(CFLAGS) -o validate validate.c -pthread
 
 clean:
 	rm -rf *.dSYM *~ *.o $(OBJECTS)

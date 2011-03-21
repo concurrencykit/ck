@@ -70,4 +70,4 @@ clean:
 	rm -rf *.dSYM $(OBJECTS)
 
 include ../../../build/regressions.build
-CFLAGS+=-D_GNU_SOURCE -lpthread -lm
+CFLAGS+=-D_GNU_SOURCE -pthread -lm

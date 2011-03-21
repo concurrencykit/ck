@@ -5,7 +5,7 @@ OBJECTS=latency
 all: $(OBJECTS)
 
 latency: latency.c
-	$(CC) $(CFLAGS) -o latency latency.c -lpthread
+	$(CC) $(CFLAGS) -o latency latency.c -pthread
 
 clean:
 	rm -rf *.dSYM *~ *.o $(OBJECTS)

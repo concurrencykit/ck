@@ -35,4 +35,4 @@ clean:
 		ck_anderson test_and_set *.dSYM
 
 include ../../../build/regressions.build
-CFLAGS+=-lpthread -D_GNU_SOURCE -lm
+CFLAGS+=-pthread -D_GNU_SOURCE -lm

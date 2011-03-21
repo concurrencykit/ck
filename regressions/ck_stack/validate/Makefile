@@ -10,26 +10,26 @@ serial: serial.c
 	$(CC) $(CFLAGS) -o serial serial.c
 
 mpnc_push mpmc_push upmc_push spinlock_push spinlock_eb_push: push.c
-	$(CC) -lpthread -DMPNC -D_GNU_SOURCE $(CFLAGS) -o mpnc_push push.c
-	$(CC) -lpthread -DMPMC -D_GNU_SOURCE $(CFLAGS) -o mpmc_push push.c
-	$(CC) -lpthread -DUPMC -D_GNU_SOURCE $(CFLAGS) -o upmc_push push.c
-	$(CC) -lpthread -DSPINLOCK -D_GNU_SOURCE $(CFLAGS) -o spinlock_push push.c
-	$(CC) -lpthread -DSPINLOCK -DEB -D_GNU_SOURCE $(CFLAGS) -o spinlock_eb_push push.c
+	$(CC) -pthread -DMPNC -D_GNU_SOURCE $(CFLAGS) -o mpnc_push push.c
+	$(CC) -pthread -DMPMC -D_GNU_SOURCE $(CFLAGS) -o mpmc_push push.c
+	$(CC) -pthread -DUPMC -D_GNU_SOURCE $(CFLAGS) -o upmc_push push.c
+	$(CC) -pthread -DSPINLOCK -D_GNU_SOURCE $(CFLAGS) -o spinlock_push push.c
+	$(CC) -pthread -DSPINLOCK -DEB -D_GNU_SOURCE $(CFLAGS) -o spinlock_eb_push push.c
 
 mpmc_pop upmc_pop spinlock_pop spinlock_eb_pop: pop.c
-	$(CC) -lpthread -DMPMC -D_GNU_SOURCE $(CFLAGS) -o mpmc_pop pop.c
-	$(CC) -lpthread -DUPMC -D_GNU_SOURCE $(CFLAGS) -o upmc_pop pop.c
-	$(CC) -lpthread -DSPINLOCK -D_GNU_SOURCE $(CFLAGS) -o spinlock_pop pop.c
-	$(CC) -lpthread -DEB -DSPINLOCK -D_GNU_SOURCE $(CFLAGS) -o spinlock_eb_pop pop.c
+	$(CC) -pthread -DMPMC -D_GNU_SOURCE $(CFLAGS) -o mpmc_pop pop.c
+	$(CC) -pthread -DUPMC -D_GNU_SOURCE $(CFLAGS) -o upmc_pop pop.c
+	$(CC) -pthread -DSPINLOCK -D_GNU_SOURCE $(CFLAGS) -o spinlock_pop pop.c
+	$(CC) -pthread -DEB -DSPINLOCK -D_GNU_SOURCE $(CFLAGS) -o spinlock_eb_pop pop.c
 
 mpmc_pair spinlock_pair spinlock_eb_pair pthreads_pair: pair.c
-	$(CC) -lpthread -DMPMC -D_GNU_SOURCE $(CFLAGS) -o mpmc_pair pair.c
-	$(CC) -lpthread -DSPINLOCK -D_GNU_SOURCE $(CFLAGS) -o spinlock_pair pair.c
-	$(CC) -lpthread -DEB -DSPINLOCK -D_GNU_SOURCE $(CFLAGS) -o spinlock_eb_pair pair.c
-	$(CC) -lpthread -DPTHREADS -D_GNU_SOURCE $(CFLAGS) -o pthreads_pair pair.c
+	$(CC) -pthread -DMPMC -D_GNU_SOURCE $(CFLAGS) -o mpmc_pair pair.c
+	$(CC) -pthread -DSPINLOCK -D_GNU_SOURCE $(CFLAGS) -o spinlock_pair pair.c
+	$(CC) -pthread -DEB -DSPINLOCK -D_GNU_SOURCE $(CFLAGS) -o spinlock_eb_pair pair.c
+	$(CC) -pthread -DPTHREADS -D_GNU_SOURCE $(CFLAGS) -o pthreads_pair pair.c
 
 clean:
 	rm -rf *~ *.o *.dSYM $(OBJECTS)
 
 include ../../../build/regressions.build
-CFLAGS+=-lpthread
+CFLAGS+=-pthread

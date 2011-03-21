@@ -15,4 +15,4 @@ clean:
 	rm -rf ck_pr_cas_64 ck_pr_fas_64 ck_pr_cas_64_2 *.dSYM
 
 include ../../../build/regressions.build
-CFLAGS+=-lpthread -D_GNU_SOURCE -lm
+CFLAGS+=-pthread -D_GNU_SOURCE -lm
