@@ -57,6 +57,7 @@ ck_hp_stack_pop_mpmc(ck_hp_record_t *record, struct ck_stack *target)
 			return (NULL);
 
 		ck_hp_set(record, 0, entry);
+		ck_pr_fence_memory();
 	} while (entry != ck_pr_load_ptr(&target->head));
 
 	while (ck_pr_cas_ptr_value(&target->head, entry, entry->next, &entry) == false) {
@@ -64,9 +65,11 @@ ck_hp_stack_pop_mpmc(ck_hp_record_t *record, struct ck_stack *target)
 			return (NULL);
 
 		ck_hp_set(record, 0, entry);
+		ck_pr_fence_memory();
 		update = ck_pr_load_ptr(&target->head);
 		while (entry != update) {
 			ck_hp_set(record, 0, update);
+			ck_pr_fence_memory();
 			entry = update;
 			update = ck_pr_load_ptr(&target->head);
 			if (update == NULL)

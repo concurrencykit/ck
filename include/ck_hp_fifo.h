@@ -82,6 +82,7 @@ ck_hp_fifo_enqueue_mpmc(ck_hp_record_t *record,
 	for (;;) {
 		tail = ck_pr_load_ptr(&fifo->tail);
 		ck_hp_set(record, 0, tail);
+		ck_pr_fence_memory();
 		if (tail != ck_pr_load_ptr(&fifo->tail))
 			continue;
 
@@ -108,6 +109,7 @@ ck_hp_fifo_dequeue_mpmc(ck_hp_record_t *record,
 
 		head = ck_pr_load_ptr(&fifo->head);
 		ck_hp_set(record, 0, head);
+		ck_pr_fence_memory();
 		if (head != ck_pr_load_ptr(&fifo->head))
 			continue;
 
