@@ -27,6 +27,12 @@
 #ifndef _CK_EPOCH_H
 #define _CK_EPOCH_H
 
+/*
+ * The implementation here is inspired from the work described in:
+ *   Fraser, K. 2004. Practical Lock-Freedom. PhD Thesis, University
+ *   of Cambridge Computing Laboratory.
+ */
+
 #include <ck_cc.h>
 #include <ck_pr.h>
 #include <ck_stack.h>
