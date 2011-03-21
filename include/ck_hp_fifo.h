@@ -74,6 +74,7 @@ ck_hp_fifo_enqueue_mpmc(ck_hp_record_t *record,
 			void *value)
 {
 	struct ck_hp_fifo_entry *tail, *next;
+	ck_backoff_t backoff = CK_BACKOFF_INITIALIZER;
 
 	entry->value = value;
 	entry->next = NULL;
@@ -91,6 +92,8 @@ ck_hp_fifo_enqueue_mpmc(ck_hp_record_t *record,
 			ck_pr_cas_ptr(&fifo->tail, tail, next);
 		else if (ck_pr_cas_ptr(&fifo->tail->next, next, entry) == true)
 			break;
+
+		ck_backoff_eb(&backoff);
 	}
 
 	ck_pr_cas_ptr(&fifo->tail, tail, entry);
@@ -115,6 +118,7 @@ ck_hp_fifo_dequeue_mpmc(ck_hp_record_t *record,
 
 		next = ck_pr_load_ptr(&head->next);
 		ck_hp_set(record, 1, next);
+		ck_pr_fence_memory();
 		if (head != ck_pr_load_ptr(&fifo->head))
 			continue;
 
@@ -125,6 +129,8 @@ ck_hp_fifo_dequeue_mpmc(ck_hp_record_t *record,
 			ck_pr_cas_ptr(&fifo->tail, tail, next);
 		} else if (ck_pr_cas_ptr(&fifo->head, head, next) == true)
 			break;
+
+		ck_backoff_eb(&backoff);
 	}
 
 	ck_pr_store_ptr(&value, next->value);
@@ -142,6 +148,5 @@ ck_hp_fifo_dequeue_mpmc(ck_hp_record_t *record,
         for ((entry) = CK_HP_FIFO_FIRST(fifo);			\
              (entry) != NULL && ((T) = (entry)->next, 1);	\
              (entry) = (T))
-
 
 #endif /* _CK_HP_FIFO_H */
