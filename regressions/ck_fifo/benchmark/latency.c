@@ -59,6 +59,7 @@ main(void)
 	ck_fifo_mpmc_t mpmc_fifo;
 	ck_fifo_mpmc_entry_t mpmc_entry[ENTRIES];
 	ck_fifo_mpmc_entry_t mpmc_stub;
+	ck_fifo_mpmc_entry_t *garbage;
 #endif
 
 #ifdef CK_F_FIFO_SPSC
@@ -145,7 +146,7 @@ main(void)
 
 		s = rdtsc();
 		for (j = 0; j < ENTRIES; j++)
-			ck_fifo_mpmc_dequeue(&mpmc_fifo, &r);
+			ck_fifo_mpmc_dequeue(&mpmc_fifo, &r, &garbage);
 		e = rdtsc();
 		a += e - s;
 	}

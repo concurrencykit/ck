@@ -155,8 +155,6 @@ struct ck_fifo_mpmc {
 	struct ck_fifo_mpmc_pointer head;
 	char pad[CK_MD_CACHELINE - sizeof(struct ck_fifo_mpmc_pointer)];
 	struct ck_fifo_mpmc_pointer tail;
-	struct ck_fifo_mpmc_entry *head_snapshot;
-	struct ck_fifo_mpmc_pointer garbage;
 };
 typedef struct ck_fifo_mpmc ck_fifo_mpmc_t;
 
@@ -170,8 +168,6 @@ ck_fifo_mpmc_init(struct ck_fifo_mpmc *fifo, struct ck_fifo_mpmc_entry *stub)
 	ck_pr_store_ptr(&fifo->tail.generation, 0);
 	ck_pr_store_ptr(&stub->next.pointer, NULL);
 	ck_pr_store_ptr(&stub->next.generation, 0);
-	ck_pr_store_ptr(&fifo->head_snapshot, stub);
-	ck_pr_store_ptr(&fifo->garbage, stub);
 	return;
 }
 
@@ -233,7 +229,7 @@ ck_fifo_mpmc_enqueue(struct ck_fifo_mpmc *fifo, struct ck_fifo_mpmc_entry *entry
 }
 
 CK_CC_INLINE static bool
-ck_fifo_mpmc_dequeue(struct ck_fifo_mpmc *fifo, void *value)
+ck_fifo_mpmc_dequeue(struct ck_fifo_mpmc *fifo, void *value, ck_fifo_mpmc_entry_t **garbage)
 {
 	struct ck_fifo_mpmc_pointer head, tail, next, update;
 	ck_backoff_t backoff = CK_BACKOFF_INITIALIZER;
@@ -274,6 +270,7 @@ ck_fifo_mpmc_dequeue(struct ck_fifo_mpmc *fifo, void *value)
 		}
 	}
 
+	*garbage = head.pointer;
 	return (true);
 }
 

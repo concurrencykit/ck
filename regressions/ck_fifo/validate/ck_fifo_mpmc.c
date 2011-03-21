@@ -64,7 +64,7 @@ test(void *c)
 #ifdef CK_F_FIFO_MPMC
 	struct context *context = c;
 	struct entry *entry;
-	ck_fifo_mpmc_entry_t *fifo_entry;
+	ck_fifo_mpmc_entry_t *fifo_entry, *garbage;
 	int i, j;
 
         if (aff_iterate(&a)) {
@@ -81,7 +81,7 @@ test(void *c)
 			entry = malloc(sizeof(struct entry));
 			entry->tid = context->tid;
 			ck_fifo_mpmc_enqueue(&fifo, fifo_entry, entry);
-			if (ck_fifo_mpmc_dequeue(&fifo, &entry) == false) {
+			if (ck_fifo_mpmc_dequeue(&fifo, &entry, &garbage) == false) {
 				fprintf(stderr, "ERROR [%u] Queue should never be empty.\n", context->tid);
 				exit(EXIT_FAILURE);
 			}
