@@ -287,7 +287,27 @@ PROFILE="${PROFILE:-$PLATFORM}"
 PLATFORM="__${PLATFORM}__"
 
 printf "Finding suitable compiler........"
-CC=`which "${CC:-cc}"`
+
+# `which` on Solaris sucks
+pathsearch()
+{
+	what=$1
+	oldFS="$IFS"
+	IFS=":"
+	for d in $PATH ; do
+		if test -x "$d/$what" ; then
+			echo "$d/$what";
+			IFS="$oldFS"
+			return
+		fi
+	done
+	IFS="$oldFS"
+}
+
+CC=`pathsearch "${CC:-cc}"`
+if test -z "$CC" -o ! -x "$CC"; then
+	CC=`pathsearch "${CC:-gcc}"`
+fi
 assert "$CC" "not found"
 
 # Make sure GCC 4.X, the only supported compiler, is being used.
