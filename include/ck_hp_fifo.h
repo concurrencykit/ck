@@ -88,9 +88,10 @@ ck_hp_fifo_enqueue_mpmc(ck_hp_record_t *record,
 			continue;
 
 		next = ck_pr_load_ptr(&tail->next);
-		if (next != NULL) 
+		if (next != NULL) {
 			ck_pr_cas_ptr(&fifo->tail, tail, next);
-		else if (ck_pr_cas_ptr(&fifo->tail->next, next, entry) == true)
+			continue;
+		} else if (ck_pr_cas_ptr(&fifo->tail->next, next, entry) == true)
 			break;
 
 		ck_backoff_eb(&backoff);
@@ -128,6 +129,7 @@ ck_hp_fifo_dequeue_mpmc(ck_hp_record_t *record,
 				return (NULL);
 
 			ck_pr_cas_ptr(&fifo->tail, tail, next);
+			continue;
 		} else if (ck_pr_cas_ptr(&fifo->head, head, next) == true)
 			break;
 
