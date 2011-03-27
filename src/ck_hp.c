@@ -60,8 +60,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <stdio.h>
-
 CK_STACK_CONTAINER(struct ck_hp_record, global_entry, ck_hp_record_container)
 CK_STACK_CONTAINER(struct ck_hp_hazard, pending_entry, ck_hp_hazard_container)
 
