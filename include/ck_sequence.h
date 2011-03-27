@@ -45,19 +45,19 @@ ck_sequence_init(struct ck_sequence *sq)
 	return;
 }
 
-CK_CC_INLINE static uint32_t
+CK_CC_INLINE static unsigned int
 ck_sequence_read_begin(struct ck_sequence *sq)
 {
-	uint32_t current;
+	unsigned int version;
 
 	for (;;) {
-		current = ck_pr_load_uint(&sq->sequence);
+		version = ck_pr_load_uint(&sq->sequence);
 
 		/*
 		 * If a sequence is even then associated data may be in a
 		 * consistent state.
 		 */
-		if ((current & 1) == 0) 
+		if ((version & 1) == 0) 
 			break;
 
 		/*
@@ -68,7 +68,7 @@ ck_sequence_read_begin(struct ck_sequence *sq)
 		ck_pr_stall();
 	}
 
-	return current;
+	return version;
 }
 
 CK_CC_INLINE static bool 
