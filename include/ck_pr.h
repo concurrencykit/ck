@@ -47,18 +47,21 @@
 #error Your platform is unsupported
 #endif
 
-#define CK_PR_BIN(K, S, M, T, P, C)										\
-	CK_CC_INLINE static void										\
-	ck_pr_##K##_##S(M *target, T value)									\
-	{													\
-		T previous;											\
-		C punt;												\
-		punt = ck_pr_load_##S(target);									\
-		previous = (T)punt;										\
-		while (ck_pr_cas_##S##_value(target, (C)previous, (C)(previous P value), &previous) == false)	\
-			ck_pr_stall();										\
-														\
-		return;												\
+#define CK_PR_BIN(K, S, M, T, P, C)					\
+	CK_CC_INLINE static void					\
+	ck_pr_##K##_##S(M *target, T value)				\
+	{								\
+		T previous;						\
+		C punt;							\
+		punt = ck_pr_load_##S(target);				\
+		previous = (T)punt;					\
+		while (ck_pr_cas_##S##_value(target,			\
+					     (C)previous,		\
+					     (C)(previous P value),	\
+					     &previous) == false)	\
+			ck_pr_stall();					\
+									\
+		return;							\
 	}
 
 #define CK_PR_BIN_S(K, S, T, P) CK_PR_BIN(K, S, T, T, P, T)
@@ -298,18 +301,18 @@ CK_PR_BIN_S(or, 8, uint8_t, |)
 #undef CK_PR_BIN_S
 #undef CK_PR_BIN
 
-#define CK_PR_BTX(K, S, M, T, P, C, R)								\
-	CK_CC_INLINE static bool								\
-	ck_pr_##K##_##S(M *target, unsigned int offset)						\
-	{											\
-		T previous;									\
-		C punt;										\
-		punt = ck_pr_load_##S(target);							\
-		previous = (T)punt;								\
-		while (ck_pr_cas_##S##_value(target, (C)previous,				\
-			(C)(previous P (R ((T)1 << offset))), &previous) == false)		\
-				ck_pr_stall();							\
-		return ((previous >> offset) & 1);						\
+#define CK_PR_BTX(K, S, M, T, P, C, R)						   \
+	CK_CC_INLINE static bool						   \
+	ck_pr_##K##_##S(M *target, unsigned int offset)				   \
+	{									   \
+		T previous;							   \
+		C punt;								   \
+		punt = ck_pr_load_##S(target);					   \
+		previous = (T)punt;						   \
+		while (ck_pr_cas_##S##_value(target, (C)previous,		   \
+			(C)(previous P (R ((T)1 << offset))), &previous) == false) \
+				ck_pr_stall();					   \
+		return ((previous >> offset) & 1);				   \
 	}
 
 #define CK_PR_BTX_S(K, S, T, P, R) CK_PR_BTX(K, S, T, T, P, T, R)
@@ -431,26 +434,29 @@ CK_PR_BTX_S(bts, 16, uint16_t, |,)
 #undef CK_PR_BTX_S
 #undef CK_PR_BTX
 
-#define CK_PR_UNARY(K, X, S, M, T)										\
-	CK_CC_INLINE static void										\
-	ck_pr_##K##_##S(M *target)										\
-	{													\
-		ck_pr_##X##_##S(target, (T)1);									\
-		return;												\
+#define CK_PR_UNARY(K, X, S, M, T)					\
+	CK_CC_INLINE static void					\
+	ck_pr_##K##_##S(M *target)					\
+	{								\
+		ck_pr_##X##_##S(target, (T)1);				\
+		return;							\
 	}
 
-#define CK_PR_UNARY_Z(K, S, M, T, P, C, Z)									\
-	CK_CC_INLINE static void										\
-	ck_pr_##K##_##S##_zero(M *target, bool *zero)								\
-	{													\
-		T previous;											\
-		C punt;												\
-		punt = (C)ck_pr_load_##S(target);								\
-		previous = (T)punt;										\
-		while (ck_pr_cas_##S##_value(target, (C)previous, (C)(previous P 1), &previous) == false)	\
-			ck_pr_stall();										\
-		*zero = previous == (T)Z;									\
-		return;												\
+#define CK_PR_UNARY_Z(K, S, M, T, P, C, Z)				\
+	CK_CC_INLINE static void					\
+	ck_pr_##K##_##S##_zero(M *target, bool *zero)			\
+	{								\
+		T previous;						\
+		C punt;							\
+		punt = (C)ck_pr_load_##S(target);			\
+		previous = (T)punt;					\
+		while (ck_pr_cas_##S##_value(target,			\
+					     (C)previous,		\
+					     (C)(previous P 1),		\
+					     &previous) == false)	\
+			ck_pr_stall();					\
+		*zero = previous == (T)Z;				\
+		return;							\
 	}
 
 #define CK_PR_UNARY_S(K, X, S, M) CK_PR_UNARY(K, X, S, M, M)
@@ -653,33 +659,39 @@ CK_PR_UNARY_Z_S(dec, 8, uint8_t, -, 1)
 #undef CK_PR_UNARY_Z
 #undef CK_PR_UNARY
 
-#define CK_PR_N(K, S, M, T, P, C)										\
-	CK_CC_INLINE static void										\
-	ck_pr_##K##_##S(M *target)										\
-	{													\
-		T previous;											\
-		C punt;												\
-		punt = (C)ck_pr_load_##S(target);								\
-		previous = (T)punt;										\
-		while (ck_pr_cas_##S##_value(target, (C)previous, (C)(P previous), &previous) == false)		\
-			ck_pr_stall();										\
-														\
-		return;												\
+#define CK_PR_N(K, S, M, T, P, C)					\
+	CK_CC_INLINE static void					\
+	ck_pr_##K##_##S(M *target)					\
+	{								\
+		T previous;						\
+		C punt;							\
+		punt = (C)ck_pr_load_##S(target);			\
+		previous = (T)punt;					\
+		while (ck_pr_cas_##S##_value(target,			\
+					     (C)previous,		\
+					     (C)(P previous),		\
+					     &previous) == false)	\
+			ck_pr_stall();					\
+									\
+		return;							\
 	}
 
-#define CK_PR_N_Z(S, M, T, C)											\
-	CK_CC_INLINE static void										\
-	ck_pr_neg_##S##_zero(M *target, bool *zero)								\
-	{													\
-		T previous;											\
-		C punt;												\
-		punt = (C)ck_pr_load_##S(target);								\
-		previous = (T)punt;										\
-		while (ck_pr_cas_##S##_value(target, (C)previous, (C)(-previous), &previous) == false)		\
-			ck_pr_stall();										\
-														\
-		*zero = previous == 0;										\
-		return;												\
+#define CK_PR_N_Z(S, M, T, C)						\
+	CK_CC_INLINE static void					\
+	ck_pr_neg_##S##_zero(M *target, bool *zero)			\
+	{								\
+		T previous;						\
+		C punt;							\
+		punt = (C)ck_pr_load_##S(target);			\
+		previous = (T)punt;					\
+		while (ck_pr_cas_##S##_value(target,			\
+					     (C)previous,		\
+					     (C)(-previous),		\
+					     &previous) == false)	\
+			ck_pr_stall();					\
+									\
+		*zero = previous == 0;					\
+		return;							\
 	}
 
 #define CK_PR_N_S(K, S, M, P)	CK_PR_N(K, S, M, M, P, M)
@@ -842,30 +854,36 @@ CK_PR_N_Z_S(8, uint8_t)
 #undef CK_PR_N_Z
 #undef CK_PR_N
 
-#define CK_PR_FAA(S, M, T, C)											\
-	CK_CC_INLINE static C											\
-	ck_pr_faa_##S(M *target, T delta)									\
-	{													\
-		T previous;											\
-		C punt;												\
-		punt = (C)ck_pr_load_##S(target);								\
-		previous = (T)punt;										\
-		while (ck_pr_cas_##S##_value(target, (C)previous, (C)(previous + delta), &previous) == false)	\
-			ck_pr_stall();										\
-														\
-		return ((C)previous);										\
+#define CK_PR_FAA(S, M, T, C)						\
+	CK_CC_INLINE static C						\
+	ck_pr_faa_##S(M *target, T delta)				\
+	{								\
+		T previous;						\
+		C punt;							\
+		punt = (C)ck_pr_load_##S(target);			\
+		previous = (T)punt;					\
+		while (ck_pr_cas_##S##_value(target,			\
+					     (C)previous,		\
+					     (C)(previous + delta),	\
+					     &previous) == false)	\
+			ck_pr_stall();					\
+									\
+		return ((C)previous);					\
 	}	
 
-#define CK_PR_FAS(S, M, C)											\
-	CK_CC_INLINE static C											\
-	ck_pr_fas_##S(M *target, C update)									\
-	{													\
-		C previous;											\
-		previous = ck_pr_load_##S(target);								\
-		while (ck_pr_cas_##S##_value(target, previous, update, &previous) == false)			\
-			ck_pr_stall();										\
-														\
-		return (previous);										\
+#define CK_PR_FAS(S, M, C)						\
+	CK_CC_INLINE static C						\
+	ck_pr_fas_##S(M *target, C update)				\
+	{								\
+		C previous;						\
+		previous = ck_pr_load_##S(target);			\
+		while (ck_pr_cas_##S##_value(target,			\
+					     previous,			\
+					     update,			\
+					     &previous) == false)	\
+			ck_pr_stall();					\
+									\
+		return (previous);					\
 	}
 
 #define CK_PR_FAA_S(S, M) CK_PR_FAA(S, M, M, M)

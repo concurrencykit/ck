@@ -154,10 +154,12 @@ ck_epoch_update(struct ck_epoch *global, struct ck_epoch_record *record)
 
 	CK_STACK_FOREACH(&global->records, cursor) {
 		c_record = ck_epoch_record_container(cursor);
-		if (ck_pr_load_uint(&c_record->status) == CK_EPOCH_FREE || c_record == record)
+		if (ck_pr_load_uint(&c_record->status) == CK_EPOCH_FREE ||
+		    c_record == record)
 			continue;
 
-		if (ck_pr_load_uint(&c_record->active) == true && ck_pr_load_uint(&c_record->epoch) != g_epoch)
+		if (ck_pr_load_uint(&c_record->active) == true &&
+		    ck_pr_load_uint(&c_record->epoch) != g_epoch)
 			return;
 	}
 
@@ -196,9 +198,10 @@ ck_epoch_start(struct ck_epoch_record *record)
 			unsigned int epoch = record->epoch & (CK_EPOCH_LENGTH - 1);
 
 			/*
-			 * This means all threads with a potential reference to a hazard pointer
-			 * will have a view as new as or newer than the calling thread. No active
-			 * reference should exist to any object in the record's pending list.
+			 * This means all threads with a potential reference to a
+			 * hazard pointer will have a view as new as or newer than
+			 * the calling thread. No active reference should exist to
+			 * any object in the record's pending list.
 			 */
 			CK_STACK_FOREACH_SAFE(&record->pending[epoch], cursor, next)
 				global->destroy(cursor);

@@ -111,13 +111,13 @@ CK_PR_FENCE(memory)
 /*
  * Atomic compare and swap.
  */
-#define CK_PR_CAS(S, M, T)								\
-	CK_CC_INLINE static bool							\
-	ck_pr_cas_##S(M *target, T compare, T set)					\
-	{										\
-		bool z;									\
-		z = __sync_bool_compare_and_swap((T *)target, compare, set);		\
-		return z;								\
+#define CK_PR_CAS(S, M, T)							\
+	CK_CC_INLINE static bool						\
+	ck_pr_cas_##S(M *target, T compare, T set)				\
+	{									\
+		bool z;								\
+		z = __sync_bool_compare_and_swap((T *)target, compare, set);	\
+		return z;							\
 	}
 
 CK_PR_CAS(ptr, void, void *)
@@ -146,13 +146,13 @@ ck_pr_cas_ptr_value(void *target, void *compare, void *set, void *v)
 	return (set == compare);
 }
 
-#define CK_PR_CAS_O(S, T)							\
-	CK_CC_INLINE static bool						\
-	ck_pr_cas_##S##_value(T *target, T compare, T set, T *v)		\
-	{									\
-		set = __sync_val_compare_and_swap(target, compare, set);	\
-		*v = set;							\
-		return (set == compare);					\
+#define CK_PR_CAS_O(S, T)						\
+	CK_CC_INLINE static bool					\
+	ck_pr_cas_##S##_value(T *target, T compare, T set, T *v)	\
+	{								\
+		set = __sync_val_compare_and_swap(target, compare, set);\
+		*v = set;						\
+		return (set == compare);				\
 	}
 
 CK_PR_CAS_O(char, char)
@@ -194,12 +194,12 @@ CK_PR_FAA_S(8,  uint8_t)
 /*
  * Atomic store-only binary operations.
  */
-#define CK_PR_BINARY(K, S, M, T)					\
-	CK_CC_INLINE static void					\
-	ck_pr_##K##_##S(M *target, T d)					\
-	{								\
-		d = __sync_fetch_and_##K((T *)target, d);		\
-		return;							\
+#define CK_PR_BINARY(K, S, M, T)				\
+	CK_CC_INLINE static void				\
+	ck_pr_##K##_##S(M *target, T d)				\
+	{							\
+		d = __sync_fetch_and_##K((T *)target, d);	\
+		return;						\
 	}
 
 #define CK_PR_BINARY_S(K, S, T) CK_PR_BINARY(K, S, T, T)

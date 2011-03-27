@@ -107,7 +107,8 @@ ck_spinlock_anderson_lock(struct ck_spinlock_anderson *lock,
 				next = lock->wrap;
 			else
 				next = position + 1;
-		} while (ck_pr_cas_uint_value(&lock->next, position, next, &position) == false);
+		} while (ck_pr_cas_uint_value(&lock->next, position,
+					      next, &position) == false);
 
 		position %= count;
 	} else {
@@ -505,7 +506,8 @@ ck_spinlock_mcs_unlock(struct ck_spinlock_mcs **queue, struct ck_spinlock_mcs *n
 		 * that we are the current tail. In this case, we may just
 		 * mark the spinlock queue as empty.
 		 */
-		if (ck_pr_load_ptr(queue) == node && ck_pr_cas_ptr(queue, node, NULL) == true)
+		if (ck_pr_load_ptr(queue) == node &&
+		    ck_pr_cas_ptr(queue, node, NULL) == true)
 			return;
 
 		/*

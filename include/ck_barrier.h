@@ -133,8 +133,11 @@ struct ck_barrier_tournament_state {
 };
 typedef struct ck_barrier_tournament_state ck_barrier_tournament_state_t;
 
-void ck_barrier_tournament_subscribe(ck_barrier_tournament_t *, ck_barrier_tournament_state_t *);
-void ck_barrier_tournament_init(ck_barrier_tournament_t *, ck_barrier_tournament_round_t **, unsigned int);
+void ck_barrier_tournament_subscribe(ck_barrier_tournament_t *,
+				     ck_barrier_tournament_state_t *);
+void ck_barrier_tournament_init(ck_barrier_tournament_t *,
+				ck_barrier_tournament_round_t **,
+				unsigned int);
 unsigned int ck_barrier_tournament_size(unsigned int);
 void ck_barrier_tournament(ck_barrier_tournament_t *, ck_barrier_tournament_state_t *);
 

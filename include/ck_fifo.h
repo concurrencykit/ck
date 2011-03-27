@@ -64,7 +64,9 @@ ck_fifo_spsc_init(struct ck_fifo_spsc *fifo, struct ck_fifo_spsc_entry *stub)
 }
 
 CK_CC_INLINE static void
-ck_fifo_spsc_enqueue(struct ck_fifo_spsc *fifo, struct ck_fifo_spsc_entry *entry, void *value)
+ck_fifo_spsc_enqueue(struct ck_fifo_spsc *fifo,
+		     struct ck_fifo_spsc_entry *entry,
+		     void *value)
 {
 
 	ck_pr_store_ptr(&entry->value, value);
@@ -172,7 +174,9 @@ ck_fifo_mpmc_init(struct ck_fifo_mpmc *fifo, struct ck_fifo_mpmc_entry *stub)
 }
 
 CK_CC_INLINE static void
-ck_fifo_mpmc_enqueue(struct ck_fifo_mpmc *fifo, struct ck_fifo_mpmc_entry *entry, void *value)
+ck_fifo_mpmc_enqueue(struct ck_fifo_mpmc *fifo,
+		     struct ck_fifo_mpmc_entry *entry,
+		     void *value)
 {
 	struct ck_fifo_mpmc_pointer tail, next, update;
 	ck_backoff_t backoff = CK_BACKOFF_INITIALIZER;
@@ -229,7 +233,9 @@ ck_fifo_mpmc_enqueue(struct ck_fifo_mpmc *fifo, struct ck_fifo_mpmc_entry *entry
 }
 
 CK_CC_INLINE static bool
-ck_fifo_mpmc_dequeue(struct ck_fifo_mpmc *fifo, void *value, ck_fifo_mpmc_entry_t **garbage)
+ck_fifo_mpmc_dequeue(struct ck_fifo_mpmc *fifo,
+		     void *value,
+		     ck_fifo_mpmc_entry_t **garbage)
 {
 	struct ck_fifo_mpmc_pointer head, tail, next, update;
 	ck_backoff_t backoff = CK_BACKOFF_INITIALIZER;
