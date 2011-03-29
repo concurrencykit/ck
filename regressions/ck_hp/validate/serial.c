@@ -71,23 +71,23 @@ main(int argc, char *argv[])
 		exit(EXIT_FAILURE);
 	}
 	ck_hp_register(&state, &record[0], pointers);
-	ck_hp_flush(&record[0]);
+	ck_hp_reclaim(&record[0]);
 
 	entry = malloc(sizeof *entry);
 	ck_hp_set(&record[0], 0, entry);
-	ck_hp_flush(&record[0]);
+	ck_hp_reclaim(&record[0]);
 	ck_hp_free(&record[0], &entry->hazard, entry, entry);
-	ck_hp_flush(&record[0]);
+	ck_hp_reclaim(&record[0]);
 	ck_hp_set(&record[0], 0, NULL);
-	ck_hp_flush(&record[0]);
+	ck_hp_reclaim(&record[0]);
 
 	entry = malloc(sizeof *entry);
 	ck_hp_set(&record[0], 0, entry);
-	ck_hp_flush(&record[0]);
+	ck_hp_reclaim(&record[0]);
 	ck_hp_free(&record[0], &entry->hazard, entry, entry);
-	ck_hp_flush(&record[0]);
+	ck_hp_reclaim(&record[0]);
 	ck_hp_set(&record[0], 0, NULL);
-	ck_hp_flush(&record[0]);
+	ck_hp_reclaim(&record[0]);
 
 	pointers = malloc(sizeof(void *));
 	if (pointers == NULL) {
@@ -95,15 +95,15 @@ main(int argc, char *argv[])
 		exit(EXIT_FAILURE);
 	}
 	ck_hp_register(&state, &record[1], pointers);
-	ck_hp_flush(&record[1]);
+	ck_hp_reclaim(&record[1]);
 
 	entry = malloc(sizeof *entry);
 	ck_hp_set(&record[1], 0, entry);
-	ck_hp_flush(&record[1]);
+	ck_hp_reclaim(&record[1]);
 	ck_hp_free(&record[1], &entry->hazard, entry, entry);
-	ck_hp_flush(&record[1]);
+	ck_hp_reclaim(&record[1]);
 	ck_hp_set(&record[1], 0, NULL);
-	ck_hp_flush(&record[1]);
+	ck_hp_reclaim(&record[1]);
 
 	printf("Allocating entry and freeing in other HP record...\n");
 	entry = malloc(sizeof *entry);
@@ -118,10 +118,10 @@ main(int argc, char *argv[])
 	ck_hp_free(&record[0], &other->hazard, other, other);
 	ck_pr_store_uint(&other->value, 32);
 	ck_hp_set(&record[0], 0, NULL);
-	ck_hp_flush(&record[1]);
+	ck_hp_reclaim(&record[1]);
 	ck_hp_set(&record[1], 0, NULL);
-	ck_hp_flush(&record[0]);
-	ck_hp_flush(&record[1]);
+	ck_hp_reclaim(&record[0]);
+	ck_hp_reclaim(&record[1]);
 	
 	return 0;
 }

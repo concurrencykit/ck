@@ -89,15 +89,6 @@ ck_hp_set_threshold(struct ck_hp *state, unsigned int threshold)
 	return;
 }
 
-void
-ck_hp_unregister(struct ck_hp_record *entry)
-{
-
-	ck_pr_store_int(&entry->state, CK_HP_FREE);
-	ck_pr_inc_uint(&entry->global->n_free);
-	return;
-}
-
 struct ck_hp_record *
 ck_hp_recycle(struct ck_hp *global)
 {
@@ -124,15 +115,30 @@ ck_hp_recycle(struct ck_hp *global)
 }
 
 void
+ck_hp_unregister(struct ck_hp_record *entry)
+{
+
+	entry->n_pending = 0;
+	entry->n_peak = 0;
+	entry->n_reclamations = 0;
+	ck_stack_init(&entry->pending);
+	ck_pr_store_int(&entry->state, CK_HP_FREE);
+	ck_pr_inc_uint(&entry->global->n_free);
+	return;
+}
+
+void
 ck_hp_register(struct ck_hp *state,
-		struct ck_hp_record *entry,
-		void **pointers)
+	       struct ck_hp_record *entry,
+	       void **pointers)
 {
 
 	entry->state = CK_HP_USED;
 	entry->global = state;
 	entry->pointers = pointers;
 	entry->n_pending = 0;
+	entry->n_peak = 0;
+	entry->n_reclamations = 0;
 	ck_stack_init(&entry->pending);
 	ck_stack_push_upmc(&state->subscribers, &entry->global_entry);
 	ck_pr_inc_uint(&state->n_subscribers);
@@ -215,7 +221,7 @@ ck_hp_member_cache(struct ck_hp *global, void **cache, unsigned int *n_hazards)
 }
 
 void
-ck_hp_flush(struct ck_hp_record *thread)
+ck_hp_reclaim(struct ck_hp_record *thread)
 {
 	struct ck_hp_hazard *hazard;
 	struct ck_hp *global = thread->global;
@@ -235,7 +241,8 @@ ck_hp_flush(struct ck_hp_record *thread)
 	previous = NULL;
 	CK_STACK_FOREACH_SAFE(&thread->pending, entry, next) {
 		hazard = ck_hp_hazard_container(entry);
-		match = bsearch(&hazard->pointer, cache, n_hazards, sizeof(void *), hazard_compare);
+		match = bsearch(&hazard->pointer, cache, n_hazards,
+				  sizeof(void *), hazard_compare);
 		if (match != NULL) {
 			previous = entry;
 			continue;
@@ -257,22 +264,35 @@ ck_hp_flush(struct ck_hp_record *thread)
 
 		/* The entry is now safe to destroy. */
 		global->destroy(hazard->data);
+		thread->n_reclamations++;
 	}
+
+	return;
 }
 
 void
-ck_hp_retire(struct ck_hp_record *thread, struct ck_hp_hazard *hazard, void *data, void *pointer)
+ck_hp_retire(struct ck_hp_record *thread,
+	     struct ck_hp_hazard *hazard,
+	     void *data,
+	     void *pointer)
 {
 
 	ck_pr_store_ptr(&hazard->pointer, pointer);
 	ck_pr_store_ptr(&hazard->data, data);
 	ck_stack_push_spnc(&thread->pending, &hazard->pending_entry);
+
 	thread->n_pending += 1;
+	if (thread->n_pending > thread->n_peak)
+		thread->n_peak = thread->n_pending;
+
 	return;
 }
 
 void
-ck_hp_free(struct ck_hp_record *thread, struct ck_hp_hazard *hazard, void *data, void *pointer)
+ck_hp_free(struct ck_hp_record *thread,
+	   struct ck_hp_hazard *hazard,
+	   void *data,
+	   void *pointer)
 {
 	struct ck_hp *global;
 
@@ -280,10 +300,27 @@ ck_hp_free(struct ck_hp_record *thread, struct ck_hp_hazard *hazard, void *data,
 	ck_pr_store_ptr(&hazard->data, data);
 	ck_pr_store_ptr(&hazard->pointer, pointer);
 	ck_stack_push_spnc(&thread->pending, &hazard->pending_entry);
+
 	thread->n_pending += 1;
+	if (thread->n_pending > thread->n_peak)
+		thread->n_peak = thread->n_pending;
 
 	if (thread->n_pending >= global->threshold)
-		ck_hp_flush(thread);
+		ck_hp_reclaim(thread);
+
+	return;
+}
+
+void
+ck_hp_purge(struct ck_hp_record *thread)
+{
+	ck_backoff_t backoff = CK_BACKOFF_INITIALIZER;
+
+	while (thread->n_pending > 0) {
+		ck_hp_reclaim(thread);
+		if (thread->n_pending > 0)
+			ck_backoff_gb(&backoff);
+	}
 
 	return;
 }

@@ -68,7 +68,9 @@ struct ck_hp_record {
 	ck_stack_t pending;
 	unsigned int n_pending;
 	ck_stack_entry_t global_entry;
-};
+	unsigned int n_peak;
+	uint64_t     n_reclamations;
+} CK_CC_CACHELINE;
 typedef struct ck_hp_record ck_hp_record_t;
 
 CK_CC_INLINE static void
@@ -96,8 +98,9 @@ void ck_hp_set_threshold(ck_hp_t *, unsigned int);
 void ck_hp_register(ck_hp_t *, ck_hp_record_t *, void **);
 void ck_hp_unregister(ck_hp_record_t *);
 ck_hp_record_t *ck_hp_recycle(ck_hp_t *);
-void ck_hp_flush(ck_hp_record_t *);
+void ck_hp_reclaim(ck_hp_record_t *);
 void ck_hp_free(ck_hp_record_t *, ck_hp_hazard_t *, void *, void *);
 void ck_hp_retire(ck_hp_record_t *, ck_hp_hazard_t *, void *, void *);
+void ck_hp_purge(ck_hp_record_t *);
 
 #endif /* _CK_HP_H */
