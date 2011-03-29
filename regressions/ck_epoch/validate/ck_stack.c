@@ -50,7 +50,7 @@ static unsigned int barrier;
 static unsigned int e_barrier;
 
 #ifndef PAIRS
-#define PAIRS 1000000 
+#define PAIRS 5000000 
 #endif
 
 struct node {
@@ -95,11 +95,11 @@ thread(void *unused CK_CC_UNUSED)
 	while (ck_pr_load_uint(&barrier) < n_threads);
 
 	for (i = 0; i < PAIRS; i++) {
-		ck_epoch_begin(&record);
+		ck_epoch_write_begin(&record);
 		ck_stack_push_upmc(&stack, &entry[i]->stack_entry);
 		ck_epoch_end(&record);
 
-		ck_epoch_begin(&record);
+		ck_epoch_write_begin(&record);
 		s = ck_stack_pop_upmc(&stack);
 		ck_epoch_end(&record);
 
@@ -109,6 +109,20 @@ thread(void *unused CK_CC_UNUSED)
 
 	ck_pr_inc_uint(&e_barrier);
 	while (ck_pr_load_uint(&e_barrier) < n_threads);
+
+	fprintf(stderr, "Peak: %u\nReclamations: %" PRIu64 "\n\n",
+			record.n_peak, record.n_reclamations);
+
+	ck_epoch_purge(&record);
+
+	ck_pr_inc_uint(&e_barrier);
+	while (ck_pr_load_uint(&e_barrier) < (n_threads << 1));
+
+	if (record.n_pending != 0) {
+		fprintf(stderr, "ERROR: %u pending, expecting none.\n",
+				record.n_pending);
+		exit(EXIT_FAILURE);
+	}
 
 	return (NULL);
 }
