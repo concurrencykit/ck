@@ -145,8 +145,19 @@ ck_epoch_register(struct ck_epoch *global, struct ck_epoch_record *record)
 CK_CC_INLINE static void
 ck_epoch_unregister(struct ck_epoch_record *record)
 {
+	size_t i;
 
 	record->status = CK_EPOCH_FREE;
+	record->active = 0;
+	record->epoch = 0;
+	record->delta = 0;
+	record->n_pending = 0;
+	record->n_peak = 0;
+	record->n_reclamations = 0;
+
+	for (i = 0; i < CK_EPOCH_LENGTH; i++)
+		ck_stack_init(&record->pending[i]);
+
 	ck_pr_inc_uint(&record->global->n_free);
 	ck_pr_fence_store();
 	return;
@@ -159,6 +170,7 @@ ck_epoch_tick(struct ck_epoch *global, struct ck_epoch_record *record)
 	ck_stack_entry_t *cursor;
 	unsigned int g_epoch = ck_pr_load_uint(&global->epoch);
 
+	g_epoch &= CK_EPOCH_LENGTH - 1;
 	CK_STACK_FOREACH(&global->records, cursor) {
 		c_record = ck_epoch_record_container(cursor);
 		if (ck_pr_load_uint(&c_record->status) == CK_EPOCH_FREE ||
@@ -182,6 +194,7 @@ ck_epoch_reclaim(struct ck_epoch_record *record)
 	unsigned int epoch = record->epoch;
 	ck_stack_entry_t *next, *cursor;
 
+	g_epoch &= CK_EPOCH_LENGTH - 1;
 	if (epoch == g_epoch)
 		return false;
 
@@ -198,7 +211,7 @@ ck_epoch_reclaim(struct ck_epoch_record *record)
 	}
 
 	ck_stack_init(&record->pending[epoch]);
-	record->epoch = g_epoch & (CK_EPOCH_LENGTH - 1);
+	record->epoch = g_epoch;
 	record->delta = 0;
 
 	return true;
@@ -247,12 +260,20 @@ ck_epoch_end(struct ck_epoch_record *record)
 }
 
 CK_CC_INLINE static void
+ck_epoch_retire(struct ck_epoch_record *record, ck_stack_entry_t *entry)
+{
+
+	ck_stack_push_spnc(&record->pending[record->epoch], entry);
+	record->n_pending += 1;
+	return;
+}
+
+CK_CC_INLINE static void
 ck_epoch_free(struct ck_epoch_record *record, ck_stack_entry_t *entry)
 {
 	struct ck_epoch *global = record->global;
-	unsigned int epoch = record->epoch;
 
-	ck_stack_push_spnc(&record->pending[epoch], entry);
+	ck_stack_push_spnc(&record->pending[record->epoch], entry);
 	record->n_pending += 1;
 
 	if (record->n_pending > record->n_peak)
@@ -270,9 +291,9 @@ ck_epoch_purge(struct ck_epoch_record *record)
 	ck_backoff_t backoff = CK_BACKOFF_INITIALIZER;
 
 	while (record->n_pending > 0) {
-		if (ck_epoch_reclaim(record) == false)
-			ck_epoch_tick(record->global, record);
-		else if (record->n_pending > 0)
+		ck_epoch_reclaim(record);
+		ck_epoch_tick(record->global, record);
+		if (record->n_pending > 0)
 			ck_backoff_gb(&backoff);
 	}
 
