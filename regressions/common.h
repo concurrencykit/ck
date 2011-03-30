@@ -32,6 +32,9 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/syscall.h>
+#elif defined(__MACH__)
+#include <mach/mach.h>
+#include <mach/thread_policy.h>
 #endif
 
 #ifndef CORES
@@ -65,6 +68,20 @@ aff_iterate(struct affinity *acb)
 	CPU_SET(c % CORES, &s);
 
 	return sched_setaffinity(gettid(), sizeof(s), &s);
+}
+#elif defined(__MACH__)
+CK_CC_UNUSED static int
+aff_iterate(struct affinity *acb)
+{
+	thread_affinity_policy_data_t policy;
+	unsigned int c;
+
+	c = ck_pr_faa_uint(&acb->request, acb->delta) % CORES;
+	policy.affinity_tag = c;
+	return thread_policy_set(mach_thread_self(),
+				 THREAD_AFFINITY_POLICY,
+				 (thread_policy_t)&policy,
+				 THREAD_AFFINITY_POLICY_COUNT);
 }
 #else
 CK_CC_UNUSED static int
