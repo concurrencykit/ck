@@ -64,7 +64,6 @@ struct ck_epoch_record {
 	uint64_t     n_reclamations;
 	struct ck_epoch *global;
 	ck_stack_entry_t record_next;
-
 } CK_CC_CACHELINE;
 typedef struct ck_epoch_record ck_epoch_record_t;
 
