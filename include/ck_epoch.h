@@ -243,7 +243,9 @@ ck_epoch_write_begin(struct ck_epoch_record *record)
 CK_CC_INLINE static void
 ck_epoch_read_begin(struct ck_epoch_record *record)
 {
+	unsigned int g_epoch = ck_pr_load_uint(&global->epoch) & (CK_EPOCH_LENGTH - 1);
 
+	ck_pr_store_uint(&record->epoch, g_epoch);
 	ck_pr_store_uint(&record->active, 1);
 	ck_pr_fence_store();
 	return;
