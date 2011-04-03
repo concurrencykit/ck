@@ -48,25 +48,79 @@ static unsigned int threshold;
 static unsigned int n_threads;
 static unsigned int barrier;
 static unsigned int e_barrier;
+static unsigned int readers;
 
 #ifndef PAIRS
 #define PAIRS 5000000 
+#endif
+
+#ifndef ITERATE
+#define ITERATE 20
 #endif
 
 struct node {
 	unsigned int value;
 	ck_stack_entry_t stack_entry;
 };
-static ck_stack_t stack = {NULL, NULL};
+static ck_stack_t stack = CK_STACK_INITIALIZER;
 static ck_epoch_t stack_epoch;
 CK_STACK_CONTAINER(struct node, stack_entry, stack_container)
 static struct affinity a;
 
 static void *
+read_thread(void *unused CK_CC_UNUSED)
+{
+	unsigned int j;
+	ck_epoch_record_t record;
+	ck_stack_entry_t *cursor;
+	volatile ck_stack_entry_t *n;
+
+	ck_epoch_register(&stack_epoch, &record);
+
+	if (aff_iterate(&a)) {
+		perror("ERROR: failed to affine thread");
+		exit(EXIT_FAILURE);
+	}
+
+	ck_pr_inc_uint(&barrier);
+	while (ck_pr_load_uint(&barrier) < n_threads);
+
+	while (CK_STACK_ISEMPTY(&stack) == true) {
+		if (ck_pr_load_uint(&readers) != 0)
+			break;
+
+		ck_pr_stall();
+	}
+
+	j = 0;
+	for (;;) {
+		ck_epoch_read_begin(&record);
+		CK_STACK_FOREACH(&stack, cursor) {
+			n = cursor;
+			j++;
+		}
+		ck_epoch_end(&record);
+
+		if (j != 0 && ck_pr_load_uint(&readers) == 0)
+			ck_pr_store_uint(&readers, 1);
+
+		if (CK_STACK_ISEMPTY(&stack) == true &&
+		    ck_pr_load_uint(&e_barrier) != 0)
+			break;
+	}
+
+	ck_pr_inc_uint(&e_barrier);
+	while (ck_pr_load_uint(&e_barrier) < n_threads);
+
+	fprintf(stderr, "[R] Observed entries: %u\n", j);
+	return (NULL);
+}
+
+static void *
 thread(void *unused CK_CC_UNUSED)
 {
 	struct node **entry, *e;
-	unsigned int i;
+	unsigned int i, j;
 	ck_epoch_record_t record;
 	ck_stack_entry_t *s;
 
@@ -77,54 +131,50 @@ thread(void *unused CK_CC_UNUSED)
 		exit(EXIT_FAILURE);
 	}
 
+	ck_pr_inc_uint(&barrier);
+	while (ck_pr_load_uint(&barrier) < n_threads);
+
 	entry = malloc(sizeof(struct node *) * PAIRS);
 	if (entry == NULL) {
 		fprintf(stderr, "Failed allocation.\n");
 		exit(EXIT_FAILURE);
 	}
 
-	for (i = 0; i < PAIRS; i++) {
-		entry[i] = malloc(sizeof(struct node));
-		if (entry == NULL) {
-			fprintf(stderr, "Failed individual allocation\n");
-			exit(EXIT_FAILURE);
+	for (j = 0; j < ITERATE; j++) {
+		for (i = 0; i < PAIRS; i++) {
+			entry[i] = malloc(sizeof(struct node));
+			if (entry == NULL) {
+				fprintf(stderr, "Failed individual allocation\n");
+				exit(EXIT_FAILURE);
+			}
 		}
-	}
 
-	ck_pr_inc_uint(&barrier);
-	while (ck_pr_load_uint(&barrier) < n_threads);
+		for (i = 0; i < PAIRS; i++) {
+			ck_epoch_write_begin(&record);
+			ck_stack_push_upmc(&stack, &entry[i]->stack_entry);
+			ck_epoch_end(&record);
+		}
 
-	for (i = 0; i < PAIRS; i++) {
-		ck_epoch_write_begin(&record);
-		ck_stack_push_upmc(&stack, &entry[i]->stack_entry);
-		ck_epoch_end(&record);
+		while (ck_pr_load_uint(&readers) == 0)
+			ck_pr_stall();
 
-		ck_epoch_write_begin(&record);
-		s = ck_stack_pop_upmc(&stack);
-		ck_epoch_end(&record);
+		for (i = 0; i < PAIRS; i++) {
+			ck_epoch_write_begin(&record);
+			s = ck_stack_pop_upmc(&stack);
+			ck_epoch_end(&record);
 
-		e = stack_container(s);
-		ck_epoch_free(&record, &e->stack_entry);
+			e = stack_container(s);
+			ck_epoch_free(&record, &e->stack_entry);
+		}
 	}
 
 	ck_pr_inc_uint(&e_barrier);
 	while (ck_pr_load_uint(&e_barrier) < n_threads);
 
-	fprintf(stderr, "Peak: %u (%2.2f%%), %u pending\nReclamations: %" PRIu64 "\n\n",
+	fprintf(stderr, "[W] Peak: %u (%2.2f%%)\n    Reclamations: %" PRIu64 "\n\n",
 			record.n_peak,
-			(double)record.n_peak / PAIRS * 100,
-			record.n_pending,
+			(double)record.n_peak / ((double)PAIRS * ITERATE) * 100,
 			record.n_reclamations);
-
-	ck_epoch_purge(&record);
-	ck_pr_inc_uint(&e_barrier);
-	while (ck_pr_load_uint(&e_barrier) < (n_threads << 1));
-
-	if (record.n_pending != 0) {
-		fprintf(stderr, "ERROR: %u pending, expecting none.\n",
-				record.n_pending);
-		exit(EXIT_FAILURE);
-	}
 
 	return (NULL);
 }
@@ -158,8 +208,10 @@ main(int argc, char *argv[])
 
 	ck_epoch_init(&stack_epoch, threshold, destructor);
 
-	for (i = 0; i < n_threads; i++) 
-		pthread_create(threads + i, NULL, thread, NULL);
+	for (i = 0; i < n_threads - 1; i++) 
+		pthread_create(threads + i, NULL, read_thread, NULL);
+
+	pthread_create(threads + i, NULL, thread, NULL);
 
 	for (i = 0; i < n_threads; i++) 
 		pthread_join(threads[i], NULL);

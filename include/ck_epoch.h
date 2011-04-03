@@ -203,13 +203,13 @@ ck_epoch_reclaim(struct ck_epoch_record *record)
 	 * the calling thread. No active reference should exist to
 	 * any object in the record's pending list.
 	 */
-	CK_STACK_FOREACH_SAFE(&record->pending[epoch], cursor, next) {
+	CK_STACK_FOREACH_SAFE(&record->pending[g_epoch], cursor, next) {
 		global->destroy(cursor);
 		record->n_pending--;
 		record->n_reclamations++;
 	}
 
-	ck_stack_init(&record->pending[epoch]);
+	ck_stack_init(&record->pending[g_epoch]);
 	record->epoch = g_epoch;
 	record->delta = 0;
 
@@ -273,9 +273,10 @@ ck_epoch_retire(struct ck_epoch_record *record, ck_stack_entry_t *entry)
 CK_CC_INLINE static void
 ck_epoch_free(struct ck_epoch_record *record, ck_stack_entry_t *entry)
 {
+	unsigned int epoch = ck_pr_load_uint(&record->epoch);
 	struct ck_epoch *global = record->global;
 
-	ck_stack_push_spnc(&record->pending[record->epoch], entry);
+	ck_stack_push_spnc(&record->pending[epoch], entry);
 	record->n_pending += 1;
 
 	if (record->n_pending > record->n_peak)
