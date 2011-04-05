@@ -38,9 +38,9 @@
 #endif
 
 struct example {
-        uint64_t a;
-        uint64_t b;
-        uint64_t c;
+        unsigned int a;
+        unsigned int b;
+        unsigned int c;
 };
 
 static struct example global CK_CC_CACHELINE;
@@ -136,8 +136,8 @@ main(int argc, char *argv[])
                  */
                 ck_sequence_write_begin(&seqlock);
                 global.a = counter++;
-                ck_pr_store_64(&global.b, global.a + 1000);
-                ck_pr_store_64(&global.c, global.b + global.a);
+                ck_pr_store_uint(&global.b, global.a + 1000);
+                ck_pr_store_uint(&global.c, global.b + global.a);
                 ck_sequence_write_end(&seqlock);
 
 		if (counter == 1)

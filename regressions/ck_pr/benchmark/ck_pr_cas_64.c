@@ -9,7 +9,7 @@
 #include <stdlib.h>
 
 int
-main(int void)
+main(void)
 {
 	exit(EXIT_FAILURE);
 }

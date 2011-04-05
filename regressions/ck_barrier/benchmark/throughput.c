@@ -36,6 +36,7 @@
 
 #include "../../common.h"
 
+#if defined(CK_F_PR_INC_64) && defined(CK_F_PR_LOAD_64)
 static int done = 0;
 static struct affinity a;
 static int nthr;
@@ -128,4 +129,13 @@ main(int argc, char *argv[])
 
 	return (0);
 }
+#else
+int
+main(void)
+{
+
+	fputs("Unsupported.", stderr);
+	return 0;
+}
+#endif
 
