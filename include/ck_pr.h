@@ -29,9 +29,9 @@
 #define _CK_PR_H
 
 #include <ck_cc.h>
+#include <ck_limits.h>
 #include <ck_stdint.h>
 #include <stdbool.h>
-#include <ck_limits.h>
 
 #if defined(__x86_64__)
 #include "gcc/x86_64/ck_pr.h"
