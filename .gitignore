@@ -15,6 +15,7 @@ regressions/ck_barrier/validate/ck_barrier_tournament
 regressions/ck_bytelock/benchmark/latency
 regressions/ck_bytelock/validate/validate
 regressions/ck_epoch/validate/ck_stack
+regressions/ck_epoch/validate/ck_stack_read
 regressions/ck_fifo/benchmark/latency
 regressions/ck_fifo/validate/ck_fifo_mpmc
 regressions/ck_fifo/validate/ck_fifo_mpmc_iterator
