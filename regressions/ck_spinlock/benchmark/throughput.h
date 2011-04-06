@@ -53,8 +53,14 @@ struct block {
 
 static struct affinity a;
 static unsigned int ready;
-static uint64_t *count;
+
+struct counters {
+	uint64_t value;
+} CK_CC_CACHELINE;
+
+static struct counters *count;
 static uint64_t nthr;
+static unsigned int barrier;
 
 int critical __attribute__((aligned(64)));
 
@@ -101,10 +107,14 @@ fairness(void *null)
         }
 
 	while (ck_pr_load_uint(&ready) == 0);
+
+	ck_pr_inc_uint(&barrier);
+	while (ck_pr_load_uint(&barrier) != nthr);
+
 	while (ready) {
 		LOCK;
 
-		count[i]++;
+		count[i].value++;
 		if (critical) {
 			base = lrand48() % critical;
 			for (j = 0; j < base; j++);
@@ -160,12 +170,12 @@ main(int argc, char *argv[])
 	a.delta = atoi(argv[2]);
 	a.request = 0;
 
-	count = malloc(sizeof(uint64_t) * nthr);
+	count = malloc(sizeof(*count) * nthr);
 	if (count == NULL) {
 		fprintf(stderr, "ERROR: Could not create acquisition buffer\n");
 		exit(EXIT_FAILURE);
 	}
-	bzero(count, sizeof(uint64_t) * nthr);
+	bzero(count, sizeof(*count) * nthr);
 
 	fprintf(stderr, "Creating threads (fairness)...");
 	for (i = 0; i < nthr; i++) {
@@ -187,15 +197,15 @@ main(int argc, char *argv[])
 	fprintf(stderr, "done\n\n");
 
 	for (i = 0, v = 0; i < nthr; i++) {
-		printf("%d %15" PRIu64 "\n", i, count[i]);
-		v += count[i];
+		printf("%d %15" PRIu64 "\n", i, count[i].value);
+		v += count[i].value;
 	}
 
 	printf("\n# total       : %15" PRIu64 "\n", v);
 	printf("# throughput  : %15" PRIu64 " a/s\n", (v /= nthr) / 10);
 
 	for (i = 0, d = 0; i < nthr; i++)
-		d += (count[i] - v) * (count[i] - v);
+		d += (count[i].value - v) * (count[i].value - v);
 
 	printf("# average     : %15" PRIu64 "\n", v);
 	printf("# deviation   : %.2f (%.2f%%)\n\n", sqrt(d / nthr), (sqrt(d / nthr) / v) * 100.00);
