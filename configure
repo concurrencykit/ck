@@ -214,6 +214,7 @@ case $PLATFORM in
 	"sun4u"|"sun4v"|"sparc64")
 		PLATFORM=sparcv9
 		ENVIRONMENT=64
+		LDFLAGS="$LDFLAGS -m64"
 		;;
 	i386|i486|i586|i686|i586_i686|pentium*|athlon*|k5|k6|k6_2|k6_3)
 		case $SYSTEM in
@@ -263,6 +264,7 @@ case $PLATFORM in
 	"amd64"|"x86_64")
 		PLATFORM=x86_64
 		ENVIRONMENT=64
+		LDFLAGS="$LDFLAGS -m64"
 		;;
 	"i86pc")
 		ISA=`isainfo -n 2> /dev/null || echo i386`
@@ -292,7 +294,6 @@ assert "$PLATFORM" "$PLATFORM" "unsupported"
 # Platform will be used as a macro.
 PROFILE="${PROFILE:-$PLATFORM}"
 PLATFORM="__${PLATFORM}__"
-LDFLAGS="-shared -fPIC"
 
 printf "Finding suitable compiler........"
 
@@ -347,13 +348,13 @@ fi
 
 if test "$COMPILER" = "suncc"; then
 	LD=/bin/ld
-	LDFLAGS="-G"
-	CFLAGS="-xO5"
+	LDFLAGS="$LDFLAGS -G"
+	CFLAGS="$CFLAGS -xO5"
 	PTHREAD_CFLAGS="-mt -lpthread"
 elif test "$COMPILER" = "gcc"; then
 	LD=$CC
-	LDFLAGS="-shared -fPIC"
-	CFLAGS="-D_XOPEN_SOURCE=600 -D_BSD_SOURCE -std=gnu99 -pedantic -Wall -W -Wundef -Wendif-labels -Wshadow -Wpointer-arith -Wbad-function-cast -Wcast-align -Wwrite-strings -Wstrict-prototypes -Wmissing-prototypes -Wnested-externs -Winline -Wdisabled-optimization -fstrict-aliasing -O2 -pipe -Wno-parentheses"
+	LDFLAGS="$LDFLAGS -shared -fPIC"
+	CFLAGS="$CFLAGS -D_XOPEN_SOURCE=600 -D_BSD_SOURCE -std=gnu99 -pedantic -Wall -W -Wundef -Wendif-labels -Wshadow -Wpointer-arith -Wbad-function-cast -Wcast-align -Wwrite-strings -Wstrict-prototypes -Wmissing-prototypes -Wnested-externs -Winline -Wdisabled-optimization -fstrict-aliasing -O2 -pipe -Wno-parentheses"
 	PTHREAD_CFLAGS="-pthread"
 else
 	assert "" "unknown compiler"
