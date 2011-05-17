@@ -27,7 +27,7 @@
 #ifndef _CK_CC_H
 #define _CK_CC_H
 
-#ifdef __GNUC__
+#if defined(__GNUC__) || defined(__SUNPRO_C)
 #include "gcc/ck_cc.h"
 #endif
 

@@ -17,19 +17,19 @@ mpnc_push mpmc_push upmc_push spinlock_push spinlock_eb_push: push.c
 	$(CC) -DSPINLOCK -DEB $(CFLAGS) -o spinlock_eb_push push.c
 
 mpmc_pop upmc_pop spinlock_pop spinlock_eb_pop: pop.c
-	$(CC) -pthread -DMPMC $(CFLAGS) -o mpmc_pop pop.c
-	$(CC) -pthread -DUPMC $(CFLAGS) -o upmc_pop pop.c
-	$(CC) -pthread -DSPINLOCK $(CFLAGS) -o spinlock_pop pop.c
-	$(CC) -pthread -DEB -DSPINLOCK $(CFLAGS) -o spinlock_eb_pop pop.c
+	$(CC) -DMPMC $(CFLAGS) -o mpmc_pop pop.c
+	$(CC) -DUPMC $(CFLAGS) -o upmc_pop pop.c
+	$(CC) -DSPINLOCK $(CFLAGS) -o spinlock_pop pop.c
+	$(CC) -DEB -DSPINLOCK $(CFLAGS) -o spinlock_eb_pop pop.c
 
 mpmc_pair spinlock_pair spinlock_eb_pair pthreads_pair: pair.c
-	$(CC) -pthread -DMPMC $(CFLAGS) -o mpmc_pair pair.c
-	$(CC) -pthread -DSPINLOCK $(CFLAGS) -o spinlock_pair pair.c
-	$(CC) -pthread -DEB -DSPINLOCK $(CFLAGS) -o spinlock_eb_pair pair.c
-	$(CC) -pthread -DPTHREADS $(CFLAGS) -o pthreads_pair pair.c
+	$(CC) -DMPMC $(CFLAGS) -o mpmc_pair pair.c
+	$(CC) -DSPINLOCK $(CFLAGS) -o spinlock_pair pair.c
+	$(CC) -DEB -DSPINLOCK $(CFLAGS) -o spinlock_eb_pair pair.c
+	$(CC) -DPTHREADS $(CFLAGS) -o pthreads_pair pair.c
 
 clean:
 	rm -rf *~ *.o *.dSYM $(OBJECTS)
 
 include ../../../build/regressions.build
-CFLAGS+=-pthread -D_GNU_SOURCE
+CFLAGS+=$(PTHREAD_CFLAGS) -D_GNU_SOURCE

@@ -7,13 +7,13 @@ HEADERS=@HEADERS@
 PKGCONFIG_DATA=@LIBRARY@/pkgconfig
 
 all:
-	make -C src all || exit
+	$(MAKE) -C src all || exit
 	@echo
 	@echo
 	@echo ---[ Concurrency Kit has built successfully. You may now \"make install\".
 
 regressions:
-	make -C regressions all || exit
+	$(MAKE) -C regressions all || exit
 	@echo ---[ Regressions have built successfully.
 
 install: all
@@ -39,8 +39,8 @@ uninstall:
 	rm -f $(PKGCONFIG_DATA)/ck.pc
 
 clean:
-	make -C src clean
-	make -C regressions clean
+	$(MAKE) -C src clean
+	$(MAKE) -C regressions clean
 	rm -f *~ *.o
 
 distribution: clean

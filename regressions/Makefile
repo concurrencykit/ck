@@ -1,40 +1,40 @@
 .PHONY: all clean
 
 all:
-	make -C ./ck_spinlock/validate all
-	make -C ./ck_spinlock/benchmark all
-	make -C ./ck_fifo/validate all
-	make -C ./ck_fifo/benchmark all
-	make -C ./ck_pr/validate all 
-	make -C ./ck_pr/benchmark all
-	make -C ./ck_barrier/validate all
-	make -C ./ck_barrier/benchmark all
-	make -C ./ck_bytelock/validate all
-	make -C ./ck_bytelock/benchmark all
-	make -C ./ck_epoch/validate all
-	make -C ./ck_sequence/validate all 
-	make -C ./ck_stack/validate all
-	make -C ./ck_stack/benchmark all
-	make -C ./ck_ring/validate all
-	make -C ./ck_hp/validate all
-	make -C ./ck_hp/benchmark all
+	$(MAKE) -C ./ck_spinlock/validate all
+	$(MAKE) -C ./ck_spinlock/benchmark all
+	$(MAKE) -C ./ck_fifo/validate all
+	$(MAKE) -C ./ck_fifo/benchmark all
+	$(MAKE) -C ./ck_pr/validate all 
+	$(MAKE) -C ./ck_pr/benchmark all
+	$(MAKE) -C ./ck_barrier/validate all
+	$(MAKE) -C ./ck_barrier/benchmark all
+	$(MAKE) -C ./ck_bytelock/validate all
+	$(MAKE) -C ./ck_bytelock/benchmark all
+	$(MAKE) -C ./ck_epoch/validate all
+	$(MAKE) -C ./ck_sequence/validate all
+	$(MAKE) -C ./ck_stack/validate all
+	$(MAKE) -C ./ck_stack/benchmark all
+	$(MAKE) -C ./ck_ring/validate all
+	$(MAKE) -C ./ck_hp/validate all
+	$(MAKE) -C ./ck_hp/benchmark all
 
 clean:
-	make -C ./ck_spinlock/validate clean
-	make -C ./ck_spinlock/benchmark clean
-	make -C ./ck_fifo/validate clean
-	make -C ./ck_fifo/benchmark clean 
-	make -C ./ck_pr/validate clean 
-	make -C ./ck_pr/benchmark clean
-	make -C ./ck_barrier/validate clean 
-	make -C ./ck_barrier/benchmark clean 
-	make -C ./ck_bytelock/validate clean
-	make -C ./ck_bytelock/benchmark clean 
-	make -C ./ck_epoch/validate clean
-	make -C ./ck_sequence/validate clean
-	make -C ./ck_stack/validate clean
-	make -C ./ck_stack/benchmark clean 
-	make -C ./ck_ring/validate clean
-	make -C ./ck_hp/validate clean 
-	make -C ./ck_hp/benchmark clean 
+	$(MAKE) -C ./ck_spinlock/validate clean
+	$(MAKE) -C ./ck_spinlock/benchmark clean
+	$(MAKE) -C ./ck_fifo/validate clean
+	$(MAKE) -C ./ck_fifo/benchmark clean
+	$(MAKE) -C ./ck_pr/validate clean
+	$(MAKE) -C ./ck_pr/benchmark clean
+	$(MAKE) -C ./ck_barrier/validate clean
+	$(MAKE) -C ./ck_barrier/benchmark clean
+	$(MAKE) -C ./ck_bytelock/validate clean
+	$(MAKE) -C ./ck_bytelock/benchmark clean
+	$(MAKE) -C ./ck_epoch/validate clean
+	$(MAKE) -C ./ck_sequence/validate clean
+	$(MAKE) -C ./ck_stack/validate clean
+	$(MAKE) -C ./ck_stack/benchmark clean
+	$(MAKE) -C ./ck_ring/validate clean
+	$(MAKE) -C ./ck_hp/validate clean
+	$(MAKE) -C ./ck_hp/benchmark clean
 

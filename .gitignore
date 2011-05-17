@@ -7,11 +7,11 @@ build/regressions.build
 *.so
 *.dSYM
 regressions/ck_barrier/benchmark/throughput
-regressions/ck_barrier/validate/ck_barrier_centralized
-regressions/ck_barrier/validate/ck_barrier_combining
-regressions/ck_barrier/validate/ck_barrier_dissemination
-regressions/ck_barrier/validate/ck_barrier_mcs
-regressions/ck_barrier/validate/ck_barrier_tournament
+regressions/ck_barrier/validate/barrier_centralized
+regressions/ck_barrier/validate/barrier_combining
+regressions/ck_barrier/validate/barrier_dissemination
+regressions/ck_barrier/validate/barrier_mcs
+regressions/ck_barrier/validate/barrier_tournament
 regressions/ck_bytelock/benchmark/latency
 regressions/ck_bytelock/validate/validate
 regressions/ck_epoch/validate/ck_stack

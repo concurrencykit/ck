@@ -1,5 +1,8 @@
 CC=@CC@
 MAKE=make
-CFLAGS=-D_XOPEN_SOURCE=600 -D_BSD_SOURCE -I../../../include -std=gnu99 -pedantic -Wall -W -Wundef -Wendif-labels -Wshadow -Wpointer-arith -Wbad-function-cast -Wcast-align -Wwrite-strings -Wstrict-prototypes -Wmissing-prototypes -Wnested-externs -Winline -Wdisabled-optimization -fstrict-aliasing -O2 -pipe -Wno-parentheses @CFLAGS@
+CFLAGS=@CFLAGS@ -I../../../include
+LD=@LD@
+LDFLAGS=@LDFLAGS@
+PTHREADS_LDFLAGS=@PTHREADS_CFLAGS@
 
 include ../../../build/ck.build.@PROFILE@

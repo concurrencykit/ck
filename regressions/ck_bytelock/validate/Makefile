@@ -5,10 +5,10 @@ OBJECTS=validate
 all: $(OBJECTS)
 
 validate: validate.c
-	$(CC) $(CFLAGS) -o validate validate.c -pthread
+	$(CC) $(CFLAGS) -o validate validate.c
 
 clean:
 	rm -rf *.dSYM *~ *.o $(OBJECTS)
 
 include ../../../build/regressions.build
-CFLAGS+=-D_GNU_SOURCE
+CFLAGS+=$(PTHREAD_CFLAGS) -D_GNU_SOURCE

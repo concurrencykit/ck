@@ -1,5 +1,5 @@
 /*
- * Copyright 2009, 2010 Samy Al Bahra.
+ * Copyright 2009-2011 Samy Al Bahra.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -95,9 +95,9 @@ CK_PR_FENCE(memory, "mfence")
 	ck_pr_fas_##S(M *target, T v)				\
 	{							\
 		__asm__ __volatile__(I " %0, %1"		\
-					: "=m" (*(C *)target),	\
+					: "+m" (*(C *)target),	\
 					  "+q" (v)		\
-					: "m"  (*(C *)target)	\
+					:			\
 					: "memory");		\
 		return v;					\
 	}
@@ -194,7 +194,7 @@ CK_PR_LOAD_2(8, 16, uint8_t)
 	{							\
 		__asm__ __volatile__(I " %1, %0"		\
 					: "=m" (*(C *)target)	\
-					: "iq" (v)		\
+					: CK_CC_IMM "q" (v)	\
 					: "memory");		\
 		return;						\
 	}
@@ -311,7 +311,7 @@ CK_PR_GENERATE(not)
 	{								\
 		__asm__ __volatile__(CK_PR_LOCK_PREFIX I " %1, %0"	\
 					: "+m" (*(C *)target)		\
-					: "iq" (d)			\
+					: CK_CC_IMM "q" (d)		\
 					: "memory", "cc");		\
 		return;							\
 	}

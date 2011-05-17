@@ -10,7 +10,7 @@ OBJECTS=ck_hp.o				\
 all: libck.so libck.a
 
 libck.so: $(OBJECTS)
-	$(CC) $(CFLAGS) -shared -fPIC -o libck.so $(OBJECTS)
+	$(LD) $(LDFLAGS) -o libck.so $(OBJECTS)
 
 libck.a: $(OBJECTS)
 	ar rcs libck.a $(OBJECTS)

@@ -5,10 +5,10 @@ OBJECTS=latency
 all: $(OBJECTS)
 
 latency: latency.c
-	$(CC) $(CFLAGS) -o latency latency.c -pthread
+	$(CC) $(CFLAGS) -o latency latency.c
 
 clean:
 	rm -rf *.dSYM *~ *.o $(OBJECTS)
 
 include ../../../build/regressions.build
-CFLAGS+=-ggdb -D_GNU_SOURCE
+CFLAGS+=$(PTHREAD_CFLAGS) -D_GNU_SOURCE

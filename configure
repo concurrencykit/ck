@@ -82,6 +82,9 @@ generate()
  	    -e "s#@HEADERS@#$HEADERS#g" \
 	    -e "s#@LIBRARY@#$LIBRARY#g" \
 	    -e "s#@PREFIX@#$PREFIX#g"   \
+	    -e "s#@LD@#$LD#g"		\
+	    -e "s#@LDFLAGS@#$LDFLAGS#g" \
+	    -e "s#@PTHREAD_CFLAGS@#$PTHREAD_CFLAGS#g" \
 		$1 > $2
 }
 
@@ -91,7 +94,11 @@ generate_stdout()
 	echo
 	echo "           PROFILE = $PROFILE"
 	echo "                CC = $CC"
-	echo " Additional CFLAGS = $CFLAGS"
+	echo "          COMPILER = $COMPILER"
+	echo "            CFLAGS = $CFLAGS"
+	echo "    PTHREAD_CFLAGS = $PTHREAD_CFLAGS"
+	echo "                LD = $LD"
+	echo "           LDFLAGS = $LDFLAGS"
 	echo
 	echo "Headers will be installed in $HEADERS"
 	echo "Libraries will be installed in $LIBRARY"
@@ -285,6 +292,7 @@ assert "$PLATFORM" "$PLATFORM" "unsupported"
 # Platform will be used as a macro.
 PROFILE="${PROFILE:-$PLATFORM}"
 PLATFORM="__${PLATFORM}__"
+LDFLAGS="-shared -fPIC"
 
 printf "Finding suitable compiler........"
 
@@ -312,8 +320,13 @@ assert "$CC" "not found"
 
 # Make sure GCC 4.X, the only supported compiler, is being used.
 cat << EOF > .1.c
+#include <stdio.h>
 int main(void) {
 #if defined(__GNUC__) && (__GNUC__ >= 4)
+	puts("gcc");
+	return (0);
+#elif defined(__SUNPRO_C) && (__SUNPRO_C >= 0x5110)
+	puts("suncc");
 	return (0);
 #else
 	return (1);
@@ -322,7 +335,7 @@ int main(void) {
 EOF
 
 $CC -o .1 .1.c
-./.1
+COMPILER=`./.1`
 r=$?
 rm -f .1.c .1
 
@@ -330,6 +343,23 @@ if test "$r" -ne 0; then
 	assert "" "update compiler"
 else
 	echo "success [$CC]"
+fi
+
+if test "$COMPILER" = "suncc"; then
+	LD=/bin/ld
+	LDFLAGS="-G"
+	CFLAGS="-xO5"
+	PTHREAD_CFLAGS="-mt -lpthread"
+elif test "$COMPILER" = "gcc"; then
+	LD=$CC
+	LDFLAGS="-shared -fPIC"
+	CFLAGS="-D_XOPEN_SOURCE=600 -D_BSD_SOURCE -std=gnu99 -pedantic -Wall -W -Wundef"	\
+	       "-Wendif-labels -Wshadow -Wpointer-arith -Wbad-function-cast -Wcast-align"	\
+               "-Wwrite-strings -Wstrict-prototypes -Wmissing-prototypes -Wnested-externs"	\
+	       "-Winline -Wdisabled-optimization -fstrict-aliasing -O2 -pipe -Wno-parentheses"
+	PTHREAD_CFLAGS="-pthread"
+else
+	assert "" "unknown compiler"
 fi
 
 for i in $REQUIRE_HEADER; do

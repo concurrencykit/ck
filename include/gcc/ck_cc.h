@@ -1,5 +1,5 @@
 /*
- * Copyright 2009, 2010 Samy Al Bahra.
+ * Copyright 2009-2011 Samy Al Bahra.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,11 +29,15 @@
 
 #include <ck_md.h>
 
-/*
- * Suppress unused warnings.
- */
+#ifdef __SUNPRO_C
+#define CK_CC_UNUSED
+#define CK_CC_USED
+#define CK_CC_IMM
+#else
 #define CK_CC_UNUSED __attribute__((unused))
 #define CK_CC_USED   __attribute__((used))
+#define CK_CC_IMM "i"
+#endif
 
 /*
  * If optimizations are turned on, then force inlining.
