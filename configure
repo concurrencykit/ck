@@ -353,10 +353,7 @@ if test "$COMPILER" = "suncc"; then
 elif test "$COMPILER" = "gcc"; then
 	LD=$CC
 	LDFLAGS="-shared -fPIC"
-	CFLAGS="-D_XOPEN_SOURCE=600 -D_BSD_SOURCE -std=gnu99 -pedantic -Wall -W -Wundef"	\
-	       "-Wendif-labels -Wshadow -Wpointer-arith -Wbad-function-cast -Wcast-align"	\
-               "-Wwrite-strings -Wstrict-prototypes -Wmissing-prototypes -Wnested-externs"	\
-	       "-Winline -Wdisabled-optimization -fstrict-aliasing -O2 -pipe -Wno-parentheses"
+	CFLAGS="-D_XOPEN_SOURCE=600 -D_BSD_SOURCE -std=gnu99 -pedantic -Wall -W -Wundef -Wendif-labels -Wshadow -Wpointer-arith -Wbad-function-cast -Wcast-align -Wwrite-strings -Wstrict-prototypes -Wmissing-prototypes -Wnested-externs -Winline -Wdisabled-optimization -fstrict-aliasing -O2 -pipe -Wno-parentheses"
 	PTHREAD_CFLAGS="-pthread"
 else
 	assert "" "unknown compiler"

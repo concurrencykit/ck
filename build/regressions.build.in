@@ -3,6 +3,6 @@ MAKE=make
 CFLAGS=@CFLAGS@ -I../../../include
 LD=@LD@
 LDFLAGS=@LDFLAGS@
-PTHREADS_LDFLAGS=@PTHREADS_CFLAGS@
+PTHREAD_CFLAGS=@PTHREAD_CFLAGS@
 
 include ../../../build/ck.build.@PROFILE@
