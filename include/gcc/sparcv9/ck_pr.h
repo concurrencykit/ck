@@ -65,8 +65,8 @@ ck_pr_stall(void)
         }
 
 CK_PR_FENCE(load_depends, "")
-CK_PR_FENCE(store, "")
-CK_PR_FENCE(load, "")
+CK_PR_FENCE(store, "membar #StoreStore")
+CK_PR_FENCE(load, "membar #LoadLoad")
 CK_PR_FENCE(memory, "membar #MemIssue")
 
 #undef CK_PR_FENCE
