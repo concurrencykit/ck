@@ -18,6 +18,8 @@ all:
 	$(MAKE) -C ./ck_stack/validate all
 	$(MAKE) -C ./ck_stack/benchmark all
 	$(MAKE) -C ./ck_ring/validate all
+	$(MAKE) -C ./ck_rwlock/validate all
+	$(MAKE) -C ./ck_rwlock/benchmark all
 	$(MAKE) -C ./ck_hp/validate all
 	$(MAKE) -C ./ck_hp/benchmark all
 
@@ -39,6 +41,8 @@ clean:
 	$(MAKE) -C ./ck_stack/validate clean
 	$(MAKE) -C ./ck_stack/benchmark clean
 	$(MAKE) -C ./ck_ring/validate clean
+	$(MAKE) -C ./ck_rwlock/validate clean
+	$(MAKE) -C ./ck_rwlock/benchmark clean
 	$(MAKE) -C ./ck_hp/validate clean
 	$(MAKE) -C ./ck_hp/benchmark clean
 
