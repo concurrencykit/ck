@@ -176,7 +176,7 @@ int
 main(int argc, char *argv[])
 {
 	struct entry *bucket;
-	unsigned long long i, d, n;
+	unsigned long long i, d;
 	pthread_t *thread;
 	struct timeval stv, etv;
 
@@ -224,8 +224,6 @@ main(int argc, char *argv[])
 	srand(getpid());
 
 	affinerator.delta = d;
-	n = ITEMS / nthr;
-
 	bucket = malloc(sizeof(struct entry) * ITEMS);
 	assert(bucket != NULL);
 
