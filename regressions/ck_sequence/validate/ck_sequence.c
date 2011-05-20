@@ -49,7 +49,7 @@ static unsigned int barrier;
 static struct affinity affinerator;
 
 static void *
-consumer(void *unused)
+consumer(void *unused CK_CC_UNUSED)
 {
         struct example copy;
         uint32_t version;

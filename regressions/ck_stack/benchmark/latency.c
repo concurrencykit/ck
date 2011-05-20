@@ -40,6 +40,11 @@
 #define STEPS 40000
 #endif
 
+/*
+ * Note the redundant post-increment of r. This is to silence
+ * some irrelevant GCC warnings.
+ */
+
 static ck_stack_t stack;
 
 int
@@ -85,6 +90,7 @@ main(void)
 		a += e - s;
 	}
 	printf("      spinlock_pop: %16" PRIu64 "\n", a / STEPS / ENTRIES);
+	r++;
 
 #ifdef CK_F_STACK_PUSH_UPMC
 	a = 0;
@@ -163,6 +169,7 @@ main(void)
 		a += e - s;
 	}
 	printf(" ck_stack_pop_mpmc: %16" PRIu64 "\n", a / STEPS / (sizeof(entry) / sizeof(*entry)));
+	r++;
 #endif
 
 	return 0;

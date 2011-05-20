@@ -73,6 +73,12 @@ read_thread(void *unused CK_CC_UNUSED)
 	unsigned int j;
 	ck_epoch_record_t record;
 	ck_stack_entry_t *cursor;
+
+	/*
+	 * This is redundant post-incremented in order to silence some
+	 * irrelevant GCC warnings. It is volatile in order to prevent
+	 * elimination.
+	 */
 	volatile ck_stack_entry_t *n;
 
 	ck_epoch_register(&stack_epoch, &record);
@@ -98,6 +104,7 @@ read_thread(void *unused CK_CC_UNUSED)
 		CK_STACK_FOREACH(&stack, cursor) {
 			n = cursor;
 			j++;
+			n++;
 		}
 		ck_epoch_end(&record);
 

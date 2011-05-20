@@ -139,7 +139,7 @@ stack_pop_mpmc(ck_hp_record_t *record, struct stack *target)
 }
 
 static void *
-thread(void *unused)
+thread(void *unused CK_CC_UNUSED)
 {
 	struct node *entry, *e;
 	unsigned int i;

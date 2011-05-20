@@ -65,7 +65,7 @@ CK_STACK_CONTAINER(struct node, stack_entry, stack_container)
 static struct affinity a;
 
 static void *
-thread(void *unused)
+thread(void *unused CK_CC_UNUSED)
 {
 	struct node **entry, *e;
 	unsigned int i;
