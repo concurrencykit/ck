@@ -8,6 +8,10 @@ build/regressions.build
 regressions/ck_barrier/benchmark/throughput
 regressions/ck_barrier/validate/barrier_centralized
 regressions/ck_barrier/validate/barrier_combining
+regressions/ck_brlock/benchmark/latency
+regressions/ck_brlock/validate/validate
+regressions/ck_rwlock/benchmark/latency
+regressions/ck_rwlock/validate/validate
 regressions/ck_barrier/validate/barrier_dissemination
 regressions/ck_barrier/validate/barrier_mcs
 regressions/ck_barrier/validate/barrier_tournament
