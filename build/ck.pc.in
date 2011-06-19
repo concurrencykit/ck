@@ -5,6 +5,6 @@ libdir=@LIBRARY@
 Name: Concurrency Kit
 Description: Toolkit for well-specified design and implementation of concurrent systems 
 URL: http://www.concurrencykit.org/
-Version: 0.1.0
+Version: @VERSION@
 Libs: -L${libdir} -lck
 Cflags: -D__@PROFILE@__ -I${includedir}

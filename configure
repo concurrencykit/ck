@@ -33,6 +33,8 @@ EXIT_SUCCESS=0
 EXIT_FAILURE=1
 
 MAINTAINER='sbahra@repnop.org'
+VERSION='0.1.0'
+VERSION_MAJOR='0'
 BUILD="$PWD/build/ck.build"
 PREFIX=${PREFIX:-"/usr/local"}
 
@@ -76,15 +78,17 @@ assert()
 
 generate()
 {
-	sed -e "s#@PROFILE@#$PROFILE#g" \
-	    -e "s#@CC@#$CC#g"           \
- 	    -e "s#@CFLAGS@#$CFLAGS#g"   \
- 	    -e "s#@HEADERS@#$HEADERS#g" \
-	    -e "s#@LIBRARY@#$LIBRARY#g" \
-	    -e "s#@PREFIX@#$PREFIX#g"   \
-	    -e "s#@LD@#$LD#g"		\
-	    -e "s#@LDFLAGS@#$LDFLAGS#g" \
-	    -e "s#@PTHREAD_CFLAGS@#$PTHREAD_CFLAGS#g" \
+	sed -e "s#@PROFILE@#$PROFILE#g"			\
+	    -e "s#@VERSION@#$VERSION#g"			\
+	    -e "s#@VERSION_MAJOR@#$VERSION_MAJOR#g"	\
+	    -e "s#@CC@#$CC#g"				\
+ 	    -e "s#@CFLAGS@#$CFLAGS#g"			\
+ 	    -e "s#@HEADERS@#$HEADERS#g"			\
+	    -e "s#@LIBRARY@#$LIBRARY#g"			\
+	    -e "s#@PREFIX@#$PREFIX#g"			\
+	    -e "s#@LD@#$LD#g"				\
+	    -e "s#@LDFLAGS@#$LDFLAGS#g"			\
+	    -e "s#@PTHREAD_CFLAGS@#$PTHREAD_CFLAGS#g"	\
 		$1 > $2
 }
 

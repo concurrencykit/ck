@@ -1,6 +1,8 @@
 .PHONY: all clean distribution regressions install
 
 CFLAGS=@CFLAGS@
+VERSION=@VERSION@
+VERSION_MAJOR=@VERSION_MAJOR@
 PREFIX=@PREFIX@
 LIBRARY=@LIBRARY@
 HEADERS=@HEADERS@
@@ -19,8 +21,10 @@ regressions:
 install: all
 	mkdir -p $(LIBRARY) || exit
 	mkdir -p $(HEADERS) || exit
-	cp src/libck* $(LIBRARY) || exit
-	chmod 744 $(LIBRARY)/libck* || exit
+	cp src/libck.so $(LIBRARY)/libck.so.$(VERSION) || exit
+	ln -s $(LIBRARY)/libck.so $(LIBRARY)/libck.so.$(VERSION)
+	ln -s $(LIBRARY)/libck.so.$(VERSION_MAJOR) $(LIBRARY)/libck.so.$(VERSION)
+	chmod 744 $(LIBRARY)/libck.so* || exit
 	cp include/*.h $(HEADERS) || exit
 	chmod 644 $(HEADERS)/ck_*.h || exit
 	mkdir -p $(HEADERS)/gcc || exit
@@ -32,7 +36,7 @@ install: all
 	cp build/ck.pc $(PKGCONFIG_DATA)/ck.pc || exit
 
 uninstall: 
-	rm -f $(LIBRARY)/libck*
+	rm -f $(LIBRARY)/libck.so*
 	rm -f $(HEADERS)/ck_*.h
 	rm -f $(HEADERS)/gcc/ck_*.h
 	rm -f $(HEADERS)/gcc/*/ck_*.h
