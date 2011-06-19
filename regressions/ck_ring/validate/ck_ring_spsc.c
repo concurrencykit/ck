@@ -72,11 +72,29 @@ test(void *c)
 		entries = malloc(sizeof(struct entry) * size);
 		assert(entries != NULL);
 
+		if (ck_ring_size(ring) != 0) {
+			fprintf(stderr, "Less entries than expected: %u > 0\n",
+				ck_ring_size(ring));
+			exit(EXIT_FAILURE);
+		}
+
 		for (i = 0; i < size; i++) {
 			entries[i].value = i;
 			entries[i].tid = 0;
 
-			r = ck_ring_enqueue_spsc(ring + context->tid, entries + i);
+			r = ck_ring_enqueue_spsc(ring, entries + i);
+		}
+
+		if (ck_ring_size(ring) != (unsigned int)size) {
+			fprintf(stderr, "Less entries than expected: %u < %d\n",
+				ck_ring_size(ring), size);
+			exit(EXIT_FAILURE);
+		}
+
+		if (ck_ring_capacity(ring) != ck_ring_size(ring) + 1) {
+			fprintf(stderr, "Capacity less than expected: %u < %u\n",
+				ck_ring_size(ring), ck_ring_capacity(ring));
+			exit(EXIT_FAILURE);
 		}
 
 		barrier = 1;

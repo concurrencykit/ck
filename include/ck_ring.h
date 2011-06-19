@@ -60,6 +60,21 @@
 		ck_pr_store_ptr(&ring->ring, buffer);				\
 		return;								\
 	}									\
+	CK_CC_INLINE static unsigned int					\
+	ck_ring_size_##name(struct ck_ring_##name *ring)			\
+	{									\
+		unsigned int c, p;						\
+										\
+		c = ck_pr_load_uint(&ring->c_head);				\
+		p = ck_pr_load_uint(&ring->p_tail);				\
+		return (p - c);							\
+	}									\
+	CK_CC_INLINE static unsigned int					\
+	ck_ring_capacity_##name(struct ck_ring_##name *ring)			\
+	{									\
+										\
+		return ck_pr_load_uint(&ring->size);				\
+	}									\
 	CK_CC_INLINE static bool						\
 	ck_ring_enqueue_spsc_##name(struct ck_ring_##name *ring,		\
 				    struct type *entry)				\
@@ -103,6 +118,10 @@
 	struct ck_ring_##name
 #define CK_RING_INIT(name, object, buffer, size)	\
 	ck_ring_init_##name(object, buffer, size)
+#define CK_RING_SIZE(name, object)			\
+	ck_ring_size_##name(object)
+#define CK_RING_CAPACITY(name, object)			\
+	ck_ring_capacity_##name(object)
 #define CK_RING_ENQUEUE_SPSC(name, object, value)	\
 	ck_ring_enqueue_spsc_##name(object, value)
 #define CK_RING_DEQUEUE_SPSC(name, object, value)	\
@@ -122,6 +141,23 @@ typedef struct ck_ring ck_ring_t;
 /*
  * Single consumer and single producer ring buffer enqueue (producer).
  */
+CK_CC_INLINE static unsigned int
+ck_ring_size(struct ck_ring *ring)
+{
+	unsigned int c, p;
+
+	c = ck_pr_load_uint(&ring->c_head);
+	p = ck_pr_load_uint(&ring->p_tail);
+	return (p - c);
+}
+
+CK_CC_INLINE static unsigned int
+ck_ring_capacity(struct ck_ring *ring)
+{
+
+	return ck_pr_load_uint(&ring->size);
+}
+
 CK_CC_INLINE static bool 
 ck_ring_enqueue_spsc(struct ck_ring *ring, void *entry)
 {

@@ -73,11 +73,25 @@ test(void *c)
 		entries = malloc(sizeof(struct entry) * size);
 		assert(entries != NULL);
 
+		if (CK_RING_SIZE(entry_ring, ring) != 0) {
+			fprintf(stderr, "Ring should be empty: %u\n",
+				CK_RING_SIZE(entry_ring, ring));
+			exit(EXIT_FAILURE);
+		}
+
 		for (i = 0; i < size; i++) {
 			entries[i].value = i;
 			entries[i].tid = 0;
 
-			r = CK_RING_ENQUEUE_SPSC(entry_ring, ring + context->tid, entries + i);
+			r = CK_RING_ENQUEUE_SPSC(entry_ring, ring, entries + i);
+		}
+
+		if (CK_RING_SIZE(entry_ring, ring) !=
+		    CK_RING_CAPACITY(entry_ring, ring) - 1) {
+			fprintf(stderr, "Ring has incorrect size or capacity: %u != %u\n",
+				CK_RING_SIZE(entry_ring, ring),
+				CK_RING_CAPACITY(entry_ring, ring));
+			exit(EXIT_FAILURE);
 		}
 
 		barrier = 1;
