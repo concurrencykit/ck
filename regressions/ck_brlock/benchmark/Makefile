@@ -8,7 +8,7 @@ latency: latency.c ../../../include/ck_brlock.h
 	$(CC) $(CFLAGS) -o latency latency.c
 
 throughput: throughput.c ../../../include/ck_brlock.h
-	$(CC) $(CFLAGS) -lpthread -o throughput throughput.c
+	$(CC) $(CFLAGS) -o throughput throughput.c
 
 clean:
 	rm -rf *.dSYM *~ *.o $(OBJECTS)
