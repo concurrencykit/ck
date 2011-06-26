@@ -352,12 +352,12 @@ fi
 
 if test "$COMPILER" = "suncc"; then
 	LD=/bin/ld
-	LDFLAGS="-G $LDFLAGS"
+	LDFLAGS="-G -z text $LDFLAGS"
 	CFLAGS="-xO5 $CFLAGS"
 	PTHREAD_CFLAGS="-mt -lpthread"
 elif test "$COMPILER" = "gcc"; then
 	LD=$CC
-	LDFLAGS="-shared -fPIC $LDFLAGS"
+	LDFLAGS="-shared -fPIC -Wl,-soname,libck.so.$VERSION_MAJOR $LDFLAGS"
 	CFLAGS="-D_XOPEN_SOURCE=600 -D_BSD_SOURCE -std=gnu99 -pedantic -Wall -W -Wundef -Wendif-labels -Wshadow -Wpointer-arith -Wbad-function-cast -Wcast-align -Wwrite-strings -Wstrict-prototypes -Wmissing-prototypes -Wnested-externs -Winline -Wdisabled-optimization -fstrict-aliasing -O2 -pipe -Wno-parentheses $CFLAGS"
 	PTHREAD_CFLAGS="-pthread"
 else
