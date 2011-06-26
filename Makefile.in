@@ -22,8 +22,8 @@ install: all
 	mkdir -p $(LIBRARY) || exit
 	mkdir -p $(HEADERS) || exit
 	cp src/libck.so $(LIBRARY)/libck.so.$(VERSION) || exit
-	ln -s $(LIBRARY)/libck.so $(LIBRARY)/libck.so.$(VERSION)
-	ln -s $(LIBRARY)/libck.so.$(VERSION_MAJOR) $(LIBRARY)/libck.so.$(VERSION)
+	ln -s $(LIBRARY)/libck.so.$(VERSION) $(LIBRARY)/libck.so
+	ln -s $(LIBRARY)/libck.so.$(VERSION) $(LIBRARY)/libck.so.$(VERSION_MAJOR)
 	chmod 744 $(LIBRARY)/libck.so* || exit
 	cp include/*.h $(HEADERS) || exit
 	chmod 644 $(HEADERS)/ck_*.h || exit
