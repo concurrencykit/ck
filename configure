@@ -352,7 +352,7 @@ fi
 
 if test "$COMPILER" = "suncc"; then
 	LD=/bin/ld
-	LDFLAGS="-G -z text $LDFLAGS"
+	LDFLAGS="-G -z text -h libck.so.$VERSION_MAJOR $LDFLAGS"
 	CFLAGS="-xO5 $CFLAGS"
 	PTHREAD_CFLAGS="-mt -lpthread"
 elif test "$COMPILER" = "gcc"; then
