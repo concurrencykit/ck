@@ -1,11 +1,14 @@
 .PHONY: clean distribution
 
-OBJECTS=validate 
+OBJECTS=validate throughput
 
 all: $(OBJECTS)
 
 validate: validate.c ../../../include/ck_rwlock.h
 	$(CC) $(CFLAGS) -o validate validate.c
+
+throughput: throughput.c ../../../include/ck_rwlock.h
+	$(CC) $(CFLAGS) -o throughput throughput.c
 
 clean:
 	rm -rf *.dSYM *~ *.o $(OBJECTS)
