@@ -1,4 +1,4 @@
-.PHONY: all clean distribution regressions install
+.PHONY: all clean distribution regressions install install-headers uninstall
 
 CFLAGS=@CFLAGS@
 VERSION=@VERSION@
@@ -18,19 +18,21 @@ regressions:
 	$(MAKE) -C regressions all || exit
 	@echo ---[ Regressions have built successfully.
 
-install: all
-	mkdir -p $(LIBRARY) || exit
+install-headers:
 	mkdir -p $(HEADERS) || exit
-	cp src/libck.so $(LIBRARY)/libck.so.$(VERSION) || exit
-	ln -s $(LIBRARY)/libck.so.$(VERSION) $(LIBRARY)/libck.so
-	ln -s $(LIBRARY)/libck.so.$(VERSION) $(LIBRARY)/libck.so.$(VERSION_MAJOR)
-	chmod 744 $(LIBRARY)/libck.so* || exit
 	cp include/*.h $(HEADERS) || exit
 	chmod 644 $(HEADERS)/ck_*.h || exit
 	mkdir -p $(HEADERS)/gcc || exit
 	cp -r include/gcc/* $(HEADERS)/gcc || exit
 	chmod 755 $(HEADERS)/gcc
 	chmod 644 $(HEADERS)/gcc/ck_*.h $(HEADERS)/gcc/*/ck_*.h || exit
+
+install: all install-headers
+	mkdir -p $(LIBRARY) || exit
+	cp src/libck.so $(LIBRARY)/libck.so.$(VERSION) || exit
+	ln -s $(LIBRARY)/libck.so.$(VERSION) $(LIBRARY)/libck.so
+	ln -s $(LIBRARY)/libck.so.$(VERSION) $(LIBRARY)/libck.so.$(VERSION_MAJOR)
+	chmod 744 $(LIBRARY)/libck.so* || exit
 	mkdir -p $(PKGCONFIG_DATA) || exit
 	chmod 755 $(PKGCONFIG_DATA)
 	cp build/ck.pc $(PKGCONFIG_DATA)/ck.pc || exit
