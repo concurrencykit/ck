@@ -32,6 +32,7 @@
 #include <ck_cc.h>
 #include <ck_md.h>
 #include <ck_pr.h>
+#include <ck_spinlock.h>
 #include <stddef.h>
 
 #ifndef CK_F_FIFO_SPSC
@@ -43,8 +44,10 @@ struct ck_fifo_spsc_entry {
 typedef struct ck_fifo_spsc_entry ck_fifo_spsc_entry_t;
 
 struct ck_fifo_spsc {
+	ck_spinlock_fas_t m_head;
 	struct ck_fifo_spsc_entry *head;
-	char pad[CK_MD_CACHELINE - sizeof(struct ck_fifo_spsc_entry *)];
+	char pad[CK_MD_CACHELINE - sizeof(struct ck_fifo_spsc_entry *) - sizeof(ck_spinlock_fas_t)];
+	ck_spinlock_fas_t m_tail;
 	struct ck_fifo_spsc_entry *tail;
 	struct ck_fifo_spsc_entry *head_snapshot;
 	struct ck_fifo_spsc_entry *garbage;
@@ -52,9 +55,43 @@ struct ck_fifo_spsc {
 typedef struct ck_fifo_spsc ck_fifo_spsc_t;
 
 CK_CC_INLINE static void
+ck_fifo_spsc_enqueue_lock(struct ck_fifo_spsc *fifo)
+{
+
+	ck_spinlock_fas_lock(&fifo->m_tail);
+	return;
+}
+
+CK_CC_INLINE static void
+ck_fifo_spsc_enqueue_unlock(struct ck_fifo_spsc *fifo)
+{
+
+	ck_spinlock_fas_unlock(&fifo->m_tail);
+	return;
+}
+
+CK_CC_INLINE static void
+ck_fifo_spsc_dequeue_lock(struct ck_fifo_spsc *fifo)
+{
+
+	ck_spinlock_fas_lock(&fifo->m_head);
+	return;
+}
+
+CK_CC_INLINE static void
+ck_fifo_spsc_dequeue_unlock(struct ck_fifo_spsc *fifo)
+{
+
+	ck_spinlock_fas_unlock(&fifo->m_head);
+	return;
+}
+
+CK_CC_INLINE static void
 ck_fifo_spsc_init(struct ck_fifo_spsc *fifo, struct ck_fifo_spsc_entry *stub)
 {
 
+	ck_spinlock_fas_init(&fifo->m_head);
+	ck_spinlock_fas_init(&fifo->m_tail);
 	ck_pr_store_ptr(&stub->next, NULL);
 	ck_pr_store_ptr(&fifo->head, stub);
 	ck_pr_store_ptr(&fifo->tail, stub);
