@@ -98,3 +98,5 @@ regressions/ck_stack/validate/spinlock_pop
 regressions/ck_stack/validate/spinlock_push
 regressions/ck_stack/validate/upmc_pop
 regressions/ck_stack/validate/upmc_push
+regressions/ck_brlock/benchmark/throughput
+regressions/ck_rwlock/benchmark/throughput
