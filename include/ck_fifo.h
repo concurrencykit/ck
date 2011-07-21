@@ -54,6 +54,13 @@ struct ck_fifo_spsc {
 };
 typedef struct ck_fifo_spsc ck_fifo_spsc_t;
 
+CK_CC_INLINE static bool
+ck_fifo_spsc_enqueue_trylock(struct ck_fifo_spsc *fifo)
+{
+
+	return ck_spinlock_fas_trylock(&fifo->m_tail);
+}
+
 CK_CC_INLINE static void
 ck_fifo_spsc_enqueue_lock(struct ck_fifo_spsc *fifo)
 {
