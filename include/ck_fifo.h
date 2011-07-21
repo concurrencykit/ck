@@ -161,6 +161,13 @@ ck_fifo_spsc_recycle(struct ck_fifo_spsc *fifo)
 	return (p);
 }
 
+CK_CC_INLINE static bool
+ck_fifo_spsc_isempty(struct ck_fifo_spsc *fifo)
+{
+	struct ck_fifo_spsc_entry *head = ck_pr_load_ptr(&fifo->head);
+	return (ck_pr_load_ptr(&head->next) == NULL);
+}
+
 #define CK_FIFO_SPSC_ISEMPTY(f)	((f)->head->next == NULL)
 #define CK_FIFO_SPSC_FIRST(f)	((f)->head->next)
 #define CK_FIFO_SPSC_NEXT(m)	((m)->next)
