@@ -77,6 +77,13 @@ ck_fifo_spsc_enqueue_unlock(struct ck_fifo_spsc *fifo)
 	return;
 }
 
+CK_CC_INLINE static bool
+ck_fifo_spsc_dequeue_trylock(struct ck_fifo_spsc *fifo)
+{
+
+	return ck_spinlock_fas_trylock(&fifo->m_head);
+}
+
 CK_CC_INLINE static void
 ck_fifo_spsc_dequeue_lock(struct ck_fifo_spsc *fifo)
 {
