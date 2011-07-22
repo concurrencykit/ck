@@ -185,6 +185,7 @@ ck_fifo_spsc_isempty(struct ck_fifo_spsc *fifo)
 #define CK_FIFO_SPSC_ISEMPTY(f)	((f)->head->next == NULL)
 #define CK_FIFO_SPSC_FIRST(f)	((f)->head->next)
 #define CK_FIFO_SPSC_NEXT(m)	((m)->next)
+#define CK_FIFO_SPSC_SPARE(f)	((f)->head)
 #define CK_FIFO_SPSC_FOREACH(fifo, entry)			\
 	for ((entry) = CK_FIFO_SPSC_FIRST(fifo);		\
 	     (entry) != NULL;					\
