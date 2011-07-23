@@ -27,7 +27,6 @@
 #
 
 REQUIRE_HEADER="stdbool.h stdint.h"
-GENERATE_FILE="build/ck.build"
 
 EXIT_SUCCESS=0
 EXIT_FAILURE=1
