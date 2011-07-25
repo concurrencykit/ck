@@ -67,7 +67,7 @@
 										\
 		c = ck_pr_load_uint(&ring->c_head);				\
 		p = ck_pr_load_uint(&ring->p_tail);				\
-		return (p - c);							\
+		return (p - c) & ring->mask;					\
 	}									\
 	CK_CC_INLINE static unsigned int					\
 	ck_ring_capacity_##name(struct ck_ring_##name *ring)			\
@@ -148,7 +148,7 @@ ck_ring_size(struct ck_ring *ring)
 
 	c = ck_pr_load_uint(&ring->c_head);
 	p = ck_pr_load_uint(&ring->p_tail);
-	return (p - c);
+	return (p - c) & ring->mask;
 }
 
 CK_CC_INLINE static unsigned int

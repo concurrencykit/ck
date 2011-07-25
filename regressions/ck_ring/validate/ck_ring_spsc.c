@@ -73,7 +73,7 @@ test(void *c)
 		assert(entries != NULL);
 
 		if (ck_ring_size(ring) != 0) {
-			fprintf(stderr, "Less entries than expected: %u > 0\n",
+			fprintf(stderr, "More entries than expected: %u > 0\n",
 				ck_ring_size(ring));
 			exit(EXIT_FAILURE);
 		}
@@ -83,6 +83,7 @@ test(void *c)
 			entries[i].tid = 0;
 
 			r = ck_ring_enqueue_spsc(ring, entries + i);
+			assert(r != false);
 		}
 
 		if (ck_ring_size(ring) != (unsigned int)size) {
