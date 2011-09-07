@@ -20,29 +20,29 @@ regressions:
 
 install-headers:
 	mkdir -p $(HEADERS) || exit
-	cp include/*.h $(HEADERS) || exit
-	chmod 644 $(HEADERS)/ck_*.h || exit
-	mkdir -p $(HEADERS)/gcc || exit
-	cp -r include/gcc/* $(HEADERS)/gcc || exit
-	chmod 755 $(HEADERS)/gcc
-	chmod 644 $(HEADERS)/gcc/ck_*.h $(HEADERS)/gcc/*/ck_*.h || exit
+	cp include/*.h $(DESTDIR)/$(HEADERS) || exit
+	chmod 644 $(DESTDIR)/$(HEADERS)/ck_*.h || exit
+	mkdir -p $(DESTDIR)$(HEADERS)/gcc || exit
+	cp -r include/gcc/* $(DESTDIR)/$(HEADERS)/gcc || exit
+	chmod 755 $(DESTDIR)/$(HEADERS)/gcc
+	chmod 644 $(DESTDIR)/$(HEADERS)/gcc/ck_*.h $(DESTDIR)/$(HEADERS)/gcc/*/ck_*.h || exit
 
 install: all install-headers
-	mkdir -p $(LIBRARY) || exit
-	cp src/libck.so $(LIBRARY)/libck.so.$(VERSION) || exit
-	ln -s $(LIBRARY)/libck.so.$(VERSION) $(LIBRARY)/libck.so
-	ln -s $(LIBRARY)/libck.so.$(VERSION) $(LIBRARY)/libck.so.$(VERSION_MAJOR)
-	chmod 744 $(LIBRARY)/libck.so* || exit
-	mkdir -p $(PKGCONFIG_DATA) || exit
-	chmod 755 $(PKGCONFIG_DATA)
-	cp build/ck.pc $(PKGCONFIG_DATA)/ck.pc || exit
+	mkdir -p $(DESTDIR)/$(LIBRARY) || exit
+	cp src/libck.so $(DESTDIR)/$(LIBRARY)/libck.so.$(VERSION) || exit
+	ln -s $(DESTDIR)/$(LIBRARY)/libck.so.$(VERSION) $(DESTDIR)/$(LIBRARY)/libck.so
+	ln -s $(DESTDIR)/$(LIBRARY)/libck.so.$(VERSION) $(DESTDIR)/$(LIBRARY)/libck.so.$(VERSION_MAJOR)
+	chmod 744 $(DESTDIR)/$(LIBRARY)/libck.so* || exit
+	mkdir -p $(DESTDIR)/$(PKGCONFIG_DATA) || exit
+	chmod 755 $(DESTDIR)/$(PKGCONFIG_DATA)
+	cp build/ck.pc $(DESTDIR)/$(PKGCONFIG_DATA)/ck.pc || exit
 
 uninstall: 
-	rm -f $(LIBRARY)/libck.so*
-	rm -f $(HEADERS)/ck_*.h
-	rm -f $(HEADERS)/gcc/ck_*.h
-	rm -f $(HEADERS)/gcc/*/ck_*.h
-	rm -f $(PKGCONFIG_DATA)/ck.pc
+	rm -f $(DESTDIR)/$(LIBRARY)/libck.so*
+	rm -f $(DESTDIR)/$(HEADERS)/ck_*.h
+	rm -f $(DESTDIR)/$(HEADERS)/gcc/ck_*.h
+	rm -f $(DESTDIR)/$(HEADERS)/gcc/*/ck_*.h
+	rm -f $(DESTDIR)/$(PKGCONFIG_DATA)/ck.pc
 
 clean:
 	$(MAKE) -C src clean
