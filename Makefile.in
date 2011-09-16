@@ -19,7 +19,7 @@ regressions:
 	@echo ---[ Regressions have built successfully.
 
 install-headers:
-	mkdir -p $(HEADERS) || exit
+	mkdir -p $(DESTDIR)/$(HEADERS) || exit
 	cp include/*.h $(DESTDIR)/$(HEADERS) || exit
 	chmod 644 $(DESTDIR)/$(HEADERS)/ck_*.h || exit
 	mkdir -p $(DESTDIR)$(HEADERS)/gcc || exit
