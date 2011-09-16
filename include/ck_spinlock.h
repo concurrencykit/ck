@@ -137,6 +137,8 @@ ck_spinlock_anderson_unlock(struct ck_spinlock_anderson *lock,
 {
 	unsigned int position;
 
+	ck_pr_fence_memory();
+
 	/* Mark next slot as available. */
 	if (lock->wrap == 0)
 		position = (slot->position + 1) & lock->mask;
