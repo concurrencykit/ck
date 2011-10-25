@@ -176,7 +176,7 @@ ck_epoch_tick(struct ck_epoch *global, struct ck_epoch_record *record)
 		    c_record == record)
 			continue;
 
-		if (ck_pr_load_uint(&c_record->active) == true &&
+		if (ck_pr_load_uint(&c_record->active) != 0 &&
 		    ck_pr_load_uint(&c_record->epoch) != g_epoch)
 			return;
 	}
@@ -221,8 +221,15 @@ ck_epoch_write_begin(struct ck_epoch_record *record)
 {
 	struct ck_epoch *global = record->global;
 
-	ck_pr_store_uint(&record->active, 1);
+	ck_pr_store_uint(&record->active, record->active + 1);
 	ck_pr_fence_store();
+
+	/*
+	 * In the case of recursive write sections, avoid ticking
+	 * over global epoch.
+	 */
+	if (record->active > 1)
+		return;
 
 	for (;;) {
 		if (ck_epoch_reclaim(record) == true)
@@ -243,11 +250,18 @@ ck_epoch_write_begin(struct ck_epoch_record *record)
 CK_CC_INLINE static void
 ck_epoch_read_begin(struct ck_epoch_record *record)
 {
-	unsigned int g_epoch = ck_pr_load_uint(&record->global->epoch);
 
-	g_epoch &= CK_EPOCH_LENGTH - 1;
-	ck_pr_store_uint(&record->epoch, g_epoch);
-	ck_pr_store_uint(&record->active, 1);
+	/*
+	 * Only observe new epoch if thread is not recursing into a read
+	 * section.
+	 */
+	if (record->active == 0) {
+		unsigned int g_epoch = ck_pr_load_uint(&record->global->epoch);
+		g_epoch &= CK_EPOCH_LENGTH - 1;
+		ck_pr_store_uint(&record->epoch, g_epoch);
+	}
+
+	ck_pr_store_uint(&record->active, record->active + 1);
 	ck_pr_fence_store();
 	return;
 }
@@ -257,7 +271,7 @@ ck_epoch_end(struct ck_epoch_record *record)
 {
 
 	ck_pr_fence_store();
-	ck_pr_store_uint(&record->active, 0);
+	ck_pr_store_uint(&record->active, record->active - 1);
 	return;
 }
 
