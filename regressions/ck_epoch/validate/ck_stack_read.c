@@ -61,11 +61,22 @@ static unsigned int readers;
 struct node {
 	unsigned int value;
 	ck_stack_entry_t stack_entry;
+	ck_epoch_entry_t epoch_entry;
 };
 static ck_stack_t stack = CK_STACK_INITIALIZER;
 static ck_epoch_t stack_epoch;
 CK_STACK_CONTAINER(struct node, stack_entry, stack_container)
+CK_EPOCH_CONTAINER(struct node, epoch_entry, epoch_container)
 static struct affinity a;
+
+static void
+destructor(ck_epoch_entry_t *p)
+{
+	struct node *e = epoch_container(p);
+
+	free(e);
+	return;
+}
 
 static void *
 read_thread(void *unused CK_CC_UNUSED)
@@ -171,7 +182,7 @@ thread(void *unused CK_CC_UNUSED)
 			ck_epoch_end(&record);
 
 			e = stack_container(s);
-			ck_epoch_free(&record, &e->stack_entry);
+			ck_epoch_free(&record, destructor, &e->epoch_entry);
 		}
 	}
 
@@ -184,15 +195,6 @@ thread(void *unused CK_CC_UNUSED)
 			record.n_reclamations);
 
 	return (NULL);
-}
-
-static void
-destructor(ck_stack_entry_t *p)
-{
-	struct node *e = stack_container(p);
-
-	free(e);
-	return;
 }
 
 int
@@ -213,7 +215,7 @@ main(int argc, char *argv[])
 
 	threads = malloc(sizeof(pthread_t) * n_threads);
 
-	ck_epoch_init(&stack_epoch, threshold, destructor);
+	ck_epoch_init(&stack_epoch, threshold);
 
 	for (i = 0; i < n_threads - 1; i++) 
 		pthread_create(threads + i, NULL, read_thread, NULL);
