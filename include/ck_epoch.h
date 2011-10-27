@@ -118,6 +118,10 @@ ck_epoch_retire(ck_epoch_record_t *record, ck_epoch_entry_t *entry, ck_epoch_des
 	entry->destroy = destroy;
 	ck_stack_push_spnc(&record->pending[record->epoch], &entry->stack_entry);
 	record->n_pending += 1;
+
+	if (record->n_pending > record->n_peak)
+		record->n_peak = record->n_pending;
+
 	return;
 }
 
