@@ -211,8 +211,8 @@ ck_epoch_write_begin(struct ck_epoch_record *record)
 
 void
 ck_epoch_free(struct ck_epoch_record *record,
-	      ck_epoch_destructor_t destroy,
-	      ck_epoch_entry_t *entry)
+	      ck_epoch_entry_t *entry,
+	      ck_epoch_destructor_t destroy)
 {
 	unsigned int epoch = ck_pr_load_uint(&record->epoch);
 	struct ck_epoch *global = record->global;

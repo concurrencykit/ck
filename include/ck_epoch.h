@@ -112,7 +112,7 @@ ck_epoch_end(ck_epoch_record_t *record)
 }
 
 CK_CC_INLINE static void
-ck_epoch_retire(ck_epoch_record_t *record, ck_epoch_destructor_t destroy, ck_epoch_entry_t *entry)
+ck_epoch_retire(ck_epoch_record_t *record, ck_epoch_entry_t *entry, ck_epoch_destructor_t destroy)
 {
 
 	entry->destroy = destroy;
@@ -128,7 +128,7 @@ void ck_epoch_unregister(ck_epoch_record_t *);
 void ck_epoch_tick(ck_epoch_t *, ck_epoch_record_t *);
 bool ck_epoch_reclaim(ck_epoch_record_t *);
 void ck_epoch_write_begin(ck_epoch_record_t *);
-void ck_epoch_free(ck_epoch_record_t *, ck_epoch_destructor_t, ck_epoch_entry_t *);
+void ck_epoch_free(ck_epoch_record_t *, ck_epoch_entry_t *, ck_epoch_destructor_t);
 void ck_epoch_purge(ck_epoch_record_t *record);
 
 #endif /* _CK_EPOCH_H */
