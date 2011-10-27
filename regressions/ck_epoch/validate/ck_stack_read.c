@@ -182,7 +182,7 @@ thread(void *unused CK_CC_UNUSED)
 			ck_epoch_end(&record);
 
 			e = stack_container(s);
-			ck_epoch_free(&record, destructor, &e->epoch_entry);
+			ck_epoch_free(&record, &e->epoch_entry, destructor);
 		}
 	}
 
