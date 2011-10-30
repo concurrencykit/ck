@@ -170,26 +170,38 @@ CK_CC_INLINE static void
 ck_brlock_read_lock(struct ck_brlock *br, struct ck_brlock_reader *reader)
 {
 
+	if (reader->n_readers >= 1) {
+		ck_pr_store_uint(&reader->n_readers, reader->n_readers + 1);
+		return;
+	}
+
 	for (;;) {
 		while (ck_pr_load_uint(&br->writer) == true)
 			ck_pr_stall();
 
-		ck_pr_store_uint(&reader->n_readers, reader->n_readers + 1);
+		ck_pr_store_uint(&reader->n_readers, 1);
 		ck_pr_fence_strict_memory();
 
 		if (ck_pr_load_uint(&br->writer) == false)
 			break;
 
-		ck_pr_store_uint(&reader->n_readers, reader->n_readers - 1);
+		ck_pr_store_uint(&reader->n_readers, 0);
 	}
 
 	return;
 }
 
 CK_CC_INLINE static bool
-ck_brlock_read_trylock(struct ck_brlock *br, struct ck_brlock_reader *reader, unsigned int factor)
+ck_brlock_read_trylock(struct ck_brlock *br,
+		       struct ck_brlock_reader *reader,
+		       unsigned int factor)
 {
 	unsigned int steps = 0;
+
+	if (reader->n_readers >= 1) {
+		ck_pr_store_uint(&reader->n_readers, reader->n_readers + 1);
+		return true;
+	}
 
 	for (;;) {
 		while (ck_pr_load_uint(&br->writer) == true) {
@@ -199,13 +211,13 @@ ck_brlock_read_trylock(struct ck_brlock *br, struct ck_brlock_reader *reader, un
 			ck_pr_stall();
 		}
 
-		ck_pr_store_uint(&reader->n_readers, reader->n_readers + 1);
+		ck_pr_store_uint(&reader->n_readers, 1);
 		ck_pr_fence_strict_memory();
 
 		if (ck_pr_load_uint(&br->writer) == false)
 			break;
 
-		ck_pr_store_uint(&reader->n_readers, reader->n_readers - 1);
+		ck_pr_store_uint(&reader->n_readers, 0);
 
 		if (++steps >= factor)
 			return false;
