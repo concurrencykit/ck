@@ -98,6 +98,7 @@ CK_PR_LOAD_S(uint, unsigned int, "lwz")
 CK_PR_LOAD_S(int, int, "lwz")
 CK_PR_LOAD_S(short, short, "lhz")
 CK_PR_LOAD_S(char, char, "lbz")
+CK_PR_LOAD_S(double, double, "ld")
 
 #undef CK_PR_LOAD_S
 #undef CK_PR_LOAD
@@ -125,6 +126,7 @@ CK_PR_STORE_S(uint, unsigned int, "stw")
 CK_PR_STORE_S(int, int, "stw")
 CK_PR_STORE_S(short, short, "sth")
 CK_PR_STORE_S(char, char, "stb")
+CK_PR_STORE_S(double, double, "std")
 
 #undef CK_PR_STORE_S
 #undef CK_PR_STORE

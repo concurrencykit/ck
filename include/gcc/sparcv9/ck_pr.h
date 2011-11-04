@@ -90,6 +90,7 @@ CK_PR_LOAD(ptr, void, void *, uint64_t, "ldx")
 CK_PR_LOAD_S(64, uint64_t, "ldx")
 CK_PR_LOAD_S(32, uint32_t, "lduw")
 CK_PR_LOAD_S(uint, unsigned int, "lduw")
+CK_PR_LOAD_S(double, double, "ldx")
 CK_PR_LOAD_S(int, int, "ldsw")
 
 #undef CK_PR_LOAD_S
@@ -115,6 +116,7 @@ CK_PR_STORE_S(8, uint8_t, "stub")
 CK_PR_STORE_S(64, uint64_t, "stx")
 CK_PR_STORE_S(32, uint32_t, "stuw")
 CK_PR_STORE_S(uint, unsigned int, "stuw")
+CK_PR_STORE_S(double, double, "stx")
 CK_PR_STORE_S(int, int, "stsw")
 
 #undef CK_PR_STORE_S
