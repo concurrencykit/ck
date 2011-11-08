@@ -13,11 +13,13 @@
 #define CK_F_PR_CAS_INT_VALUE
 #define CK_F_PR_STORE_64
 #define CK_F_PR_STORE_32
+#define CK_F_PR_STORE_DOUBLE
 #define CK_F_PR_STORE_UINT
 #define CK_F_PR_STORE_INT
 #define CK_F_PR_STORE_PTR
 #define CK_F_PR_LOAD_64
 #define CK_F_PR_LOAD_32
+#define CK_F_PR_LOAD_DOUBLE
 #define CK_F_PR_LOAD_UINT
 #define CK_F_PR_LOAD_INT
 #define CK_F_PR_LOAD_PTR

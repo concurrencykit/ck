@@ -52,6 +52,7 @@
 #define CK_F_PR_LOAD_64
 #define CK_F_PR_LOAD_8
 #define CK_F_PR_LOAD_CHAR
+#define CK_F_PR_LOAD_DOUBLE
 #define CK_F_PR_LOAD_INT
 #define CK_F_PR_LOAD_PTR
 #define CK_F_PR_LOAD_SHORT
@@ -77,6 +78,7 @@
 #define CK_F_PR_STORE_64
 #define CK_F_PR_STORE_8
 #define CK_F_PR_STORE_CHAR
+#define CK_F_PR_STORE_DOUBLE
 #define CK_F_PR_STORE_INT
 #define CK_F_PR_STORE_PTR
 #define CK_F_PR_STORE_SHORT

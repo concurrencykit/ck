@@ -135,6 +135,7 @@
 #define CK_F_PR_LOAD_INT_4
 #define CK_F_PR_LOAD_PTR
 #define CK_F_PR_LOAD_PTR_2
+#define CK_F_PR_LOAD_DOUBLE
 #define CK_F_PR_LOAD_UINT
 #define CK_F_PR_LOAD_UINT_4
 #define CK_F_PR_NEG_16
@@ -175,6 +176,7 @@
 #define CK_F_PR_STORE_8
 #define CK_F_PR_STORE_CHAR
 #define CK_F_PR_STORE_INT
+#define CK_F_PR_STORE_DOUBLE
 #define CK_F_PR_STORE_PTR
 #define CK_F_PR_STORE_UINT
 #define CK_F_PR_SUB_16
