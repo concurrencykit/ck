@@ -106,6 +106,7 @@ CK_PR_FAS(ptr, void, void *, char, "xchgq")
 
 #define CK_PR_FAS_S(S, T, I) CK_PR_FAS(S, T, T, T, I)
 
+CK_PR_FAS_S(double, double, "xchgq")
 CK_PR_FAS_S(char, char, "xchgb")
 CK_PR_FAS_S(uint, unsigned int, "xchgl")
 CK_PR_FAS_S(int, int, "xchgl")
@@ -364,6 +365,7 @@ CK_PR_CAS(ptr, void, void *, char, "cmpxchgq")
 CK_PR_CAS_S(char, char, "cmpxchgb")
 CK_PR_CAS_S(int, int, "cmpxchgl")
 CK_PR_CAS_S(uint, unsigned int, "cmpxchgl")
+CK_PR_CAS_S(double, double, "cmpxchgq")
 CK_PR_CAS_S(64, uint64_t, "cmpxchgq")
 CK_PR_CAS_S(32, uint32_t, "cmpxchgl")
 CK_PR_CAS_S(16, uint16_t, "cmpxchgw")
@@ -400,6 +402,7 @@ CK_PR_CAS_O(ptr, void, void *, char, "q", "rax")
 CK_PR_CAS_O_S(char, char, "b", "al")
 CK_PR_CAS_O_S(int, int, "l", "eax")
 CK_PR_CAS_O_S(uint, unsigned int, "l", "eax")
+CK_PR_CAS_O_S(double, double, "q", "rax")
 CK_PR_CAS_O_S(64, uint64_t, "q", "rax")
 CK_PR_CAS_O_S(32, uint32_t, "l", "eax")
 CK_PR_CAS_O_S(16, uint16_t, "w", "ax")
@@ -479,6 +482,7 @@ ck_pr_cas_##S##_##W##_value(T *t, T c[W], T s[W], T *v)	\
 				    (uint64_t *)v);	\
 }
 
+CK_PR_CAS_V(double, 2, double)
 CK_PR_CAS_V(char, 16, char)
 CK_PR_CAS_V(int, 4, int)
 CK_PR_CAS_V(uint, 4, unsigned int)

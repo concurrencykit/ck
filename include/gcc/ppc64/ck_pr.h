@@ -294,6 +294,7 @@ CK_PR_CAS(int, int)
 
 CK_PR_FAS(64, uint64_t, uint64_t, "d")
 CK_PR_FAS(32, uint32_t, uint32_t, "w")
+CK_PR_FAS(double, double, double, "d")
 CK_PR_FAS(ptr, void, void *, "d")
 CK_PR_FAS(int, int, int, "w")
 CK_PR_FAS(uint, unsigned int, unsigned int, "w")

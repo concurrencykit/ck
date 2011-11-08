@@ -34,6 +34,7 @@
 #define CK_F_PR_FAS_INT
 #define CK_F_PR_FAS_PTR
 #define CK_F_PR_FAS_UINT
+#define CK_F_PR_FAS_DOUBLE
 #define CK_F_PR_FENCE_LOAD
 #define CK_F_PR_FENCE_LOAD_DEPENDS
 #define CK_F_PR_FENCE_MEMORY

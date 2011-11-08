@@ -61,6 +61,9 @@
 #define CK_F_PR_CAS_PTR_2
 #define CK_F_PR_CAS_PTR_2_VALUE
 #define CK_F_PR_CAS_PTR_VALUE
+#define CK_F_PR_CAS_DOUBLE
+#define CK_F_PR_CAS_DOUBLE_2
+#define CK_F_PR_CAS_DOUBLE_VALUE
 #define CK_F_PR_CAS_UINT
 #define CK_F_PR_CAS_UINT_4
 #define CK_F_PR_CAS_UINT_4_VALUE
@@ -97,6 +100,7 @@
 #define CK_F_PR_FAS_INT
 #define CK_F_PR_FAS_PTR
 #define CK_F_PR_FAS_UINT
+#define CK_F_PR_FAS_DOUBLE
 #define CK_F_PR_FENCE_LOAD
 #define CK_F_PR_FENCE_LOAD_DEPENDS
 #define CK_F_PR_FENCE_MEMORY
