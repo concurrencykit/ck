@@ -177,6 +177,13 @@ ck_spinlock_fas_trylock(struct ck_spinlock_fas *lock)
 	return (!value);
 }
 
+CK_CC_INLINE static bool
+ck_spinlock_fas_locked(struct ck_spinlock_fas *lock)
+{
+
+	return ck_pr_load_uint(&lock->value);
+}
+
 CK_CC_INLINE static void
 ck_spinlock_fas_lock(struct ck_spinlock_fas *lock)
 {
@@ -239,6 +246,13 @@ ck_spinlock_cas_trylock(struct ck_spinlock_cas *lock)
 	return (!value);
 }
 
+CK_CC_INLINE static bool
+ck_spinlock_cas_locked(struct ck_spinlock_cas *lock)
+{
+
+	return ck_pr_load_uint(&lock->value);
+}
+
 CK_CC_INLINE static void
 ck_spinlock_cas_lock(struct ck_spinlock_cas *lock)
 {
@@ -295,6 +309,13 @@ ck_spinlock_dec_trylock(struct ck_spinlock_dec *lock)
 	value = ck_pr_fas_uint(&lock->value, 0);
 	ck_pr_fence_store();
 	return (value == 1);
+}
+
+CK_CC_INLINE static bool
+ck_spinlock_dec_locked(struct ck_spinlock_dec *lock)
+{
+
+	return ck_pr_load_uint(&lock->value) != 1;
 }
 
 CK_CC_INLINE static void
@@ -468,6 +489,13 @@ ck_spinlock_mcs_trylock(struct ck_spinlock_mcs **queue, struct ck_spinlock_mcs *
 	ck_pr_fence_store();
 
 	return ck_pr_cas_ptr(queue, NULL, node);
+}
+
+CK_CC_INLINE static bool
+ck_spinlock_mcs_locked(struct ck_spinlock_mcs **queue)
+{
+
+	return ck_pr_load_ptr(queue) != NULL;
 }
 
 CK_CC_INLINE static void
