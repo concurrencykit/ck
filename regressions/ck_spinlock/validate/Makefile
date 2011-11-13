@@ -1,10 +1,13 @@
 .PHONY: clean
 
 all: ck_ticket ck_mcs ck_dec ck_cas ck_fas ck_clh linux_spinlock \
-     ck_ticket_pb ck_anderson
+     ck_ticket_pb ck_anderson ck_spinlock
 
 linux_spinlock: linux_spinlock.c
 	$(CC) $(CFLAGS) -o linux_spinlock linux_spinlock.c
+
+ck_spinlock: ck_spinlock.c
+	$(CC) $(CFLAGS) -o ck_spinlock ck_spinlock.c
 
 ck_ticket_pb: ck_ticket_pb.c
 	$(CC) $(CFLAGS) -o ck_ticket_pb ck_ticket_pb.c
@@ -32,7 +35,7 @@ ck_dec: ck_dec.c
 
 clean:
 	rm -rf ck_ticket ck_mcs ck_dec ck_cas ck_fas ck_clh linux_spinlock ck_ticket_pb \
-		ck_anderson test_and_set *.dSYM
+		ck_anderson ck_spinlock *.dSYM
 
 include ../../../build/regressions.build
 CFLAGS+=$(PTHREAD_CFLAGS) -D_GNU_SOURCE -lm

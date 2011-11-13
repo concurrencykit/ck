@@ -8,9 +8,16 @@ OBJECTS=ck_ticket.THROUGHPUT ck_ticket.LATENCY			\
 	ck_clh.THROUGHPUT ck_clh.LATENCY			\
 	linux_spinlock.THROUGHPUT linux_spinlock.LATENCY	\
 	ck_ticket_pb.THROUGHPUT ck_ticket_pb.LATENCY		\
-	ck_anderson.THROUGHPUT ck_anderson.LATENCY
+	ck_anderson.THROUGHPUT ck_anderson.LATENCY		\
+	ck_spinlock.THROUGHPUT ck_spinlock.LATENCY
 
 all: $(OBJECTS)
+
+ck_spinlock.THROUGHPUT: ck_spinlock.c
+	$(CC) -DTHROUGHPUT $(CFLAGS) -o ck_spinlock.THROUGHPUT ck_spinlock.c
+
+ck_spinlock.LATENCY: ck_spinlock.c
+	$(CC) -DLATENCY $(CFLAGS) -o ck_spinlock.LATENCY ck_spinlock.c
 
 ck_ticket.THROUGHPUT: ck_ticket.c
 	$(CC) -DTHROUGHPUT $(CFLAGS) -o ck_ticket.THROUGHPUT ck_ticket.c

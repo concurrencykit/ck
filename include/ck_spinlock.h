@@ -29,11 +29,26 @@
 
 #include <ck_backoff.h>
 #include <ck_cc.h>
+#include <ck_limits.h>
 #include <ck_md.h>
 #include <ck_pr.h>
 #include <stdbool.h>
 #include <stddef.h>
-#include <ck_limits.h>
+
+/*
+ * On tested x86, x86_64, PPC64 and SPARC64 targets,
+ * ck_spinlock_fas proved to have lowest latency
+ * in fast path testing or negligible degradation
+ * from faster but less robust implementations.
+ */
+#define CK_SPINLOCK_INITIALIZER CK_SPINLOCK_FAS_INITIALIZER
+#define ck_spinlock_t           ck_spinlock_fas_t
+#define ck_spinlock_init(x)     ck_spinlock_fas_init(x)
+#define ck_spinlock_lock(x)     ck_spinlock_fas_lock(x)
+#define ck_spinlock_lock_eb(x)  ck_spinlock_fas_lock_eb(x)
+#define ck_spinlock_unlock(x)   ck_spinlock_fas_unlock(x)
+#define ck_spinlock_locked(x)   ck_spinlock_fas_locked(x)
+#define ck_spinlock_trylock(x)  ck_spinlock_fas_trylock(x)
 
 #ifndef CK_F_SPINLOCK_ANDERSON
 #define CK_F_SPINLOCK_ANDERSON
