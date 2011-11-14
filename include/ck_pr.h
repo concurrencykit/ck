@@ -124,6 +124,20 @@ CK_PR_BIN_S(or, int, int, |)
 
 #endif /* CK_F_PR_LOAD_INT && CK_F_PR_CAS_INT_VALUE */
 
+#if defined(CK_F_PR_LOAD_DOUBLE) && defined(CK_F_PR_CAS_DOUBLE_VALUE)
+
+#ifndef CK_F_PR_ADD_DOUBLE
+#define CK_F_PR_ADD_DOUBLE
+CK_PR_BIN_S(add, double, double, +)
+#endif /* CK_F_PR_ADD_DOUBLE */
+
+#ifndef CK_F_PR_SUB_DOUBLE
+#define CK_F_PR_SUB_DOUBLE
+CK_PR_BIN_S(sub, double, double, -)
+#endif /* CK_F_PR_SUB_DOUBLE */
+
+#endif /* CK_F_PR_LOAD_DOUBLE && CK_F_PR_CAS_DOUBLE_VALUE */
+
 #if defined(CK_F_PR_LOAD_UINT) && defined(CK_F_PR_CAS_UINT_VALUE)
 
 #ifndef CK_F_PR_ADD_UINT
@@ -510,6 +524,20 @@ CK_PR_UNARY_Z_S(dec, int, int, -, 1)
 
 #endif /* CK_F_PR_LOAD_INT && CK_F_PR_CAS_INT_VALUE */
 
+#if defined(CK_F_PR_LOAD_DOUBLE) && defined(CK_F_PR_CAS_DOUBLE_VALUE)
+
+#ifndef CK_F_PR_INC_DOUBLE
+#define CK_F_PR_INC_DOUBLE
+CK_PR_UNARY_S(inc, add, double, double)
+#endif /* CK_F_PR_INC_DOUBLE */
+
+#ifndef CK_F_PR_DEC_DOUBLE
+#define CK_F_PR_DEC_DOUBLE
+CK_PR_UNARY_S(dec, sub, double, double)
+#endif /* CK_F_PR_DEC_DOUBLE */
+
+#endif /* CK_F_PR_LOAD_DOUBLE && CK_F_PR_CAS_DOUBLE_VALUE */
+
 #if defined(CK_F_PR_LOAD_UINT) && defined(CK_F_PR_CAS_UINT_VALUE)
 
 #ifndef CK_F_PR_INC_UINT
@@ -735,6 +763,15 @@ CK_PR_N_Z_S(int, int)
 
 #endif /* CK_F_PR_LOAD_INT && CK_F_PR_CAS_INT_VALUE */
 
+#if defined(CK_F_PR_LOAD_DOUBLE) && defined(CK_F_PR_CAS_DOUBLE_VALUE)
+
+#ifndef CK_F_PR_NEG_DOUBLE
+#define CK_F_PR_NEG_DOUBLE
+CK_PR_N_S(neg, double, double, -)
+#endif /* CK_F_PR_NEG_DOUBLE */
+
+#endif /* CK_F_PR_LOAD_DOUBLE && CK_F_PR_CAS_DOUBLE_VALUE */
+
 #if defined(CK_F_PR_LOAD_UINT) && defined(CK_F_PR_CAS_UINT_VALUE)
 
 #ifndef CK_F_PR_NOT_UINT
@@ -916,6 +953,20 @@ CK_PR_FAS_S(int, int)
 #endif /* CK_F_PR_FAS_INT */
 
 #endif /* CK_F_PR_LOAD_INT && CK_F_PR_CAS_INT_VALUE */
+
+#if defined(CK_F_PR_LOAD_DOUBLE) && defined(CK_F_PR_CAS_DOUBLE_VALUE)
+
+#ifndef CK_F_PR_FAA_DOUBLE
+#define CK_F_PR_FAA_DOUBLE
+CK_PR_FAA_S(double, double)
+#endif /* CK_F_PR_FAA_DOUBLE */
+
+#ifndef CK_F_PR_FAS_DOUBLE
+#define CK_F_PR_FAS_DOUBLE
+CK_PR_FAS_S(double, double)
+#endif /* CK_F_PR_FAS_DOUBLE */
+
+#endif /* CK_F_PR_LOAD_DOUBLE && CK_F_PR_CAS_DOUBLE_VALUE */
 
 #if defined(CK_F_PR_LOAD_UINT) && defined(CK_F_PR_CAS_UINT_VALUE)
 
