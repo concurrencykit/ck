@@ -28,7 +28,7 @@
 #define _CK_MD_H
 
 #ifndef CK_MD_CACHELINE
-#define CK_MD_CACHELINE 64
+#define CK_MD_CACHELINE (64)
 #endif
 
 #endif /* _CK_MD_H */
