@@ -117,7 +117,7 @@ read_thread(void *unused CK_CC_UNUSED)
 			j++;
 			n++;
 		}
-		ck_epoch_end(&record);
+		ck_epoch_read_end(&record);
 
 		if (j != 0 && ck_pr_load_uint(&readers) == 0)
 			ck_pr_store_uint(&readers, 1);
@@ -170,7 +170,7 @@ thread(void *unused CK_CC_UNUSED)
 		for (i = 0; i < PAIRS; i++) {
 			ck_epoch_write_begin(&record);
 			ck_stack_push_upmc(&stack, &entry[i]->stack_entry);
-			ck_epoch_end(&record);
+			ck_epoch_write_end(&record);
 		}
 
 		while (ck_pr_load_uint(&readers) == 0)
@@ -179,7 +179,7 @@ thread(void *unused CK_CC_UNUSED)
 		for (i = 0; i < PAIRS; i++) {
 			ck_epoch_write_begin(&record);
 			s = ck_stack_pop_upmc(&stack);
-			ck_epoch_end(&record);
+			ck_epoch_write_end(&record);
 
 			e = stack_container(s);
 			ck_epoch_free(&record, &e->epoch_entry, destructor);

@@ -108,11 +108,11 @@ thread(void *unused CK_CC_UNUSED)
 	for (i = 0; i < PAIRS; i++) {
 		ck_epoch_write_begin(&record);
 		ck_stack_push_upmc(&stack, &entry[i]->stack_entry);
-		ck_epoch_end(&record);
+		ck_epoch_write_end(&record);
 
 		ck_epoch_write_begin(&record);
 		s = ck_stack_pop_upmc(&stack);
-		ck_epoch_end(&record);
+		ck_epoch_write_end(&record);
 
 		e = stack_container(s);
 		ck_epoch_free(&record, &e->epoch_entry, destructor);
