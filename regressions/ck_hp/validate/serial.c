@@ -60,8 +60,8 @@ main(int argc, char *argv[])
 	void **pointers;
 	struct entry *entry, *other;
 
-	argc = argc;
-	argv = argv;
+	(void)argc;
+	(void)argv;
 
 	ck_hp_init(&state, 1, 1, destructor);
 
