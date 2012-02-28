@@ -89,7 +89,7 @@ main(int argc, char *argv[])
 		fprintf(stderr, "ERROR: Could not create acquisition buffer\n");
 		exit(EXIT_FAILURE);
 	}
-	bzero(count, sizeof(uint64_t) * nthr);
+	memset(count, 0, sizeof(uint64_t) * nthr);
 
 	fprintf(stderr, "Creating threads (fairness)...");
 	for (i = 0; i < nthr; i++) {
