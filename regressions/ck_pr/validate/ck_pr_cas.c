@@ -37,20 +37,20 @@
 #define R_REPEAT 200000
 #endif
 
-#define W(w, x) (x & (uint##w##_t)~0)
+#define W(w, x) (uint##w##_t)((x) & (uint##w##_t)~0)
 
-#define CK_PR_CAS_T(w, v, c, s) 								\
-		{										\
-			uint##w##_t t = v;							\
-			bool r;									\
-			r = ck_pr_cas_##w(&t, c, s);						\
-			if (((c == v) && (r == false)) || ((c != v) && (r == true)) ||		\
-					((r == true) && (W(w, s) != t))) {			\
-				printf("FAIL [");						\
-				printf("%" PRIu##w " (%" PRIu##w " -> %" PRIu##w ")"		\
-					" -> %" PRIu##w "]\n",					\
-						(uint##w##_t)v, c, W(w, s), t);			\
-			}									\
+#define CK_PR_CAS_T(w, v, c, s) 										\
+		{												\
+			uint##w##_t t = v;									\
+			bool r;											\
+			r = ck_pr_cas_##w(&t, c, s);								\
+			if (((c == v) && (r == false)) || ((c != v) && (r == true)) ||				\
+					((r == true) && (W(w, s) != t))) {					\
+				printf("FAIL [");								\
+				printf("%" PRIu##w " (%" PRIu##w " -> %" PRIu##w ")"				\
+					" -> %" PRIu##w "]\n",							\
+						(uint##w##_t)(v), (uint##w##_t)(c), W(w, s), (uint##w##_t)(t));	\
+			}											\
 		}
 
 #define CK_PR_CAS_B(w)							\
@@ -75,7 +75,7 @@
 		ck_pr_cas_##w((uint##w##_t *)&t, (uint##w##_t)t, 0);		\
 		if (t != r) {							\
 			printf("FAIL [%#" PRIx##m " != %#" PRIx##m "]\n",	\
-					t, r);					\
+					(uint##m##_t)t, (uint##m##_t)r);	\
 		}								\
 	}
 
