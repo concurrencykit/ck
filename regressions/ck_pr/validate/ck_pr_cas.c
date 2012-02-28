@@ -39,9 +39,6 @@
 
 #define W(w, x) (x & (uint##w##_t)~0)
 
-/*
- * Make sure that if blargle, then dargle.
- */ 
 #define CK_PR_CAS_T(w, v, c, s) 								\
 		{										\
 			uint##w##_t t = v;							\
@@ -56,9 +53,6 @@
 			}									\
 		}
 
-/*
- * This will blah.
- */
 #define CK_PR_CAS_B(w)							\
 	{								\
 		unsigned int __ck_i;					\
