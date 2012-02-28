@@ -170,12 +170,12 @@ ck_pr_load_ptr_2(void *t, void *v)
 	return;	
 }
 
-#define CK_PR_LOAD_2(S, W, T)					\
-	CK_CC_INLINE static void				\
-	ck_pr_load_##S##_##W(T t[2], T v[2])			\
-	{							\
-		ck_pr_load_64_2((uint64_t *)t, (uint64_t *)v);	\
-		return;						\
+#define CK_PR_LOAD_2(S, W, T)							\
+	CK_CC_INLINE static void						\
+	ck_pr_load_##S##_##W(T t[2], T v[2])					\
+	{									\
+		ck_pr_load_64_2((uint64_t *)(void *)t, (uint64_t *)(void *)v);	\
+		return;								\
 	}
 
 CK_PR_LOAD_2(char, 16, char)
@@ -465,21 +465,21 @@ ck_pr_cas_ptr_2_value(void *t, void *c, void *s, void *v)
 	return ck_pr_cas_64_2_value(t, c, s, v);
 }
 
-#define CK_PR_CAS_V(S, W, T)				\
-CK_CC_INLINE static bool				\
-ck_pr_cas_##S##_##W(T t[W], T c[W], T s[W])		\
-{							\
-	return ck_pr_cas_64_2((uint64_t *)t,		\
-			      (uint64_t *)c,		\
-			      (uint64_t *)s);		\
-}							\
-CK_CC_INLINE static bool				\
-ck_pr_cas_##S##_##W##_value(T *t, T c[W], T s[W], T *v)	\
-{							\
-	return ck_pr_cas_64_2_value((uint64_t *)t,	\
-				    (uint64_t *)c,	\
-				    (uint64_t *)s,	\
-				    (uint64_t *)v);	\
+#define CK_PR_CAS_V(S, W, T)					\
+CK_CC_INLINE static bool					\
+ck_pr_cas_##S##_##W(T t[W], T c[W], T s[W])			\
+{								\
+	return ck_pr_cas_64_2((uint64_t *)(void *)t,		\
+			      (uint64_t *)(void *)c,		\
+			      (uint64_t *)(void *)s);		\
+}								\
+CK_CC_INLINE static bool					\
+ck_pr_cas_##S##_##W##_value(T *t, T c[W], T s[W], T *v)		\
+{								\
+	return ck_pr_cas_64_2_value((uint64_t *)(void *)t,	\
+				    (uint64_t *)(void *)c,	\
+				    (uint64_t *)(void *)s,	\
+				    (uint64_t *)(void *)v);	\
 }
 
 CK_PR_CAS_V(double, 2, double)
