@@ -72,7 +72,7 @@
 #define CK_PR_CAS_W(m, w)							\
 	{									\
 		uint##m##_t t = -1, r = -1 & ~(uint##m##_t)(uint##w##_t)-1;	\
-		ck_pr_cas_##w((uint##w##_t *)&t, (uint##w##_t)t, 0);		\
+		ck_pr_cas_##w((uint##w##_t *)(void *)&t, (uint##w##_t)t, 0);	\
 		if (t != r) {							\
 			printf("FAIL [%#" PRIx##m " != %#" PRIx##m "]\n",	\
 					(uint##m##_t)t, (uint##m##_t)r);	\

@@ -69,7 +69,7 @@
 #define CK_PR_XOR_W(m, w)									\
 	{											\
 		uint##m##_t t = -1;								\
-		ck_pr_xor_##w((uint##w##_t *)&t, -1);						\
+		ck_pr_xor_##w((uint##w##_t *)(void *)&t, -1);					\
 		if (t != BM(m, w)) {								\
 			printf("  FAIL [%#" PRIx##m " != %#" PRIx##m "]\n", t, BM(m, w));	\
 			exit(EXIT_FAILURE);							\

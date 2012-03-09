@@ -69,7 +69,7 @@
 #define CK_PR_AND_W(m, w)									\
 	{											\
 		uint##m##_t t = -1;								\
-		ck_pr_and_##w((uint##w##_t *)&t, 0);						\
+		ck_pr_and_##w((uint##w##_t *)(void *)&t, 0);					\
 		if (t != BM(m, w)) {								\
 			printf("  FAIL [%#" PRIx##m " != %#" PRIx##m "]\n", t, BM(m, w));	\
 			exit(EXIT_FAILURE);							\

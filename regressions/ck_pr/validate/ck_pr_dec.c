@@ -65,7 +65,7 @@
 #define CK_PR_DEC_W(m, w)							\
 	{									\
 		uint##m##_t t = 0, r = (uint##w##_t)-1;				\
-		ck_pr_dec_##w((uint##w##_t *)&t);				\
+		ck_pr_dec_##w((uint##w##_t *)(void *)&t);			\
 		if (t != r) {							\
 			printf("FAIL [%#" PRIx##m " != %#" PRIx##m "]\n", t, r);\
 			exit(EXIT_FAILURE);					\

@@ -68,13 +68,13 @@
 #define CK_PR_FAA_W(m, w)							\
 	{									\
 		uint##m##_t t = -1, r = -1 & ~(uint##m##_t)(uint##w##_t)-1;	\
-		ck_pr_faa_##w((uint##w##_t *)&t, 1);				\
+		ck_pr_faa_##w((uint##w##_t *)(void *)&t, 1);			\
 		if (t != r) {							\
 			printf("FAIL [%#" PRIx##m " != %#" PRIx##m "]\n", t, r);\
 			exit(EXIT_FAILURE);					\
 		}								\
 		t = 0, r = (uint##m##_t)(uint##w##_t)-1;			\
-		ck_pr_faa_##w((uint##w##_t *)&t, -1);				\
+		ck_pr_faa_##w((uint##w##_t *)(void *)&t, -1);			\
 		if (t != r) {							\
 			printf("FAIL [%#" PRIx##m " != %#" PRIx##m "]\n", t, r);\
 			exit(EXIT_FAILURE);					\
