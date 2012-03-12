@@ -100,3 +100,5 @@ regressions/ck_stack/validate/upmc_pop
 regressions/ck_stack/validate/upmc_push
 regressions/ck_brlock/benchmark/throughput
 regressions/ck_rwlock/benchmark/throughput
+regressions/ck_queue/validate/ck_list
+regressions/ck_queue/validate/ck_slist

@@ -1,6 +1,7 @@
 .PHONY: all clean
 
 all:
+	$(MAKE) -C ./ck_queue/validate all
 	$(MAKE) -C ./ck_brlock/validate all
 	$(MAKE) -C ./ck_brlock/benchmark all
 	$(MAKE) -C ./ck_spinlock/validate all
@@ -25,6 +26,7 @@ all:
 	$(MAKE) -C ./ck_hp/benchmark all
 
 clean:
+	$(MAKE) -C ./ck_queue/validate clean
 	$(MAKE) -C ./ck_brlock/validate clean
 	$(MAKE) -C ./ck_brlock/benchmark clean
 	$(MAKE) -C ./ck_spinlock/validate clean
