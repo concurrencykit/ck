@@ -98,7 +98,7 @@ ck_epoch_read_begin(ck_epoch_record_t *record)
 	}
 
 	ck_pr_store_uint(&record->active, record->active + 1);
-	ck_pr_fence_store();
+	ck_pr_fence_memory();
 	return;
 }
 
@@ -106,7 +106,7 @@ CK_CC_INLINE static void
 ck_epoch_read_end(ck_epoch_record_t *record)
 {
 
-	ck_pr_fence_store();
+	ck_pr_fence_load();
 	ck_pr_store_uint(&record->active, record->active - 1);
 	return;
 }
