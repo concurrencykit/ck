@@ -52,7 +52,8 @@ clean:
 	rm -f *~ *.o
 
 distribution: clean
-	rm -f build/ck.build
 	rm -f build/regressions.build
+	rm -f build/ck.build
+	rm -f build/ck.spec
 	rm -f build/ck.pc
 	rm -f Makefile
