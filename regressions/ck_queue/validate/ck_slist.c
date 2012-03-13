@@ -140,7 +140,7 @@ main(int argc, char *argv[])
 
 	goal = atoi(argv[2]);
 	if (goal < 4) {
-		fprintf(stderr, "ERROR: Number of entires must be >= 4.\n");
+		fprintf(stderr, "ERROR: Number of entries must be >= 4.\n");
 		exit(EXIT_FAILURE);
 	}
 
