@@ -32,7 +32,7 @@ EXIT_SUCCESS=0
 EXIT_FAILURE=1
 
 MAINTAINER='sbahra@repnop.org'
-VERSION='0.1.5'
+VERSION='0.1.6'
 VERSION_MAJOR='0'
 BUILD="$PWD/build/ck.build"
 PREFIX=${PREFIX:-"/usr/local"}
@@ -169,6 +169,7 @@ if test "$PROFILE"; then
 	generate build/ck.build.in build/ck.build
 	generate build/regressions.build.in build/regressions.build
 	generate build/ck.pc.in build/ck.pc
+	generate build/ck.spec.in build/ck.spec
 	generate Makefile.in Makefile
 	echo "success"
 	generate_stdout
@@ -392,6 +393,7 @@ printf "Generating build files..........."
 generate build/ck.build.in build/ck.build
 generate build/regressions.build.in build/regressions.build
 generate build/ck.pc.in build/ck.pc
+generate build/ck.spec.in build/ck.spec
 generate Makefile.in Makefile
 
 echo "success"
