@@ -15,4 +15,4 @@ clean:
 	rm -rf *~ *.o $(OBJECTS) *.dSYM
 
 include ../../../build/regressions.build
-CFLAGS+=-O0 -g3
+CFLAGS+=$(PTHREAD_CFLAGS)
