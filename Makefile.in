@@ -41,6 +41,7 @@ install: all install-headers
 
 uninstall: 
 	rm -f $(DESTDIR)/$(LIBRARY)/libck.so*
+	rm -f $(DESTDIR)/$(LIBRARY)/libck.a
 	rm -f $(DESTDIR)/$(HEADERS)/ck_*.h
 	rm -f $(DESTDIR)/$(HEADERS)/gcc/ck_*.h
 	rm -f $(DESTDIR)/$(HEADERS)/gcc/*/ck_*.h
