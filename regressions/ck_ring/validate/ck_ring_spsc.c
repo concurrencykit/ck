@@ -148,7 +148,8 @@ main(int argc, char *argv[])
 	assert(nthr >= 1);
 
 	size = atoi(argv[3]);
-	assert(size > 0);
+	assert(size > 4 && (size & size - 1) == 0);
+	size -= 1;
 
 	ring = malloc(sizeof(ck_ring_t) * nthr);
 	assert(ring);
