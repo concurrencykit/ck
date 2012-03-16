@@ -30,8 +30,8 @@ install-headers:
 install: all install-headers
 	mkdir -p $(DESTDIR)/$(LIBRARY) || exit
 	cp src/libck.so $(DESTDIR)/$(LIBRARY)/libck.so.$(VERSION) || exit
-	ln -s $(LIBRARY)/libck.so.$(VERSION) $(DESTDIR)/$(LIBRARY)/libck.so
-	ln -s $(LIBRARY)/libck.so.$(VERSION) $(DESTDIR)/$(LIBRARY)/libck.so.$(VERSION_MAJOR)
+	ln -s libck.so.$(VERSION) $(DESTDIR)/$(LIBRARY)/libck.so
+	ln -s libck.so.$(VERSION) $(DESTDIR)/$(LIBRARY)/libck.so.$(VERSION_MAJOR)
 	chmod 744 $(DESTDIR)/$(LIBRARY)/libck.so* || exit
 	mkdir -p $(DESTDIR)/$(PKGCONFIG_DATA) || exit
 	chmod 755 $(DESTDIR)/$(PKGCONFIG_DATA)
