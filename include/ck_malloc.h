@@ -27,6 +27,7 @@
 #ifndef _CK_MALLOC_H
 #define _CK_MALLOC_H
 
+#include <stdbool.h>
 #include <sys/types.h>
 
 struct ck_malloc {
