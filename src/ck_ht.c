@@ -541,9 +541,9 @@ ck_ht_set_spmc(ck_ht_t *table,
 		ck_pr_store_ptr(&priority->value, (void *)entry->value);
 		ck_pr_fence_store();
 		ck_pr_store_ptr(&priority->key, (void *)entry->key);
-		ck_pr_store_64(&map->deletions, map->deletions + 1);
 		ck_pr_fence_store();
 		ck_pr_store_ptr(&candidate->key, (void *)CK_HT_KEY_TOMBSTONE);
+		ck_pr_store_64(&map->deletions, map->deletions + 1);
 		ck_pr_fence_store();
 	} else {
 		/*
