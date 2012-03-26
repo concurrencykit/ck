@@ -480,9 +480,6 @@ ck_ht_get_spmc(ck_ht_t *table,
 		    (void *)entry->key, sizeof(entry->key), NULL);
 	}
 
-	if (candidate == NULL || snapshot.key == CK_HT_KEY_EMPTY)
-		return false;
-
 	d_prime = ck_pr_load_64(&map->deletions);
 	if (d != d_prime) {
 		/*
@@ -492,6 +489,9 @@ ck_ht_get_spmc(ck_ht_t *table,
 		 */
 		return ck_ht_get_spmc(table, h, entry);
 	}
+
+	if (candidate == NULL || snapshot.key == CK_HT_KEY_EMPTY)
+		return false;
 
 	*entry = snapshot;
 	return true;
@@ -535,16 +535,19 @@ ck_ht_set_spmc(ck_ht_t *table,
 		/*
 		 * If we are replacing an existing entry and an earlier
 		 * tombstone was found in the probe sequence then replace
-		 * the existing entry in a manner that doesn't linearizability
-		 * of concurrent get operations.
+		 * the existing entry in a manner that doesn't affect linearizability
+		 * of concurrent get operations. We avoid a state of (K, B)
+		 * (where [K, B] -> [K', B]) by guaranteeing a forced reprobe
+		 * before transitioning from K to T. (K, B) implies (K, B, D')
+		 * so we will reprobe successfully from this transient state.
 		 */
 		ck_pr_store_ptr(&priority->value, (void *)entry->value);
 		ck_pr_fence_store();
 		ck_pr_store_ptr(&priority->key, (void *)entry->key);
 		ck_pr_fence_store();
-		ck_pr_store_ptr(&candidate->key, (void *)CK_HT_KEY_TOMBSTONE);
 		ck_pr_store_64(&map->deletions, map->deletions + 1);
 		ck_pr_fence_store();
+		ck_pr_store_ptr(&candidate->key, (void *)CK_HT_KEY_TOMBSTONE);
 	} else {
 		/*
 		 * In this case we are inserting a new entry or replacing
