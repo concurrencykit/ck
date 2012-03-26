@@ -338,6 +338,7 @@ ck_ht_grow_spmc(ck_ht_t *table, uint64_t capacity)
 	size_t k, i, j, offset;
 	uint64_t probes;
 
+restart:
 	map = table->map;
 
 	if (map->capacity >= capacity)
@@ -398,7 +399,8 @@ ck_ht_grow_spmc(ck_ht_t *table, uint64_t capacity)
 			 * larger.
 			 */
 			ck_ht_map_destroy(update, false);
-			return ck_ht_grow_spmc(table, capacity << 1);
+			capacity <<= 1;
+			goto restart;
 		}
 	}
 
