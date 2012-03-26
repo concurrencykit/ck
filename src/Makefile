@@ -1,12 +1,13 @@
 .PHONY: clean distribution
 
-OBJECTS=ck_hp.o				\
-	ck_barrier_centralized.o	\
+OBJECTS=ck_barrier_centralized.o	\
 	ck_barrier_combining.o		\
 	ck_barrier_dissemination.o	\
 	ck_barrier_tournament.o		\
 	ck_barrier_mcs.o		\
-	ck_epoch.o
+	ck_epoch.o			\
+	ck_ht.o				\
+	ck_hp.o
 
 all: libck.so libck.a
 
@@ -18,6 +19,9 @@ libck.a: $(OBJECTS)
 
 ck_epoch.o: ../include/ck_epoch.h ck_epoch.c
 	$(CC) $(CFLAGS) -c -o ck_epoch.o ck_epoch.c
+
+ck_ht.o: ../include/ck_ht.h ck_ht.c
+	$(CC) $(CFLAGS) -c -o ck_ht.o ck_ht.c
 
 ck_hp.o: ck_hp.c
 	$(CC) $(CFLAGS) -c -o ck_hp.o ck_hp.c

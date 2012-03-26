@@ -3,6 +3,8 @@
 all:
 	$(MAKE) -C ./ck_queue/validate all
 	$(MAKE) -C ./ck_brlock/validate all
+	$(MAKE) -C ./ck_ht/validate all
+	$(MAKE) -C ./ck_ht/benchmark all
 	$(MAKE) -C ./ck_brlock/benchmark all
 	$(MAKE) -C ./ck_spinlock/validate all
 	$(MAKE) -C ./ck_spinlock/benchmark all
@@ -28,6 +30,8 @@ all:
 clean:
 	$(MAKE) -C ./ck_queue/validate clean
 	$(MAKE) -C ./ck_brlock/validate clean
+	$(MAKE) -C ./ck_ht/validate clean
+	$(MAKE) -C ./ck_ht/benchmark clean
 	$(MAKE) -C ./ck_brlock/benchmark clean
 	$(MAKE) -C ./ck_spinlock/validate clean
 	$(MAKE) -C ./ck_spinlock/benchmark clean

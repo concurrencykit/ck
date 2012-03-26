@@ -26,7 +26,7 @@
  */
 
 /*
- * Log and power_2 algorithms from: http://graphics.stanford.edu/~seander/bithacks.html
+ * Several of these are from: http://graphics.stanford.edu/~seander/bithacks.html
  */
 
 #define CK_INTERNAL_LOG_0 (0xAAAAAAAA)
@@ -60,3 +60,30 @@ ck_internal_power_2(uint32_t v)
         return (++v);
 }
 
+
+CK_CC_INLINE static uint64_t
+ck_internal_max_64(uint64_t x, uint64_t y)
+{
+
+	return x ^ ((x ^ y) & -(x < y));
+}
+
+CK_CC_INLINE static uint32_t
+ck_internal_max_32(uint32_t x, uint32_t y)
+{
+
+	return x ^ ((x ^ y) & -(x < y));
+}
+
+CK_CC_INLINE static uint64_t
+ck_internal_bsf_64(uint64_t v)
+{
+	unsigned int i;
+
+	for (i = 0; i < 8; i++) {
+		if (v & (1 << (63 - i)))
+			return i;
+	}
+
+	return i;
+}
