@@ -468,6 +468,7 @@ ck_ht_get_spmc(ck_ht_t *table,
 	struct ck_ht_map *map;
 	uint64_t d, d_prime;
 
+restart:
 	map = ck_pr_load_ptr(&table->map);
 
 	d = ck_pr_load_64(&map->deletions);
@@ -487,7 +488,7 @@ ck_ht_get_spmc(ck_ht_t *table,
 		 * (K, V), (K', V') and (T, V). Restart load operation in face
 		 * of concurrent deletions.
 		 */
-		return ck_ht_get_spmc(table, h, entry);
+		goto restart;
 	}
 
 	if (candidate == NULL || snapshot.key == CK_HT_KEY_EMPTY)
