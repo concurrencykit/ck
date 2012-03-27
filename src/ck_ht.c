@@ -488,7 +488,7 @@ restart:
 		/*
 		 * It is possible we have read (K, V'). Only valid states are
 		 * (K, V), (K', V') and (T, V). Restart load operation in face
-		 * of concurrent deletions.
+		 * of concurrent deletions or replacements.
 		 */
 		goto restart;
 	}
