@@ -1,11 +1,14 @@
 .PHONY: clean distribution
 
-OBJECTS=ck_ht
+OBJECTS=serial parallel
 
 all: $(OBJECTS)
 
-ck_ht: ck_ht.c ../../../include/ck_ht.h ../../../src/ck_ht.c
-	$(CC) $(CFLAGS) -o ck_ht ck_ht.c ../../../src/ck_ht.c
+serial: serial.c ../../../include/ck_ht.h ../../../src/ck_ht.c
+	$(CC) $(CFLAGS) -o serial serial.c ../../../src/ck_ht.c
+
+parallel: parallel.c ../../../include/ck_ht.h ../../../src/ck_ht.c ../../../src/ck_epoch.c
+	$(CC) $(PTHREAD_CFLAGS) $(CFLAGS) -o parallel parallel.c ../../../src/ck_ht.c ../../../src/ck_epoch.c
 
 clean:
 	rm -rf *~ *.o $(OBJECTS) *.dSYM

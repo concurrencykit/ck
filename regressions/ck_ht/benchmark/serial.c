@@ -38,6 +38,10 @@
 
 #include "../../common.h"
 
+#ifndef CORES
+#define CORES 4
+#endif
+
 static ck_ht_t ht;
 static char **keys;
 static size_t keys_length = 0;
@@ -56,7 +60,9 @@ ht_free(void *p, size_t b, bool r)
 
 	(void)b;
 	(void)r;
+
 	free(p);
+
 	return;
 }
 
@@ -149,18 +155,24 @@ main(int argc, char *argv[])
 {
 	FILE *fp;
 	char buffer[512];
-	size_t i, j;
-	size_t r = 20;
+	size_t i, j, r;
 	unsigned int d = 0;
 	uint64_t s, e, a;
+	char **t;
+
+	r = 20;
+	s = 8;
 
 	if (argc < 2) {
-		fprintf(stderr, "Usage: ck_ht <dictionary> [repetitions]\n");
+		fprintf(stderr, "Usage: ck_ht <dictionary> [<repetitions> <initial size>]\n");
 		exit(EXIT_FAILURE);
 	}
 
-	if (argc == 3)
+	if (argc >= 3)
 		r = atoi(argv[2]);
+
+	if (argc >= 4)	
+		s = (uint64_t)atoi(argv[3]);
 
 	keys = malloc(sizeof(char *) * keys_capacity);
 	assert(keys != NULL);
@@ -174,13 +186,15 @@ main(int argc, char *argv[])
 		assert(keys[keys_length - 1] != NULL);
 
 		if (keys_length == keys_capacity) {
-			char **t;
-
 			t = realloc(keys, sizeof(char *) * (keys_capacity *= 2));
 			assert(t != NULL);
 			keys = t;
 		}
 	}
+
+	t = realloc(keys, sizeof(char *) * keys_length);
+	assert(t != NULL);
+	keys = t;
 
 	table_init();
 
