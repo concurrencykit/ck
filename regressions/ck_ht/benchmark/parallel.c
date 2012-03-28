@@ -65,6 +65,7 @@ enum state {
 	HT_STATE_COUNT
 };
 
+static struct affinity affinerator = AFFINITY_INITIALIZER;
 static uint64_t accumulator[HT_STATE_COUNT];
 static int barrier[HT_STATE_COUNT];
 static int state;
@@ -212,6 +213,8 @@ ht_reader(void *unused)
 	uint64_t s, j, a;
 
 	(void)unused;
+	if (aff_iterate(&affinerator) != 0)
+		perror("WARNING: Failed to affine thread");
 
 	s = j = a = 0;
 	ck_epoch_register(&epoch_ht, &epoch_record);
@@ -307,6 +310,7 @@ main(int argc, char *argv[])
 		}
 	}
 
+	affinerator.delta = 1;
 	readers = malloc(sizeof(pthread_t) * n_threads);
 	assert(readers != NULL);
 
