@@ -33,8 +33,8 @@ install-headers:
 	chmod 644 $(DESTDIR)/$(HEADERS)/gcc/ck_*.h $(DESTDIR)/$(HEADERS)/gcc/*/ck_*.h || exit
 
 install-doc: doc
-	mkdir -p $(MANDIR)/man3 || exit
-	cp doc/*.3.gz $(MANDIR)/man3 || exit
+	mkdir -p $(DESTDIR)/$(MANDIR)/man3 || exit
+	cp doc/*.3.gz $(DESTDIR)/$(MANDIR)/man3 || exit
 
 install: all install-headers install-doc
 	mkdir -p $(DESTDIR)/$(LIBRARY) || exit
