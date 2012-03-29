@@ -56,9 +56,6 @@
 #define CK_HT_PROBE_DEFAULT 64ULL
 #endif
 
-#define CK_HT_KEY_EMPTY       ((uintptr_t)0)
-#define CK_HT_KEY_TOMBSTONE   (~(uintptr_t)0)
-
 struct ck_ht_map {
 	enum ck_ht_mode mode;
 	uint64_t deletions;

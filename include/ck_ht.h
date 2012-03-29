@@ -52,6 +52,9 @@ struct ck_ht_entry {
 } CK_CC_ALIGNED;
 typedef struct ck_ht_entry ck_ht_entry_t;
 
+#define CK_HT_KEY_EMPTY		((uintptr_t)0)
+#define CK_HT_KEY_TOMBSTONE	(~(uintptr_t)0)
+
 struct ck_ht_map;
 struct ck_ht {
 	struct ck_ht_map *map;
@@ -75,6 +78,13 @@ ck_ht_iterator_init(struct ck_ht_iterator *iterator)
 	iterator->current = NULL;
 	iterator->offset = 0;
 	return;
+}
+
+CK_CC_INLINE static bool
+ck_ht_entry_empty(ck_ht_entry_t *entry)
+{
+
+	return entry->key == CK_HT_KEY_EMPTY;
 }
 
 CK_CC_INLINE static void
