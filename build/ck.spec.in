@@ -37,7 +37,11 @@ resources needed for developing Concurrency Kit applications.
 %setup -q
 
 %build
-CFLAGS=$RPM_OPT_FLAGS ./configure --libdir=%{_libdir} --includedir=%{_includedir}/%{name} --prefix=%{_prefix}
+CFLAGS=$RPM_OPT_FLAGS ./configure 		\
+	--libdir=%{_libdir} 			\
+	--includedir=%{_includedir}/%{name}	\
+	--mandir=%{_mandir}			\
+	--prefix=%{_prefix}
 make %{?_smp_mflags}
 
 %install
@@ -60,6 +64,7 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/%{name}/*/*/*.h
 %{_libdir}/libck.a
 %{_libdir}/pkgconfig/%{name}.pc
+%{_mandir}/man3/*.3.gz
 
 %post
 /sbin/ldconfig

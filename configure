@@ -88,6 +88,7 @@ generate()
 	    -e "s#@LD@#$LD#g"				\
 	    -e "s#@LDFLAGS@#$LDFLAGS#g"			\
 	    -e "s#@PTHREAD_CFLAGS@#$PTHREAD_CFLAGS#g"	\
+	    -e "s#@MANDIR@#$MANDIR#g"			\
 		$1 > $2
 }
 
@@ -105,6 +106,7 @@ generate_stdout()
 	echo
 	echo "Headers will be installed in $HEADERS"
 	echo "Libraries will be installed in $LIBRARY"
+	echo "Documentation will be installed in $MANDIR"
 }
 
 for option in $*; do
@@ -141,6 +143,9 @@ for option in $*; do
 	--libdir=*)
 		LIBRARY=$value
 		;;
+	--mandir=*)
+		MANDIR=$value
+		;;
 	*)
 		echo "./configure [--help]"
 		exit $EXIT_FAILURE
@@ -150,6 +155,7 @@ done
 
 HEADERS=${HEADERS:-"${PREFIX}/include"}
 LIBRARY=${LIBRARY:-"${PREFIX}/lib"}
+MANDIR=${MANDIR:-"${PREFIX}/man"}
 
 if test "$PROFILE"; then
 	printf "Using user-specified profile....."
