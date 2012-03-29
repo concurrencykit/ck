@@ -88,6 +88,14 @@ ck_ht_entry_empty(ck_ht_entry_t *entry)
 }
 
 CK_CC_INLINE static void
+ck_ht_entry_key_set_direct(ck_ht_entry_t *entry, uintptr_t key)
+{
+
+	entry->key = key;
+	return;
+}
+
+CK_CC_INLINE static void
 ck_ht_entry_key_set(ck_ht_entry_t *entry, const void *key, uint16_t key_length)
 {
 
