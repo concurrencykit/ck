@@ -45,6 +45,9 @@ argument. The hash value is valid for use in the hash table pointed to by the
 argument for the key (of direct type) specified by the
 .Fa key
 argument.
+.Sh RETURN VALUES
+.Fn ck_ht_hash_direct
+has no return value.
 .Sh ERRORS
 .Bl -tag -width Er
 Behavior is undefined if

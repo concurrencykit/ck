@@ -50,6 +50,9 @@ by
 when
 .Fn ck_ht_destroy
 is called.
+.Sh RETURN VALUES
+.Fn ck_ht_destroy
+has no return value.
 .Sh ERRORS
 .Bl -tag -width Er
 This function is guaranteed not to fail.

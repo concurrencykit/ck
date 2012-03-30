@@ -24,59 +24,57 @@
 .\" SUCH DAMAGE.
 .\"
 .\"
-.Dd March 29, 2012
-.Dt CK_HT_HASH 3
+.Dd March 30, 2012
+.Dt CK_HT_ENTRY_KEY_LENGTH 3
 .Sh NAME
-.Nm ck_ht_hash
-.Nd generate a hash value for a hash table
+.Nm ck_ht_entry_key_length
+.Nd returns the length of the key specified in the argument
 .Sh LIBRARY
 Concurrency Kit (libck, \-lck)
 .Sh SYNOPSIS
 .In ck_ht.h
-.Ft void
-.Fn ck_ht_hash "ck_ht_hash_t *h" "ck_ht_t *ht" "const void *key" "uint16_t key_length"
+.Ft uint16_t
+.Fn ck_ht_entry_key_length "ck_ht_entry_t *entry"
 .Sh DESCRIPTION
 The 
-.Fn ck_ht_hash
-function will generate a hash value in the object pointed to by the
-.Fa h
-argument. The hash value is valid for use in the hash table pointed to by the
-.Fa ht
-argument for the key (of bytestring type) specified by the
-.Fa key
-argument. The length of the key is specified by the
-.Fa key_length
+.Fn ck_ht_entry_key_length
+function will return the length of the key associated with the
+object pointed to by the
+.Fa entry
 argument.
+.Pp
+It is expected that the entry is
+associated with a hash table initialized with
+.Dv CK_HT_MODE_BYTESTRING
+(see
+.Xr ck_ht_init 3
+for more information).
 .Sh RETURN VALUES
-.Fn ck_ht_hash
-has no return value.
+.Fn ck_ht_entry_key_length
+returns
+.Dv 0
+if the entry is empty.
 .Sh ERRORS
-.Bl -tag -width Er
 Behavior is undefined if
-.Fa key
-is
-.Dv NULL
-or if
-.Fa ht
-is uninitialized.
-.El
+.Fa entry
+has not been initialized.
 .Sh SEE ALSO
 .Xr ck_ht_init 3 ,
 .Xr ck_ht_destroy 3 ,
 .Xr ck_ht_allocator_set 3 ,
+.Xr ck_ht_hash 3 ,
 .Xr ck_ht_hash_direct 3 ,
 .Xr ck_ht_set_spmc 3 ,
 .Xr ck_ht_put_spmc 3 ,
 .Xr ck_ht_get_spmc 3 ,
 .Xr ck_ht_grow_spmc 3 ,
 .Xr ck_ht_remove_spmc 3 ,
-.Xr ck_ht_reset_spmc 3 ,
 .Xr ck_ht_count 3 ,
+.Xr ck_ht_reset 3 ,
 .Xr ck_ht_entry_empty 3 ,
 .Xr ck_ht_entry_key_set 3 ,
 .Xr ck_ht_entry_key_set_direct 3 ,
 .Xr ck_ht_entry_key 3 ,
-.Xr ck_ht_entry_key_length 3 ,
 .Xr ck_ht_entry_value 3 ,
 .Xr ck_ht_entry_set 3 ,
 .Xr ck_ht_entry_set_direct 3 ,

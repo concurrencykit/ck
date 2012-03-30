@@ -24,57 +24,55 @@
 .\" SUCH DAMAGE.
 .\"
 .\"
-.Dd March 29, 2012
-.Dt CK_HT_HASH 3
+.Dd March 30, 2012
+.Dt CK_HT_ENTRY_KEY_SET_DIRECT 3
 .Sh NAME
-.Nm ck_ht_hash
-.Nd generate a hash value for a hash table
+.Nm ck_ht_entry_key_set_direct
+.Nd initialize key value in hash table entry
 .Sh LIBRARY
 Concurrency Kit (libck, \-lck)
 .Sh SYNOPSIS
 .In ck_ht.h
 .Ft void
-.Fn ck_ht_hash "ck_ht_hash_t *h" "ck_ht_t *ht" "const void *key" "uint16_t key_length"
+.Fn ck_ht_entry_key_set_direct "ck_ht_entry_t *entry" "uintptr_t key"
 .Sh DESCRIPTION
 The 
-.Fn ck_ht_hash
-function will generate a hash value in the object pointed to by the
-.Fa h
-argument. The hash value is valid for use in the hash table pointed to by the
-.Fa ht
-argument for the key (of bytestring type) specified by the
+.Fn ck_ht_entry_key_set_direct
+function will initialize the object pointed to by
+.Fa entry
+with the key value specified in the
 .Fa key
-argument. The length of the key is specified by the
-.Fa key_length
-argument.
+argument. This function is typically used to initialize an
+entry for
+.Xr ck_ht_get_spmc 3
+and
+.Xr ck_ht_remove_spmc 3
+operations. It is expected that the entry will
+be associated with a hash table initialized with
+.Dv CK_HT_MODE_DIRECT
+(see
+.Xr ck_ht_init 3
+for more information).
 .Sh RETURN VALUES
-.Fn ck_ht_hash
+.Fn ck_ht_entry_key_set_direct
 has no return value.
 .Sh ERRORS
-.Bl -tag -width Er
-Behavior is undefined if
-.Fa key
-is
-.Dv NULL
-or if
-.Fa ht
-is uninitialized.
-.El
+This function will never fail.
 .Sh SEE ALSO
 .Xr ck_ht_init 3 ,
 .Xr ck_ht_destroy 3 ,
 .Xr ck_ht_allocator_set 3 ,
+.Xr ck_ht_hash 3 ,
 .Xr ck_ht_hash_direct 3 ,
 .Xr ck_ht_set_spmc 3 ,
 .Xr ck_ht_put_spmc 3 ,
 .Xr ck_ht_get_spmc 3 ,
 .Xr ck_ht_grow_spmc 3 ,
 .Xr ck_ht_remove_spmc 3 ,
-.Xr ck_ht_reset_spmc 3 ,
 .Xr ck_ht_count 3 ,
+.Xr ck_ht_reset 3 ,
 .Xr ck_ht_entry_empty 3 ,
 .Xr ck_ht_entry_key_set 3 ,
-.Xr ck_ht_entry_key_set_direct 3 ,
 .Xr ck_ht_entry_key 3 ,
 .Xr ck_ht_entry_key_length 3 ,
 .Xr ck_ht_entry_value 3 ,

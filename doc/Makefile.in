@@ -3,19 +3,24 @@
 MANDIR=@MANDIR@
 GZIP=@GZIP@
 GZIP_SUFFIX=.3@GZIP_SUFFIX@
-OBJECTS=ck_ht_allocator_set$(GZIP_SUFFIX) \
-	ck_ht_count$(GZIP_SUFFIX) 	  \
-	ck_ht_destroy$(GZIP_SUFFIX)	  \
-	ck_ht_get_spmc$(GZIP_SUFFIX)	  \
-	ck_ht_grow_spmc$(GZIP_SUFFIX)	  \
-	ck_ht_hash$(GZIP_SUFFIX)	  \
-	ck_ht_hash_direct$(GZIP_SUFFIX)	  \
-	ck_ht_init$(GZIP_SUFFIX)	  \
-	ck_ht_put_spmc$(GZIP_SUFFIX)	  \
-	ck_ht_remove_spmc$(GZIP_SUFFIX)	  \
-	ck_ht_reset_spmc$(GZIP_SUFFIX)	  \
-	ck_ht_set_spmc$(GZIP_SUFFIX)	  \
-	ck_ht_entry_empty$(GZIP_SUFFIX)
+OBJECTS=ck_ht_allocator_set$(GZIP_SUFFIX) 		\
+	ck_ht_count$(GZIP_SUFFIX) 	  		\
+	ck_ht_destroy$(GZIP_SUFFIX)	  		\
+	ck_ht_get_spmc$(GZIP_SUFFIX)	  		\
+	ck_ht_grow_spmc$(GZIP_SUFFIX)	  		\
+	ck_ht_hash$(GZIP_SUFFIX)	  		\
+	ck_ht_hash_direct$(GZIP_SUFFIX)	  		\
+	ck_ht_init$(GZIP_SUFFIX)	  		\
+	ck_ht_put_spmc$(GZIP_SUFFIX)	  		\
+	ck_ht_remove_spmc$(GZIP_SUFFIX)	  		\
+	ck_ht_reset_spmc$(GZIP_SUFFIX)	  		\
+	ck_ht_set_spmc$(GZIP_SUFFIX)	  		\
+	ck_ht_entry_empty$(GZIP_SUFFIX)	  		\
+	ck_ht_entry_key$(GZIP_SUFFIX)			\
+	ck_ht_entry_key_length$(GZIP_SUFFIX)		\
+	ck_ht_entry_key_set$(GZIP_SUFFIX)		\
+	ck_ht_entry_key_set_direct$(GZIP_SUFFIX)	\
+	ck_ht_entry_key_direct$(GZIP_SUFFIX)
 
 all: $(OBJECTS)
 
@@ -57,6 +62,21 @@ ck_ht_set_spmc$(GZIP_SUFFIX): ck_ht_set_spmc
 
 ck_ht_entry_empty$(GZIP_SUFFIX): ck_ht_entry_empty
 	$(GZIP) ck_ht_entry_empty > ck_ht_entry_empty$(GZIP_SUFFIX)
+
+ck_ht_entry_key_direct$(GZIP_SUFFIX): ck_ht_entry_key_direct
+	$(GZIP) ck_ht_entry_key_direct > ck_ht_entry_key_direct$(GZIP_SUFFIX)
+
+ck_ht_entry_key$(GZIP_SUFFIX): ck_ht_entry_key
+	$(GZIP) ck_ht_entry_key > ck_ht_entry_key$(GZIP_SUFFIX)
+
+ck_ht_entry_key_length$(GZIP_SUFFIX): ck_ht_entry_key_length
+	$(GZIP) ck_ht_entry_key_length > ck_ht_entry_key_length$(GZIP_SUFFIX)
+
+ck_ht_entry_key_set$(GZIP_SUFFIX): ck_ht_entry_key_set
+	$(GZIP) ck_ht_entry_key_set > ck_ht_entry_key_set$(GZIP_SUFFIX)
+
+ck_ht_entry_key_set_direct$(GZIP_SUFFIX): ck_ht_entry_key_set_direct
+	$(GZIP) ck_ht_entry_key_set_direct > ck_ht_entry_key_set_direct$(GZIP_SUFFIX)
 
 install:
 	mkdir -p $(DESTDIR)/$(MANDIR)/man3 || exit
