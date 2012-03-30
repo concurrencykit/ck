@@ -1,0 +1,62 @@
+.PHONY: all clean
+
+GZIP=@GZIP@
+GZIP_SUFFIX=.3@GZIP_SUFFIX@
+OBJECTS=ck_ht_allocator_set$(GZIP_SUFFIX) \
+	ck_ht_count$(GZIP_SUFFIX) 	  \
+	ck_ht_destroy$(GZIP_SUFFIX)	  \
+	ck_ht_get_spmc$(GZIP_SUFFIX)	  \
+	ck_ht_grow_spmc$(GZIP_SUFFIX)	  \
+	ck_ht_hash$(GZIP_SUFFIX)	  \
+	ck_ht_hash_direct$(GZIP_SUFFIX)	  \
+	ck_ht_init$(GZIP_SUFFIX)	  \
+	ck_ht_put_spmc$(GZIP_SUFFIX)	  \
+	ck_ht_remove_spmc$(GZIP_SUFFIX)	  \
+	ck_ht_reset_spmc$(GZIP_SUFFIX)	  \
+	ck_ht_set_spmc$(GZIP_SUFFIX)	  \
+	ck_ht_entry_empty$(GZIP_SUFFIX)
+
+all: $(OBJECTS)
+
+ck_ht_allocator_set$(GZIP_SUFFIX): ck_ht_allocator_set
+	$(GZIP) ck_ht_allocator_set > ck_ht_allocator_set$(GZIP_SUFFIX)
+
+ck_ht_count$(GZIP_SUFFIX): ck_ht_count
+	$(GZIP) ck_ht_count > ck_ht_count$(GZIP_SUFFIX)
+
+ck_ht_destroy$(GZIP_SUFFIX): ck_ht_destroy
+	$(GZIP) ck_ht_destroy > ck_ht_destroy$(GZIP_SUFFIX)
+
+ck_ht_get_spmc$(GZIP_SUFFIX): ck_ht_get_spmc
+	$(GZIP) ck_ht_get_spmc > ck_ht_get_spmc$(GZIP_SUFFIX)
+
+ck_ht_grow_spmc$(GZIP_SUFFIX): ck_ht_grow_spmc
+	$(GZIP) ck_ht_grow_spmc > ck_ht_grow_spmc$(GZIP_SUFFIX)
+
+ck_ht_hash$(GZIP_SUFFIX): ck_ht_hash
+	$(GZIP) ck_ht_hash > ck_ht_hash$(GZIP_SUFFIX)
+
+ck_ht_hash_direct$(GZIP_SUFFIX): ck_ht_hash_direct
+	$(GZIP) ck_ht_hash_direct > ck_ht_hash_direct$(GZIP_SUFFIX)
+
+ck_ht_init$(GZIP_SUFFIX): ck_ht_init
+	$(GZIP) ck_ht_init > ck_ht_init$(GZIP_SUFFIX)
+
+ck_ht_put_spmc$(GZIP_SUFFIX): ck_ht_put_spmc
+	$(GZIP) ck_ht_put_spmc > ck_ht_put_spmc$(GZIP_SUFFIX)
+
+ck_ht_remove_spmc$(GZIP_SUFFIX): ck_ht_remove_spmc
+	$(GZIP) ck_ht_remove_spmc > ck_ht_remove_spmc$(GZIP_SUFFIX)
+
+ck_ht_reset_spmc$(GZIP_SUFFIX): ck_ht_reset_spmc
+	$(GZIP) ck_ht_reset_spmc > ck_ht_reset_spmc$(GZIP_SUFFIX)
+
+ck_ht_set_spmc$(GZIP_SUFFIX): ck_ht_set_spmc
+	$(GZIP) ck_ht_set_spmc > ck_ht_set_spmc$(GZIP_SUFFIX)
+
+ck_ht_entry_empty$(GZIP_SUFFIX): ck_ht_entry_empty
+	$(GZIP) ck_ht_entry_empty > ck_ht_entry_empty$(GZIP_SUFFIX)
+
+clean:
+	rm -f *~ *.o *.3.gz
+

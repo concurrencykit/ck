@@ -8,6 +8,7 @@ LIBRARY=@LIBRARY@
 HEADERS=@HEADERS@
 PKGCONFIG_DATA=@LIBRARY@/pkgconfig
 MANDIR=@MANDIR@
+GZIP_SUFFIX=@GZIP_SUFFIX@
 
 all: doc
 	$(MAKE) -C src all || exit
@@ -34,7 +35,7 @@ install-headers:
 
 install-doc: doc
 	mkdir -p $(DESTDIR)/$(MANDIR)/man3 || exit
-	cp doc/*.3.gz $(DESTDIR)/$(MANDIR)/man3 || exit
+	cp doc/*.3$(GZIP_SUFFIX) $(DESTDIR)/$(MANDIR)/man3 || exit
 
 install: all install-headers install-doc
 	mkdir -p $(DESTDIR)/$(LIBRARY) || exit
@@ -71,3 +72,4 @@ distribution: clean
 	rm -f build/ck.spec
 	rm -f build/ck.pc
 	rm -f Makefile
+	rm -f doc/Makefile

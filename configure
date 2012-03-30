@@ -89,6 +89,8 @@ generate()
 	    -e "s#@LDFLAGS@#$LDFLAGS#g"			\
 	    -e "s#@PTHREAD_CFLAGS@#$PTHREAD_CFLAGS#g"	\
 	    -e "s#@MANDIR@#$MANDIR#g"			\
+	    -e "s#@GZIP@#$GZIP#g"			\
+	    -e "s#@GZIP_SUFFIX@#$GZIP_SUFFIX#g"		\
 		$1 > $2
 }
 
@@ -103,6 +105,7 @@ generate_stdout()
 	echo "    PTHREAD_CFLAGS = $PTHREAD_CFLAGS"
 	echo "                LD = $LD"
 	echo "           LDFLAGS = $LDFLAGS"
+	echo "              GZIP = $GZIP"
 	echo
 	echo "Headers will be installed in $HEADERS"
 	echo "Libraries will be installed in $LIBRARY"
@@ -122,11 +125,14 @@ for option in $*; do
 		echo "The following options may be used to modify installation behavior."
 		echo "  --includedir=N    Headers directory (default is ${PREFIX}/include)"
 		echo "  --libdir=N        Libraries directory (default is ${PREFIX}/lib)"
+		echo "  --mandir=N        Manual pages directory (default is ${PREFIX}/man)"
 		echo "  --prefix=N        Installs library files in N (default is $PREFIX)"
 		echo
 		echo "The following environment variables may be used:"
 		echo "   CC       C compiler command"
 		echo "   CFLAGS   C compiler flags"
+		echo "   LDFLAGS  Linker flags"
+		echo "   GZIP     GZIP compression tool"
 		echo
 		echo "Report bugs to ${MAINTAINER}."
 		exit $EXIT_SUCCESS
@@ -156,6 +162,7 @@ done
 HEADERS=${HEADERS:-"${PREFIX}/include"}
 LIBRARY=${LIBRARY:-"${PREFIX}/lib"}
 MANDIR=${MANDIR:-"${PREFIX}/man"}
+GZIP=${GZIP:-"gzip -c"}
 
 if test "$PROFILE"; then
 	printf "Using user-specified profile....."
@@ -172,6 +179,7 @@ if test "$PROFILE"; then
 
 	echo "success [$PROFILE]"
 	printf "Generating build files..........."
+	generate doc/Makefile.in doc/Makefile
 	generate build/ck.build.in build/ck.build
 	generate build/regressions.build.in build/regressions.build
 	generate build/ck.pc.in build/ck.pc
@@ -305,8 +313,6 @@ assert "$PLATFORM" "$PLATFORM" "unsupported"
 PROFILE="${PROFILE:-$PLATFORM}"
 PLATFORM="__${PLATFORM}__"
 
-printf "Finding suitable compiler........"
-
 # `which` on Solaris sucks
 pathsearch()
 {
@@ -323,6 +329,24 @@ pathsearch()
 	IFS="$oldFS"
 }
 
+printf "Finding gzip tool................"
+GZIP=`pathsearch "${GZIP:-gzip}"`
+if test -z "$GZIP" -o ! -x "$GZIP"; then
+	GZIP=`pathsearch "${GZIP:-gzip}"`
+	GZIP="$GZIP"
+fi
+
+if test -z "$GZIP"; then
+	echo "not found"
+	GZIP=cat
+	GZIP_SUFFIX=""
+else
+	echo "success [$GZIP]"
+	GZIP="$GZIP -c"
+	GZIP_SUFFIX=".gz"
+fi
+
+printf "Finding suitable compiler........"
 CC=`pathsearch "${CC:-cc}"`
 if test -z "$CC" -o ! -x "$CC"; then
 	CC=`pathsearch "${CC:-gcc}"`
@@ -396,6 +420,7 @@ done
 
 printf "Generating build files..........."
 
+generate doc/Makefile.in doc/Makefile
 generate build/ck.build.in build/ck.build
 generate build/regressions.build.in build/regressions.build
 generate build/ck.pc.in build/ck.pc
