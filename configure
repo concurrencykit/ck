@@ -161,7 +161,7 @@ done
 
 HEADERS=${HEADERS:-"${PREFIX}/include"}
 LIBRARY=${LIBRARY:-"${PREFIX}/lib"}
-MANDIR=${MANDIR:-"${PREFIX}/man"}
+MANDIR=${MANDIR:-"${PREFIX}/share/man"}
 GZIP=${GZIP:-"gzip -c"}
 
 if test "$PROFILE"; then
