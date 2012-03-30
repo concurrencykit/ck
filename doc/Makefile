@@ -12,7 +12,8 @@ OBJECTS=ck_ht_allocator_set.3.gz  \
 	ck_ht_put_spmc.3.gz	  \
 	ck_ht_remove_spmc.3.gz	  \
 	ck_ht_reset_spmc.3.gz	  \
-	ck_ht_set_spmc.3.gz
+	ck_ht_set_spmc.3.gz	  \
+	ck_ht_entry_empty.3.gz
 
 all: $(OBJECTS)
 
@@ -51,6 +52,9 @@ ck_ht_reset_spmc.3.gz: ck_ht_reset_spmc.3
 
 ck_ht_set_spmc.3.gz: ck_ht_set_spmc.3
 	$(GZIP) -c ck_ht_set_spmc.3 > ck_ht_set_spmc.3.gz
+
+ck_ht_entry_empty.3.gz: ck_ht_entry_empty.3
+	$(GZIP) -c ck_ht_entry_empty.3 > ck_ht_entry_empty.3.gz
 
 clean:
 	rm -f *~ *.o *.3.gz
