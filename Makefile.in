@@ -1,4 +1,4 @@
-.PHONY: all clean distribution regressions install install-headers install-doc uninstall doc
+.PHONY: all clean distribution regressions install install-headers doc uninstall
 
 CFLAGS=@CFLAGS@
 VERSION=@VERSION@
@@ -7,8 +7,6 @@ PREFIX=@PREFIX@
 LIBRARY=@LIBRARY@
 HEADERS=@HEADERS@
 PKGCONFIG_DATA=@LIBRARY@/pkgconfig
-MANDIR=@MANDIR@
-GZIP_SUFFIX=@GZIP_SUFFIX@
 
 all: doc
 	$(MAKE) -C src all || exit
@@ -33,11 +31,8 @@ install-headers:
 	chmod 755 $(DESTDIR)/$(HEADERS)/gcc
 	chmod 644 $(DESTDIR)/$(HEADERS)/gcc/ck_*.h $(DESTDIR)/$(HEADERS)/gcc/*/ck_*.h || exit
 
-install-doc: doc
-	mkdir -p $(DESTDIR)/$(MANDIR)/man3 || exit
-	cp doc/*.3$(GZIP_SUFFIX) $(DESTDIR)/$(MANDIR)/man3 || exit
-
-install: all install-headers install-doc
+install: all install-headers
+	$(MAKE) -C doc install
 	mkdir -p $(DESTDIR)/$(LIBRARY) || exit
 	cp src/libck.so $(DESTDIR)/$(LIBRARY)/libck.so.$(VERSION) || exit
 	ln -s libck.so.$(VERSION) $(DESTDIR)/$(LIBRARY)/libck.so
@@ -53,6 +48,7 @@ install: all install-headers install-doc
 	@echo ---[ Concurrency Kit has installed successfully.
 
 uninstall: 
+	$(MAKE) -C doc uninstall
 	rm -f $(DESTDIR)/$(LIBRARY)/libck.so*
 	rm -f $(DESTDIR)/$(LIBRARY)/libck.a
 	rm -f $(DESTDIR)/$(HEADERS)/ck_*.h

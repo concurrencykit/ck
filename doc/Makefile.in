@@ -1,5 +1,6 @@
 .PHONY: all clean
 
+MANDIR=@MANDIR@
 GZIP=@GZIP@
 GZIP_SUFFIX=.3@GZIP_SUFFIX@
 OBJECTS=ck_ht_allocator_set$(GZIP_SUFFIX) \
@@ -56,6 +57,15 @@ ck_ht_set_spmc$(GZIP_SUFFIX): ck_ht_set_spmc
 
 ck_ht_entry_empty$(GZIP_SUFFIX): ck_ht_entry_empty
 	$(GZIP) ck_ht_entry_empty > ck_ht_entry_empty$(GZIP_SUFFIX)
+
+install:
+	mkdir -p $(DESTDIR)/$(MANDIR)/man3 || exit
+	cp *$(GZIP_SUFFIX) $(DESTDIR)/$(MANDIR)/man3 || exit
+
+uninstall:
+	for target in $(OBJECTS); do \
+		rm -f $(DESTDIR)/$(MANDIR)/man3/$$target; \
+	done
 
 clean:
 	rm -f *~ *.o *.3.gz
