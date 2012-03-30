@@ -17,10 +17,14 @@ OBJECTS=ck_ht_allocator_set$(GZIP_SUFFIX) 		\
 	ck_ht_set_spmc$(GZIP_SUFFIX)	  		\
 	ck_ht_entry_empty$(GZIP_SUFFIX)	  		\
 	ck_ht_entry_key$(GZIP_SUFFIX)			\
+	ck_ht_entry_key_direct$(GZIP_SUFFIX)		\
 	ck_ht_entry_key_length$(GZIP_SUFFIX)		\
 	ck_ht_entry_key_set$(GZIP_SUFFIX)		\
 	ck_ht_entry_key_set_direct$(GZIP_SUFFIX)	\
-	ck_ht_entry_key_direct$(GZIP_SUFFIX)
+	ck_ht_entry_set$(GZIP_SUFFIX)			\
+	ck_ht_entry_set_direct$(GZIP_SUFFIX)		\
+	ck_ht_entry_value_direct$(GZIP_SUFFIX)		\
+	ck_ht_entry_value$(GZIP_SUFFIX)
 
 all: $(OBJECTS)
 
@@ -60,6 +64,12 @@ ck_ht_reset_spmc$(GZIP_SUFFIX): ck_ht_reset_spmc
 ck_ht_set_spmc$(GZIP_SUFFIX): ck_ht_set_spmc
 	$(GZIP) ck_ht_set_spmc > ck_ht_set_spmc$(GZIP_SUFFIX)
 
+ck_ht_entry_value$(GZIP_SUFFIX): ck_ht_entry_value
+	$(GZIP) ck_ht_entry_value > ck_ht_entry_value$(GZIP_SUFFIX)
+
+ck_ht_entry_value_direct$(GZIP_SUFFIX): ck_ht_entry_value_direct
+	$(GZIP) ck_ht_entry_value_direct > ck_ht_entry_value_direct$(GZIP_SUFFIX)
+
 ck_ht_entry_empty$(GZIP_SUFFIX): ck_ht_entry_empty
 	$(GZIP) ck_ht_entry_empty > ck_ht_entry_empty$(GZIP_SUFFIX)
 
@@ -68,6 +78,12 @@ ck_ht_entry_key_direct$(GZIP_SUFFIX): ck_ht_entry_key_direct
 
 ck_ht_entry_key$(GZIP_SUFFIX): ck_ht_entry_key
 	$(GZIP) ck_ht_entry_key > ck_ht_entry_key$(GZIP_SUFFIX)
+
+ck_ht_entry_set_direct$(GZIP_SUFFIX): ck_ht_entry_set_direct
+	$(GZIP) ck_ht_entry_set_direct > ck_ht_entry_set_direct$(GZIP_SUFFIX)
+
+ck_ht_entry_set$(GZIP_SUFFIX): ck_ht_entry_set
+	$(GZIP) ck_ht_entry_set > ck_ht_entry_set$(GZIP_SUFFIX)
 
 ck_ht_entry_key_length$(GZIP_SUFFIX): ck_ht_entry_key_length
 	$(GZIP) ck_ht_entry_key_length > ck_ht_entry_key_length$(GZIP_SUFFIX)
