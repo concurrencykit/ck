@@ -25,42 +25,40 @@
 .\"
 .\"
 .Dd March 30, 2012
-.Dt CK_HT_ENTRY_KEY_DIRECT 3
+.Dt CK_HT_ITERATOR_INIT 3
 .Sh NAME
-.Nm ck_ht_entry_key_direct
-.Nd return key value as specified in hash table entry
+.Nm ck_ht_iterator_init
+.Nd initialize hash table iterator
 .Sh LIBRARY
 Concurrency Kit (libck, \-lck)
 .Sh SYNOPSIS
 .In ck_ht.h
-.Ft uintptr_t
-.Fn ck_ht_entry_key_direct "ck_ht_entry_t *entry"
+.Pp
+.Dv ck_ht_iterator_t *iterator = CK_HT_ITERATOR_INITIALIZER
+.Pp
+.Ft void
+.Fn ck_ht_iterator_init "ck_ht_iterator_t *iterator"
 .Sh DESCRIPTION
 The 
-.Fn ck_ht_entry_key_direct
-function will return the key value as specified in the
-object pointed to by the
-.Fa entry
-argument.
+.Fn ck_ht_iterator_init
+function will initialize the object pointed to by
+the
+.Fa iterator
+argument. Alternatively, an iterator may be statically initialized
+by assigning it the
+.Dv CK_HT_ITERATOR_INITIALIZER
+value.
 .Pp
-It is expected that the entry is
-associated with a hash table initialized with
-.Dv CK_HT_MODE_DIRECT
-(see
-.Xr ck_ht_init 3
-for more information).
+An iterator is used to iterate through hash table entries
+with the
+.Xr ck_ht_next 3
+function.
 .Sh RETURN VALUES
-.Fn ck_ht_entry_key_direct
-returns
-.Dv 0
-if the entry is empty. Otherwise, it returns the
-key value stored in the object pointed to by the
-.Fa entry
-argument.
+The
+.Fn ck_ht_iterator_init
+function does not return a value.
 .Sh ERRORS
-Behavior is undefined if
-.Fa entry
-has not been initialized.
+This function will not fail.
 .Sh SEE ALSO
 .Xr ck_ht_init 3 ,
 .Xr ck_ht_destroy 3 ,
@@ -78,12 +76,12 @@ has not been initialized.
 .Xr ck_ht_entry_key_set 3 ,
 .Xr ck_ht_entry_key_set_direct 3 ,
 .Xr ck_ht_entry_key_length 3 ,
-.Xr ck_ht_entry_value 3 ,
+.Xr ck_ht_entry_key 3 ,
 .Xr ck_ht_entry_set 3 ,
 .Xr ck_ht_entry_set_direct 3 ,
-.Xr ck_ht_entry_key 3 ,
+.Xr ck_ht_entry_key_direct 3 ,
+.Xr ck_ht_entry_value 3 ,
 .Xr ck_ht_entry_value_direct 3 ,
-.Xr ck_ht_iterator_init 3 ,
 .Xr ck_ht_next 3
 .Pp
 Additional information available at http://concurrencykit.org/
