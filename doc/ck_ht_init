@@ -67,7 +67,14 @@ The hash table is meant to store key-value pointers where
 the key is of fixed width field compatible with the
 .Tn uintptr_t
 type. The key will be directly compared with other keys for
-equality.
+equality. Entries of this hash table are expected to be interacted
+with using the
+.Xr ck_ht_entry_empty 3 ,
+.Xr ck_ht_entry_key_direct 3 ,
+.Xr ck_ht_entry_value_direct 3
+and
+.Xr ck_entry_set_direct 3
+functions.
 .El
 .Pp
 The argument
