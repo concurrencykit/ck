@@ -24,21 +24,19 @@
  * SUCH DAMAGE.
  */
 
+#include <ck_pr.h>
+
+#if defined(CK_F_PR_STORE_64) && defined(CK_F_PR_LOAD_64)
 /*
  * This implementation borrows several techniques from Josh Dybnis's
  * nbds library which can be found at http://code.google.com/p/nbds
+ *
+ * This release currently only includes support for 64-bit platforms.
+ * We can address 32-bit platforms in a future release.
  */
-
-/*
- * This release currently only includes support for x86_64 as I haven't
- * had the time to put pressure on other platforms. The portability issues
- * will be addressed next release.
- */
-#ifdef __x86_64__
-
 #include <ck_cc.h>
 #include <ck_ht.h>
-#include <ck_pr.h>
+#include <ck_md.h>
 #include <ck_stdint.h>
 #include <stdbool.h>
 #include <string.h>
@@ -47,7 +45,13 @@
 #include "ck_internal.h"
 
 #ifndef CK_HT_BUCKET_LENGTH
+
+#ifdef __x86_64__
 #define CK_HT_BUCKET_SHIFT 2ULL
+#else
+#define CK_HT_BUCKET_SHIFT 1ULL
+#endif
+
 #define CK_HT_BUCKET_LENGTH (1 << CK_HT_BUCKET_SHIFT)
 #define CK_HT_BUCKET_MASK (CK_HT_BUCKET_LENGTH - 1)
 #endif
@@ -191,6 +195,12 @@ ck_ht_map_probe(struct ck_ht_map *map,
 	uint64_t probes = 0;
 	uint64_t probe_maximum;
 
+#ifndef __x86_64__
+	uint64_t d = 0;
+	uint64_t d_prime = 0;
+retry:
+#endif
+
 	probe_maximum = ck_pr_load_64(&map->probe_maximum);
 	offset = h.value & map->mask;
 
@@ -220,12 +230,20 @@ ck_ht_map_probe(struct ck_ht_map *map,
 			 * it is worth the code duplication.
 			 */
 			if (probe_limit == NULL) {
+#ifdef __x86_64__
 				snapshot->key = (uintptr_t)ck_pr_load_ptr(&cursor->key);
 				ck_pr_fence_load();
 				snapshot->value = (uintptr_t)ck_pr_load_ptr(&cursor->value);
+#else
+				d = ck_pr_load_64(&map->deletions);
+				snapshot->key = (uintptr_t)ck_pr_load_ptr(&cursor->key);
+				ck_pr_fence_load();
+				snapshot->key_length = ck_pr_load_64(&cursor->key_length);
+				snapshot->hash = ck_pr_load_64(&cursor->hash);
+				snapshot->value = (uintptr_t)ck_pr_load_ptr(&cursor->value);
+#endif
 			} else {
-				snapshot->key = cursor->key;
-				snapshot->value = cursor->value;
+				*snapshot = *cursor;
 			}
 
 			/*
@@ -233,8 +251,10 @@ ck_ht_map_probe(struct ck_ht_map *map,
 			 * in order to prevent a complete reprobe sequence in
 			 * the case of intermittent writers.
 			 */
-			if (first == NULL && snapshot->key == CK_HT_KEY_TOMBSTONE) {
-				first = cursor;
+			if (snapshot->key == CK_HT_KEY_TOMBSTONE) {
+				if (first == NULL)
+					first = cursor;
+
 				continue;
 			}
 
@@ -247,6 +267,19 @@ ck_ht_map_probe(struct ck_ht_map *map,
 			if (map->mode == CK_HT_MODE_BYTESTRING) {
 				void *pointer;
 
+#ifndef __x86_64__
+				if (probe_limit == NULL) {
+					d_prime = ck_pr_load_64(&map->deletions);
+
+					/*
+					 * It is possible that the slot was
+					 * replaced, initiate a re-probe.
+					 */
+					if (d != d_prime)
+						goto retry;
+				}
+#endif
+
 				/*
 				 * Check memoized portion of hash value before
 				 * expensive full-length comparison.
@@ -255,8 +288,13 @@ ck_ht_map_probe(struct ck_ht_map *map,
 				if (k != key_length)
 					continue;
 
+#ifdef __x86_64__
 				if (snapshot->value >> 48 != ((h.value >> 32) & 0xFFFF))
 					continue;
+#else
+				if (snapshot->hash != h.value)
+					continue;
+#endif
 
 				pointer = ck_ht_entry_key(snapshot);
 				if (memcmp(pointer, key, key_length) == 0)
@@ -465,12 +503,21 @@ ck_ht_get_spmc(ck_ht_t *table,
 {
 	struct ck_ht_entry *candidate, snapshot;
 	struct ck_ht_map *map;
+
+#ifdef __x86_64__
 	uint64_t d, d_prime;
 
 restart:
+#endif
 	map = ck_pr_load_ptr(&table->map);
 
+#ifdef __x86_64__
+	/*
+	 * Platforms that cannot read key and key_length atomically must reprobe
+	 * on the scan of any single entry.
+	 */
 	d = ck_pr_load_64(&map->deletions);
+#endif
 
 	if (table->mode == CK_HT_MODE_BYTESTRING) {
 		candidate = ck_ht_map_probe(map, h, &snapshot, NULL,
@@ -480,6 +527,7 @@ restart:
 		    (void *)entry->key, sizeof(entry->key), NULL);
 	}
 
+#ifdef __x86_64__
 	d_prime = ck_pr_load_64(&map->deletions);
 	if (d != d_prime) {
 		/*
@@ -489,6 +537,7 @@ restart:
 		 */
 		goto restart;
 	}
+#endif
 
 	if (candidate == NULL || snapshot.key == CK_HT_KEY_EMPTY)
 		return false;
@@ -541,6 +590,10 @@ ck_ht_set_spmc(ck_ht_t *table,
 		 * before transitioning from K to T. (K, B) implies (K, B, D')
 		 * so we will reprobe successfully from this transient state.
 		 */
+#ifndef __x86_64__
+		ck_pr_store_64(&priority->key_length, entry->key_length);
+		ck_pr_store_64(&priority->hash, entry->hash);
+#endif
 		ck_pr_store_ptr(&priority->value, (void *)entry->value);
 		ck_pr_fence_store();
 		ck_pr_store_ptr(&priority->key, (void *)entry->key);
@@ -558,9 +611,17 @@ ck_ht_set_spmc(ck_ht_t *table,
 		if (priority != NULL)
 			candidate = priority;
 
+#ifdef __x86_64__
 		ck_pr_store_ptr(&candidate->value, (void *)entry->value);
 		ck_pr_fence_store();
 		ck_pr_store_ptr(&candidate->key, (void *)entry->key);
+#else
+		ck_pr_store_64(&candidate->key_length, entry->key_length);
+		ck_pr_store_64(&candidate->hash, entry->hash);
+		ck_pr_store_ptr(&candidate->value, (void *)entry->value);
+		ck_pr_fence_store();
+		ck_pr_store_ptr(&candidate->key, (void *)entry->key);
+#endif
 
 		/*
 		 * If we are insert a new entry then increment number
@@ -627,9 +688,18 @@ ck_ht_put_spmc(ck_ht_t *table,
 	if (priority != NULL)
 		candidate = priority;
 
+#ifdef __x86_64__
 	ck_pr_store_ptr(&candidate->value, (void *)entry->value);
 	ck_pr_fence_store();
 	ck_pr_store_ptr(&candidate->key, (void *)entry->key);
+#else
+	ck_pr_store_64(&candidate->key_length, entry->key_length);
+	ck_pr_store_64(&candidate->hash, entry->hash);
+	ck_pr_store_ptr(&candidate->value, (void *)entry->value);
+	ck_pr_fence_store();
+	ck_pr_store_ptr(&candidate->key, (void *)entry->key);
+#endif
+
 	ck_pr_store_64(&map->n_entries, map->n_entries + 1);
 
 	/* Enforce a load factor of 0.5. */
@@ -647,4 +717,4 @@ ck_ht_destroy(struct ck_ht *table)
 	return;
 }
 
-#endif /* __x86_64__ */
+#endif /* CK_F_PR_LOAD_64 && CK_F_PR_STORE_64 */

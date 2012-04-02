@@ -24,8 +24,7 @@
  * SUCH DAMAGE.
  */
 
-#ifdef __x86_64__
-
+#if defined(CK_F_PR_LOAD_64) && defined(CK_F_PR_STORE_64)
 #include <assert.h>
 #include <ck_ht.h>
 #include <ck_malloc.h>
@@ -100,7 +99,7 @@ main(void)
 		ck_ht_hash(&h, &ht, test[i], l);
 		ck_ht_entry_key_set(&entry, test[i], l);
 		if (ck_ht_get_spmc(&ht, h, &entry) == false) {
-			fprintf(stderr, "ERROR: Failed to find [%s]\n", test[i]);
+			fprintf(stderr, "ERROR (put): Failed to find [%s]\n", test[i]);
 		} else {
 			void *k, *v;
 
@@ -177,7 +176,7 @@ main(void)
 		ck_ht_hash(&h, &ht, test[i], l);
 		ck_ht_entry_key_set(&entry, test[i], l);
 		if (ck_ht_get_spmc(&ht, h, &entry) == false) {
-			fprintf(stderr, "ERROR: Failed to find [%s]\n", test[i]);
+			fprintf(stderr, "ERROR (set): Failed to find [%s]\n", test[i]);
 		} else {
 			void *k, *v;
 
@@ -289,5 +288,5 @@ main(void)
 
 	return 0;
 }
-#endif
+#endif /* CK_F_PR_LOAD_64 && CK_F_PR_STORE_64 */
 

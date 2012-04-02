@@ -27,10 +27,11 @@
 #ifndef _CK_HT_H
 #define _CK_HT_H
 
-#ifdef __x86_64__
+#include <ck_pr.h>
+
+#if defined(CK_F_PR_LOAD_64) && defined(CK_F_PR_STORE_64)
 
 #include <ck_cc.h>
-#include <ck_pr.h>
 #include <ck_malloc.h>
 #include <ck_stdint.h>
 #include <stdbool.h>
@@ -47,8 +48,15 @@ enum ck_ht_mode {
 };
 
 struct ck_ht_entry {
+#ifdef __x86_64__
 	uintptr_t key;
 	uintptr_t value CK_CC_PACKED;
+#else
+	uintptr_t key;
+	uintptr_t value;
+	uint64_t key_length;
+	uint64_t hash;
+#endif
 } CK_CC_ALIGNED;
 typedef struct ck_ht_entry ck_ht_entry_t;
 
@@ -99,7 +107,13 @@ CK_CC_INLINE static void
 ck_ht_entry_key_set(ck_ht_entry_t *entry, const void *key, uint16_t key_length)
 {
 
+#ifdef __x86_64__
 	entry->key = (uintptr_t)key | ((uintptr_t)key_length << 48);
+#else
+	entry->key = (uintptr_t)key;
+	entry->key_length = key_length;
+#endif
+
 	return;
 }
 
@@ -114,14 +128,22 @@ CK_CC_INLINE static uint16_t
 ck_ht_entry_key_length(ck_ht_entry_t *entry)
 {
 
+#ifdef __x86_64__
 	return entry->key >> 48;
+#else
+	return entry->key_length;
+#endif
 }
 
 CK_CC_INLINE static void *
 ck_ht_entry_value(ck_ht_entry_t *entry)
 {
 
+#ifdef __x86_64__
 	return (void *)(entry->value & (((uintptr_t)1 << 48) - 1));
+#else
+	return (void *)entry->value;
+#endif
 }
 
 CK_CC_INLINE static void
@@ -132,8 +154,16 @@ ck_ht_entry_set(struct ck_ht_entry *entry,
 		const void *value)
 {
 
+#ifdef __x86_64__
 	entry->key = (uintptr_t)key | ((uintptr_t)key_length << 48);
 	entry->value = (uintptr_t)value | ((uintptr_t)(h.value >> 32) << 48);
+#else
+	entry->key = (uintptr_t)key;
+	entry->value = (uintptr_t)value;
+	entry->key_length = key_length;
+	entry->hash = h.value;
+#endif
+
 	return;
 }
 
@@ -181,5 +211,5 @@ bool ck_ht_remove_spmc(ck_ht_t *, ck_ht_hash_t, ck_ht_entry_t *);
 bool ck_ht_reset_spmc(ck_ht_t *);
 uint64_t ck_ht_count(ck_ht_t *);
 
-#endif /* __x86_64__ */
+#endif /* CK_F_PR_LOAD_64 && CK_F_PR_STORE_64 */
 #endif /* _CK_HT_H */

@@ -24,7 +24,7 @@
  * SUCH DAMAGE.
  */
 
-#ifdef __x86_64__
+#if defined(CK_F_PR_LOAD_64) && defined(CK_F_PR_STORE_64)
 
 #include <assert.h>
 #include <ck_epoch.h>
@@ -570,4 +570,5 @@ main(void)
 
 	return 0;
 }
-#endif /* __x86_64__ */
+#endif /* CK_F_PR_LOAD_64 && CK_F_PR_STORE_64 */
+
