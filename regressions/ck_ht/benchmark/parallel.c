@@ -43,10 +43,6 @@
 
 #include "../../common.h"
 
-#ifndef CORES
-#define CORES 4
-#endif
-
 static ck_ht_t ht CK_CC_CACHELINE;
 static char **keys;
 static size_t keys_length = 0;
