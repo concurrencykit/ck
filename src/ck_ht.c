@@ -24,9 +24,9 @@
  * SUCH DAMAGE.
  */
 
-#include <ck_pr.h>
+#include <ck_ht.h>
 
-#if defined(CK_F_PR_STORE_64) && defined(CK_F_PR_LOAD_64)
+#ifdef CK_F_HT
 /*
  * This implementation borrows several techniques from Josh Dybnis's
  * nbds library which can be found at http://code.google.com/p/nbds
@@ -35,8 +35,8 @@
  * We can address 32-bit platforms in a future release.
  */
 #include <ck_cc.h>
-#include <ck_ht.h>
 #include <ck_md.h>
+#include <ck_pr.h>
 #include <ck_stdint.h>
 #include <stdbool.h>
 #include <string.h>
@@ -717,4 +717,4 @@ ck_ht_destroy(struct ck_ht *table)
 	return;
 }
 
-#endif /* CK_F_PR_LOAD_64 && CK_F_PR_STORE_64 */
+#endif /* CK_F_HT */

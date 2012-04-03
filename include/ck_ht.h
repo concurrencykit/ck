@@ -30,6 +30,7 @@
 #include <ck_pr.h>
 
 #if defined(CK_F_PR_LOAD_64) && defined(CK_F_PR_STORE_64)
+#define CK_F_HT
 
 #include <ck_cc.h>
 #include <ck_malloc.h>

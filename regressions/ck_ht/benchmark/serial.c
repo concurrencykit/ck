@@ -24,9 +24,11 @@
  * SUCH DAMAGE.
  */
 
-#if defined(CK_F_PR_LOAD_64) && defined(CK_F_PR_STORE_64)
-#include <assert.h>
 #include <ck_ht.h>
+
+#ifdef CK_F_HT
+
+#include <assert.h>
 #include <ck_malloc.h>
 #include <errno.h>
 #include <inttypes.h>
@@ -271,5 +273,5 @@ main(void)
 
 	return 0;
 }
-#endif /* CK_F_PR_LOAD_64 && CK_F_PR_STORE_64 */
+#endif /* CK_F_HT */
 
