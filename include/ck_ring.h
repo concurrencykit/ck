@@ -85,7 +85,7 @@
 		producer = ck_pr_load_uint(&ring->p_tail);			\
 		size = ck_pr_load_uint(&ring->size);				\
 										\
-		if (producer - consumer == size - 1)				\
+		if (((producer + 1) & ring->mask) == consumer) 			\
 			return (false);						\
 										\
 		ring->ring[producer] = *entry;					\
@@ -167,7 +167,7 @@ ck_ring_enqueue_spsc(struct ck_ring *ring, void *entry)
 	producer = ck_pr_load_uint(&ring->p_tail);
 	size = ck_pr_load_uint(&ring->size);
 
-	if (producer - consumer == size - 1)
+	if (((producer + 1) & ring->mask) == consumer)
 		return (false);
 
 	ck_pr_store_ptr(&ring->ring[producer], entry);
