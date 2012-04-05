@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2011 Samy Al Bahra.
+ * Copyright 2009-2012 Samy Al Bahra.
  * Copyright 2011 Devon H. O'Dell <devon.odell@gmail.com>
  * All rights reserved.
  *
