@@ -272,7 +272,7 @@ main(int argc, char *argv[])
 	n_threads = CORES - 1;
 
 	if (argc < 2) {
-		fprintf(stderr, "Usage: ck_ht <dictionary> [<interval length> <initial size> <readers>\n"
+		fprintf(stderr, "Usage: parallel <dictionary> [<interval length> <initial size> <readers>\n"
 		    " <probability of replacement> <probability of deletion> <epoch threshold>]\n");
 		exit(EXIT_FAILURE);
 	}
