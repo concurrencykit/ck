@@ -31,4 +31,8 @@
 #define CK_MD_CACHELINE (64)
 #endif
 
+#ifndef CK_MD_PAGE_SIZE
+#define CK_MD_PAGE_SIZE (4096)
+#endif 
+
 #endif /* _CK_MD_H */
