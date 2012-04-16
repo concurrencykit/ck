@@ -74,8 +74,17 @@ struct ck_bag_block_info {
 
 #define CK_BAG_DEFAULT 0
 
+struct ck_bag_block_md {
+#ifdef __x86_64__
+	struct ck_bag_block *ptr;
+#else
+	struct ck_bag_block *ptr;
+	uintptr_t n_entries CK_CC_PACKED;
+#endif
+};
+
 struct ck_bag_block {
-	struct ck_bag_block *next;
+	struct ck_bag_block_md next;
 	struct ck_bag_block *avail_next;
 	struct ck_bag_block *avail_prev;
 
@@ -99,6 +108,7 @@ typedef struct ck_bag ck_bag_t;
 struct ck_bag_iterator {
 	struct ck_bag_block *block;
 	uint16_t index;
+	uint16_t n_entries;
 };
 typedef struct ck_bag_iterator ck_bag_iterator_t;
 
@@ -108,7 +118,11 @@ CK_CC_INLINE static struct ck_bag_block *
 ck_bag_block_next(struct ck_bag_block *block)
 {
 
+#ifdef __x86_64__
 	return (struct ck_bag_block *)((uintptr_t)block & ~CK_BAG_BLOCK_ENTRIES_MASK);
+#else
+	return block;
+#endif
 }
 
 CK_CC_INLINE static unsigned int
@@ -122,7 +136,11 @@ CK_CC_INLINE static uint16_t
 ck_bag_block_count(struct ck_bag_block *block)
 {
 
-	return (uintptr_t)ck_pr_load_ptr(&block->next) >> 48;
+#ifdef __x86_64__
+	return (uintptr_t)ck_pr_load_ptr(&block->next.ptr) >> 48;
+#else
+	return (uintptr_t)ck_pr_load_ptr(&block->next.n_entries);
+#endif
 }
 
 CK_CC_INLINE static void
@@ -131,6 +149,7 @@ ck_bag_iterator_init(ck_bag_iterator_t *iterator, ck_bag_t *bag)
 
 	iterator->block = ck_pr_load_ptr(&bag->head);
 	iterator->index = 0;
+	iterator->n_entries = ck_bag_block_count(iterator->block);
 	return;
 }
 
@@ -143,14 +162,16 @@ ck_bag_next(struct ck_bag_iterator *iterator, void **entry)
 	if (iterator->block == NULL)
 		return NULL;
 
-	n_entries = ck_bag_block_count(iterator->block);
-	if (iterator->index >= n_entries) {
-		next = ck_pr_load_ptr(&iterator->block->next);
+	if (iterator->index >= iterator->n_entries) {
+		next = ck_pr_load_ptr(&iterator->block->next.ptr);
 		iterator->block = ck_bag_block_next(next);
-		if (iterator->block == NULL || ck_bag_block_count(iterator->block) == 0)
+		n_entries = (iterator->block != NULL) ?
+			ck_bag_block_count(iterator->block) : 0;
+		if (n_entries == 0)
 			return false;
 
 		iterator->index = 0;
+		iterator->n_entries = n_entries;
 	}
 
 	if (iterator->block == NULL)

@@ -93,7 +93,7 @@ ck_bag_destroy(struct ck_bag *bag)
 	cursor = bag->head;
 	while (bag->head != NULL) {
 		cursor = bag->head;
-		bag->head = ck_bag_block_next(cursor->next);
+		bag->head = ck_bag_block_next(cursor->next.ptr);
 		allocator.free(cursor, bag->info.bytes, true);
 	}
 
@@ -150,7 +150,7 @@ ck_bag_put_spmc(struct ck_bag *bag, void *entry)
 			if (i == 0)
 				new_tail = new_block;
 
-			new_block->next = new_block_prev;
+			new_block->next.ptr = new_block_prev;
 			new_block->avail_next = new_block_prev;
 			if (new_block_prev != NULL)
 				new_block_prev->avail_prev = new_block;
@@ -167,7 +167,7 @@ ck_bag_put_spmc(struct ck_bag *bag, void *entry)
 		cursor->avail_prev = NULL;
 		new_block->avail_prev = cursor;
 		n_entries_block = 0;
-		bag->n_blocks += blocks_alloc;
+		bag->n_blocks += blocks_alloc; /* n_blocks and n_avail_blocks? */
 	}
 
 	/* Update the Available List */
@@ -204,16 +204,34 @@ ck_bag_put_spmc(struct ck_bag *bag, void *entry)
 
 	/* Update array and block->n_entries */
 	cursor->array[n_entries_block++] = entry;
+
+#ifdef __x86_64__
 	next = ((uintptr_t)n_entries_block << 48);
+#endif
+
 	ck_pr_fence_store();
 
 	/* Update bag's list */
-	if (bag->head == NULL || n_entries_block == 1) {
-		next += ((uintptr_t)(void *)ck_bag_block_next(bag->head));
-		ck_pr_store_ptr(&cursor->next, (void *)next);
+	if (n_entries_block == 1) {
+
+#ifdef __x86_64__
+		if (bag->head != NULL)
+			next += ((uintptr_t)(void *)ck_bag_block_next(bag->head));
+#else
+		ck_pr_store_uint(&cursor->next.n_entries, n_entries_block);
+		next = ck_bag_block_next(bag->head->next.ptr);
+#endif
+
+		ck_pr_store_ptr(&cursor->next.ptr, (void *)next);
 		ck_pr_store_ptr(&bag->head, cursor);
 	} else {
-		next += ((uintptr_t)(void *)ck_bag_block_next(cursor->next));
+
+#ifdef __x86_64__
+		next += ((uintptr_t)(void *)ck_bag_block_next(cursor->next.ptr));
+#else
+		ck_pr_store_uint(&cursor->next.n_entries, n_entries_block)
+#endif
+
 		ck_pr_store_ptr(&cursor->next, (void *)next);
 	}
 	ck_pr_store_uint(&bag->n_entries, bag->n_entries + 1);
@@ -246,7 +264,7 @@ ck_bag_set_spmc(struct ck_bag *bag, void *compare, void *update)
 			return true;
 		}
 
-		cursor = ck_bag_block_next(cursor->next);
+		cursor = ck_bag_block_next(cursor->next.ptr);
 	}
 
 	return ck_bag_put_spmc(bag, update);
@@ -271,7 +289,7 @@ ck_bag_remove_spmc(struct ck_bag *bag, void *entry)
 
 		}
 		prev = cursor;
-		cursor = ck_bag_block_next(cursor->next);
+		cursor = ck_bag_block_next(cursor->next.ptr);
 	}
 
 	return true;
@@ -281,12 +299,17 @@ found:
 	if (n_entries == 1) {
 		/* If a block's single entry is being removed, remove the block. */
 		if (prev == NULL) {
-			struct ck_bag_block *new_head = ck_bag_block_next(cursor->next);
+			struct ck_bag_block *new_head = ck_bag_block_next(cursor->next.ptr);
 			ck_pr_store_ptr(&bag->head, new_head);
 		} else {
-			uintptr_t next = ((uintptr_t)prev->next & (CK_BAG_BLOCK_ENTRIES_MASK)) |
-				(uintptr_t)(void *)ck_bag_block_next(cursor->next);
-			ck_pr_store_ptr(&prev->next, (struct ck_bag_block *)next);
+			uintptr_t next;
+#ifdef __x86_64__
+			next = ((uintptr_t)prev->next.ptr & (CK_BAG_BLOCK_ENTRIES_MASK)) |
+				(uintptr_t)(void *)ck_bag_block_next(cursor->next.ptr);
+#else
+			next = cursor->next.ptr;
+#endif
+			ck_pr_store_ptr(&prev->next.ptr, (struct ck_bag_block *)next);
 		}
 
 		/* Remove block from available list */
@@ -309,15 +332,24 @@ found:
 
 		ck_pr_fence_store();
 
-		next_ptr = (uintptr_t)(void *)ck_bag_block_next(copy->next);
-		copy->next = (void *)(((uintptr_t)n_entries << 48) | next_ptr);
+		next_ptr = (uintptr_t)(void *)ck_bag_block_next(copy->next.ptr);
+#ifdef __x86_64__
+		copy->next.ptr = (void *)(((uintptr_t)n_entries << 48) | next_ptr);
+#else
+		copy->next.n_entries = n_entries;
+		copy->next.ptr = next_ptr;
+#endif
 
 		if (prev == NULL) {
 			ck_pr_store_ptr(&bag->head, copy);
 		} else {
-			uintptr_t next = ((uintptr_t)prev->next & (CK_BAG_BLOCK_ENTRIES_MASK)) |
+#ifdef __x86_64__
+			uintptr_t next = ((uintptr_t)prev->next.ptr & (CK_BAG_BLOCK_ENTRIES_MASK)) |
 				(uintptr_t)(void *)ck_bag_block_next(copy);
-			ck_pr_store_ptr(&prev->next, (struct ck_bag_block *)next);
+			ck_pr_store_ptr(&prev->next.ptr, (struct ck_bag_block *)next);
+#else
+			ck_pr_store_ptr(&prev->next.ptr, copy);
+#endif
 		}
 
 		if (n_entries == bag->info.max - 1) {
