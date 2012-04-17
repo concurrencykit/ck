@@ -35,7 +35,6 @@
 #include "../../common.h"
 
 #define NUM_READER_THREADS 8
-#define WRITER_MAX (1 << 17)
 #define READ_LATENCY 8
 
 static ck_bag_t bag;
@@ -43,6 +42,7 @@ static ck_epoch_t epoch_bag;
 static ck_epoch_record_t epoch_wr;
 static int leave;
 static unsigned int barrier;
+static unsigned int writer_max = 131072;
 
 struct bag_epoch {
 	ck_epoch_entry_t epoch_entry;
@@ -106,11 +106,12 @@ reader(void *arg)
 	 * guarantee across the bag.
 	 */
 	for (;;) {
+		ck_epoch_read_begin(&epoch_record);
 		ck_bag_iterator_init(&iterator, &bag);
 		curr_max = prev_max = prev = -1;
+		block = NULL;
 
-		while (ck_bag_next(&iterator, &curr_ptr)) {
-
+		while (ck_bag_next(&iterator, &curr_ptr) == true) {
 			if (block != iterator.block) {
 				prev = -1;
 				curr = 0;
@@ -122,11 +123,13 @@ reader(void *arg)
 			curr = (uintptr_t)(curr_ptr);
 			if (curr < prev) {
 				/* Ascending order within block violated */
+				fprintf(stderr, "%p: %p: %ju\n", (void *)&epoch_record, (void *)iterator.block, (uintmax_t)curr);
 				fprintf(stderr, "ERROR: %ju < %ju \n",
 				    (uintmax_t)curr, (uintmax_t)prev);
 				exit(EXIT_FAILURE);
 			} else if (prev_max != -1 && curr > prev_max) {
 				/* Max of prev block > max of current block */
+				fprintf(stderr, "%p: %p: %ju\n", (void *)&epoch_record, (void *)iterator.block, (uintmax_t)curr);
 				fprintf(stderr, "ERROR: %ju > prev_max: %ju\n",
 				    (uintmax_t)curr, (uintmax_t)prev_max);
 				exit(EXIT_FAILURE);
@@ -138,6 +141,8 @@ reader(void *arg)
 			n_entries++;
 		}
 
+		ck_epoch_read_end(&epoch_record);
+
 		iterations++;
 		if (ck_pr_load_int(&leave) == 1)
 			break;
@@ -146,7 +151,7 @@ reader(void *arg)
 	fprintf(stderr, "Read %llu entries in %llu iterations.\n", n_entries, iterations);
 
 	ck_pr_inc_uint(&barrier);
-	while (ck_pr_load_uint(&barrier) != NUM_READER_THREADS)
+	while (ck_pr_load_uint(&barrier) != NUM_READER_THREADS + 1)
 		ck_pr_stall();
 
 	return NULL;
@@ -157,22 +162,21 @@ static void *
 writer_thread(void *unused)
 {
 	unsigned int i;
+	unsigned int iteration = 0;
 
 	(void)unused;
 
 	for (;;) {
-		for (i = 0; i < WRITER_MAX; i++)
-			ck_bag_put_spmc(&bag, (void *)(uintptr_t)i);
+		iteration++;
+		ck_epoch_write_begin(&epoch_wr);
+		for (i = 1; i <= writer_max; i++) {
+			if (ck_bag_put_spmc(&bag, (void *)(uintptr_t)i) == false) {
+				perror("ck_bag_put_spmc");
+				exit(EXIT_FAILURE);
+			}
 
-		if (ck_pr_load_int(&leave) == 1)
-			break;
-
-		for (i = 0; i < WRITER_MAX >> 1; i++) {
-			void *replace = (void *)(uintptr_t)i;
-			if (ck_bag_set_spmc(&bag, (void *)(uintptr_t)i, replace) == false ||
-					replace != (void *)(uintptr_t)i) {
-				fprintf(stderr, "ERROR: set %ju != %ju",
-						(uintmax_t)(uintptr_t)replace, (uintmax_t)i);
+			if (ck_bag_member_spmc(&bag, (void *)(uintptr_t)i) == false) {
+				fprintf(stderr, "ck_bag_put_spmc [%u]: %u\n", iteration, i);
 				exit(EXIT_FAILURE);
 			}
 		}
@@ -180,13 +184,35 @@ writer_thread(void *unused)
 		if (ck_pr_load_int(&leave) == 1)
 			break;
 
-		for (i = WRITER_MAX; i > 1; i--)
-			ck_bag_remove_spmc(&bag, (void *)((uintptr_t)i - 1));
+		//fprintf(stderr, "set: %d", iteration);
+		for (i = 1; i < writer_max; i++) {
+			void *replace = (void *)(uintptr_t)i;
+			if (ck_bag_set_spmc(&bag, (void *)(uintptr_t)i, replace) == false) {
+				fprintf(stderr, "ERROR: set %ju != %ju",
+						(uintmax_t)(uintptr_t)replace, (uintmax_t)i);
+				exit(EXIT_FAILURE);
+			}
+		}
+
+		for (i = writer_max; i > 0; i--) {
+			if (ck_bag_member_spmc(&bag, (void *)(uintptr_t)i) == false) {
+				fprintf(stderr, "ck_bag_member_spmc [%u]: %u\n", iteration, i);
+				exit(EXIT_FAILURE);
+			}
+
+			if (ck_bag_remove_spmc(&bag, (void *)(uintptr_t)i) == false) {
+				fprintf(stderr, "ck_bag_remove_spmc [%u]: %u\n", iteration, i);
+				exit(EXIT_FAILURE);
+			}
+		}
+
+		ck_epoch_write_end(&epoch_wr);
 	}
 
 	while (ck_pr_load_uint(&barrier) != NUM_READER_THREADS)
 		ck_pr_stall();
 
+	ck_pr_inc_uint(&barrier);
 	return NULL;
 }
 
@@ -200,7 +226,7 @@ main(int argc, char **argv)
 	ck_bag_iterator_t bag_it;
 	size_t b = CK_BAG_DEFAULT;
 
-	if (argc == 2) {
+	if (argc >= 2) {
 		int r = atoi(argv[1]);
 		if (r <= 0) {
 			fprintf(stderr, "# entries in block must be > 0\n");
@@ -210,21 +236,46 @@ main(int argc, char **argv)
 		b = (size_t)r;
 	}
 
+	if (argc >= 3) {
+		int r = atoi(argv[2]);
+		if (r < 16) {
+			fprintf(stderr, "# entries must be >= 16\n");
+			exit(EXIT_FAILURE);
+		}
+
+		writer_max = (unsigned int)r;
+	}
+
 	ck_epoch_init(&epoch_bag, 100);
 	ck_epoch_register(&epoch_bag, &epoch_wr);
 	ck_bag_allocator_set(&allocator, sizeof(struct bag_epoch));
 	ck_bag_init(&bag, b, CK_BAG_ALLOCATE_GEOMETRIC);
-	fprintf(stderr, "Configuration: %zu bytes/block, %zu entries/block\n", bag.info.bytes, bag.info.max);
+	fprintf(stderr, "Configuration: %u entries, %zu bytes/block, %zu entries/block\n", writer_max, bag.info.bytes, bag.info.max);
+
+	i = 1;
+	/* Basic Test */
+	ck_bag_put_spmc(&bag, (void *)(uintptr_t)i);
+	ck_bag_remove_spmc(&bag, (void *)(uintptr_t)i);
+	ck_bag_put_spmc(&bag, (void *)(uintptr_t)i);
 
 	/* Sequential test */
-	for (i = 0; i < 10; i++)
+	for (i = 1; i <= 10; i++)
+		ck_bag_put_spmc(&bag, (void *)(uintptr_t)i);
+
+	for (i = 1; i <= 10; i++)
+		ck_bag_remove_spmc(&bag, (void *)(uintptr_t)i);
+
+	for (i = 10; i > 0; i--)
+		ck_bag_remove_spmc(&bag, (void *)(uintptr_t)i);
+
+	for (i = 1; i <= 10; i++)
 		ck_bag_put_spmc(&bag, (void *)(uintptr_t)i);
 
 	ck_bag_iterator_init(&bag_it, &bag);
 	while (ck_bag_next(&bag_it, &curr_ptr)) {
 		curr = (uintptr_t)(curr_ptr);
 		if (curr > (uintptr_t)i)
-			fprintf(stderr, "ERROR: %ju != %u", (uintmax_t)curr, i);
+			fprintf(stderr, "ERROR: %ju != %u\n", (uintmax_t)curr, i);
 
 		ck_bag_remove_spmc(&bag, curr_ptr);
 	}
@@ -236,14 +287,14 @@ main(int argc, char **argv)
 		pthread_create(&readers[i], NULL, reader, NULL);
 	}
 
-	sleep(20);
+	sleep(10);
 
 	ck_pr_store_int(&leave, 1);
 	for (i = 0; i < NUM_READER_THREADS; i++)
 		pthread_join(readers[i], NULL);
 
 	pthread_join(writer, NULL);
-	fprintf(stderr, "Current Entries: %u\n", ck_bag_count(&bag));
+	fprintf(stderr, "Current entries: %u\n", ck_bag_count(&bag));
 	ck_bag_destroy(&bag);
 	return 0;
 }

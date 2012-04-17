@@ -31,6 +31,7 @@
 #include <ck_cc.h>
 #include <ck_pr.h>
 #include <ck_malloc.h>
+#include <ck_stdint.h>
 #include <stdbool.h>
 #include <stddef.h>
 
@@ -53,7 +54,7 @@
 
 
 /*
- * Growth strategies
+ * Bag growth strategies.
  */
 enum ck_bag_allocation_strategy {
 	CK_BAG_ALLOCATE_GEOMETRIC = 0,
@@ -61,9 +62,9 @@ enum ck_bag_allocation_strategy {
 };
 
 /*
- * max: max n_entries per block
- * 		bytes: sizeof(ck_bag_block) + sizeof(flex. array member)
- * 		    + inline allocator overhead
+ *  max: max n_entries per block
+ * 	bytes: sizeof(ck_bag_block) + sizeof(flex. array member)
+ * 		+ inline allocator overhead
  */
 struct ck_bag_block_info {
 	size_t max;
@@ -92,12 +93,9 @@ struct ck_bag {
 	struct ck_bag_block *head;
 	struct ck_bag_block *avail_head;
 	struct ck_bag_block *avail_tail;
-
 	unsigned int n_entries;
 	unsigned int n_blocks;
-
 	enum ck_bag_allocation_strategy alloc_strat;
-
 	struct ck_bag_block_info info;
 };
 typedef struct ck_bag ck_bag_t;
@@ -109,7 +107,9 @@ struct ck_bag_iterator {
 };
 typedef struct ck_bag_iterator ck_bag_iterator_t;
 
+#ifdef __x86_64__
 #define CK_BAG_BLOCK_ENTRIES_MASK ((uintptr_t)0xFFFF << 48)
+#endif
 
 CK_CC_INLINE static struct ck_bag_block *
 ck_bag_block_next(struct ck_bag_block *block)
@@ -144,13 +144,10 @@ CK_CC_INLINE static void
 ck_bag_iterator_init(ck_bag_iterator_t *iterator, ck_bag_t *bag)
 {
 
-	iterator->index = 0;
 	iterator->block = ck_pr_load_ptr(&bag->head);
-	if (iterator->block == NULL) {
-		iterator->n_entries = 0;
-	} else {
+	iterator->index = 0;
+	if (iterator->block != NULL)
 		iterator->n_entries = ck_bag_block_count(iterator->block);
-	}
 
 	return;
 }
@@ -158,7 +155,6 @@ ck_bag_iterator_init(ck_bag_iterator_t *iterator, ck_bag_t *bag)
 CK_CC_INLINE static bool
 ck_bag_next(struct ck_bag_iterator *iterator, void **entry)
 {
-	uint16_t n_entries;
 	struct ck_bag_block *next;
 
 	if (iterator->block == NULL)
@@ -167,19 +163,16 @@ ck_bag_next(struct ck_bag_iterator *iterator, void **entry)
 	if (iterator->index >= iterator->n_entries) {
 		next = ck_pr_load_ptr(&iterator->block->next.ptr);
 		iterator->block = ck_bag_block_next(next);
-		n_entries = (iterator->block != NULL) ?
-			ck_bag_block_count(iterator->block) : 0;
-
-		if (n_entries == 0)
+		if (iterator->block == NULL)
 			return false;
 
-		ck_pr_fence_load();
-		iterator->index = 0;
-		iterator->n_entries = n_entries;
-	}
+		iterator->n_entries = ck_bag_block_count(iterator->block);
+		if (iterator->n_entries == 0)
+			return false;
 
-	if (iterator->block == NULL)
-		return false;
+		iterator->index = 0;
+		ck_pr_fence_load();
+	}
 
 	*entry = ck_pr_load_ptr(&iterator->block->array[iterator->index++]);
 	return true;

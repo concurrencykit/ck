@@ -34,10 +34,7 @@
 #include <stdbool.h>
 #include <string.h>
 
-#ifndef CK_BAG_PAGESIZE
 #define CK_BAG_PAGESIZE CK_MD_PAGESIZE
-#endif
-
 #define CK_BAG_MAX_N_ENTRIES (1 << 12)
 
 static struct ck_malloc allocator;
@@ -67,11 +64,9 @@ ck_bag_init(struct ck_bag *bag,
 	block_overhead = sizeof(struct ck_bag_block) + allocator_overhead;
 
 	if (n_block_entries == CK_BAG_DEFAULT) {
-		bag->info.max = (CK_BAG_PAGESIZE - block_overhead) / sizeof(void *);
+		bag->info.max = ((CK_BAG_PAGESIZE - block_overhead) / sizeof(void *));
 	} else {
-		bag->info.max = (n_block_entries * CK_MD_CACHELINE - block_overhead) / sizeof(void *);
-		if (n_block_entries > bag->info.max)
-			bag->info.max = n_block_entries;
+		bag->info.max = ((n_block_entries * CK_MD_CACHELINE - block_overhead) / sizeof(void *));
 	}
 
 	bag->info.bytes = block_overhead + sizeof(void *) * bag->info.max;
@@ -111,7 +106,7 @@ ck_bag_put_spmc(struct ck_bag *bag, void *entry)
 	struct ck_bag_block *cursor, *new_block, *new_block_prev, *new_tail;
 	uint16_t n_entries_block;
 	size_t blocks_alloc, i;
-	uintptr_t next;
+	uintptr_t next = 0;
 
 	new_block = new_block_prev = new_tail = NULL;
 
@@ -142,6 +137,10 @@ ck_bag_put_spmc(struct ck_bag *bag, void *entry)
 			if (i == 0)
 				new_tail = new_block;
 
+#ifndef __x86_64__
+			new_block->next.n_entries = 0;
+#endif
+
 			new_block->next.ptr = new_block_prev;
 			new_block->avail_next = new_block_prev;
 			if (new_block_prev != NULL)
@@ -162,7 +161,7 @@ ck_bag_put_spmc(struct ck_bag *bag, void *entry)
 		bag->n_blocks += blocks_alloc; /* n_blocks and n_avail_blocks? */
 	}
 
-	/* Update the Available List */
+	/* Update the available list */
 	if (new_block != NULL) {
 		if (bag->avail_tail != NULL) {
 			cursor->avail_prev = bag->avail_tail;
@@ -173,56 +172,59 @@ ck_bag_put_spmc(struct ck_bag *bag, void *entry)
 		}
 
 		bag->avail_tail = new_tail;
-	} else if (n_entries_block == bag->info.max - 1) {
-		/* New entry will fill up block, remove from avail list */
-		if (cursor->avail_prev != NULL)
-			cursor->avail_prev->avail_next = cursor->avail_next;
+	} else if (n_entries_block == bag->info.max-1) {
+	    /* New entry will fill up block, remove from avail list */
+		    if (cursor->avail_prev != NULL)
+			    cursor->avail_prev->avail_next = cursor->avail_next;
 
-		if (cursor->avail_next != NULL)
-			cursor->avail_next->avail_prev = cursor->avail_prev;
+		    if (cursor->avail_next != NULL)
+			    cursor->avail_next->avail_prev = cursor->avail_prev;
 
-		if (bag->avail_head == cursor)
-			bag->avail_head = cursor->avail_next;
+		    if (bag->avail_head == cursor)
+			    bag->avail_head = cursor->avail_next;
 
-		if (bag->avail_tail == cursor)
-			bag->avail_tail = cursor->avail_prev;
+		    if (bag->avail_tail == cursor)
+			    bag->avail_tail = cursor->avail_prev;
 
-		/* For debugging purposes */
-		cursor->avail_next = NULL;
-		cursor->avail_prev = NULL;
+		    /* For debugging purposes */
+		    cursor->avail_next = NULL;
+		    cursor->avail_prev = NULL;
 	}
 
 	/* Update array and block->n_entries */
 	cursor->array[n_entries_block++] = entry;
+	ck_pr_fence_store();
 
 #ifdef __x86_64__
 	next = ((uintptr_t)n_entries_block << 48);
 #endif
 
-	ck_pr_fence_store();
-
 	/* Update bag's list */
 	if (n_entries_block == 1) {
+
+		if (bag->head != NULL) {
 #ifdef __x86_64__
-		if (bag->head != NULL)
 			next += ((uintptr_t)(void *)ck_bag_block_next(bag->head));
 #else
+			next = (uintptr_t)(void *)ck_bag_block_next(bag->head);
+#endif
+		}
+
+#ifndef __x86_64__
 		ck_pr_store_ptr(&cursor->next.n_entries, (void *)(uintptr_t)n_entries_block);
-		if (bag->head != NULL)
-			next = (uintptr_t)ck_bag_block_next(bag->head->next.ptr);
-		else
-			next = 0;
 #endif
 
 		ck_pr_store_ptr(&cursor->next.ptr, (void *)next);
 		ck_pr_store_ptr(&bag->head, cursor);
 	} else {
+
 #ifdef __x86_64__
 		next += ((uintptr_t)(void *)ck_bag_block_next(cursor->next.ptr));
 		ck_pr_store_ptr(&cursor->next, (void *)next);
 #else
 		ck_pr_store_ptr(&cursor->next.n_entries, (void *)(uintptr_t)n_entries_block);
 #endif
+
 	}
 
 	ck_pr_store_uint(&bag->n_entries, bag->n_entries + 1);
@@ -230,10 +232,7 @@ ck_bag_put_spmc(struct ck_bag *bag, void *entry)
 }
 
 /*
- * Set
- * Replace prev_entry with new entry if exists, otherwise insert into bag
- *
- * On return, new_entry = prev_entry on replacement, NULL on insertion.
+ * Replace prev_entry with new entry if exists, otherwise insert into bag.
  */
 bool
 ck_bag_set_spmc(struct ck_bag *bag, void *compare, void *update)
@@ -269,11 +268,13 @@ ck_bag_remove_spmc(struct ck_bag *bag, void *entry)
 	prev = NULL;
 	while (cursor != NULL) {
 		n_entries = ck_bag_block_count(cursor);
+
 		for (block_index = 0; block_index < n_entries; block_index++) {
 			if (cursor->array[block_index] == entry)
 				goto found;
 
 		}
+
 		prev = cursor;
 		cursor = ck_bag_block_next(cursor->next.ptr);
 	}
@@ -293,7 +294,7 @@ found:
 			next = ((uintptr_t)prev->next.ptr & (CK_BAG_BLOCK_ENTRIES_MASK)) |
 				(uintptr_t)(void *)ck_bag_block_next(cursor->next.ptr);
 #else
-			next = (uintptr_t)cursor->next.ptr;
+			next = (uintptr_t)(void *)cursor->next.ptr;
 #endif
 			ck_pr_store_ptr(&prev->next.ptr, (struct ck_bag_block *)next);
 		}
@@ -305,26 +306,27 @@ found:
 		if (cursor->avail_next != NULL)
 			cursor->avail_next->avail_prev = cursor->avail_prev;
 
+		bag->n_blocks--;
 		copy = cursor->avail_next;
 	} else {
 		uintptr_t next_ptr;
-		copy = allocator.malloc(bag->info.bytes);
 
+		copy = allocator.malloc(bag->info.bytes);
 		if (copy == NULL)
 			return false;
 
 		memcpy(copy, cursor, bag->info.bytes);
 		copy->array[block_index] = copy->array[--n_entries];
 
-		ck_pr_fence_store();
-
 		next_ptr = (uintptr_t)(void *)ck_bag_block_next(copy->next.ptr);
 #ifdef __x86_64__
 		copy->next.ptr = (void *)(((uintptr_t)n_entries << 48) | next_ptr);
 #else
 		copy->next.n_entries = n_entries;
-		copy->next.ptr = (void *)next_ptr;
+		copy->next.ptr = (struct ck_bag_block *)next_ptr;
 #endif
+
+		ck_pr_fence_store();
 
 		if (prev == NULL) {
 			ck_pr_store_ptr(&bag->head, copy);
