@@ -210,7 +210,7 @@ ck_bag_put_spmc(struct ck_bag *bag, void *entry)
 		if (bag->head != NULL)
 			next += ((uintptr_t)(void *)ck_bag_block_next(bag->head));
 #else
-		ck_pr_store_uint(&cursor->next.n_entries, n_entries_block);
+		ck_pr_store_ptr(&cursor->next.n_entries, (void *)(uintptr_t)n_entries_block);
 		next = ck_bag_block_next(bag->head->next.ptr);
 #endif
 
@@ -221,7 +221,7 @@ ck_bag_put_spmc(struct ck_bag *bag, void *entry)
 #ifdef __x86_64__
 		next += ((uintptr_t)(void *)ck_bag_block_next(cursor->next.ptr));
 #else
-		ck_pr_store_uint(&cursor->next.n_entries, n_entries_block)
+		ck_pr_store_ptr(&cursor->next.n_entries, (void *)(uintptr_t)n_entries_block)
 #endif
 
 		ck_pr_store_ptr(&cursor->next, (void *)next);
