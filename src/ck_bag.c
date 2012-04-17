@@ -111,10 +111,7 @@ ck_bag_put_spmc(struct ck_bag *bag, void *entry)
 	struct ck_bag_block *cursor, *new_block, *new_block_prev, *new_tail;
 	uint16_t n_entries_block;
 	size_t blocks_alloc, i;
-
-#ifdef __x86_64__
 	uintptr_t next;
-#endif
 
 	new_block = new_block_prev = new_tail = NULL;
 
