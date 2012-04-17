@@ -33,12 +33,6 @@
 #include <stdbool.h>
 #include <string.h>
 
-#if CK_MD_CACHELINE > 128
-#define CK_BAG_CL_SIZE 128
-#else
-#define CK_BAG_CL_SIZE CK_MD_CACHELINE
-#endif
-
 #ifndef CK_BAG_PAGESIZE
 #define CK_BAG_PAGESIZE CK_MD_PAGESIZE
 #endif
@@ -72,15 +66,14 @@ ck_bag_init(struct ck_bag *bag,
 	block_overhead = sizeof(struct ck_bag_block) + allocator_overhead;
 
 	if (n_block_entries == CK_BAG_DEFAULT) {
-		bag->info.max = ((CK_BAG_PAGESIZE - block_overhead) / sizeof(void *));
+		bag->info.max = (CK_BAG_PAGESIZE - block_overhead) / sizeof(void *);
 	} else {
-		bag->info.max = ((CK_BAG_CL_SIZE - block_overhead) / sizeof(void *));
+		bag->info.max = (n_block_entries * CK_MD_CACHELINE - block_overhead) / sizeof(void *);
 		if (n_block_entries > bag->info.max)
 			bag->info.max = n_block_entries;
 	}
 
 	bag->info.bytes = block_overhead + sizeof(void *) * bag->info.max;
-
 	return true;
 }
 
@@ -181,7 +174,7 @@ ck_bag_put_spmc(struct ck_bag *bag, void *entry)
 		bag->avail_tail = new_tail;
 	} else {
 		/* New entry will fill up block, remove from avail list */
-		if (n_entries_block == bag->info.max-1) {
+		if (n_entries_block == bag->info.max - 1) {
 			if (cursor->avail_prev != NULL)
 				cursor->avail_prev->avail_next = cursor->avail_next;
 
