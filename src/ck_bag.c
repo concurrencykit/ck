@@ -93,7 +93,7 @@ ck_bag_destroy(struct ck_bag *bag)
 	while (bag->head != NULL) {
 		cursor = bag->head;
 		bag->head = ck_bag_block_next(cursor->next.ptr);
-		allocator.free(cursor, bag->info.bytes, true);
+		allocator.free(cursor, bag->info.bytes, false);
 	}
 
 	return;
