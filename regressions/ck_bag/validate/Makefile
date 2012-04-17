@@ -4,8 +4,8 @@ OBJECTS=order
 
 all: $(OBJECTS)
 
-order: order.c ../../../include/ck_bag.h ../../../src/ck_bag.c
-	$(CC) $(CFLAGS) -o order order.c ../../../src/ck_bag.c
+order: order.c ../../../include/ck_bag.h ../../../src/ck_bag.c ../../../src/ck_epoch.c
+	$(CC) $(CFLAGS) -o order order.c ../../../src/ck_bag.c ../../../src/ck_epoch.c
 
 clean:
 	rm -rf *.dSYM *~ *.o $(OBJECTS)

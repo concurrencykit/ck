@@ -39,24 +39,45 @@
 #define READ_LATENCY 8
 
 static ck_bag_t bag;
+static ck_epoch_t epoch_bag;
+static ck_epoch_record_t epoch_wr;
 static int leave;
 static unsigned int barrier;
+
+struct bag_epoch {
+	ck_epoch_entry_t epoch_entry;
+};
+
+static void
+bag_destroy(ck_epoch_entry_t *e)
+{
+
+	free(e);
+	return;
+}
 
 static void *
 bag_malloc(size_t r)
 {
+	struct bag_epoch *b;
 
-	return malloc(r);
+	b = malloc(sizeof(*b) + r);
+	return b + 1;
 }
 
 static void
 bag_free(void *p, size_t b, bool r)
 {
+	struct bag_epoch *e = p;
 
-	(void)p;
 	(void)b;
-	(void)r;
-//	free(p);
+
+	if (r == true) {
+		ck_epoch_free(&epoch_wr, &(--e)->epoch_entry, bag_destroy);
+	} else {
+		free(--e);
+	}
+
 	return;
 }
 
@@ -71,11 +92,13 @@ reader(void *arg)
 	void *curr_ptr;
 	intptr_t curr, prev, curr_max, prev_max;
 	unsigned long long n_entries = 0, iterations = 0;
+	ck_epoch_record_t epoch_record;
+	ck_bag_iterator_t iterator;
+	struct ck_bag_block *block = NULL;
 
 	(void)arg;
 
-	ck_bag_iterator_t iterator;
-	struct ck_bag_block *block = NULL;
+	ck_epoch_register(&epoch_bag, &epoch_record);
 
 	/*
 	 * Check if entries within a block are sequential. Since ck_bag inserts
@@ -175,14 +198,23 @@ main(int argc, char **argv)
 	unsigned int i, curr;
 	void *curr_ptr;
 	ck_bag_iterator_t bag_it;
+	size_t b = CK_BAG_DEFAULT;
 
-	(void)argc;
-	(void)argv;
+	if (argc == 2) {
+		int r = atoi(argv[1]);
+		if (r <= 0) {
+			fprintf(stderr, "# entries in block must be > 0\n");
+			exit(EXIT_FAILURE);
+		}
 
-	ck_bag_allocator_set(&allocator, 0);
-	ck_bag_init(&bag, CK_BAG_DEFAULT, CK_BAG_ALLOCATE_GEOMETRIC);
+		b = (size_t)r;
+	}
 
-	fprintf(stderr, "Block Size: %zuB\n", bag.info.bytes);
+	ck_epoch_init(&epoch_bag, 100);
+	ck_epoch_register(&epoch_bag, &epoch_wr);
+	ck_bag_allocator_set(&allocator, sizeof(struct bag_epoch));
+	ck_bag_init(&bag, b, CK_BAG_ALLOCATE_GEOMETRIC);
+	fprintf(stderr, "Configuration: %zu bytes/block, %zu entries/block\n", bag.info.bytes, bag.info.max);
 
 	/* Sequential test */
 	for (i = 0; i < 10; i++)
