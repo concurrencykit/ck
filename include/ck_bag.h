@@ -168,7 +168,7 @@ ck_bag_next(struct ck_bag_iterator *iterator, void **entry)
 		if (n_entries == 0)
 			return false;
 
-		ck_pr_load_fence();
+		ck_pr_fence_load();
 		iterator->index = 0;
 		iterator->n_entries = n_entries;
 	}
