@@ -39,7 +39,9 @@
 #define CK_BAG_CL_SIZE CK_MD_CACHELINE
 #endif
 
-#define CK_BAG_PAGE_SIZE CK_MD_PAGE_SIZE
+#ifndef CK_BAG_PAGESIZE
+#define CK_BAG_PAGESIZE CK_MD_PAGESIZE
+#endif
 
 #define CK_BAG_MAX_N_ENTRIES (1 << 12)
 
@@ -48,13 +50,10 @@ static size_t allocator_overhead;
 
 bool
 ck_bag_init(struct ck_bag *bag,
-		size_t n_block_entries,
-		enum ck_bag_allocation_strategy as)
+	    size_t n_block_entries,
+	    enum ck_bag_allocation_strategy as)
 {
-
 	size_t block_overhead;
-	if (bag == NULL)
-		return false;
 
 	bag->avail_head = bag->avail_tail = NULL;
 	bag->head = NULL;
@@ -73,7 +72,7 @@ ck_bag_init(struct ck_bag *bag,
 	block_overhead = sizeof(struct ck_bag_block) + allocator_overhead;
 
 	if (n_block_entries == CK_BAG_DEFAULT) {
-		bag->info.max = ((CK_BAG_PAGE_SIZE - block_overhead) / sizeof(void *));
+		bag->info.max = ((CK_BAG_PAGESIZE - block_overhead) / sizeof(void *));
 	} else {
 		bag->info.max = ((CK_BAG_CL_SIZE - block_overhead) / sizeof(void *));
 		if (n_block_entries > bag->info.max)
@@ -115,7 +114,6 @@ ck_bag_allocator_set(struct ck_malloc *m, size_t alloc_overhead)
 bool
 ck_bag_put_spmc(struct ck_bag *bag, void *entry)
 {
-
 	struct ck_bag_block *cursor, *new_block, *new_block_prev, *new_tail;
 	uint16_t n_entries_block;
 	size_t blocks_alloc, i;
@@ -248,7 +246,6 @@ ck_bag_put_spmc(struct ck_bag *bag, void *entry)
 bool
 ck_bag_set_spmc(struct ck_bag *bag, void *compare, void *update)
 {
-
 	struct ck_bag_block *cursor;
 	uint16_t block_index;
 	uint16_t n_entries_block = 0;

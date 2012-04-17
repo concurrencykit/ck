@@ -53,9 +53,7 @@
 
 
 /*
- * Memory Allocation Strategies:
- * 	GEOMETRIC = allocate # of existing blocks * 2.
- * 	LINEAR = only allocate a single block.
+ * Growth strategies
  */
 enum ck_bag_allocation_strategy {
 	CK_BAG_ALLOCATE_GEOMETRIC = 0,
@@ -63,9 +61,9 @@ enum ck_bag_allocation_strategy {
 };
 
 /*
- *  max: max n_entries per block
- * 	bytes: sizeof(ck_bag_block) + sizeof(flex. array member)
- * 		+ inline allocator overhead
+ * max: max n_entries per block
+ * 		bytes: sizeof(ck_bag_block) + sizeof(flex. array member)
+ * 		    + inline allocator overhead
  */
 struct ck_bag_block_info {
 	size_t max;
@@ -87,7 +85,6 @@ struct ck_bag_block {
 	struct ck_bag_block_md next;
 	struct ck_bag_block *avail_next;
 	struct ck_bag_block *avail_prev;
-
 	void *array[];
 } CK_CC_CACHELINE;
 
@@ -167,9 +164,11 @@ ck_bag_next(struct ck_bag_iterator *iterator, void **entry)
 		iterator->block = ck_bag_block_next(next);
 		n_entries = (iterator->block != NULL) ?
 			ck_bag_block_count(iterator->block) : 0;
+
 		if (n_entries == 0)
 			return false;
 
+		ck_pr_load_fence();
 		iterator->index = 0;
 		iterator->n_entries = n_entries;
 	}
