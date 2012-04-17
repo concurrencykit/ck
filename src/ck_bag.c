@@ -211,7 +211,7 @@ ck_bag_put_spmc(struct ck_bag *bag, void *entry)
 			next += ((uintptr_t)(void *)ck_bag_block_next(bag->head));
 #else
 		ck_pr_store_ptr(&cursor->next.n_entries, (void *)(uintptr_t)n_entries_block);
-		next = ck_bag_block_next(bag->head->next.ptr);
+		next = (uintptr_t)ck_bag_block_next(bag->head->next.ptr);
 #endif
 
 		ck_pr_store_ptr(&cursor->next.ptr, (void *)next);
@@ -221,7 +221,7 @@ ck_bag_put_spmc(struct ck_bag *bag, void *entry)
 #ifdef __x86_64__
 		next += ((uintptr_t)(void *)ck_bag_block_next(cursor->next.ptr));
 #else
-		ck_pr_store_ptr(&cursor->next.n_entries, (void *)(uintptr_t)n_entries_block)
+		ck_pr_store_ptr(&cursor->next.n_entries, (void *)(uintptr_t)n_entries_block);
 #endif
 
 		ck_pr_store_ptr(&cursor->next, (void *)next);
@@ -295,7 +295,7 @@ found:
 			next = ((uintptr_t)prev->next.ptr & (CK_BAG_BLOCK_ENTRIES_MASK)) |
 				(uintptr_t)(void *)ck_bag_block_next(cursor->next.ptr);
 #else
-			next = cursor->next.ptr;
+			next = (uintptr_t)cursor->next.ptr;
 #endif
 			ck_pr_store_ptr(&prev->next.ptr, (struct ck_bag_block *)next);
 		}
@@ -325,7 +325,7 @@ found:
 		copy->next.ptr = (void *)(((uintptr_t)n_entries << 48) | next_ptr);
 #else
 		copy->next.n_entries = n_entries;
-		copy->next.ptr = next_ptr;
+		copy->next.ptr = (void *)next_ptr;
 #endif
 
 		if (prev == NULL) {
