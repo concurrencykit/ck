@@ -266,9 +266,6 @@ ck_bag_remove_spmc(struct ck_bag *bag, void *entry)
 	struct ck_bag_block *cursor, *copy, *prev;
 	uint16_t block_index, n_entries;
 
-	if (bag == NULL)
-		return -1;
-
 	cursor = bag->head;
 	prev = NULL;
 	while (cursor != NULL) {
