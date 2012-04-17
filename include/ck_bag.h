@@ -144,9 +144,14 @@ CK_CC_INLINE static void
 ck_bag_iterator_init(ck_bag_iterator_t *iterator, ck_bag_t *bag)
 {
 
-	iterator->block = ck_pr_load_ptr(&bag->head);
 	iterator->index = 0;
-	iterator->n_entries = ck_bag_block_count(iterator->block);
+	iterator->block = ck_pr_load_ptr(&bag->head);
+	if (iterator->block == NULL) {
+		iterator->n_entries = 0;
+	} else {
+		iterator->n_entries = ck_bag_block_count(iterator->block);
+	}
+
 	return;
 }
 
