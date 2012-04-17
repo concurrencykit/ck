@@ -26,6 +26,7 @@ all:
 	$(MAKE) -C ./ck_rwlock/benchmark all
 	$(MAKE) -C ./ck_hp/validate all
 	$(MAKE) -C ./ck_hp/benchmark all
+	$(MAKE) -C ./ck_bag/validate all
 
 clean:
 	$(MAKE) -C ./ck_queue/validate clean
@@ -53,4 +54,5 @@ clean:
 	$(MAKE) -C ./ck_rwlock/benchmark clean
 	$(MAKE) -C ./ck_hp/validate clean
 	$(MAKE) -C ./ck_hp/benchmark clean
+	$(MAKE) -C ./ck_bag/validate clean
 
