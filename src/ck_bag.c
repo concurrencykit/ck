@@ -111,7 +111,10 @@ ck_bag_put_spmc(struct ck_bag *bag, void *entry)
 	struct ck_bag_block *cursor, *new_block, *new_block_prev, *new_tail;
 	uint16_t n_entries_block;
 	size_t blocks_alloc, i;
+
+#ifdef __x86_64__
 	uintptr_t next;
+#endif
 
 	new_block = new_block_prev = new_tail = NULL;
 
@@ -173,25 +176,23 @@ ck_bag_put_spmc(struct ck_bag *bag, void *entry)
 		}
 
 		bag->avail_tail = new_tail;
-	} else {
+	} else if (n_entries_block == bag->info.max - 1) {
 		/* New entry will fill up block, remove from avail list */
-		if (n_entries_block == bag->info.max - 1) {
-			if (cursor->avail_prev != NULL)
-				cursor->avail_prev->avail_next = cursor->avail_next;
+		if (cursor->avail_prev != NULL)
+			cursor->avail_prev->avail_next = cursor->avail_next;
 
-			if (cursor->avail_next != NULL)
-				cursor->avail_next->avail_prev = cursor->avail_prev;
+		if (cursor->avail_next != NULL)
+			cursor->avail_next->avail_prev = cursor->avail_prev;
 
-			if (bag->avail_head == cursor)
-				bag->avail_head = cursor->avail_next;
+		if (bag->avail_head == cursor)
+			bag->avail_head = cursor->avail_next;
 
-			if (bag->avail_tail == cursor)
-				bag->avail_tail = cursor->avail_prev;
+		if (bag->avail_tail == cursor)
+			bag->avail_tail = cursor->avail_prev;
 
-			/* For debugging purposes */
-			cursor->avail_next = NULL;
-			cursor->avail_prev = NULL;
-		}
+		/* For debugging purposes */
+		cursor->avail_next = NULL;
+		cursor->avail_prev = NULL;
 	}
 
 	/* Update array and block->n_entries */
@@ -205,7 +206,6 @@ ck_bag_put_spmc(struct ck_bag *bag, void *entry)
 
 	/* Update bag's list */
 	if (n_entries_block == 1) {
-
 #ifdef __x86_64__
 		if (bag->head != NULL)
 			next += ((uintptr_t)(void *)ck_bag_block_next(bag->head));
@@ -217,17 +217,15 @@ ck_bag_put_spmc(struct ck_bag *bag, void *entry)
 		ck_pr_store_ptr(&cursor->next.ptr, (void *)next);
 		ck_pr_store_ptr(&bag->head, cursor);
 	} else {
-
 #ifdef __x86_64__
 		next += ((uintptr_t)(void *)ck_bag_block_next(cursor->next.ptr));
+		ck_pr_store_ptr(&cursor->next, (void *)next);
 #else
 		ck_pr_store_ptr(&cursor->next.n_entries, (void *)(uintptr_t)n_entries_block);
 #endif
-
-		ck_pr_store_ptr(&cursor->next, (void *)next);
 	}
-	ck_pr_store_uint(&bag->n_entries, bag->n_entries + 1);
 
+	ck_pr_store_uint(&bag->n_entries, bag->n_entries + 1);
 	return true;
 }
 
