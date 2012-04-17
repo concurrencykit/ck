@@ -30,6 +30,7 @@
 #include <ck_md.h>
 #include <ck_pr.h>
 #include <ck_malloc.h>
+#include <ck_stdint.h>
 #include <stdbool.h>
 #include <string.h>
 
