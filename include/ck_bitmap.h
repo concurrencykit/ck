@@ -88,7 +88,7 @@ ck_bitmap_init(struct ck_bitmap *bitmap,
 	bitmap->map = buffer;
 	bitmap->length = length;
 	bitmap->n_buckets = ck_bitmap_size(length) / sizeof(CK_BITMAP_TYPE);
-	memset(bitmap->map, -(int)set, length);
+	memset(bitmap->map, -(int)set, ck_bitmap_size(length));
 	return;
 }
 

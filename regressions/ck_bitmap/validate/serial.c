@@ -98,5 +98,7 @@ main(int argc, char *argv[])
 	ck_bitmap_init(&bits, buffer, length, true);
 	test(&bits, true);
 
+	ck_bitmap_test(&bits, length - 1);
+
 	return 0;
 }
