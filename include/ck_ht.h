@@ -122,7 +122,11 @@ CK_CC_INLINE static void *
 ck_ht_entry_key(ck_ht_entry_t *entry)
 {
 
+#ifdef __x86_64__
 	return (void *)(entry->key & (((uintptr_t)1 << 48) - 1));
+#else
+	return (void *)entry->key;
+#endif
 }
 
 CK_CC_INLINE static uint16_t
