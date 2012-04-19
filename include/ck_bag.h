@@ -186,4 +186,4 @@ bool ck_bag_set_spmc(struct ck_bag *, void *, void *);
 bool ck_bag_remove_spmc(ck_bag_t *, void *);
 bool ck_bag_member_spmc(ck_bag_t *, void *);
 
-#endif /* CK_BAG_H */
+#endif /* _CK_BAG_H */
