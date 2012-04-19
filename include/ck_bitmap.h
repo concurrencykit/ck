@@ -142,4 +142,11 @@ ck_bitmap_test(struct ck_bitmap *bitmap, unsigned int n)
 	return block & mask;
 }
 
+CK_CC_INLINE static void *
+ck_bitmap_buffer(struct ck_bitmap *bitmap)
+{
+
+	return bitmap->map;
+}
+
 #endif /* _CK_BITMAP_H */
