@@ -56,7 +56,7 @@ functions. If
 was created with CK_HT_MODE_DIRECT then
 .Fa entry
 must have been initialized with the
-.Xr ck_ht_entry_set_key_direct 3
+.Xr ck_ht_entry_key_set_direct 3
 or
 .Xr ck_ht_entry_set_direct 3
 functions.
