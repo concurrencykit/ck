@@ -26,7 +26,7 @@
 # SUCH DAMAGE.
 #
 
-REQUIRE_HEADER="stdbool.h stdint.h"
+REQUIRE_HEADER="stdbool.h stddef.h stdint.h string.h"
 
 EXIT_SUCCESS=0
 EXIT_FAILURE=1
