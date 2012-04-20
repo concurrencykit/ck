@@ -41,6 +41,8 @@
 #include "gcc/sparcv9/ck_pr.h"
 #elif defined(__ppc64__)
 #include "gcc/ppc64/ck_pr.h"
+#elif defined(__powerpc__)
+#include "gcc/powerpc/ck_pr.h"
 #elif defined(__GNUC__)
 #include "gcc/ck_pr.h"
 #else
