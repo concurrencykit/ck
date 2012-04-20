@@ -35,14 +35,17 @@
 #include <string.h>
 
 #define CK_BAG_PAGESIZE CK_MD_PAGESIZE
+
+#ifdef __x86_64__
 #define CK_BAG_MAX_N_ENTRIES (1 << 12)
+#endif
 
 static struct ck_malloc allocator;
 static size_t allocator_overhead;
 
 bool
 ck_bag_init(struct ck_bag *bag,
-	    size_t n_block_entries,
+	    size_t n_cachelines,
 	    enum ck_bag_allocation_strategy as)
 {
 	size_t block_overhead;
@@ -52,9 +55,6 @@ ck_bag_init(struct ck_bag *bag,
 	bag->n_entries = 0;
 	bag->alloc_strat = as;
 
-	if (n_block_entries > CK_BAG_MAX_N_ENTRIES)
-		return false;
-
 	/*
 	 * By default, a ck_bag_block occupies two cachelines. If n_entries is less
 	 * than the # of entries that can fit within one cacheline (including
@@ -63,11 +63,16 @@ ck_bag_init(struct ck_bag *bag,
 	 */
 	block_overhead = sizeof(struct ck_bag_block) + allocator_overhead;
 
-	if (n_block_entries == CK_BAG_DEFAULT) {
+	if (n_cachelines == CK_BAG_DEFAULT) {
 		bag->info.max = ((CK_BAG_PAGESIZE - block_overhead) / sizeof(void *));
 	} else {
-		bag->info.max = ((n_block_entries * CK_MD_CACHELINE - block_overhead) / sizeof(void *));
+		bag->info.max = ((n_cachelines * CK_MD_CACHELINE - block_overhead) / sizeof(void *));
 	}
+
+#ifdef __x86_64__
+	if (bag->info.max > CK_BAG_MAX_N_ENTRIES)
+		return false;
+#endif
 
 	bag->info.bytes = block_overhead + sizeof(void *) * bag->info.max;
 	return true;
