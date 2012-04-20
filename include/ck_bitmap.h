@@ -54,94 +54,151 @@
 #define CK_BITMAP_AND(x, y)	ck_pr_and_32(x, y)
 #else
 #error "ck_bitmap is not supported on your platform."
-#endif 
+#endif /* These are all internal functions. */
 
 #define CK_BITMAP_PTR(x, i)	((x) + ((i) >> CK_BITMAP_SHIFT))
-#define CK_BITMAP_MASK		(sizeof(CK_BITMAP_TYPE) * CHAR_BIT - 1)
+#define CK_BITMAP_BLOCK		(sizeof(CK_BITMAP_TYPE) * CHAR_BIT)
+#define CK_BITMAP_MASK		(CK_BITMAP_BLOCK - 1)
+#define CK_BITMAP_BLOCKS(n) \
+	(((n) + (CK_BITMAP_BLOCK - 1)) / CK_BITMAP_BLOCK)
+
+#define CK_BITMAP_INSTANCE(n_entries)				\
+	struct {						\
+		unsigned int n_bits;				\
+		unsigned int n_buckets;				\
+		CK_BITMAP_TYPE map[CK_BITMAP_BLOCKS(n_entries)];\
+	}
+
+#define CK_BITMAP_INIT(a, b, c) \
+	ck_bitmap_init((struct ck_bitmap *)(a), (b), (c))
+
+#define CK_BITMAP_SET_MPMC(a, b) \
+	ck_bitmap_set_mpmc((struct ck_bitmap *)(a), (b))
+
+#define CK_BITMAP_RESET_MPMC(a, b) \
+	ck_bitmap_reset_mpmc((struct ck_bitmap *)(a), (b))
+
+#define CK_BITMAP_CLEAR(a) \
+	ck_bitmap_clear((struct ck_bitmap *)(a))
+
+#define CK_BITMAP_TEST(a, b) \
+	ck_bitmap_test((struct ck_bitmap *)(a), (b))
+
+#define CK_BITMAP_BITS(a, b) \
+	ck_bitmap_bits((struct ck_bitmap *)(a))
+
+#define CK_BITMAP_BUFFER(a) \
+	ck_bitmap_buffer((struct ck_bitmap *)(a))
+
+#define CK_BITMAP(a) \
+	((struct ck_bitmap *)(a))
 
 struct ck_bitmap {
-	unsigned int length;
+	unsigned int n_bits;
 	unsigned int n_buckets;
-	CK_BITMAP_TYPE *map;
+	CK_BITMAP_TYPE map[];
 };
 typedef struct ck_bitmap ck_bitmap_t;
 
-/*
- * Returns the number of bytes that must be allocated for a bitmap
- * with the specified number of entries.
- */
 CK_CC_INLINE static unsigned int
-ck_bitmap_size(unsigned int entries)
+ck_bitmap_base(unsigned int n_bits)
 {
-	size_t s = sizeof(CK_BITMAP_TYPE) * CHAR_BIT;
 
-	return ((entries + (s - 1)) / s) * sizeof(CK_BITMAP_TYPE);
+	return CK_BITMAP_BLOCKS(n_bits) * sizeof(CK_BITMAP_TYPE);
 }
 
-CK_CC_INLINE static void
-ck_bitmap_init(struct ck_bitmap *bitmap,
-	       void *buffer,
-	       unsigned int length,
-	       bool set)
+CK_CC_INLINE static unsigned int
+ck_bitmap_size(unsigned int n_bits)
 {
 
-	bitmap->map = buffer;
-	bitmap->length = length;
-	bitmap->n_buckets = ck_bitmap_size(length) / sizeof(CK_BITMAP_TYPE);
-	memset(bitmap->map, -(int)set, ck_bitmap_size(length));
+	return ck_bitmap_base(n_bits) + sizeof(struct ck_bitmap);
+}
+
+/*
+ * Initializes a ck_bitmap pointing to a region of memory with
+ * ck_bitmap_size(n_bits) bytes. Third argument determines whether
+ * default bit value is 1 (true) or 0 (false).
+ */
+static void
+ck_bitmap_init(struct ck_bitmap *bitmap,
+	       unsigned int n_bits,
+	       bool set)
+{
+	unsigned int base = ck_bitmap_base(n_bits);
+
+	bitmap->n_bits = n_bits;
+	bitmap->n_buckets = base / sizeof(CK_BITMAP_TYPE);
+	memset(bitmap->map, -(int)set, base);
 	return;
 }
 
+/*
+ * Sets the bit at the offset specified in the second argument.
+ */
 CK_CC_INLINE static void
 ck_bitmap_set_mpmc(struct ck_bitmap *bitmap, unsigned int n)
 {
 	CK_BITMAP_TYPE mask = 0x1ULL << (n & CK_BITMAP_MASK);
-	CK_BITMAP_TYPE *map = ck_pr_load_ptr(&bitmap->map);
 
-	CK_BITMAP_OR(CK_BITMAP_PTR(map, n), mask);
+	CK_BITMAP_OR(CK_BITMAP_PTR(bitmap->map, n), mask);
 	return;
 }
 
+/*
+ * Resets the bit at the offset specified in the second argument.
+ */
 CK_CC_INLINE static void
 ck_bitmap_reset_mpmc(struct ck_bitmap *bitmap, unsigned int n)
 {
 	CK_BITMAP_TYPE mask = ~(0x1ULL << (n & CK_BITMAP_MASK));
-	CK_BITMAP_TYPE *map = ck_pr_load_ptr(&bitmap->map);
 
-	CK_BITMAP_AND(CK_BITMAP_PTR(map, n), mask);
+	CK_BITMAP_AND(CK_BITMAP_PTR(bitmap->map, n), mask);
 	return;
 }
 
-CK_CC_INLINE static void *
-ck_bitmap_clear_mpmc(struct ck_bitmap *bitmap, void *buffer)
+/*
+ * Resets all bits in the provided bitmap. This is not a linearized
+ * operation in ck_bitmap.
+ */
+CK_CC_INLINE static void
+ck_bitmap_clear(struct ck_bitmap *bitmap)
 {
-	CK_BITMAP_TYPE *pointer = ck_pr_load_ptr(&bitmap->map);
 	unsigned int i;
 
-	if (buffer != NULL) {
-		if (ck_pr_cas_ptr(&bitmap->map, pointer, buffer) == true)
-			return pointer;
-
-		return buffer;
-	}
-
 	for (i = 0; i < bitmap->n_buckets; i++)
-		CK_BITMAP_STORE(&pointer[i], 0);
+		CK_BITMAP_STORE(&bitmap->map[i], 0);
 
-	return NULL;
+	return;
 }
 
+/*
+ * Determines whether the bit at offset specified in the
+ * second argument is set.
+ */
 CK_CC_INLINE static bool
 ck_bitmap_test(struct ck_bitmap *bitmap, unsigned int n)
 {
 	CK_BITMAP_TYPE mask = 0x1ULL << (n & CK_BITMAP_MASK);
-	CK_BITMAP_TYPE *map = ck_pr_load_ptr(&bitmap->map);
 	CK_BITMAP_TYPE block;
 
-	block = CK_BITMAP_LOAD(CK_BITMAP_PTR(map, n));
+	block = CK_BITMAP_LOAD(CK_BITMAP_PTR(bitmap->map, n));
 	return block & mask;
 }
 
+/*
+ * Returns total number of bits in specified bitmap.
+ */
+CK_CC_INLINE static unsigned int
+ck_bitmap_bits(struct ck_bitmap *bitmap)
+{
+
+	return bitmap->n_bits;
+}
+
+/*
+ * Returns a pointer to the bit buffer associated
+ * with the specified bitmap.
+ */
 CK_CC_INLINE static void *
 ck_bitmap_buffer(struct ck_bitmap *bitmap)
 {

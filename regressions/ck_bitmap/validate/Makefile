@@ -4,7 +4,7 @@ OBJECTS=serial
 
 all: $(OBJECTS)
 
-serial: serial.c
+serial: serial.c ../../../include/ck_bitmap.h
 	$(CC) $(CFLAGS) -o serial serial.c
 
 clean:
