@@ -117,7 +117,7 @@ ck_bitmap_size(unsigned int n_bits)
  * ck_bitmap_size(n_bits) bytes. Third argument determines whether
  * default bit value is 1 (true) or 0 (false).
  */
-static void
+CK_CC_INLINE static void
 ck_bitmap_init(struct ck_bitmap *bitmap,
 	       unsigned int n_bits,
 	       bool set)
