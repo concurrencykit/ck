@@ -65,7 +65,6 @@
 #define CK_BITMAP_INSTANCE(n_entries)				\
 	struct {						\
 		unsigned int n_bits;				\
-		unsigned int n_buckets;				\
 		CK_BITMAP_TYPE map[CK_BITMAP_BLOCKS(n_entries)];\
 	}
 
@@ -95,7 +94,6 @@
 
 struct ck_bitmap {
 	unsigned int n_bits;
-	unsigned int n_buckets;
 	CK_BITMAP_TYPE map[];
 };
 typedef struct ck_bitmap ck_bitmap_t;
@@ -127,7 +125,6 @@ ck_bitmap_init(struct ck_bitmap *bitmap,
 	unsigned int base = ck_bitmap_base(n_bits);
 
 	bitmap->n_bits = n_bits;
-	bitmap->n_buckets = base / sizeof(CK_BITMAP_TYPE);
 	memset(bitmap->map, -(int)set, base);
 	return;
 }
@@ -163,9 +160,10 @@ ck_bitmap_reset_mpmc(struct ck_bitmap *bitmap, unsigned int n)
 CK_CC_INLINE static void
 ck_bitmap_clear(struct ck_bitmap *bitmap)
 {
+	unsigned int n_buckets = ck_bitmap_base(bitmap->n_bits) / sizeof(CK_BITMAP_TYPE);
 	unsigned int i;
 
-	for (i = 0; i < bitmap->n_buckets; i++)
+	for (i = 0; i < n_buckets; i++)
 		CK_BITMAP_STORE(&bitmap->map[i], 0);
 
 	return;
