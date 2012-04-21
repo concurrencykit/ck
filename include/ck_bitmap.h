@@ -62,35 +62,38 @@
 #define CK_BITMAP_BLOCKS(n) \
 	(((n) + (CK_BITMAP_BLOCK - 1)) / CK_BITMAP_BLOCK)
 
-#define CK_BITMAP_INSTANCE(n_entries)				\
-	struct {						\
-		unsigned int n_bits;				\
-		CK_BITMAP_TYPE map[CK_BITMAP_BLOCKS(n_entries)];\
+#define CK_BITMAP_INSTANCE(n_entries)					\
+	union {								\
+		struct {						\
+			unsigned int n_bits;				\
+			CK_BITMAP_TYPE map[CK_BITMAP_BLOCKS(n_entries)];\
+		} content;						\
+		struct ck_bitmap bitmap;				\
 	}
 
 #define CK_BITMAP_INIT(a, b, c) \
-	ck_bitmap_init((struct ck_bitmap *)(a), (b), (c))
+	ck_bitmap_init(&(a)->bitmap, (b), (c))
 
 #define CK_BITMAP_SET_MPMC(a, b) \
-	ck_bitmap_set_mpmc((struct ck_bitmap *)(a), (b))
+	ck_bitmap_set_mpmc(&(a)->bitmap, (b))
 
 #define CK_BITMAP_RESET_MPMC(a, b) \
-	ck_bitmap_reset_mpmc((struct ck_bitmap *)(a), (b))
+	ck_bitmap_reset_mpmc(&(a)->bitmap, (b))
 
 #define CK_BITMAP_CLEAR(a) \
-	ck_bitmap_clear((struct ck_bitmap *)(a))
+	ck_bitmap_clear(&(a)->bitmap)
 
 #define CK_BITMAP_TEST(a, b) \
-	ck_bitmap_test((struct ck_bitmap *)(a), (b))
+	ck_bitmap_test(&(a)->bitmap, (b))
 
 #define CK_BITMAP_BITS(a, b) \
-	ck_bitmap_bits((struct ck_bitmap *)(a))
+	ck_bitmap_bits(&(a)->bitmap)
 
 #define CK_BITMAP_BUFFER(a) \
-	ck_bitmap_buffer((struct ck_bitmap *)(a))
+	ck_bitmap_buffer(&(a)->bitmap)
 
 #define CK_BITMAP(a) \
-	((struct ck_bitmap *)(a))
+	(&(a)->bitmap)
 
 struct ck_bitmap {
 	unsigned int n_bits;
