@@ -225,9 +225,9 @@ printf "Detecting machine architecture..."
 PLATFORM=`uname -m 2> /dev/null`
 case $PLATFORM in
 	"macppc"|"Power Macintosh"|"powerpc")
-		PLATFORM=ppc32
+		PLATFORM=ppc
 		ENVIRONMENT=32
-		assert "$PLATFORM $ENVIRONMENT" "$PLATFORM $ENVIRONMENT" "unsupported"
+		LDFLAGS="-m32 $LDFLAGS"
 		;;
 	"sun4u"|"sun4v"|"sparc64")
 		PLATFORM=sparcv9
