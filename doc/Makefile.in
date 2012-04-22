@@ -32,12 +32,16 @@ OBJECTS=ck_ht_allocator_set$(GZIP_SUFFIX) 		\
 	ck_bitmap_set_mpmc$(GZIP_SUFFIX)		\
 	ck_bitmap_test$(GZIP_SUFFIX)			\
 	ck_bitmap_base$(GZIP_SUFFIX)			\
-	ck_bitmap_size$(GZIP_SUFFIX)
+	ck_bitmap_size$(GZIP_SUFFIX)			\
+	ck_bitmap_clear$(GZIP_SUFFIX)
 
 all: $(OBJECTS)
 
 ck_bitmap_init$(GZIP_SUFFIX): ck_bitmap_init
 	$(GZIP) ck_bitmap_init > ck_bitmap_init$(GZIP_SUFFIX)
+
+ck_bitmap_clear$(GZIP_SUFFIX): ck_bitmap_clear
+	$(GZIP) ck_bitmap_clear > ck_bitmap_clear$(GZIP_SUFFIX)
 
 ck_bitmap_size$(GZIP_SUFFIX): ck_bitmap_size
 	$(GZIP) ck_bitmap_size > ck_bitmap_size$(GZIP_SUFFIX)
