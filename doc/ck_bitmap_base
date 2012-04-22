@@ -28,7 +28,7 @@
 .Dt CK_BITMAP_BASE 3
 .Sh NAME
 .Nm ck_bitmap_base
-.Nd determine the size bit array in bytes
+.Nd determine the size of a bit array in bytes
 .Sh LIBRARY
 Concurrency Kit (libck, \-lck)
 .Sh SYNOPSIS
