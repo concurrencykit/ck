@@ -87,7 +87,6 @@ If the entry could not be found then
 .Fn ck_ht_remove_spmc
 will return
 .Dv false.
-.El
 .Sh SEE ALSO
 .Xr ck_ht_init 3 ,
 .Xr ck_ht_destroy 3 ,
