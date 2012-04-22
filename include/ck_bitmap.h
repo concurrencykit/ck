@@ -38,7 +38,7 @@
 
 #if defined(CK_F_PR_LOAD_64) && defined(CK_F_PR_STORE_64) && \
     defined(CK_F_PR_AND_64) && defined(CK_F_PR_OR_64)
-#define CK_BITMAP_TYPE  	uint64_t
+#define CK_BITMAP_WORD  	uint64_t
 #define CK_BITMAP_SHIFT 	6
 #define CK_BITMAP_STORE(x, y)	ck_pr_store_64(x, y)
 #define CK_BITMAP_LOAD(x)	ck_pr_load_64(x)
@@ -46,7 +46,7 @@
 #define CK_BITMAP_AND(x, y)	ck_pr_and_64(x, y)
 #elif defined(CK_F_PR_LOAD_32) && defined(CK_F_PR_STORE_32) && \
       defined(CK_F_PR_AND_32) && defined(CK_F_PR_OR_32)
-#define CK_BITMAP_TYPE  	uint32_t
+#define CK_BITMAP_WORD  	uint32_t
 #define CK_BITMAP_SHIFT 	5
 #define CK_BITMAP_STORE(x, y)	ck_pr_store_32(x, y)
 #define CK_BITMAP_LOAD(x)	ck_pr_load_32(x)
@@ -57,7 +57,7 @@
 #endif /* These are all internal functions. */
 
 #define CK_BITMAP_PTR(x, i)	((x) + ((i) >> CK_BITMAP_SHIFT))
-#define CK_BITMAP_BLOCK		(sizeof(CK_BITMAP_TYPE) * CHAR_BIT)
+#define CK_BITMAP_BLOCK		(sizeof(CK_BITMAP_WORD) * CHAR_BIT)
 #define CK_BITMAP_MASK		(CK_BITMAP_BLOCK - 1)
 #define CK_BITMAP_BLOCKS(n) \
 	(((n) + (CK_BITMAP_BLOCK - 1)) / CK_BITMAP_BLOCK)
@@ -66,7 +66,7 @@
 	union {								\
 		struct {						\
 			unsigned int n_bits;				\
-			CK_BITMAP_TYPE map[CK_BITMAP_BLOCKS(n_entries)];\
+			CK_BITMAP_WORD map[CK_BITMAP_BLOCKS(n_entries)];\
 		} content;						\
 		struct ck_bitmap bitmap;				\
 	}
@@ -97,7 +97,7 @@
 
 struct ck_bitmap {
 	unsigned int n_bits;
-	CK_BITMAP_TYPE map[];
+	CK_BITMAP_WORD map[];
 };
 typedef struct ck_bitmap ck_bitmap_t;
 
@@ -105,7 +105,7 @@ CK_CC_INLINE static unsigned int
 ck_bitmap_base(unsigned int n_bits)
 {
 
-	return CK_BITMAP_BLOCKS(n_bits) * sizeof(CK_BITMAP_TYPE);
+	return CK_BITMAP_BLOCKS(n_bits) * sizeof(CK_BITMAP_WORD);
 }
 
 CK_CC_INLINE static unsigned int
@@ -138,7 +138,7 @@ ck_bitmap_init(struct ck_bitmap *bitmap,
 CK_CC_INLINE static void
 ck_bitmap_set_mpmc(struct ck_bitmap *bitmap, unsigned int n)
 {
-	CK_BITMAP_TYPE mask = 0x1ULL << (n & CK_BITMAP_MASK);
+	CK_BITMAP_WORD mask = 0x1ULL << (n & CK_BITMAP_MASK);
 
 	CK_BITMAP_OR(CK_BITMAP_PTR(bitmap->map, n), mask);
 	return;
@@ -150,7 +150,7 @@ ck_bitmap_set_mpmc(struct ck_bitmap *bitmap, unsigned int n)
 CK_CC_INLINE static void
 ck_bitmap_reset_mpmc(struct ck_bitmap *bitmap, unsigned int n)
 {
-	CK_BITMAP_TYPE mask = ~(0x1ULL << (n & CK_BITMAP_MASK));
+	CK_BITMAP_WORD mask = ~(0x1ULL << (n & CK_BITMAP_MASK));
 
 	CK_BITMAP_AND(CK_BITMAP_PTR(bitmap->map, n), mask);
 	return;
@@ -163,7 +163,7 @@ ck_bitmap_reset_mpmc(struct ck_bitmap *bitmap, unsigned int n)
 CK_CC_INLINE static void
 ck_bitmap_clear(struct ck_bitmap *bitmap)
 {
-	unsigned int n_buckets = ck_bitmap_base(bitmap->n_bits) / sizeof(CK_BITMAP_TYPE);
+	unsigned int n_buckets = ck_bitmap_base(bitmap->n_bits) / sizeof(CK_BITMAP_WORD);
 	unsigned int i;
 
 	for (i = 0; i < n_buckets; i++)
@@ -179,8 +179,8 @@ ck_bitmap_clear(struct ck_bitmap *bitmap)
 CK_CC_INLINE static bool
 ck_bitmap_test(struct ck_bitmap *bitmap, unsigned int n)
 {
-	CK_BITMAP_TYPE mask = 0x1ULL << (n & CK_BITMAP_MASK);
-	CK_BITMAP_TYPE block;
+	CK_BITMAP_WORD mask = 0x1ULL << (n & CK_BITMAP_MASK);
+	CK_BITMAP_WORD block;
 
 	block = CK_BITMAP_LOAD(CK_BITMAP_PTR(bitmap->map, n));
 	return block & mask;
