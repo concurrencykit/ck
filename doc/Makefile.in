@@ -26,9 +26,17 @@ OBJECTS=ck_ht_allocator_set$(GZIP_SUFFIX) 		\
 	ck_ht_entry_value_direct$(GZIP_SUFFIX)		\
 	ck_ht_entry_value$(GZIP_SUFFIX)			\
 	ck_ht_iterator_init$(GZIP_SUFFIX)		\
-	ck_ht_next$(GZIP_SUFFIX)
+	ck_ht_next$(GZIP_SUFFIX)			\
+	ck_bitmap_init$(GZIP_SUFFIX)			\
+	ck_bitmap_set_mpmc$(GZIP_SUFFIX)
 
 all: $(OBJECTS)
+
+ck_bitmap_init$(GZIP_SUFFIX): ck_bitmap_init
+	$(GZIP) ck_bitmap_init > ck_bitmap_init$(GZIP_SUFFIX)
+
+ck_bitmap_set_mpmc$(GZIP_SUFFIX): ck_bitmap_set_mpmc
+	$(GZIP) ck_bitmap_set_mpmc > ck_bitmap_set_mpmc$(GZIP_SUFFIX)
 
 ck_ht_allocator_set$(GZIP_SUFFIX): ck_ht_allocator_set
 	$(GZIP) ck_ht_allocator_set > ck_ht_allocator_set$(GZIP_SUFFIX)
