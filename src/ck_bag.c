@@ -53,6 +53,7 @@ ck_bag_init(struct ck_bag *bag,
 	bag->avail_head = bag->avail_tail = NULL;
 	bag->head = NULL;
 	bag->n_entries = 0;
+	bag->n_blocks = 0;
 	bag->alloc_strat = as;
 
 	/*
