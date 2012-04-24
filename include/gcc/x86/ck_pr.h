@@ -32,10 +32,9 @@
 #error Do not include this file directly, use ck_pr.h
 #endif
 
-#include <stdbool.h>
-#include <ck_stdint.h>
-
 #include <ck_cc.h>
+#include <ck_stdint.h>
+#include <stdbool.h>
 
 /*
  * The following represent supported atomic operations.
