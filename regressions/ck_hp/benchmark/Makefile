@@ -2,7 +2,7 @@
 
 OBJECTS=fifo_latency stack_latency
 
-all: $(OBJECTS) 
+all: $(OBJECTS)
 
 fifo_latency: fifo_latency.c
 	$(CC) $(CFLAGS) -o fifo_latency ../../../src/ck_hp.c fifo_latency.c

@@ -68,7 +68,7 @@ ck_barrier_combining_insert(struct ck_barrier_combining_group *parent,
 
 /*
  * This implementation of software combining tree barriers
- * uses level order traversal to insert new thread groups 
+ * uses level order traversal to insert new thread groups
  * into the barrier's tree. We use a queue to implement this
  * traversal.
  */
@@ -127,7 +127,7 @@ ck_barrier_combining_group_init(struct ck_barrier_combining *root,
 			goto leave;
 		}
 
-		/* 
+		/*
 		 * If unsuccessful, try inserting as a child of the children of the
 		 * current node.
 		 */
@@ -141,7 +141,7 @@ leave:
 }
 
 void
-ck_barrier_combining_init(struct ck_barrier_combining *root, 
+ck_barrier_combining_init(struct ck_barrier_combining *root,
 			  struct ck_barrier_combining_group *init_root)
 {
 

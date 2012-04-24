@@ -73,7 +73,7 @@ static unsigned int pops;
 static unsigned int pushs;
 
 #ifndef PAIRS
-#define PAIRS 1000000 
+#define PAIRS 1000000
 #endif
 
 struct node {
@@ -103,7 +103,7 @@ stack_push_mpmc(struct stack *target, struct stack_entry *entry)
 		ck_pr_store_ptr(&entry->next, lstack);
 		ck_backoff_eb(&backoff);
 	}
-	
+
 	return;
 }
 
@@ -134,7 +134,7 @@ stack_pop_mpmc(ck_hp_record_t *record, struct stack *target)
 
 		ck_backoff_eb(&backoff);
 	}
-		
+
 	return (entry);
 }
 
@@ -159,7 +159,7 @@ thread(void *unused CK_CC_UNUSED)
 	}
 
 	ck_pr_inc_uint(&barrier);
-	while (ck_pr_load_uint(&barrier) < n_threads) 
+	while (ck_pr_load_uint(&barrier) < n_threads)
 		ck_pr_stall();
 
 	for (i = 0; i < PAIRS; i++) {
@@ -214,10 +214,10 @@ main(int argc, char *argv[])
 
 	ck_hp_init(&stack_hp, 1, threshold, destructor);
 
-	for (i = 0; i < n_threads; i++) 
+	for (i = 0; i < n_threads; i++)
 		pthread_create(threads + i, NULL, thread, NULL);
 
-	for (i = 0; i < n_threads; i++) 
+	for (i = 0; i < n_threads; i++)
 		pthread_join(threads[i], NULL);
 
 	fprintf(stderr, "Push: %u\nPop: %u\n", pushs, pops);

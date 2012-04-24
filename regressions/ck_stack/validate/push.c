@@ -125,7 +125,7 @@ stack_thread(void *buffer)
 	return (NULL);
 }
 
-static void 
+static void
 stack_assert(void)
 {
 #ifndef SPINLOCK

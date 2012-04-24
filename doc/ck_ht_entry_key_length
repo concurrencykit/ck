@@ -36,7 +36,7 @@ Concurrency Kit (libck, \-lck)
 .Ft uint16_t
 .Fn ck_ht_entry_key_length "ck_ht_entry_t *entry"
 .Sh DESCRIPTION
-The 
+The
 .Fn ck_ht_entry_key_length
 function will return the length of the key associated with the
 object pointed to by the

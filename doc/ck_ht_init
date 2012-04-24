@@ -36,7 +36,7 @@ Concurrency Kit (libck, \-lck)
 .Ft bool
 .Fn ck_ht_init "ck_ht_t *ht" "enum ck_ht_mode mode" "uint64_t capacity" "uint64_t seed"
 .Sh DESCRIPTION
-The 
+The
 .Fn ck_ht_init
 function initializes the hash table pointed to by the
 .Fa ht
@@ -78,7 +78,7 @@ functions.
 .El
 .Pp
 The argument
-.Fa capacity 
+.Fa capacity
 represents the initial number of key-value pairs the hash
 table is expected to contain. This argument is simply a hint
 and the underlying implementation is free to allocate more

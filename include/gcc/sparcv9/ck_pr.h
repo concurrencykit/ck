@@ -134,14 +134,14 @@ ck_pr_cas_64_value(uint64_t *target, uint64_t compare, uint64_t set, uint64_t *v
 
 	*value = set;
 	return (compare == set);
-} 
+}
 
 CK_CC_INLINE static bool
 ck_pr_cas_64(uint64_t *target, uint64_t compare, uint64_t set)
 {
 
 	__asm__ __volatile__("casx [%1], %2, %0"
-				: "+&r" (set)				  
+				: "+&r" (set)
 				: "r" (target),
 				  "r" (compare)
 				: "memory");
@@ -161,7 +161,7 @@ ck_pr_cas_ptr_value(void *target, void *compare, void *set, void *previous)
 {
 
 	return ck_pr_cas_64_value(target, (uint64_t)compare, (uint64_t)set, previous);
-} 
+}
 
 #define CK_PR_CAS(N, T)							\
 	CK_CC_INLINE static bool					\

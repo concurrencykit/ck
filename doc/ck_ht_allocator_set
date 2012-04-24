@@ -36,7 +36,7 @@ Concurrency Kit (libck, \-lck)
 .Ft bool
 .Fn ck_ht_allocator_set "struct ck_malloc *allocator"
 .Sh DESCRIPTION
-The 
+The
 .Fn ck_ht_allocator_set
 function initializes the memory allocation functions used by the hash
 table implementation according to the function pointers specified

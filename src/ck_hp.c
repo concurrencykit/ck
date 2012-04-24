@@ -47,7 +47,7 @@
  * hazard pointers until it is safe to do so. Preventing arbitrary re-use
  * protects against the ABA problem and provides safe memory reclamation.
  * The implementation was derived from the Hazard Pointers implementation
- * from the Amino CBBS project. It has been heavily modified for Concurrency 
+ * from the Amino CBBS project. It has been heavily modified for Concurrency
  * Kit.
  */
 
@@ -174,7 +174,7 @@ ck_hp_member_scan(ck_stack_entry_t *entry, unsigned int degree, void *pointer)
 
 		for (i = 0; i < degree; i++) {
 			hazard = ck_pr_load_ptr(&record->pointers[i]);
-			if (hazard == pointer) 
+			if (hazard == pointer)
 				return (true);
 		}
 	} while ((entry = CK_STACK_NEXT(entry)) != NULL);

@@ -33,7 +33,7 @@
 #include "../../common.h"
 
 #ifndef ITERATIONS
-#define ITERATIONS 128 
+#define ITERATIONS 128
 #endif
 
 struct context {

@@ -289,7 +289,7 @@ ck_pr_faa_ptr(void *target, uintptr_t delta)
 				: "=&r" (previous),
 				  "=&r" (r)
 				: "r"   (target),
-				  "r"   (delta)	
+				  "r"   (delta)
 				: "memory", "cc");
 
 	return (void *)(previous);

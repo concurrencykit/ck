@@ -67,7 +67,7 @@
 		run_test_##K##_uint();			\
 							\
 		return;					\
-	}		
+	}
 
 GENERATE_TEST(add, +)
 GENERATE_TEST(sub, -)
@@ -89,4 +89,4 @@ main(void)
 
 	return (0);
 }
-	
+

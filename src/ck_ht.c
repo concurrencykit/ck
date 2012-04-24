@@ -96,7 +96,7 @@ ck_ht_hash_direct(struct ck_ht_hash *h,
 	ck_ht_hash(h, table, &key, sizeof(key));
 	return;
 }
-		  
+
 
 bool
 ck_ht_allocator_set(struct ck_malloc *m)

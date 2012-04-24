@@ -47,7 +47,7 @@ install: all install-headers
 	@echo
 	@echo ---[ Concurrency Kit has installed successfully.
 
-uninstall: 
+uninstall:
 	$(MAKE) -C doc uninstall
 	rm -f $(DESTDIR)/$(LIBRARY)/libck.so*
 	rm -f $(DESTDIR)/$(LIBRARY)/libck.a

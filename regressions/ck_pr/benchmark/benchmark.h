@@ -32,7 +32,7 @@ static void *
 fairness(void *null)
 {
 	struct block *context = null;
-	unsigned int i = context->tid; 
+	unsigned int i = context->tid;
 
         if (aff_iterate(&a)) {
                 perror("ERROR: Could not affine thread");

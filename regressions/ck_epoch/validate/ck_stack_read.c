@@ -51,7 +51,7 @@ static unsigned int e_barrier;
 static unsigned int readers;
 
 #ifndef PAIRS
-#define PAIRS 5000000 
+#define PAIRS 5000000
 #endif
 
 #ifndef ITERATE
@@ -217,12 +217,12 @@ main(int argc, char *argv[])
 
 	ck_epoch_init(&stack_epoch, threshold);
 
-	for (i = 0; i < n_threads - 1; i++) 
+	for (i = 0; i < n_threads - 1; i++)
 		pthread_create(threads + i, NULL, read_thread, NULL);
 
 	pthread_create(threads + i, NULL, thread, NULL);
 
-	for (i = 0; i < n_threads; i++) 
+	for (i = 0; i < n_threads; i++)
 		pthread_join(threads[i], NULL);
 
 	return (0);

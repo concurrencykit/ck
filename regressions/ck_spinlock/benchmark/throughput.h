@@ -98,7 +98,7 @@ fairness(void *null)
 	LOCK_STATE;
 #endif
 	struct block *context = null;
-	unsigned int i = context->tid; 
+	unsigned int i = context->tid;
 	volatile int j;
 	long int base;
 

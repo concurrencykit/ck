@@ -36,7 +36,7 @@ Concurrency Kit (libck, \-lck)
 .Ft bool
 .Fn ck_bitmap_test "ck_bitmap_t *bitmap" "unsigned int n"
 .Sh DESCRIPTION
-The 
+The
 .Fn ck_bitmap_test
 determines if the bit at the offset specified by the argument
 .Fa n

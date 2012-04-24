@@ -1,6 +1,6 @@
 .PHONY: clean distribution
 
-OBJECTS=validate 
+OBJECTS=validate
 
 all: $(OBJECTS)
 

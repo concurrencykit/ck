@@ -151,7 +151,7 @@ main(int argc, char *argv[])
 		n = malloc(sizeof *n);
 		assert(n != NULL);
 		n->value = i;
-		CK_LIST_INSERT_HEAD(&head, n, list_entry);	
+		CK_LIST_INSERT_HEAD(&head, n, list_entry);
 	}
 
 	test_foreach();
@@ -187,7 +187,7 @@ main(int argc, char *argv[])
 		n = malloc(sizeof *n);
 		assert(n != NULL);
 		n->value = i;
-		CK_LIST_INSERT_HEAD(&head, n, list_entry);	
+		CK_LIST_INSERT_HEAD(&head, n, list_entry);
 		for (j = 0; j <= 1000; j++);
 	}
 

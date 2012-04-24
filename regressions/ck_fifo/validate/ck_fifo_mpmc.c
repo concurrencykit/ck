@@ -34,7 +34,7 @@
 
 #ifdef CK_F_FIFO_MPMC
 #ifndef ITERATIONS
-#define ITERATIONS 128 
+#define ITERATIONS 128
 #endif
 
 struct context {

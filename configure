@@ -271,7 +271,7 @@ case $PLATFORM in
 				PLATFORM=x86
 				ENVIRONMENT=32
 				;;
-			
+
 			*)
 				PLATFORM=x86
 				ENVIRONMENT=32

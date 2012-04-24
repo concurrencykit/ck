@@ -151,7 +151,7 @@ ck_pr_cas_64_value(uint64_t *target, uint64_t compare, uint64_t set, uint64_t *v
                                   "r"   (compare)
                                 : "memory", "cc");
 
-        *value = previous; 
+        *value = previous;
         return (previous == compare);
 }
 
@@ -389,7 +389,7 @@ ck_pr_faa_ptr(void *target, uintptr_t delta)
 				: "=&r" (previous),
 				  "=&r" (r)
 				: "r"   (target),
-				  "r"   (delta)	
+				  "r"   (delta)
 				: "memory", "cc");
 
 	return (void *)(previous);

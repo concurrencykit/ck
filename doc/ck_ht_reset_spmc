@@ -36,7 +36,7 @@ Concurrency Kit (libck, \-lck)
 .Ft bool
 .Fn ck_ht_reset_spmc "ck_ht_t *ht"
 .Sh DESCRIPTION
-The 
+The
 .Fn ck_ht_reset_spmc
 function will remove all key-value pairs stored in the hash
 table pointed to by the

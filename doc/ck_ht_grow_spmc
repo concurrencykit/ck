@@ -36,7 +36,7 @@ Concurrency Kit (libck, \-lck)
 .Ft bool
 .Fn ck_ht_grow_spmc "ck_ht_t *ht" "uint64_t capacity"
 .Sh DESCRIPTION
-The 
+The
 .Fn ck_ht_grow_spmc
 function will resize the hash table in order to be able to
 at least store the number of entries specified by

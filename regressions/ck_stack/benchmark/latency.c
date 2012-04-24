@@ -33,7 +33,7 @@
 #include "../../common.h"
 
 #ifndef ENTRIES
-#define ENTRIES 4096 
+#define ENTRIES 4096
 #endif
 
 #ifndef STEPS

@@ -36,7 +36,7 @@ Concurrency Kit (libck, \-lck)
 .Ft void
 .Fn ck_ht_entry_set "ck_ht_entry_t *entry" "uintptr_t key" "uintptr_t value"
 .Sh DESCRIPTION
-The 
+The
 .Fn ck_ht_entry_set
 function will initialize the object pointed to by
 .Fa entry
@@ -44,7 +44,7 @@ with the key value specified in the
 .Fa key
 argument and a value specified by the
 .Fa value
-argument. 
+argument.
 .Pp
 This function is typically used to initialize an
 entry for

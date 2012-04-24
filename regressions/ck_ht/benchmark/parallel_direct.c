@@ -273,7 +273,7 @@ main(int argc, char *argv[])
 	if (argc >= 3)
 		r = atoi(argv[2]);
 
-	if (argc >= 4)	
+	if (argc >= 4)
 		s = (uint64_t)atoi(argv[3]);
 
 	if (argc >= 5) {
@@ -391,7 +391,7 @@ main(int argc, char *argv[])
 		for (i = 0; i < keys_length; i++)
 			table_insert(keys[i]);
 		ck_epoch_write_end(&epoch_wr);
-	} 
+	}
 	fprintf(stderr, "done (%" PRIu64 " ticks)\n", a / (r * keys_length));
 
 	fprintf(stderr, " | Executing negative look-up test...");
@@ -431,7 +431,7 @@ main(int argc, char *argv[])
 	    accumulator[HT_STATE_GET] / n_threads);
 
 	fprintf(stderr, " | Executing strict replacement test...");
-	
+
 	a = repeated = 0;
 	signal(SIGALRM, alarm_handler);
 	alarm(r);

@@ -36,7 +36,7 @@ Concurrency Kit (libck, \-lck)
 .Ft void
 .Fn ck_ht_destroy "ck_ht_t *ht"
 .Sh DESCRIPTION
-The 
+The
 .Fn ck_ht_destroy
 function will request that the underlying allocator, as specified by the
 .Xr ck_ht_allocator_set 3

@@ -74,7 +74,7 @@
 			x, y);								\
 											\
 		return;									\
-	}							
+	}
 
 #define TEST_BTX_S(K, S, T, P, D, R) TEST_BTX(K, S, T, T, T, P, D, R)
 

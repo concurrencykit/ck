@@ -36,7 +36,7 @@ Concurrency Kit (libck, \-lck)
 .Ft void *
 .Fn ck_bitmap_buffer "ck_bitmap_t *bitmap"
 .Sh DESCRIPTION
-The 
+The
 .Fn ck_bitmap_buffer
 functions returns a pointer to the actual bit array.
 For ck_bitmap pointers, the bit array is of type
@@ -47,7 +47,7 @@ On currently supported 64-bit platforms
 is
 .Dv uint64_t .
 On currently supported 32-bit platforms
-.Dv CK_BITMAP_WORD 
+.Dv CK_BITMAP_WORD
 is
 .Dv uint32_t .
 .Sh RETURN VALUES

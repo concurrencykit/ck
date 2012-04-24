@@ -32,7 +32,7 @@
 #include <ck_stack.h>
 
 #ifndef CK_HP_CACHE
-#define CK_HP_CACHE 512 
+#define CK_HP_CACHE 512
 #endif
 
 struct ck_hp_hazard;

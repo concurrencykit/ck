@@ -35,7 +35,7 @@
 #include <stddef.h>
 
 #define CK_HP_STACK_SLOTS_COUNT 1
-#define CK_HP_STACK_SLOTS_SIZE  sizeof(void *) 
+#define CK_HP_STACK_SLOTS_SIZE  sizeof(void *)
 
 CK_CC_INLINE static void
 ck_hp_stack_push_mpmc(struct ck_stack *target, struct ck_stack_entry *entry)

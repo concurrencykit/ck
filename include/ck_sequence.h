@@ -57,7 +57,7 @@ ck_sequence_read_begin(struct ck_sequence *sq)
 		 * If a sequence is even then associated data may be in a
 		 * consistent state.
 		 */
-		if ((version & 1) == 0) 
+		if ((version & 1) == 0)
 			break;
 
 		/*
@@ -71,7 +71,7 @@ ck_sequence_read_begin(struct ck_sequence *sq)
 	return version;
 }
 
-CK_CC_INLINE static bool 
+CK_CC_INLINE static bool
 ck_sequence_read_retry(struct ck_sequence *sq, uint32_t version)
 {
 

@@ -1,6 +1,6 @@
 /*
  * Copyright 2011-2012 Samy Al Bahra.
- * Copyright 2011 David Joseph. 
+ * Copyright 2011 David Joseph.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,17 +25,17 @@
  * SUCH DAMAGE.
  */
 
-#include <ck_bytelock.h> 
-#include <ck_spinlock.h> 
-#include <inttypes.h> 
+#include <ck_bytelock.h>
+#include <ck_spinlock.h>
+#include <inttypes.h>
 #include <stdio.h>
 #include <stdlib.h>
 
 #include "../../common.h"
- 
-#ifndef STEPS  
-#define STEPS 30000000 
-#endif 
+
+#ifndef STEPS
+#define STEPS 30000000
+#endif
 
 LOCK_DEFINE;
 

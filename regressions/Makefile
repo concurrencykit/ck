@@ -11,7 +11,7 @@ all:
 	$(MAKE) -C ./ck_spinlock/benchmark all
 	$(MAKE) -C ./ck_fifo/validate all
 	$(MAKE) -C ./ck_fifo/benchmark all
-	$(MAKE) -C ./ck_pr/validate all 
+	$(MAKE) -C ./ck_pr/validate all
 	$(MAKE) -C ./ck_pr/benchmark all
 	$(MAKE) -C ./ck_barrier/validate all
 	$(MAKE) -C ./ck_barrier/benchmark all

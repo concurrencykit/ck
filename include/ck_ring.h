@@ -127,7 +127,7 @@
 #define CK_RING_DEQUEUE_SPSC(name, object, value)	\
 	ck_ring_dequeue_spsc_##name(object, value)
 
-struct ck_ring { 
+struct ck_ring {
 	unsigned int c_head;
 	char pad[CK_MD_CACHELINE - sizeof(unsigned int)];
 	unsigned int p_tail;
@@ -158,7 +158,7 @@ ck_ring_capacity(struct ck_ring *ring)
 	return ck_pr_load_uint(&ring->size);
 }
 
-CK_CC_INLINE static bool 
+CK_CC_INLINE static bool
 ck_ring_enqueue_spsc(struct ck_ring *ring, void *entry)
 {
 	unsigned int consumer, producer, size;
@@ -180,7 +180,7 @@ ck_ring_enqueue_spsc(struct ck_ring *ring, void *entry)
 /*
  * Single consumer and single producer ring buffer dequeue (consumer).
  */
-CK_CC_INLINE static bool 
+CK_CC_INLINE static bool
 ck_ring_dequeue_spsc(struct ck_ring *ring, void *data)
 {
 	unsigned int consumer, producer;

@@ -39,7 +39,7 @@
 /*
  * The following represent supported atomic operations.
  * These operations may be emulated.
- */ 
+ */
 #include "ck_f_pr.h"
 
 /* Minimum requirements for the CK_PR interface are met. */
@@ -149,7 +149,7 @@ CK_PR_LOAD_S(8,  uint8_t,  "movb")
 #undef CK_PR_LOAD_S
 #undef CK_PR_LOAD
 
-CK_CC_INLINE static void 
+CK_CC_INLINE static void
 ck_pr_load_64_2(uint64_t target[2], uint64_t v[2])
 {
 	__asm__ __volatile__("movq %%rdx, %%rcx;"
@@ -167,7 +167,7 @@ CK_CC_INLINE static void
 ck_pr_load_ptr_2(void *t, void *v)
 {
 	ck_pr_load_64_2(t, v);
-	return;	
+	return;
 }
 
 #define CK_PR_LOAD_2(S, W, T)							\

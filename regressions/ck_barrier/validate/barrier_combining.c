@@ -95,7 +95,7 @@ main(int argc, char *argv[])
 	if (init_root == NULL) {
 		fprintf(stderr, "ERROR: Could not allocate initial barrier structure\n");
 		exit(EXIT_FAILURE);
-	}	
+	}
 	ck_barrier_combining_init(&barrier, init_root);
 
 	if (argc != 4) {

@@ -33,6 +33,6 @@
 
 #ifndef CK_MD_PAGESIZE
 #define CK_MD_PAGESIZE (4096)
-#endif 
+#endif
 
 #endif /* _CK_MD_H */

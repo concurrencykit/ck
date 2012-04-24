@@ -36,7 +36,7 @@ Concurrency Kit (libck, \-lck)
 .Ft unsigned int
 .Fn ck_bitmap_size "unsigned int n_bits"
 .Sh DESCRIPTION
-The 
+The
 .Fn ck_bitmap_size
 function returns the number of bytes that are necessary
 to allocate for a bitmap that will contain the number
@@ -45,7 +45,7 @@ of bits specified by
 .Pp
 This function is used to determine how many bytes to
 allocate for dynamically created bitmap objects. The
-allocated object must still be initialized using 
+allocated object must still be initialized using
 .Xr ck_bitmap_init 3 .
 .Sh RETURN VALUES
 This function returns a non-zero value.

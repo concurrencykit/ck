@@ -46,7 +46,7 @@ main(void)
 	stub = malloc(sizeof(ck_fifo_mpmc_entry_t));
 	if (stub == NULL)
 		exit(EXIT_FAILURE);
-	
+
 	ck_fifo_mpmc_init(&mpmc_fifo, stub);
 
 	entries = malloc(sizeof(ck_fifo_mpmc_entry_t) * length);

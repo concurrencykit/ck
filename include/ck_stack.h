@@ -64,7 +64,7 @@ ck_stack_push_upmc(struct ck_stack *target, struct ck_stack_entry *entry)
 		ck_pr_store_ptr(&entry->next, stack);
 		ck_backoff_eb(&backoff);
 	}
-	
+
 	return;
 }
 #endif /* CK_F_STACK_PUSH_UPMC */
@@ -90,7 +90,7 @@ ck_stack_pop_upmc(struct ck_stack *target)
 
 		ck_backoff_eb(&backoff);
 	}
-		
+
 	return (entry);
 }
 #endif

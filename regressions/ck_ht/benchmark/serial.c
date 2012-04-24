@@ -168,7 +168,7 @@ main(int argc, char *argv[])
 	if (argc >= 3)
 		r = atoi(argv[2]);
 
-	if (argc >= 4)	
+	if (argc >= 4)
 		s = (uint64_t)atoi(argv[3]);
 
 	keys = malloc(sizeof(char *) * keys_capacity);

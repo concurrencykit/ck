@@ -53,7 +53,7 @@ thread(void *null CK_CC_UNUSED)
 	ck_barrier_centralized_state_t state = CK_BARRIER_CENTRALIZED_STATE_INITIALIZER;
 	int id;
 
-	id = ck_pr_faa_int(&tid, 1);	
+	id = ck_pr_faa_int(&tid, 1);
 	aff_iterate(&a);
 
 	while (ck_pr_load_int(&done) == 0) {
@@ -91,39 +91,39 @@ main(int argc, char *argv[])
 	}
 
 	nthr = atoi(argv[1]);
-        if (nthr <= 0) { 
-                fprintf(stderr, "ERROR: Number of threads must be greater than 0\n"); 
-                exit(EXIT_FAILURE); 
-        } 
- 
-        threads = malloc(sizeof(pthread_t) * nthr); 
-        if (threads == NULL) { 
-                fprintf(stderr, "ERROR: Could not allocate thread structures\n"); 
-                exit(EXIT_FAILURE); 
-        } 
+        if (nthr <= 0) {
+                fprintf(stderr, "ERROR: Number of threads must be greater than 0\n");
+                exit(EXIT_FAILURE);
+        }
+
+        threads = malloc(sizeof(pthread_t) * nthr);
+        if (threads == NULL) {
+                fprintf(stderr, "ERROR: Could not allocate thread structures\n");
+                exit(EXIT_FAILURE);
+        }
 
 	counters = calloc(sizeof(struct counter), nthr);
 	if (counters == NULL) {
 		fprintf(stderr, "ERROR: Could not allocate counters\n");
 		exit(EXIT_FAILURE);
 	}
- 
-        a.delta = atoi(argv[2]); 
- 
-        fprintf(stderr, "Creating threads (barrier)..."); 
-        for (i = 0; i < nthr; ++i) { 
-                if (pthread_create(&threads[i], NULL, thread, NULL)) { 
-                        fprintf(stderr, "ERROR: Could not create thread %d\n", i); 
-                        exit(EXIT_FAILURE); 
-                } 
-        } 
-        fprintf(stderr, "done\n"); 
+
+        a.delta = atoi(argv[2]);
+
+        fprintf(stderr, "Creating threads (barrier)...");
+        for (i = 0; i < nthr; ++i) {
+                if (pthread_create(&threads[i], NULL, thread, NULL)) {
+                        fprintf(stderr, "ERROR: Could not create thread %d\n", i);
+                        exit(EXIT_FAILURE);
+                }
+        }
+        fprintf(stderr, "done\n");
 
 	sleep(10);
 
 	count = 0;
 	ck_pr_store_int(&done, 1);
-	for (i = 0; i < nthr; ++i) 
+	for (i = 0; i < nthr; ++i)
 		count += ck_pr_load_64(&counters[i].value);
 	printf("%d %16" PRIu64 "\n", nthr, count);
 

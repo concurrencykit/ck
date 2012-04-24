@@ -90,7 +90,7 @@ ck_barrier_tournament_init(struct ck_barrier_tournament *barrier,
 				rounds[i][k].opponent = &rounds[i - twokm1][k].flag;
 			else if (rounds[i][k].role == CK_BARRIER_TOURNAMENT_WINNER ||
 				 rounds[i][k].role == CK_BARRIER_TOURNAMENT_CHAMPION)
-				rounds[i][k].opponent = &rounds[i + twokm1][k].flag;  
+				rounds[i][k].opponent = &rounds[i + twokm1][k].flag;
 		}
 	}
 
@@ -165,7 +165,7 @@ wakeup:
 			/* NOTREACHED */
 			break;
 		case CK_BARRIER_TOURNAMENT_WINNER:
-			/* 
+			/*
 			 * Winners inform their old opponents the tournament is over
 			 * by setting their flags.
 			 */

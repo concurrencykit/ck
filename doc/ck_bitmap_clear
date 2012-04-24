@@ -36,7 +36,7 @@ Concurrency Kit (libck, \-lck)
 .Ft void
 .Fn ck_bitmap_clear "ck_bitmap_t *bitmap"
 .Sh DESCRIPTION
-The 
+The
 .Fn ck_bitmap_clear
 function sets all bits in the bitmap pointed to by
 .Fa bitmap

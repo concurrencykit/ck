@@ -36,7 +36,7 @@ Concurrency Kit (libck, \-lck)
 .Ft bool
 .Fn ck_ht_next "ck_ht_t *ht" "ck_ht_iterator_t *iterator" "ck_ht_entry_t **entry"
 .Sh DESCRIPTION
-The 
+The
 .Fn ck_ht_next
 function will increment the iterator object pointed to by
 .Fa iterator

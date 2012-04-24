@@ -36,7 +36,7 @@ Concurrency Kit (libck, \-lck)
 .Ft bool
 .Fn ck_ht_remove_spmc "ck_ht_t *ht" "ck_ht_hash_t h" "ck_ht_entry_t *entry"
 .Sh DESCRIPTION
-The 
+The
 .Fn ck_ht_remove_spmc
 function will remove the key-value pair associated with the
 key specified by the

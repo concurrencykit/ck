@@ -51,12 +51,12 @@ ck_barrier_dissemination_init(struct ck_barrier_dissemination *barrier,
 
 	for (i = 0; i < nthr; ++i) {
 		for (k = 0, offset = 1; k < size; ++k, offset <<= 1) {
-			/* 
+			/*
 			 * Determine the thread's partner, j, for the current round, k.
 			 * Partners are chosen such that by the completion of the barrier,
 			 * every thread has been directly (having one of its flag set) or
 			 * indirectly (having one of its partners's flags set) signaled
-			 * by every other thread in the barrier. 
+			 * by every other thread in the barrier.
 			 */
 			if (p == false)
 				j = (i + offset) & (nthr - 1);
@@ -112,7 +112,7 @@ ck_barrier_dissemination(struct ck_barrier_dissemination *barrier,
 	/*
 	 * Dissemination barriers use two sets of flags to prevent race conditions
 	 * between successive calls to the barrier. Parity indicates which set will
-	 * be used for the next barrier. They also use a sense reversal technique 
+	 * be used for the next barrier. They also use a sense reversal technique
 	 * to avoid re-initialization of the flags for every two calls to the barrier.
 	 */
 	if (state->parity == 1)

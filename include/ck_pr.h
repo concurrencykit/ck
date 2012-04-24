@@ -908,7 +908,7 @@ CK_PR_N_Z_S(8, uint8_t)
 			ck_pr_stall();					\
 									\
 		return ((C)previous);					\
-	}	
+	}
 
 #define CK_PR_FAS(S, M, C)						\
 	CK_CC_INLINE static C						\

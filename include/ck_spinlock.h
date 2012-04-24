@@ -95,11 +95,11 @@ ck_spinlock_anderson_init(struct ck_spinlock_anderson *lock,
 	 * appropriate wrap-around value in the case of next slot counter
 	 * overflow.
 	 */
-	if (count & (count - 1)) 
+	if (count & (count - 1))
 		lock->wrap = (UINT_MAX % count) + 1;
 	else
 		lock->wrap = 0;
-	
+
 	ck_pr_fence_store();
 	return;
 }
@@ -135,7 +135,7 @@ ck_spinlock_anderson_lock(struct ck_spinlock_anderson *lock,
 
 	/* Spin until slot is marked as unlocked. First slot is initialized to false. */
 	while (ck_pr_load_uint(&lock->slots[position].locked) == true)
-		ck_pr_stall(); 
+		ck_pr_stall();
 
 	/* Prepare slot for potential re-use by another thread. */
 	ck_pr_store_uint(&lock->slots[position].locked, true);
@@ -252,7 +252,7 @@ ck_spinlock_cas_init(struct ck_spinlock_cas *lock)
 	return;
 }
 
-CK_CC_INLINE static bool 
+CK_CC_INLINE static bool
 ck_spinlock_cas_trylock(struct ck_spinlock_cas *lock)
 {
 	unsigned int value;
@@ -273,7 +273,7 @@ ck_spinlock_cas_lock(struct ck_spinlock_cas *lock)
 {
 
 	while (ck_pr_cas_uint(&lock->value, false, true) == false) {
-		while (ck_pr_load_uint(&lock->value) == true) 
+		while (ck_pr_load_uint(&lock->value) == true)
 			ck_pr_stall();
 	}
 
@@ -316,7 +316,7 @@ typedef struct ck_spinlock_dec ck_spinlock_dec_t;
 
 #define CK_SPINLOCK_DEC_INITIALIZER {1}
 
-CK_CC_INLINE static bool 
+CK_CC_INLINE static bool
 ck_spinlock_dec_trylock(struct ck_spinlock_dec *lock)
 {
 	unsigned int value;
@@ -350,7 +350,7 @@ ck_spinlock_dec_lock(struct ck_spinlock_dec *lock)
 			break;
 
 		/* Load value without generating write cycles. */
-		while (ck_pr_load_uint(&lock->value) != 1) 
+		while (ck_pr_load_uint(&lock->value) != 1)
 			ck_pr_stall();
 	}
 
@@ -420,7 +420,7 @@ ck_spinlock_ticket_lock(struct ck_spinlock_ticket *ticket)
 	request = ck_pr_faa_uint(&ticket->next, 1);
 
 	/* Busy-wait until our ticket number is current. */
-	while (ck_pr_load_uint(&ticket->position) != request) 
+	while (ck_pr_load_uint(&ticket->position) != request)
 		ck_pr_stall();
 
 	return;
@@ -448,7 +448,7 @@ ck_spinlock_ticket_lock_pb(struct ck_spinlock_ticket *ticket)
 		 * the amount of time necessary for the number of pending lock
 		 * acquisition and relinquish operations (assuming an empty
 		 * critical section).
-		 */ 
+		 */
 		ck_backoff_eb(&backoff);
 	}
 

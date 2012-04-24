@@ -51,7 +51,7 @@ static unsigned int barrier;
 static unsigned int e_barrier;
 
 #ifndef PAIRS
-#define PAIRS 5000000 
+#define PAIRS 5000000
 #endif
 
 struct node {
@@ -157,10 +157,10 @@ main(int argc, char *argv[])
 
 	ck_hp_init(&stack_hp, 1, threshold, destructor);
 
-	for (i = 0; i < n_threads; i++) 
+	for (i = 0; i < n_threads; i++)
 		pthread_create(threads + i, NULL, thread, NULL);
 
-	for (i = 0; i < n_threads; i++) 
+	for (i = 0; i < n_threads; i++)
 		pthread_join(threads[i], NULL);
 
 	return (0);

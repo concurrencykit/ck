@@ -30,7 +30,7 @@ is designed to minimize dependencies on operating system-specific interfaces
 and most of the interface relies only on a strict subset of the standard
 library and more popular compiler extensions.
 
-This package provides the libraries, include files, and other 
+This package provides the libraries, include files, and other
 resources needed for developing Concurrency Kit applications.
 
 %prep

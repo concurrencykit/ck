@@ -31,7 +31,7 @@
 
 #include "../../common.h"
 
-#ifndef STEPS 
+#ifndef STEPS
 #define STEPS 1000000
 #endif
 

@@ -127,7 +127,7 @@ stack_thread(void *unused CK_CC_UNUSED)
 	return (NULL);
 }
 
-static void 
+static void
 stack_assert(void)
 {
 

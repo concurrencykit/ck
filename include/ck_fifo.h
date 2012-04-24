@@ -128,7 +128,7 @@ ck_fifo_spsc_enqueue(struct ck_fifo_spsc *fifo,
 	return;
 }
 
-CK_CC_INLINE static bool 
+CK_CC_INLINE static bool
 ck_fifo_spsc_dequeue(struct ck_fifo_spsc *fifo, void *value)
 {
 	struct ck_fifo_spsc_entry *stub, *entry;
@@ -155,7 +155,7 @@ ck_fifo_spsc_dequeue(struct ck_fifo_spsc *fifo, void *value)
  * Recycle a node. This technique for recycling nodes is based on
  * Dmitriy Vyukov's work.
  */
-CK_CC_INLINE static struct ck_fifo_spsc_entry * 
+CK_CC_INLINE static struct ck_fifo_spsc_entry *
 ck_fifo_spsc_recycle(struct ck_fifo_spsc *fifo)
 {
 	struct ck_fifo_spsc_entry *p, *garbage;

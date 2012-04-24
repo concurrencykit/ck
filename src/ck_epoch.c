@@ -52,7 +52,7 @@ ck_epoch_init(struct ck_epoch *global, unsigned int threshold)
 	global->epoch = 1;
 	global->n_free = 0;
 	global->threshold = threshold;
-	ck_pr_fence_store();	
+	ck_pr_fence_store();
 	return;
 }
 

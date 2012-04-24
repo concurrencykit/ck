@@ -36,7 +36,7 @@ Concurrency Kit (libck, \-lck)
 .Ft bool
 .Fn ck_ht_put_spmc "ck_ht_t *ht" "ck_ht_hash_t h" "ck_ht_entry_t *entry"
 .Sh DESCRIPTION
-The 
+The
 .Fn ck_ht_put_spmc
 function will store the key-value pair specified in the
 .Fa entry
@@ -71,7 +71,7 @@ if
 was created with CK_HT_MODE_BYTESTRING. If
 .Fa ht
 was initialized with CK_HT_MODE_DIRECT then it is
-expected that 
+expected that
 .Fa h
 was initialized with the
 .Xr ck_ht_hash_direct 3

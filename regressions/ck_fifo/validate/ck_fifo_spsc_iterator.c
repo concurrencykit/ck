@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 David Joseph. 
+ * Copyright 2011 David Joseph.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -45,7 +45,7 @@ main(void)
 	stub = malloc(sizeof(ck_fifo_spsc_entry_t));
 	if (stub == NULL)
 		exit(EXIT_FAILURE);
-	
+
 	ck_fifo_spsc_init(&spsc_fifo, stub);
 
 	entries = malloc(sizeof(ck_fifo_spsc_entry_t) * length);

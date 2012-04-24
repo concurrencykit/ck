@@ -36,7 +36,7 @@ Concurrency Kit (libck, \-lck)
 .Ft uintptr_t
 .Fn ck_ht_entry_key_direct "ck_ht_entry_t *entry"
 .Sh DESCRIPTION
-The 
+The
 .Fn ck_ht_entry_key_direct
 function will return the key value as specified in the
 object pointed to by the

@@ -130,9 +130,9 @@ static inline void MurmurHash3_x86_32 ( const void * key, int len,
     k1 *= c1;
     k1 = ROTL32(k1,15);
     k1 *= c2;
-    
+
     h1 ^= k1;
-    h1 = ROTL32(h1,13); 
+    h1 = ROTL32(h1,13);
     h1 = h1*5+0xe6546b64;
   }
 
@@ -159,7 +159,7 @@ static inline void MurmurHash3_x86_32 ( const void * key, int len,
   h1 = fmix(h1);
 
   *(uint32_t *)out = h1;
-} 
+}
 
 static inline uint64_t MurmurHash64A ( const void * key, int len, uint64_t seed )
 {
@@ -175,12 +175,12 @@ static inline uint64_t MurmurHash64A ( const void * key, int len, uint64_t seed 
   {
     uint64_t k = *data++;
 
-    k *= m; 
-    k ^= k >> r; 
-    k *= m; 
-    
+    k *= m;
+    k ^= k >> r;
+    k *= m;
+
     h ^= k;
-    h *= m; 
+    h *= m;
   }
 
   const unsigned char * data2 = (const unsigned char*)data;
@@ -196,13 +196,13 @@ static inline uint64_t MurmurHash64A ( const void * key, int len, uint64_t seed 
   case 1: h ^= (uint64_t)(data2[0]);
           h *= m;
   };
- 
+
   h ^= h >> r;
   h *= m;
   h ^= h >> r;
 
   return h;
-} 
+}
 
 
 // 64-bit hash for 32-bit platforms
@@ -256,6 +256,6 @@ static inline uint64_t MurmurHash64B ( const void * key, int len, uint64_t seed 
   h = (h << 32) | h2;
 
   return h;
-} 
+}
 
 #endif /* _CK_HT_HASH_H */

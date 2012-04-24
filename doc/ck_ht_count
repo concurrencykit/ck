@@ -33,10 +33,10 @@
 Concurrency Kit (libck, \-lck)
 .Sh SYNOPSIS
 .In ck_ht.h
-.Ft uint64_t 
+.Ft uint64_t
 .Fn ck_ht_count "ck_ht_t *ht"
 .Sh DESCRIPTION
-The 
+The
 .Fn ck_ht_count
 function will return the number of entries in the hash table
 pointed to be the

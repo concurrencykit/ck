@@ -122,6 +122,6 @@ main(int argc, char *argv[])
 	ck_hp_set(&record[1], 0, NULL);
 	ck_hp_reclaim(&record[0]);
 	ck_hp_reclaim(&record[1]);
-	
+
 	return 0;
 }

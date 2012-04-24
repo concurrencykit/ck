@@ -47,7 +47,7 @@
 		*target = update;							\
 											\
 		return (previous);							\
-	}										
+	}
 
 #define TEST_FAX_FN_S(S, T) TEST_FAX_FN(S, T, T)
 

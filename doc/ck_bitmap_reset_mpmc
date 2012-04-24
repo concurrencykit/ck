@@ -33,10 +33,10 @@
 Concurrency Kit (libck, \-lck)
 .Sh SYNOPSIS
 .In ck_bitmap.h
-.Ft void 
+.Ft void
 .Fn ck_bitmap_reset_mpmc "ck_bitmap_t *bitmap" "unsigned int n"
 .Sh DESCRIPTION
-The 
+The
 .Fn ck_bitmap_reset_mpmc
 resets the bit at offset specified by the argument
 .Fa n

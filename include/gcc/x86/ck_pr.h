@@ -40,7 +40,7 @@
 /*
  * The following represent supported atomic operations.
  * These operations may be emulated.
- */ 
+ */
 #include "ck_f_pr.h"
 
 /* Minimum requirements for the CK_PR interface are met. */

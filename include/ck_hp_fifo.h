@@ -101,7 +101,7 @@ ck_hp_fifo_enqueue_mpmc(ck_hp_record_t *record,
 	return;
 }
 
-CK_CC_INLINE static struct ck_hp_fifo_entry * 
+CK_CC_INLINE static struct ck_hp_fifo_entry *
 ck_hp_fifo_dequeue_mpmc(ck_hp_record_t *record,
 			struct ck_hp_fifo *fifo,
 			void *value)

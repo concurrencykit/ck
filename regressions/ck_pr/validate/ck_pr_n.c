@@ -69,7 +69,7 @@
 		run_test_##K##_uint();		\
 						\
 		return;				\
-	}					
+	}
 
 GENERATE_TEST(not, ~)
 GENERATE_TEST(neg, -)

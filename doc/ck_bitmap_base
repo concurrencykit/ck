@@ -36,7 +36,7 @@ Concurrency Kit (libck, \-lck)
 .Ft unsigned int
 .Fn ck_bitmap_base "unsigned int n_bits"
 .Sh DESCRIPTION
-The 
+The
 .Fn ck_bitmap_base
 function returns the number of bytes that would be used
 to store the number of bits specified by

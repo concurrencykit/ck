@@ -36,7 +36,7 @@ Concurrency Kit (libck, \-lck)
 .Ft bool
 .Fn ck_ht_entry_empty "ck_ht_entry_t *entry"
 .Sh DESCRIPTION
-The 
+The
 .Fn ck_ht_entry_empty
 function will return
 .Dv false

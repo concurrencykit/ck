@@ -86,8 +86,8 @@
 			x, y);										\
 													\
 		return;											\
-	}												
-	
+	}
+
 #define GENERATE_TEST(K, P, Y, Z)					\
 	TEST_UNARY(K, int, int, int, P, d, Y)				\
 	TEST_UNARY(K, uint, unsigned int, unsigned int, P, u, Z)	\

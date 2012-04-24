@@ -2,7 +2,7 @@
 
 OBJECTS=latency
 
-all: $(OBJECTS) 
+all: $(OBJECTS)
 
 latency: latency.c
 	$(CC) $(CFLAGS) -o latency latency.c

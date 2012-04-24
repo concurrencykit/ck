@@ -33,7 +33,7 @@
 #define CK_BACKOFF_CEILING ((1 << 21) - 1)
 #endif
 
-#define CK_BACKOFF_INITIALIZER ((1 << 9) - 1) 
+#define CK_BACKOFF_INITIALIZER ((1 << 9) - 1)
 
 typedef volatile unsigned int ck_backoff_t;
 
@@ -45,7 +45,7 @@ ck_backoff_eb(volatile unsigned int *c)
 {
 	volatile unsigned int i;
 	unsigned int ceiling;
-	
+
 	ceiling = *c;
 
 	for (i = 0; i < ceiling; i++);
