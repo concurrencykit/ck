@@ -1,5 +1,6 @@
 /*
  * Copyright 2012 Samy Al Bahra.
+ * Copyright 2012 Shreyas Prasad.
  * Copyright 2012 AppNexus, Inc.
  * All rights reserved.
  *
@@ -35,15 +36,48 @@
 #endif
 
 static unsigned int length = 256;
+static ck_bitmap_t *g_bits;
 
 static void
-test(ck_bitmap_t *bits, bool initial)
+check_iteration(ck_bitmap_t *bits, unsigned int len, bool initial)
 {
-	unsigned int i, n_length = bits->n_bits;
+	ck_bitmap_iterator_t iter;
+	unsigned int i = 0, j;
+
+	len += 1;
+	if (initial == true) {
+		if (bits == g_bits)
+			len = length;
+		else
+			len = STATIC_LENGTH;
+	}
+
+	ck_bitmap_iterator_init(&iter, bits);
+	for (j = 0; ck_bitmap_next(bits, &iter, &i) == true; j++) {
+		if (i == j)
+			continue;
+
+		fprintf(stderr, "[4] ERROR: Expected bit %u, got bit %u\n", j, i);
+		exit(EXIT_FAILURE);
+	}
+
+	if (j != len) {
+		fprintf(stderr, "[5] ERROR: Expected length %u, got length %u\n", len, j);
+		exit(EXIT_FAILURE);
+	}
+
+	return;
+}
+
+static void
+test(ck_bitmap_t *bits, unsigned int n_length, bool initial)
+{
+	unsigned int i;
 
 	for (i = 0; i < n_length; i++) {
 		if (ck_bitmap_test(bits, i) == !initial) {
-			fprintf(stderr, "[0] ERROR: Expected bit to not be set: %u\n", i);
+			fprintf(stderr, "[0] ERROR [%u]: Expected %u got %u\n", i,
+				initial, !initial);
 			exit(EXIT_FAILURE);
 		}
 	}
@@ -54,7 +88,6 @@ test(ck_bitmap_t *bits, bool initial)
 			fprintf(stderr, "[1] ERROR: Expected bit to be set: %u\n", i);
 			exit(EXIT_FAILURE);
 		}
-
 		ck_bitmap_reset_mpmc(bits, i);
 		if (ck_bitmap_test(bits, i) == true) {
 			fprintf(stderr, "[2] ERROR: Expected bit to be cleared: %u\n", i);
@@ -66,6 +99,8 @@ test(ck_bitmap_t *bits, bool initial)
 			fprintf(stderr, "[3] ERROR: Expected bit to be set: %u\n", i);
 			exit(EXIT_FAILURE);
 		}
+
+		check_iteration(bits, i, initial);
 	}
 
 	for (i = 0; i < n_length; i++) {
@@ -91,7 +126,6 @@ int
 main(int argc, char *argv[])
 {
 	unsigned int bytes, base;
-	ck_bitmap_t *bits;
 
 	if (argc >= 2) {
 		length = atoi(argv[1]);
@@ -102,26 +136,26 @@ main(int argc, char *argv[])
 	fprintf(stderr, "Configuration: %u bytes\n",
 	    bytes);
 
-	bits = malloc(bytes);
-	memset(bits->map, 0xFF, base);
-	ck_bitmap_init(bits, length, false);
-	test(bits, false);
+	g_bits = malloc(bytes);
+	memset(g_bits->map, 0xFF, base);
+	ck_bitmap_init(g_bits, length, false);
+	test(g_bits, length, false);
 
-	memset(bits->map, 0x00, base);
-	ck_bitmap_init(bits, length, true);
-	test(bits, true);
+	memset(g_bits->map, 0x00, base);
+	ck_bitmap_init(g_bits, length, true);
+	test(g_bits, length, true);
 
-	ck_bitmap_test(bits, length - 1);
+	ck_bitmap_test(g_bits, length - 1);
 
 	CK_BITMAP_INSTANCE(STATIC_LENGTH) sb;
 	fprintf(stderr, "Static configuration: %zu bytes\n",
 	    sizeof(sb));
 	memset(CK_BITMAP_BUFFER(&sb), 0xFF, ck_bitmap_base(STATIC_LENGTH));
 	CK_BITMAP_INIT(&sb, STATIC_LENGTH, false);
-	test(CK_BITMAP(&sb), false);
+	test(CK_BITMAP(&sb), STATIC_LENGTH, false);
 	memset(CK_BITMAP_BUFFER(&sb), 0x00, ck_bitmap_base(STATIC_LENGTH));
 	CK_BITMAP_INIT(&sb, STATIC_LENGTH, true);
-	test(CK_BITMAP(&sb), true);
+	test(CK_BITMAP(&sb), STATIC_LENGTH, true);
 
 	CK_BITMAP_CLEAR(&sb);
 	if (CK_BITMAP_TEST(&sb, 1) == true) {

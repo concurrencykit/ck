@@ -71,8 +71,14 @@
 		struct ck_bitmap bitmap;				\
 	}
 
+#define CK_BITMAP_ITERATOR_INIT(a, b) \
+	ck_bitmap_iterator_init((a), &(b)->bitmap)
+
 #define CK_BITMAP_INIT(a, b, c) \
 	ck_bitmap_init(&(a)->bitmap, (b), (c))
+
+#define CK_BITMAP_NEXT(a, b, c) \
+	ck_bitmap_next(&(a)->bitmap, (b), (c))
 
 #define CK_BITMAP_SET_MPMC(a, b) \
 	ck_bitmap_set_mpmc(&(a)->bitmap, (b))
@@ -101,6 +107,14 @@ struct ck_bitmap {
 };
 typedef struct ck_bitmap ck_bitmap_t;
 
+struct ck_bitmap_iterator {
+	CK_BITMAP_WORD cache;
+	unsigned int n_block;
+	unsigned int n_bit;
+	unsigned int n_limit;
+};
+typedef struct ck_bitmap_iterator ck_bitmap_iterator_t;
+
 CK_CC_INLINE static unsigned int
 ck_bitmap_base(unsigned int n_bits)
 {
@@ -113,23 +127,6 @@ ck_bitmap_size(unsigned int n_bits)
 {
 
 	return ck_bitmap_base(n_bits) + sizeof(struct ck_bitmap);
-}
-
-/*
- * Initializes a ck_bitmap pointing to a region of memory with
- * ck_bitmap_size(n_bits) bytes. Third argument determines whether
- * default bit value is 1 (true) or 0 (false).
- */
-CK_CC_INLINE static void
-ck_bitmap_init(struct ck_bitmap *bitmap,
-	       unsigned int n_bits,
-	       bool set)
-{
-	unsigned int base = ck_bitmap_base(n_bits);
-
-	bitmap->n_bits = n_bits;
-	memset(bitmap->map, -(int)set, base);
-	return;
 }
 
 /*
@@ -206,5 +203,90 @@ ck_bitmap_buffer(struct ck_bitmap *bitmap)
 
 	return bitmap->map;
 }
+
+/*
+ * Initializes a ck_bitmap pointing to a region of memory with
+ * ck_bitmap_size(n_bits) bytes. Third argument determines whether
+ * default bit value is 1 (true) or 0 (false).
+ */
+CK_CC_INLINE static void
+ck_bitmap_init(struct ck_bitmap *bitmap,
+	       unsigned int n_bits,
+	       bool set)
+{
+	unsigned int base = ck_bitmap_base(n_bits);
+
+	bitmap->n_bits = n_bits;
+	memset(bitmap->map, -(int)set, base);
+
+	if (set == true) {
+		CK_BITMAP_WORD b;
+
+		if (n_bits < CK_BITMAP_BLOCK)
+			b = n_bits;
+		else
+			b = n_bits % CK_BITMAP_BLOCK;
+
+		if (b == 0)
+			return;
+
+		bitmap->map[base / sizeof(CK_BITMAP_WORD) - 1] &= (1ULL << b) - 1ULL;
+	}
+
+	return;
+}
+
+
+/*
+ * Initialize iterator for use with provided bitmap.
+ */
+CK_CC_INLINE static void
+ck_bitmap_iterator_init(struct ck_bitmap_iterator *i, struct ck_bitmap *bitmap)
+{
+
+	i->n_block = 0;
+	i->n_bit = 0;
+	i->n_limit = CK_BITMAP_BLOCKS(bitmap->n_bits);
+	i->cache = CK_BITMAP_LOAD(&bitmap->map[i->n_block]);
+	return;
+}
+
+/*
+ * Iterate to next bit.
+ */
+CK_CC_INLINE static bool
+ck_bitmap_next(struct ck_bitmap *bitmap,
+	       struct ck_bitmap_iterator *i,
+	       unsigned int *bit)
+{
+
+	/* Load next bitmap block. */
+	for (;;) {
+		while (i->n_bit < CK_BITMAP_BLOCK) {
+			unsigned int previous = i->n_bit++;
+
+			if (i->cache & 1) {
+				*bit = previous + (64 * i->n_block);
+				i->cache >>= 1;
+				return true;
+			}
+
+			i->cache >>= 1;
+			if (i->cache == 0)
+				break;
+		}
+
+		i->n_bit = 0;
+		i->n_block++;
+
+		if (i->n_block >= i->n_limit)
+			return false;
+
+		i->cache = CK_BITMAP_LOAD(&bitmap->map[i->n_block]);
+	}
+
+	return false;
+}
+
 
 #endif /* _CK_BITMAP_H */

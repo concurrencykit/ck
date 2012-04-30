@@ -35,9 +35,17 @@ OBJECTS=ck_ht_allocator_set$(GZIP_SUFFIX) 		\
 	ck_bitmap_size$(GZIP_SUFFIX)			\
 	ck_bitmap_clear$(GZIP_SUFFIX)			\
 	ck_bitmap_bits$(GZIP_SUFFIX)			\
-	ck_bitmap_buffer$(GZIP_SUFFIX)
+	ck_bitmap_buffer$(GZIP_SUFFIX)			\
+	ck_bitmap_next$(GZIP_SUFFIX)			\
+	ck_bitmap_iterator_init$(GZIP_SUFFIX)
 
 all: $(OBJECTS)
+
+ck_bitmap_next$(GZIP_SUFFIX): ck_bitmap_next
+	$(GZIP) ck_bitmap_next > ck_bitmap_next$(GZIP_SUFFIX)
+
+ck_bitmap_iterator_init$(GZIP_SUFFIX): ck_bitmap_iterator_init
+	$(GZIP) ck_bitmap_iterator_init > ck_bitmap_iterator_init$(GZIP_SUFFIX)
 
 ck_bitmap_init$(GZIP_SUFFIX): ck_bitmap_init
 	$(GZIP) ck_bitmap_init > ck_bitmap_init$(GZIP_SUFFIX)
