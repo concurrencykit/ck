@@ -266,7 +266,7 @@ ck_bitmap_next(struct ck_bitmap *bitmap,
 			unsigned int previous = i->n_bit++;
 
 			if (i->cache & 1) {
-				*bit = previous + (64 * i->n_block);
+				*bit = previous + (CK_BITMAP_BLOCK * i->n_block);
 				i->cache >>= 1;
 				return true;
 			}
