@@ -32,6 +32,7 @@
 #include <ck_pr.h>
 #include <ck_malloc.h>
 #include <ck_stdint.h>
+#include <ck_queue.h>
 #include <stdbool.h>
 #include <stddef.h>
 
@@ -84,15 +85,13 @@ struct ck_bag_block_md {
 
 struct ck_bag_block {
 	struct ck_bag_block_md next;
-	struct ck_bag_block *avail_next;
-	struct ck_bag_block *avail_prev;
+	CK_LIST_ENTRY(ck_bag_block) avail_entry;
 	void *array[];
 } CK_CC_CACHELINE;
 
 struct ck_bag {
 	struct ck_bag_block *head;
-	struct ck_bag_block *avail_head;
-	struct ck_bag_block *avail_tail;
+	CK_LIST_HEAD(avail_list, ck_bag_block) avail_blocks;
 	unsigned int n_entries;
 	unsigned int n_blocks;
 	enum ck_bag_allocation_strategy alloc_strat;
