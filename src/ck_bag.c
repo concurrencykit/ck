@@ -140,7 +140,7 @@ ck_bag_put_spmc(struct ck_bag *bag, void *entry)
 			if (new_block == NULL)
 				return false;
 
-#ifdef CK_BAG_PP 
+#ifdef CK_BAG_PP
 			new_block->next.ptr = NULL;
 #else
 			new_block->next.n_entries = 0;
