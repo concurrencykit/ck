@@ -46,7 +46,7 @@
 
 #ifndef CK_HT_BUCKET_LENGTH
 
-#ifdef CK_HT_PP 
+#ifdef CK_HT_PP
 #define CK_HT_BUCKET_SHIFT 2ULL
 #else
 #define CK_HT_BUCKET_SHIFT 1ULL
