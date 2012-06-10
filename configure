@@ -77,20 +77,21 @@ assert()
 
 generate()
 {
-	sed -e "s#@PROFILE@#$PROFILE#g"			\
-	    -e "s#@VERSION@#$VERSION#g"			\
-	    -e "s#@VERSION_MAJOR@#$VERSION_MAJOR#g"	\
-	    -e "s#@CC@#$CC#g"				\
- 	    -e "s#@CFLAGS@#$CFLAGS#g"			\
- 	    -e "s#@HEADERS@#$HEADERS#g"			\
-	    -e "s#@LIBRARY@#$LIBRARY#g"			\
-	    -e "s#@PREFIX@#$PREFIX#g"			\
-	    -e "s#@LD@#$LD#g"				\
-	    -e "s#@LDFLAGS@#$LDFLAGS#g"			\
-	    -e "s#@PTHREAD_CFLAGS@#$PTHREAD_CFLAGS#g"	\
-	    -e "s#@MANDIR@#$MANDIR#g"			\
-	    -e "s#@GZIP@#$GZIP#g"			\
-	    -e "s#@GZIP_SUFFIX@#$GZIP_SUFFIX#g"		\
+	sed -e "s#@PROFILE@#$PROFILE#g"				\
+	    -e "s#@VERSION@#$VERSION#g"				\
+	    -e "s#@VERSION_MAJOR@#$VERSION_MAJOR#g"		\
+	    -e "s#@CC@#$CC#g"					\
+ 	    -e "s#@CFLAGS@#$CFLAGS#g"				\
+ 	    -e "s#@HEADERS@#$HEADERS#g"				\
+	    -e "s#@LIBRARY@#$LIBRARY#g"				\
+	    -e "s#@PREFIX@#$PREFIX#g"				\
+	    -e "s#@LD@#$LD#g"					\
+	    -e "s#@LDFLAGS@#$LDFLAGS#g"				\
+	    -e "s#@PTHREAD_CFLAGS@#$PTHREAD_CFLAGS#g"		\
+	    -e "s#@MANDIR@#$MANDIR#g"				\
+	    -e "s#@GZIP@#$GZIP#g"				\
+	    -e "s#@GZIP_SUFFIX@#$GZIP_SUFFIX#g"			\
+	    -e "s#@POINTER_PACK_ENABLE@#$POINTER_PACK_ENABLE#g"			\
 		$1 > $2
 }
 
@@ -106,6 +107,7 @@ generate_stdout()
 	echo "                LD = $LD"
 	echo "           LDFLAGS = $LDFLAGS"
 	echo "              GZIP = $GZIP"
+	echo "      POINTER_PACK = $POINTER_PACK_ENABLE"
 	echo
 	echo "Headers will be installed in $HEADERS"
 	echo "Libraries will be installed in $LIBRARY"
@@ -120,13 +122,14 @@ for option in $*; do
 		echo "Usage: ./configure [OPTIONS]"
 		echo
 		echo "The following options may be used for cross-building."
-		echo "  --profile=N       Use custom build profile (use in conjunction with \$CC)"
+		echo "  --profile=N              Use custom build profile (use in conjunction with \$CC)"
 		echo
 		echo "The following options may be used to modify installation behavior."
-		echo "  --includedir=N    Headers directory (default is ${PREFIX}/include)"
-		echo "  --libdir=N        Libraries directory (default is ${PREFIX}/lib)"
-		echo "  --mandir=N        Manual pages directory (default is ${PREFIX}/man)"
-		echo "  --prefix=N        Installs library files in N (default is $PREFIX)"
+		echo "  --includedir=N           Headers directory (default is ${PREFIX}/include)"
+		echo "  --libdir=N               Libraries directory (default is ${PREFIX}/lib)"
+		echo "  --mandir=N               Manual pages directory (default is ${PREFIX}/man)"
+		echo "  --prefix=N               Installs library files in N (default is $PREFIX)"
+		echo "  --enable-pointer-packing Assumes 48-bit address encoding"
 		echo
 		echo "The following environment variables may be used:"
 		echo "   CC       C compiler command"
@@ -136,6 +139,9 @@ for option in $*; do
 		echo
 		echo "Report bugs to ${MAINTAINER}."
 		exit $EXIT_SUCCESS
+		;;
+	--enable-pointer-packing)
+		POINTER_PACK_ENABLE="CK_MD_POINTER_PACK_ENABLE"
 		;;
 	--profile=*)
 		PROFILE=$value
@@ -163,6 +169,7 @@ HEADERS=${HEADERS:-"${PREFIX}/include"}
 LIBRARY=${LIBRARY:-"${PREFIX}/lib"}
 MANDIR=${MANDIR:-"${PREFIX}/share/man"}
 GZIP=${GZIP:-"gzip -c"}
+POINTER_PACK_ENABLE=${POINTER_PACK_ENABLE:-"CK_MD_POINTER_PACK_DISABLE"}
 
 if test "$PROFILE"; then
 	printf "Using user-specified profile....."
@@ -178,6 +185,9 @@ if test "$PROFILE"; then
 	fi
 
 	echo "success [$PROFILE]"
+	printf "Generating header files.........."
+	generate include/ck_md.h.in include/ck_md.h
+	echo "success"
 	printf "Generating build files..........."
 	generate doc/Makefile.in doc/Makefile
 	generate build/ck.build.in build/ck.build
@@ -417,6 +427,10 @@ EOF
 		exit $EXIT_FAILURE
 	fi
 done
+
+printf "Generating header files.........."
+generate include/ck_md.h.in include/ck_md.h
+echo "success"
 
 printf "Generating build files..........."
 

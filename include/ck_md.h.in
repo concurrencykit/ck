@@ -35,4 +35,8 @@
 #define CK_MD_PAGESIZE (4096)
 #endif
 
+#ifndef @POINTER_PACK_ENABLE@
+#define @POINTER_PACK_ENABLE@
+#endif
+
 #endif /* _CK_MD_H */
