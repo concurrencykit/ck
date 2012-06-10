@@ -250,7 +250,10 @@ main(int argc, char **argv)
 	ck_epoch_init(&epoch_bag, 100);
 	ck_epoch_register(&epoch_bag, &epoch_wr);
 	ck_bag_allocator_set(&allocator, sizeof(struct bag_epoch));
-	ck_bag_init(&bag, b, CK_BAG_ALLOCATE_GEOMETRIC);
+	if (ck_bag_init(&bag, b, CK_BAG_ALLOCATE_GEOMETRIC) == false) {
+		fprintf(stderr, "Error: failed ck_bag_init().");
+		exit(EXIT_FAILURE);
+	}
 	fprintf(stderr, "Configuration: %u entries, %zu bytes/block, %zu entries/block\n", writer_max, bag.info.bytes, bag.info.max);
 
 	i = 1;

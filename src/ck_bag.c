@@ -48,7 +48,7 @@ ck_bag_init(struct ck_bag *bag,
 	    size_t n_cachelines,
 	    enum ck_bag_allocation_strategy as)
 {
-	size_t block_overhead;
+	size_t block_overhead, block_size;
 
 	CK_LIST_INIT(&bag->avail_blocks);
 	bag->head = NULL;
@@ -56,19 +56,15 @@ ck_bag_init(struct ck_bag *bag,
 	bag->n_blocks = 0;
 	bag->alloc_strat = as;
 
-	/*
-	 * By default, a ck_bag_block occupies two cachelines. If n_entries is less
-	 * than the # of entries that can fit within one cacheline (including
-	 * overhead), then bag->info.max = number of entries that can fit into a
-	 * single cacheline.
-	 */
 	block_overhead = sizeof(struct ck_bag_block) + allocator_overhead;
 
-	if (n_cachelines == CK_BAG_DEFAULT) {
-		bag->info.max = ((CK_BAG_PAGESIZE - block_overhead) / sizeof(void *));
-	} else {
-		bag->info.max = ((n_cachelines * CK_MD_CACHELINE - block_overhead) / sizeof(void *));
-	}
+	block_size = (n_cachelines == CK_BAG_DEFAULT) ?
+		CK_BAG_PAGESIZE : n_cachelines * CK_MD_CACHELINE;
+
+	if (block_size < block_overhead)
+		return false;
+
+	bag->info.max = (block_size / sizeof(void *));
 
 #ifdef __x86_64__
 	if (bag->info.max > CK_BAG_MAX_N_ENTRIES)
