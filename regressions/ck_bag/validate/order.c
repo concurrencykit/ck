@@ -185,7 +185,6 @@ writer_thread(void *unused)
 		if (ck_pr_load_int(&leave) == 1)
 			break;
 
-		//fprintf(stderr, "set: %d", iteration);
 		for (i = 1; i < writer_max; i++) {
 			void *replace = (void *)(uintptr_t)i;
 			if (ck_bag_set_spmc(&bag, (void *)(uintptr_t)i, replace) == false) {
@@ -210,6 +209,7 @@ writer_thread(void *unused)
 		ck_epoch_write_end(&epoch_wr);
 	}
 
+	fprintf(stderr, "Writer %u iterations, %u writes per iteration.\n", iteration, writer_max);
 	while (ck_pr_load_uint(&barrier) != NUM_READER_THREADS)
 		ck_pr_stall();
 
@@ -250,7 +250,10 @@ main(int argc, char **argv)
 	ck_epoch_init(&epoch_bag, 100);
 	ck_epoch_register(&epoch_bag, &epoch_wr);
 	ck_bag_allocator_set(&allocator, sizeof(struct bag_epoch));
-	ck_bag_init(&bag, b, CK_BAG_ALLOCATE_GEOMETRIC);
+	if (ck_bag_init(&bag, b, CK_BAG_ALLOCATE_GEOMETRIC) == false) {
+		fprintf(stderr, "Error: failed ck_bag_init().");
+		exit(EXIT_FAILURE);
+	}
 	fprintf(stderr, "Configuration: %u entries, %zu bytes/block, %zu entries/block\n", writer_max, bag.info.bytes, bag.info.max);
 
 	i = 1;
@@ -288,7 +291,7 @@ main(int argc, char **argv)
 		pthread_create(&readers[i], NULL, reader, NULL);
 	}
 
-	sleep(10);
+	sleep(120);
 
 	ck_pr_store_int(&leave, 1);
 	for (i = 0; i < NUM_READER_THREADS; i++)
