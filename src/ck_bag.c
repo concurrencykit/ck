@@ -82,7 +82,18 @@ ck_bag_init(struct ck_bag *bag,
 void
 ck_bag_destroy(struct ck_bag *bag)
 {
-	struct ck_bag_block *cursor;
+	struct ck_bag_block *cursor = NULL;
+
+	/*
+	 * Free unoccupied blocks on the available list that are not linked to the
+	 * bag list.
+	 */
+	CK_LIST_FOREACH(cursor, &bag->avail_blocks, avail_entry) {
+		if (ck_bag_block_count(cursor) == 0) {
+			CK_LIST_REMOVE(cursor, avail_entry);
+			allocator.free(cursor, bag->info.bytes, false);
+		}
+	}
 
 	cursor = bag->head;
 	while (bag->head != NULL) {
