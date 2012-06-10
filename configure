@@ -32,7 +32,7 @@ EXIT_SUCCESS=0
 EXIT_FAILURE=1
 
 MAINTAINER='sbahra@repnop.org'
-VERSION='0.2.2'
+VERSION='0.2.3'
 VERSION_MAJOR='0'
 BUILD="$PWD/build/ck.build"
 PREFIX=${PREFIX:-"/usr/local"}
