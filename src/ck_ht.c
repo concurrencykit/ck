@@ -46,7 +46,7 @@
 
 #ifndef CK_HT_BUCKET_LENGTH
 
-#ifdef __x86_64__
+#ifdef CK_HT_PP 
 #define CK_HT_BUCKET_SHIFT 2ULL
 #else
 #define CK_HT_BUCKET_SHIFT 1ULL
@@ -195,7 +195,7 @@ ck_ht_map_probe(struct ck_ht_map *map,
 	uint64_t probes = 0;
 	uint64_t probe_maximum;
 
-#ifndef __x86_64__
+#ifndef CK_HT_PP
 	uint64_t d = 0;
 	uint64_t d_prime = 0;
 retry:
@@ -230,7 +230,7 @@ retry:
 			 * it is worth the code duplication.
 			 */
 			if (probe_limit == NULL) {
-#ifdef __x86_64__
+#ifdef CK_HT_PP
 				snapshot->key = (uintptr_t)ck_pr_load_ptr(&cursor->key);
 				ck_pr_fence_load();
 				snapshot->value = (uintptr_t)ck_pr_load_ptr(&cursor->value);
@@ -267,7 +267,7 @@ retry:
 			if (map->mode == CK_HT_MODE_BYTESTRING) {
 				void *pointer;
 
-#ifndef __x86_64__
+#ifndef CK_HT_PP
 				if (probe_limit == NULL) {
 					d_prime = ck_pr_load_64(&map->deletions);
 
@@ -288,7 +288,7 @@ retry:
 				if (k != key_length)
 					continue;
 
-#ifdef __x86_64__
+#ifdef CK_HT_PP
 				if (snapshot->value >> 48 != ((h.value >> 32) & 0xFFFF))
 					continue;
 #else
@@ -504,14 +504,14 @@ ck_ht_get_spmc(ck_ht_t *table,
 	struct ck_ht_entry *candidate, snapshot;
 	struct ck_ht_map *map;
 
-#ifdef __x86_64__
+#ifdef CK_HT_PP
 	uint64_t d, d_prime;
 
 restart:
 #endif
 	map = ck_pr_load_ptr(&table->map);
 
-#ifdef __x86_64__
+#ifdef CK_HT_PP
 	/*
 	 * Platforms that cannot read key and key_length atomically must reprobe
 	 * on the scan of any single entry.
@@ -527,7 +527,7 @@ restart:
 		    (void *)entry->key, sizeof(entry->key), NULL);
 	}
 
-#ifdef __x86_64__
+#ifdef CK_HT_PP
 	d_prime = ck_pr_load_64(&map->deletions);
 	if (d != d_prime) {
 		/*
@@ -590,7 +590,7 @@ ck_ht_set_spmc(ck_ht_t *table,
 		 * before transitioning from K to T. (K, B) implies (K, B, D')
 		 * so we will reprobe successfully from this transient state.
 		 */
-#ifndef __x86_64__
+#ifndef CK_HT_PP
 		ck_pr_store_64(&priority->key_length, entry->key_length);
 		ck_pr_store_64(&priority->hash, entry->hash);
 #endif
@@ -611,7 +611,7 @@ ck_ht_set_spmc(ck_ht_t *table,
 		if (priority != NULL)
 			candidate = priority;
 
-#ifdef __x86_64__
+#ifdef CK_HT_PP
 		ck_pr_store_ptr(&candidate->value, (void *)entry->value);
 		ck_pr_fence_store();
 		ck_pr_store_ptr(&candidate->key, (void *)entry->key);
@@ -688,7 +688,7 @@ ck_ht_put_spmc(ck_ht_t *table,
 	if (priority != NULL)
 		candidate = priority;
 
-#ifdef __x86_64__
+#ifdef CK_HT_PP
 	ck_pr_store_ptr(&candidate->value, (void *)entry->value);
 	ck_pr_fence_store();
 	ck_pr_store_ptr(&candidate->key, (void *)entry->key);

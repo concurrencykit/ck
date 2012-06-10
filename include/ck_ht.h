@@ -34,6 +34,7 @@
 
 #include <ck_cc.h>
 #include <ck_malloc.h>
+#include <ck_md.h>
 #include <ck_stdint.h>
 #include <stdbool.h>
 #include <stddef.h>
@@ -48,8 +49,12 @@ enum ck_ht_mode {
 	CK_HT_MODE_BYTESTRING
 };
 
+#if defined(__x86_64__) && defined(CK_MD_POINTER_PACK_ENABLE)
+#define CK_HT_PP
+#endif
+
 struct ck_ht_entry {
-#ifdef __x86_64__
+#ifdef CK_HT_PP
 	uintptr_t key;
 	uintptr_t value CK_CC_PACKED;
 #else
@@ -108,7 +113,7 @@ CK_CC_INLINE static void
 ck_ht_entry_key_set(ck_ht_entry_t *entry, const void *key, uint16_t key_length)
 {
 
-#ifdef __x86_64__
+#ifdef CK_HT_PP
 	entry->key = (uintptr_t)key | ((uintptr_t)key_length << 48);
 #else
 	entry->key = (uintptr_t)key;
@@ -122,7 +127,7 @@ CK_CC_INLINE static void *
 ck_ht_entry_key(ck_ht_entry_t *entry)
 {
 
-#ifdef __x86_64__
+#ifdef CK_HT_PP
 	return (void *)(entry->key & (((uintptr_t)1 << 48) - 1));
 #else
 	return (void *)entry->key;
@@ -133,7 +138,7 @@ CK_CC_INLINE static uint16_t
 ck_ht_entry_key_length(ck_ht_entry_t *entry)
 {
 
-#ifdef __x86_64__
+#ifdef CK_HT_PP
 	return entry->key >> 48;
 #else
 	return entry->key_length;
@@ -144,7 +149,7 @@ CK_CC_INLINE static void *
 ck_ht_entry_value(ck_ht_entry_t *entry)
 {
 
-#ifdef __x86_64__
+#ifdef CK_HT_PP
 	return (void *)(entry->value & (((uintptr_t)1 << 48) - 1));
 #else
 	return (void *)entry->value;
@@ -159,7 +164,7 @@ ck_ht_entry_set(struct ck_ht_entry *entry,
 		const void *value)
 {
 
-#ifdef __x86_64__
+#ifdef CK_HT_PP
 	entry->key = (uintptr_t)key | ((uintptr_t)key_length << 48);
 	entry->value = (uintptr_t)value | ((uintptr_t)(h.value >> 32) << 48);
 #else
