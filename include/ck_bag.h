@@ -54,7 +54,6 @@
  * of the array. Empty entries are stored at the back.
  */
 
-
 /*
  * Bag growth strategies.
  */
