@@ -63,6 +63,7 @@ clean:
 	rm -f *~ *.o
 
 distribution: clean
+	rm -f include/ck_md.h
 	rm -f build/regressions.build
 	rm -f build/ck.build
 	rm -f build/ck.spec
