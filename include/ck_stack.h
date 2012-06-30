@@ -27,7 +27,6 @@
 #ifndef _CK_STACK_H
 #define _CK_STACK_H
 
-#include <ck_backoff.h>
 #include <ck_cc.h>
 #include <ck_pr.h>
 #include <stdbool.h>
@@ -55,15 +54,12 @@ CK_CC_INLINE static void
 ck_stack_push_upmc(struct ck_stack *target, struct ck_stack_entry *entry)
 {
 	struct ck_stack_entry *stack;
-	ck_backoff_t backoff = CK_BACKOFF_INITIALIZER;
 
 	stack = ck_pr_load_ptr(&target->head);
 	ck_pr_store_ptr(&entry->next, stack);
 
-	while (ck_pr_cas_ptr_value(&target->head, stack, entry, &stack) == false) {
+	while (ck_pr_cas_ptr_value(&target->head, stack, entry, &stack) == false)
 		ck_pr_store_ptr(&entry->next, stack);
-		ck_backoff_eb(&backoff);
-	}
 
 	return;
 }
@@ -78,17 +74,14 @@ CK_CC_INLINE static struct ck_stack_entry *
 ck_stack_pop_upmc(struct ck_stack *target)
 {
 	struct ck_stack_entry *entry;
-	ck_backoff_t backoff = CK_BACKOFF_INITIALIZER;
 
 	entry = ck_pr_load_ptr(&target->head);
 	if (entry == NULL)
 		return (NULL);
 
 	while (ck_pr_cas_ptr_value(&target->head, entry, entry->next, &entry) == false) {
-		if (ck_pr_load_ptr(&entry) == NULL)
+		if (entry == NULL)
 			break;
-
-		ck_backoff_eb(&backoff);
 	}
 
 	return (entry);
@@ -133,7 +126,6 @@ ck_stack_push_mpmc(struct ck_stack *target, struct ck_stack_entry *entry)
 CK_CC_INLINE static struct ck_stack_entry *
 ck_stack_pop_mpmc(struct ck_stack *target)
 {
-	ck_backoff_t backoff = CK_BACKOFF_INITIALIZER;
 	struct ck_stack original, update;
 
 	original.generation = ck_pr_load_ptr(&target->generation);
@@ -147,8 +139,6 @@ ck_stack_pop_mpmc(struct ck_stack *target)
 	while (ck_pr_cas_ptr_2_value(target, &original, &update, &original) == false) {
 		if (original.head == NULL)
 			return (NULL);
-
-		ck_backoff_eb(&backoff);
 
 		ck_pr_store_ptr(&update.generation, original.generation + 1);
 		ck_pr_store_ptr(&update.head, original.head->next);
@@ -248,7 +238,6 @@ ck_stack_init(struct ck_stack *stack)
 	stack->generation = 0;
 
 	ck_pr_fence_store();
-
 	return;
 }
 
