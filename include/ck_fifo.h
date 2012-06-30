@@ -28,7 +28,6 @@
 #ifndef _CK_FIFO_H
 #define _CK_FIFO_H
 
-#include <ck_backoff.h>
 #include <ck_cc.h>
 #include <ck_md.h>
 #include <ck_pr.h>
@@ -238,7 +237,6 @@ ck_fifo_mpmc_enqueue(struct ck_fifo_mpmc *fifo,
 		     void *value)
 {
 	struct ck_fifo_mpmc_pointer tail, next, update;
-	ck_backoff_t backoff = CK_BACKOFF_INITIALIZER;
 
 	/*
 	 * Prepare the upcoming node and make sure to commit the updates
@@ -256,10 +254,8 @@ ck_fifo_mpmc_enqueue(struct ck_fifo_mpmc *fifo,
 		next.generation = ck_pr_load_ptr(&tail.pointer->next.generation);
 		next.pointer = ck_pr_load_ptr(&tail.pointer->next.pointer);
 
-		if (ck_pr_load_ptr(&fifo->tail.generation) != tail.generation) {
-			ck_backoff_eb(&backoff);
+		if (ck_pr_load_ptr(&fifo->tail.generation) != tail.generation)
 			continue;
-		}
 
 		if (next.pointer != NULL) {
 			/*
@@ -280,8 +276,6 @@ ck_fifo_mpmc_enqueue(struct ck_fifo_mpmc *fifo,
 			update.generation = next.generation + 1;
 			if (ck_pr_cas_ptr_2(&tail.pointer->next, &next, &update) == true)
 				break;
-
-			ck_backoff_eb(&backoff);
 		}
 	}
 
@@ -297,7 +291,6 @@ ck_fifo_mpmc_dequeue(struct ck_fifo_mpmc *fifo,
 		     ck_fifo_mpmc_entry_t **garbage)
 {
 	struct ck_fifo_mpmc_pointer head, tail, next, update;
-	ck_backoff_t backoff = CK_BACKOFF_INITIALIZER;
 
 	for (;;) {
 		head.generation = ck_pr_load_ptr(&fifo->head.generation);
@@ -330,8 +323,6 @@ ck_fifo_mpmc_dequeue(struct ck_fifo_mpmc *fifo,
 			update.generation = head.generation + 1;
 			if (ck_pr_cas_ptr_2(&fifo->head, &head, &update) == true)
 				break;
-
-			ck_backoff_eb(&backoff);
 		}
 	}
 
