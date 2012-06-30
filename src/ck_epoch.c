@@ -30,6 +30,7 @@
  *   of Cambridge Computing Laboratory.
  */
 
+#include <ck_backoff.h>
 #include <ck_cc.h>
 #include <ck_epoch.h>
 #include <ck_pr.h>
