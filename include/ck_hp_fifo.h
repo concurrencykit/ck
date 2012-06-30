@@ -28,7 +28,6 @@
 #ifndef _CK_HP_FIFO_H
 #define _CK_HP_FIFO_H
 
-#include <ck_backoff.h>
 #include <ck_cc.h>
 #include <ck_hp.h>
 #include <ck_pr.h>
@@ -74,7 +73,6 @@ ck_hp_fifo_enqueue_mpmc(ck_hp_record_t *record,
 			void *value)
 {
 	struct ck_hp_fifo_entry *tail, *next;
-	ck_backoff_t backoff = CK_BACKOFF_INITIALIZER;
 
 	entry->value = value;
 	entry->next = NULL;
@@ -93,8 +91,6 @@ ck_hp_fifo_enqueue_mpmc(ck_hp_record_t *record,
 			continue;
 		} else if (ck_pr_cas_ptr(&fifo->tail->next, next, entry) == true)
 			break;
-
-		ck_backoff_eb(&backoff);
 	}
 
 	ck_pr_cas_ptr(&fifo->tail, tail, entry);
@@ -107,7 +103,6 @@ ck_hp_fifo_dequeue_mpmc(ck_hp_record_t *record,
 			void *value)
 {
 	struct ck_hp_fifo_entry *head, *tail, *next;
-	ck_backoff_t backoff = CK_BACKOFF_INITIALIZER;
 
 	for (;;) {
 		tail = ck_pr_load_ptr(&fifo->tail);
@@ -132,8 +127,6 @@ ck_hp_fifo_dequeue_mpmc(ck_hp_record_t *record,
 			continue;
 		} else if (ck_pr_cas_ptr(&fifo->head, head, next) == true)
 			break;
-
-		ck_backoff_eb(&backoff);
 	}
 
 	ck_pr_store_ptr(value, next->value);

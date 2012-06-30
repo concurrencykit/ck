@@ -27,7 +27,6 @@
 #ifndef _CK_HP_STACK_H
 #define _CK_HP_STACK_H
 
-#include <ck_backoff.h>
 #include <ck_cc.h>
 #include <ck_hp.h>
 #include <ck_pr.h>
@@ -49,7 +48,6 @@ CK_CC_INLINE static void *
 ck_hp_stack_pop_mpmc(ck_hp_record_t *record, struct ck_stack *target)
 {
 	struct ck_stack_entry *entry, *update;
-	ck_backoff_t backoff = CK_BACKOFF_INITIALIZER;
 
 	do {
 		entry = ck_pr_load_ptr(&target->head);
@@ -75,8 +73,6 @@ ck_hp_stack_pop_mpmc(ck_hp_record_t *record, struct ck_stack *target)
 			if (update == NULL)
 				return (NULL);
 		}
-
-		ck_backoff_eb(&backoff);
 	}
 
 	return (entry);
