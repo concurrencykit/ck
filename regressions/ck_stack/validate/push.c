@@ -104,6 +104,12 @@ stack_thread(void *buffer)
 		ck_stack_push_mpnc(&stack, &bucket[i].next);
 #elif defined(MPMC)
 		ck_stack_push_mpmc(&stack, &bucket[i].next);
+#elif defined(TRYMPMC)
+		while (ck_stack_trypush_mpmc(&stack, &bucket[i].next) == false)
+			ck_pr_stall();
+#elif defined(TRYUPMC)
+		while (ck_stack_trypush_upmc(&stack, &bucket[i].next) == false)
+			ck_pr_stall();
 #elif defined(UPMC)
 		ck_stack_push_upmc(&stack, &bucket[i].next);
 #elif defined(SPINLOCK) || defined(PTHREADS)

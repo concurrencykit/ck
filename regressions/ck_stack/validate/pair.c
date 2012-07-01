@@ -84,7 +84,7 @@ static unsigned int critical;
 static void *
 stack_thread(void *buffer)
 {
-#if (defined(MPMC) && defined(CK_F_STACK_POP_MPMC)) || (defined(UPMC) && defined(CK_F_STACK_POP_UPMC))
+#if (defined(MPMC) && defined(CK_F_STACK_POP_MPMC)) || (defined(UPMC) && defined(CK_F_STACK_POP_UPMC)) || (defined(TRYUPMC) && defined(CK_F_STACK_TRYPOP_UPMC)) || (defined(TRYMPMC) && defined(CK_F_STACK_TRYPOP_MPMC))
 	ck_stack_entry_t *ref;
 #endif
 	struct entry *entry = buffer;
@@ -102,8 +102,14 @@ stack_thread(void *buffer)
 	for (i = 0; i < n; i++) {
 #if defined(MPMC)
                 ck_stack_push_mpmc(&stack, &entry->next);
+#elif defined(TRYMPMC)
+		while (ck_stack_trypush_mpmc(&stack, &entry->next) == false)
+			ck_pr_stall();
 #elif defined(UPMC)
                 ck_stack_push_upmc(&stack, &entry->next);
+#elif defined(TRYUPMC)
+		while (ck_stack_trypush_upmc(&stack, &entry->next) == false)
+			ck_pr_stall();
 #elif defined(SPINLOCK) || defined(PTHREADS)
 		LOCK(&stack_spinlock);
 		ck_pr_store_ptr(&entry->next, stack);
@@ -124,6 +130,12 @@ stack_thread(void *buffer)
 		ref = ck_stack_pop_mpmc(&stack);
 		entry = getvalue(ref);
 #endif
+#elif defined(TRYMPMC)
+#ifdef CK_F_STACK_TRYPOP_MPMC
+		while (ck_stack_trypop_mpmc(&stack, &ref) == false)
+			ck_pr_stall();
+		entry = getvalue(ref);
+#endif /* CK_F_STACK_TRYPOP_MPMC */
 #elif defined(UPMC)
 		ref = ck_stack_pop_upmc(&stack);
 		entry = getvalue(ref);

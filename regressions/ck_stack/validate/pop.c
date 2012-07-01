@@ -79,7 +79,7 @@ static unsigned int critical;
 static void *
 stack_thread(void *unused CK_CC_UNUSED)
 {
-#if (defined(MPMC) && defined(CK_F_STACK_POP_MPMC)) || (defined(UPMC) && defined(CK_F_STACK_POP_UPMC))
+#if (defined(MPMC) && defined(CK_F_STACK_POP_MPMC)) || (defined(UPMC) && defined(CK_F_STACK_POP_UPMC)) || (defined(TRYMPMC) && defined(CK_F_STACK_TRYPOP_MPMC)) || (defined(TRYUPMC) && defined(CK_F_STACK_TRYPOP_UPMC))
 	ck_stack_entry_t *ref;
 #endif
 	struct entry *entry = NULL;
@@ -100,9 +100,21 @@ stack_thread(void *unused CK_CC_UNUSED)
 		ref = ck_stack_pop_mpmc(&stack);
 		assert(ref);
 		entry = getvalue(ref);
-#endif
+#endif /* CK_F_STACK_POP_MPMC */
+#elif defined(TRYMPMC)
+#ifdef CK_F_STACK_TRYPOP_MPMC
+		while (ck_stack_trypop_mpmc(&stack, &ref) == false)
+			ck_pr_stall();
+		assert(ref);
+		entry = getvalue(ref);
+#endif /* CK_F_STACK_TRYPOP_MPMC */
 #elif defined(UPMC)
 		ref = ck_stack_pop_upmc(&stack);
+		assert(ref);
+		entry = getvalue(ref);
+#elif defined(TRYUPMC)
+		while (ck_stack_trypop_upmc(&stack, &ref) == false)
+			ck_pr_stall();
 		assert(ref);
 		entry = getvalue(ref);
 #elif defined(SPINLOCK)
