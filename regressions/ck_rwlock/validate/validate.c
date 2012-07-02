@@ -45,9 +45,84 @@
 #endif
 
 static struct affinity a;
-static unsigned int locked = 0;
+static unsigned int locked;
+static unsigned int tid = 2;
 static int nthr;
 static ck_rwlock_t lock = CK_RWLOCK_INITIALIZER;
+static ck_rwlock_recursive_t r_lock = CK_RWLOCK_RECURSIVE_INITIALIZER;
+
+static void *
+thread_recursive(void *null CK_CC_UNUSED)
+{
+	int i = ITERATE;
+	unsigned int l;
+	unsigned int t = ck_pr_faa_uint(&tid, 1);
+
+        if (aff_iterate(&a)) {
+                perror("ERROR: Could not affine thread");
+                exit(EXIT_FAILURE);
+        }
+
+	while (i--) {
+		ck_rwlock_recursive_write_lock(&r_lock, t);
+		ck_rwlock_recursive_write_lock(&r_lock, t);
+		ck_rwlock_recursive_write_lock(&r_lock, t);
+		ck_rwlock_recursive_write_lock(&r_lock, t);
+		{
+			l = ck_pr_load_uint(&locked);
+			if (l != 0) {
+				fprintf(stderr, "ERROR [WR:%d]: %u != 0\n", __LINE__, l);
+				exit(EXIT_FAILURE);
+			}
+
+			ck_pr_inc_uint(&locked);
+			ck_pr_inc_uint(&locked);
+			ck_pr_inc_uint(&locked);
+			ck_pr_inc_uint(&locked);
+			ck_pr_inc_uint(&locked);
+			ck_pr_inc_uint(&locked);
+			ck_pr_inc_uint(&locked);
+			ck_pr_inc_uint(&locked);
+
+			l = ck_pr_load_uint(&locked);
+			if (l != 8) {
+				fprintf(stderr, "ERROR [WR:%d]: %u != 2\n", __LINE__, l);
+				exit(EXIT_FAILURE);
+			}
+
+			ck_pr_dec_uint(&locked);
+			ck_pr_dec_uint(&locked);
+			ck_pr_dec_uint(&locked);
+			ck_pr_dec_uint(&locked);
+			ck_pr_dec_uint(&locked);
+			ck_pr_dec_uint(&locked);
+			ck_pr_dec_uint(&locked);
+			ck_pr_dec_uint(&locked);
+
+			l = ck_pr_load_uint(&locked);
+			if (l != 0) {
+				fprintf(stderr, "ERROR [WR:%d]: %u != 0\n", __LINE__, l);
+				exit(EXIT_FAILURE);
+			}
+		}
+		ck_rwlock_recursive_write_unlock(&r_lock);
+		ck_rwlock_recursive_write_unlock(&r_lock);
+		ck_rwlock_recursive_write_unlock(&r_lock);
+		ck_rwlock_recursive_write_unlock(&r_lock);
+
+		ck_rwlock_recursive_read_lock(&r_lock);
+		{
+			l = ck_pr_load_uint(&locked);
+			if (l != 0) {
+				fprintf(stderr, "ERROR [RD:%d]: %u != 0\n", __LINE__, l);
+				exit(EXIT_FAILURE);
+			}
+		}
+		ck_rwlock_recursive_read_unlock(&r_lock);
+	}
+
+	return (NULL);
+}
 
 static void *
 thread(void *null CK_CC_UNUSED)
@@ -143,6 +218,20 @@ main(int argc, char *argv[])
 	fprintf(stderr, "Creating threads (mutual exclusion)...");
 	for (i = 0; i < nthr; i++) {
 		if (pthread_create(&threads[i], NULL, thread, NULL)) {
+			fprintf(stderr, "ERROR: Could not create thread %d\n", i);
+			exit(EXIT_FAILURE);
+		}
+	}
+	fprintf(stderr, "done\n");
+
+	fprintf(stderr, "Waiting for threads to finish correctness regression...");
+	for (i = 0; i < nthr; i++)
+		pthread_join(threads[i], NULL);
+	fprintf(stderr, "done (passed)\n");
+
+	fprintf(stderr, "Creating threads (mutual exclusion, recursive)...");
+	for (i = 0; i < nthr; i++) {
+		if (pthread_create(&threads[i], NULL, thread_recursive, NULL)) {
 			fprintf(stderr, "ERROR: Could not create thread %d\n", i);
 			exit(EXIT_FAILURE);
 		}
