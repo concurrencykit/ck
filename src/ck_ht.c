@@ -313,11 +313,6 @@ retry:
 				pointer = ck_ht_entry_key(snapshot);
 				if (memcmp(pointer, key, key_length) == 0)
 					goto leave;
-			} else {
-				d_prime = ck_pr_load_64(&map->deletions);
-
-				if (d != d_prime)
-					goto retry;
 			}
 		}
 
