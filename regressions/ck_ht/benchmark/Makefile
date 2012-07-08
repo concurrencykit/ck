@@ -17,4 +17,4 @@ clean:
 	rm -rf *~ *.o $(OBJECTS) *.dSYM
 
 include ../../../build/regressions.build
-CFLAGS+=-D_GNU_SOURCE
+CFLAGS+=-D_GNU_SOURCE -DCK_MD_RDTSCP

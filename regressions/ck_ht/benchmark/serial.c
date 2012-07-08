@@ -43,7 +43,6 @@ static ck_ht_t ht;
 static char **keys;
 static size_t keys_length = 0;
 static size_t keys_capacity = 128;
-static size_t *keys_index;
 
 static void *
 ht_malloc(size_t r)
@@ -149,9 +148,10 @@ table_reset(void)
 }
 
 static void
-keys_shuffle(size_t *k)
+keys_shuffle(char **k)
 {
-	size_t i, j, t;
+	size_t i, j;
+	char *t;
 
 	for (i = keys_length; i > 1; i--) {
 		j = rand() % (i - 1);
@@ -215,12 +215,6 @@ main(int argc, char *argv[])
 
 	table_init();
 
-	keys_index = malloc(sizeof(size_t) * keys_length);
-	assert(keys_index != NULL);
-
-	for (i = 0; i < keys_length; i++)
-		keys_index[i] = i;
-
 	for (i = 0; i < keys_length; i++)
 		d += table_insert(keys[i]) == false;
 
@@ -259,7 +253,7 @@ main(int argc, char *argv[])
 
 	a = 0;
 	for (j = 0; j < r; j++) {
-		keys_shuffle(keys_index);
+		keys_shuffle(keys);
 
 		if (table_reset() == false) {
 			fprintf(stderr, "ERROR: Failed to reset hash table.\n");
@@ -268,7 +262,7 @@ main(int argc, char *argv[])
 
 		s = rdtsc();
 		for (i = 0; i < keys_length; i++)
-			d += table_insert(keys[keys_index[i]]) == false;
+			d += table_insert(keys[i]) == false;
 		e = rdtsc();
 		a += e - s;
 	}
@@ -314,11 +308,11 @@ main(int argc, char *argv[])
 
 	a = 0;
 	for (j = 0; j < r; j++) {
-		keys_shuffle(keys_index);
+		keys_shuffle(keys);
 
 		s = rdtsc();
 		for (i = 0; i < keys_length; i++) {
-			if (table_get(keys[keys_index[i]]) == NULL) {
+			if (table_get(keys[i]) == NULL) {
 				fprintf(stderr, "ERROR: Unexpected NULL value.\n");
 				exit(EXIT_FAILURE);
 			}
