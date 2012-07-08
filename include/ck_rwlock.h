@@ -68,24 +68,15 @@ ck_rwlock_write_downgrade(ck_rwlock_t *rw)
 }
 
 CK_CC_INLINE static bool
-ck_rwlock_write_trylock(ck_rwlock_t *rw, unsigned int factor)
+ck_rwlock_write_trylock(ck_rwlock_t *rw)
 {
-	unsigned int steps = 0;
 
-	while (ck_pr_fas_uint(&rw->writer, 1) != 0) {
-		if (++steps >= factor)
-			return false;
+	if (ck_pr_fas_uint(&rw->writer, 1) != 0)
+		return false;
 
-		ck_pr_stall();
-	}
-
-	while (ck_pr_load_uint(&rw->n_readers) != 0) {
-		if (++steps >= factor) {
-			ck_rwlock_write_unlock(rw);
-			return false;
-		}
-
-		ck_pr_stall();
+	if (ck_pr_load_uint(&rw->n_readers) != 0) {
+		ck_rwlock_write_unlock(rw);
+		return false;
 	}
 
 	ck_pr_fence_store();
@@ -107,27 +98,19 @@ ck_rwlock_write_lock(ck_rwlock_t *rw)
 }
 
 CK_CC_INLINE static bool
-ck_rwlock_read_trylock(ck_rwlock_t *rw, unsigned int factor)
+ck_rwlock_read_trylock(ck_rwlock_t *rw)
 {
-	unsigned int steps = 0;
 
-	for (;;) {
-		while (ck_pr_load_uint(&rw->writer) != 0) {
-			if (++steps >= factor)
-				return false;
+	if (ck_pr_load_uint(&rw->writer) != 0)
+		return false;
 
-			ck_pr_stall();
-		}
+	ck_pr_inc_uint(&rw->n_readers);
+	if (ck_pr_load_uint(&rw->writer) == 0)
+		goto leave;
+	ck_pr_dec_uint(&rw->n_readers);
+	return false;
 
-		ck_pr_inc_uint(&rw->n_readers);
-		if (ck_pr_load_uint(&rw->writer) == 0)
-			break;
-		ck_pr_dec_uint(&rw->n_readers);
-
-		if (++steps >= factor)
-			return false;
-	}
-
+leave:
 	ck_pr_fence_load();
 	return true;
 }
@@ -236,7 +219,7 @@ CK_CC_INLINE static bool
 ck_rwlock_recursive_read_trylock(ck_rwlock_recursive_t *rw)
 {
 
-	return ck_rwlock_read_trylock(&rw->rw, 1);
+	return ck_rwlock_read_trylock(&rw->rw);
 }
 
 CK_CC_INLINE static void
