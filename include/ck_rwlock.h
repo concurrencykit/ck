@@ -192,6 +192,28 @@ leave:
 	return;
 }
 
+CK_CC_INLINE static bool
+ck_rwlock_recursive_write_trylock(ck_rwlock_recursive_t *rw, unsigned int tid)
+{
+	unsigned int o;
+
+	o = ck_pr_load_uint(&rw->rw.writer);
+	if (o == tid)
+		goto leave;
+
+	if (ck_pr_cas_uint(&rw->rw.writer, 0, tid) == false)
+		return false;
+
+	if (ck_pr_load_uint(&rw->rw.n_readers) != 0) {
+		ck_pr_store_uint(&rw->rw.writer, 0);
+		return false;
+	}
+
+leave:
+	rw->wc++;
+	return true;
+}
+
 CK_CC_INLINE static void
 ck_rwlock_recursive_write_unlock(ck_rwlock_recursive_t *rw)
 {
@@ -208,6 +230,13 @@ ck_rwlock_recursive_read_lock(ck_rwlock_recursive_t *rw)
 
 	ck_rwlock_read_lock(&rw->rw);
 	return;
+}
+
+CK_CC_INLINE static bool
+ck_rwlock_recursive_read_trylock(ck_rwlock_recursive_t *rw)
+{
+
+	return ck_rwlock_read_trylock(&rw->rw, 1);
 }
 
 CK_CC_INLINE static void

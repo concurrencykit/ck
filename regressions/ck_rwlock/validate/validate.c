@@ -64,10 +64,22 @@ thread_recursive(void *null CK_CC_UNUSED)
         }
 
 	while (i--) {
+		if ((i % 10000) == 0) {
+			while (ck_rwlock_recursive_write_trylock(&r_lock, t) == false)
+				ck_pr_stall();
+		} else {
+			ck_rwlock_recursive_write_lock(&r_lock, t);
+		}
+
 		ck_rwlock_recursive_write_lock(&r_lock, t);
 		ck_rwlock_recursive_write_lock(&r_lock, t);
 		ck_rwlock_recursive_write_lock(&r_lock, t);
-		ck_rwlock_recursive_write_lock(&r_lock, t);
+
+		if (ck_rwlock_recursive_write_trylock(&r_lock, t) == false) {
+			fprintf(stderr, "ERROR: write_trylock failed.\n");
+			exit(EXIT_FAILURE);
+		}
+
 		{
 			l = ck_pr_load_uint(&locked);
 			if (l != 0) {
@@ -109,7 +121,16 @@ thread_recursive(void *null CK_CC_UNUSED)
 		ck_rwlock_recursive_write_unlock(&r_lock);
 		ck_rwlock_recursive_write_unlock(&r_lock);
 		ck_rwlock_recursive_write_unlock(&r_lock);
+		ck_rwlock_recursive_write_unlock(&r_lock);
 
+		if ((i % 10000) == 0) {
+			while (ck_rwlock_recursive_read_trylock(&r_lock) == false)
+				ck_pr_stall();
+		} else {
+			ck_rwlock_recursive_read_lock(&r_lock);
+		}
+
+		ck_rwlock_recursive_read_lock(&r_lock);
 		ck_rwlock_recursive_read_lock(&r_lock);
 		{
 			l = ck_pr_load_uint(&locked);
@@ -118,6 +139,8 @@ thread_recursive(void *null CK_CC_UNUSED)
 				exit(EXIT_FAILURE);
 			}
 		}
+		ck_rwlock_recursive_read_unlock(&r_lock);
+		ck_rwlock_recursive_read_unlock(&r_lock);
 		ck_rwlock_recursive_read_unlock(&r_lock);
 	}
 
