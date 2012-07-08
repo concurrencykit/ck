@@ -95,8 +95,16 @@ aff_iterate(struct affinity *acb CK_CC_UNUSED)
 CK_CC_INLINE static uint64_t
 rdtsc(void)
 {
-#if defined(__x86_64__)
         uint32_t eax = 0, edx;
+#if defined(__x86_64__)
+#if defined(CK_MD_RDTSCP)
+	__asm__ __volatile__("rdtscp"
+				: "+a" (eax), "=d" (edx)
+				:
+				: "%ecx", "memory");
+
+	return (((uint64_t)edx << 32) | eax);
+#else
 
         __asm__ __volatile__("cpuid;"
                              "rdtsc;"
@@ -111,6 +119,7 @@ rdtsc(void)
                                 : "%eax", "%ebx", "%ecx", "%edx", "memory");
 
         return (((uint64_t)edx << 32) | eax);
+#endif /* !HAVE_RDTSCP */
 #elif defined(__sparcv9__)
         uint64_t r;
 
