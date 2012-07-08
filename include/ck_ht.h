@@ -69,11 +69,19 @@ typedef struct ck_ht_entry ck_ht_entry_t;
 #define CK_HT_KEY_EMPTY		((uintptr_t)0)
 #define CK_HT_KEY_TOMBSTONE	(~(uintptr_t)0)
 
+/*
+ * Hash callback function. First argument is updated to contain a hash value,
+ * second argument is the key, third argument is key length and final argument
+ * is the hash table seed value.
+ */
+typedef void ck_ht_hash_cb_t(ck_ht_hash_t *, const void *, size_t, uint64_t);
+
 struct ck_ht_map;
 struct ck_ht {
 	struct ck_ht_map *map;
 	enum ck_ht_mode mode;
 	uint64_t seed;
+	ck_ht_hash_cb_t *h;
 };
 typedef struct ck_ht ck_ht_t;
 
@@ -211,7 +219,7 @@ bool ck_ht_next(ck_ht_t *, ck_ht_iterator_t *, ck_ht_entry_t **entry);
 void ck_ht_hash(ck_ht_hash_t *, ck_ht_t *, const void *, uint16_t);
 void ck_ht_hash_direct(ck_ht_hash_t *, ck_ht_t *, uintptr_t);
 bool ck_ht_allocator_set(struct ck_malloc *);
-bool ck_ht_init(ck_ht_t *, enum ck_ht_mode, uint64_t, uint64_t);
+bool ck_ht_init(ck_ht_t *, enum ck_ht_mode, ck_ht_hash_cb_t *, uint64_t, uint64_t);
 void ck_ht_destroy(ck_ht_t *);
 bool ck_ht_set_spmc(ck_ht_t *, ck_ht_hash_t, ck_ht_entry_t *);
 bool ck_ht_put_spmc(ck_ht_t *, ck_ht_hash_t, ck_ht_entry_t *);

@@ -97,6 +97,16 @@ ck_ht_hash_direct(struct ck_ht_hash *h,
 	return;
 }
 
+static void
+ck_ht_hash_wrapper(struct ck_ht_hash *h,
+		   const void *key,
+		   size_t length,
+		   uint64_t seed)
+{
+
+	h->value = MurmurHash64A(key, length, seed);
+	return;
+}
 
 bool
 ck_ht_allocator_set(struct ck_malloc *m)
@@ -170,13 +180,19 @@ ck_ht_map_probe_next(struct ck_ht_map *map, size_t offset, ck_ht_hash_t h)
 }
 
 bool
-ck_ht_init(ck_ht_t *table, enum ck_ht_mode mode, uint64_t entries, uint64_t seed)
+ck_ht_init(ck_ht_t *table, enum ck_ht_mode mode, ck_ht_hash_cb_t *h, uint64_t entries, uint64_t seed)
 {
 
 	table->mode = mode;
 	table->seed = seed;
-	table->map = ck_ht_map_create(mode, entries);
 
+	if (h == NULL) {
+		table->h = ck_ht_hash_wrapper;
+	} else {
+		table->h = h;
+	}
+
+	table->map = ck_ht_map_create(mode, entries);
 	return table->map != NULL;
 }
 
@@ -267,19 +283,6 @@ retry:
 			if (map->mode == CK_HT_MODE_BYTESTRING) {
 				void *pointer;
 
-#ifndef CK_HT_PP
-				if (probe_limit == NULL) {
-					d_prime = ck_pr_load_64(&map->deletions);
-
-					/*
-					 * It is possible that the slot was
-					 * replaced, initiate a re-probe.
-					 */
-					if (d != d_prime)
-						goto retry;
-				}
-#endif
-
 				/*
 				 * Check memoized portion of hash value before
 				 * expensive full-length comparison.
@@ -294,11 +297,27 @@ retry:
 #else
 				if (snapshot->hash != h.value)
 					continue;
+
+				if (probe_limit == NULL) {
+					d_prime = ck_pr_load_64(&map->deletions);
+
+					/*
+					 * It is possible that the slot was
+					 * replaced, initiate a re-probe.
+					 */
+					if (d != d_prime)
+						goto retry;
+				}
 #endif
 
 				pointer = ck_ht_entry_key(snapshot);
 				if (memcmp(pointer, key, key_length) == 0)
 					goto leave;
+			} else {
+				d_prime = ck_pr_load_64(&map->deletions);
+
+				if (d != d_prime)
+					goto retry;
 			}
 		}
 
@@ -396,9 +415,9 @@ restart:
 			key = ck_ht_entry_key(previous);
 			key_length = ck_ht_entry_key_length(previous);
 
-			ck_ht_hash(&h, table, key, key_length);
+			table->h(&h, key, key_length, table->seed);
 		} else {
-			ck_ht_hash(&h, table, &previous->key, sizeof(previous->key));
+			table->h(&h, &previous->key, sizeof(previous->key), table->seed);
 		}
 
 		offset = h.value & update->mask;

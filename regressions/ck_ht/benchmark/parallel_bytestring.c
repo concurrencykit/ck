@@ -127,7 +127,7 @@ table_init(void)
 	ck_epoch_register(&epoch_ht, &epoch_wr);
 	srand48((long int)time(NULL));
 	ck_ht_allocator_set(&my_allocator);
-	if (ck_ht_init(&ht, CK_HT_MODE_BYTESTRING, 8, lrand48()) == false) {
+	if (ck_ht_init(&ht, CK_HT_MODE_BYTESTRING, NULL, 8, lrand48()) == false) {
 		perror("ck_ht_init");
 		exit(EXIT_FAILURE);
 	}
@@ -232,7 +232,7 @@ ht_reader(void *unused)
 			if (strcmp(r, keys[i]) == 0)
 				continue;
 
-			fprintf(stderr, "ERROR: Found invalid value: [%s]\n", r);
+			fprintf(stderr, "ERROR: Found invalid value: [%s] but expected [%s]\n", r, keys[i]);
 			exit(EXIT_FAILURE);
 		}
 		a += rdtsc() - s;
@@ -345,6 +345,7 @@ main(int argc, char *argv[])
 	for (i = 0; i < keys_length; i++)
 		d += table_insert(keys[i]) == false;
 
+	fprintf(stderr, " [S] %d readers, 1 writer.\n", n_threads);
 	fprintf(stderr, " [S] %zu entries stored and %u duplicates.\n\n",
 	    table_count(), d);
 

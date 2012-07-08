@@ -74,7 +74,7 @@ table_init(void)
 
 	srand48((long int)time(NULL));
 	ck_ht_allocator_set(&my_allocator);
-	if (ck_ht_init(&ht, CK_HT_MODE_BYTESTRING, 8, lrand48()) == false) {
+	if (ck_ht_init(&ht, CK_HT_MODE_BYTESTRING, NULL, 8, lrand48()) == false) {
 		perror("ck_ht_init");
 		exit(EXIT_FAILURE);
 	}
