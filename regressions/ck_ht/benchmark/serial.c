@@ -43,6 +43,7 @@ static ck_ht_t ht;
 static char **keys;
 static size_t keys_length = 0;
 static size_t keys_capacity = 128;
+static size_t *keys_index;
 
 static void *
 ht_malloc(size_t r)
@@ -147,6 +148,24 @@ table_reset(void)
 	return ck_ht_reset_spmc(&ht);
 }
 
+static void
+keys_shuffle(size_t *k)
+{
+	size_t i, j, t;
+
+	for (i = keys_length; i > 1; i--) {
+		j = rand() % (i - 1);
+
+		if (j != i - 1) {
+			t = k[i - 1];
+			k[i - 1] = k[j];
+			k[j] = t;
+		}
+	}
+
+	return;
+}
+
 int
 main(int argc, char *argv[])
 {
@@ -159,6 +178,7 @@ main(int argc, char *argv[])
 
 	r = 20;
 	s = 8;
+	srand(time(NULL));
 
 	if (argc < 2) {
 		fprintf(stderr, "Usage: ck_ht <dictionary> [<repetitions> <initial size>]\n");
@@ -195,6 +215,12 @@ main(int argc, char *argv[])
 
 	table_init();
 
+	keys_index = malloc(sizeof(size_t) * keys_length);
+	assert(keys_index != NULL);
+
+	for (i = 0; i < keys_length; i++)
+		keys_index[i] = i;
+
 	for (i = 0; i < keys_length; i++)
 		d += table_insert(keys[i]) == false;
 
@@ -209,12 +235,44 @@ main(int argc, char *argv[])
 		}
 
 		s = rdtsc();
+		for (i = keys_length; i > 0; i--)
+			d += table_insert(keys[i - 1]) == false;
+		e = rdtsc();
+		a += e - s;
+	}
+	printf("Reverse insertion: %" PRIu64 " ticks\n", a / (r * keys_length));
+
+	a = 0;
+	for (j = 0; j < r; j++) {
+		if (table_reset() == false) {
+			fprintf(stderr, "ERROR: Failed to reset hash table.\n");
+			exit(EXIT_FAILURE);
+		}
+
+		s = rdtsc();
 		for (i = 0; i < keys_length; i++)
 			d += table_insert(keys[i]) == false;
 		e = rdtsc();
 		a += e - s;
 	}
-	printf("Serial insertion: %" PRIu64 " ticks\n", a / (r * keys_length));
+	printf(" Serial insertion: %" PRIu64 " ticks\n", a / (r * keys_length));
+
+	a = 0;
+	for (j = 0; j < r; j++) {
+		keys_shuffle(keys_index);
+
+		if (table_reset() == false) {
+			fprintf(stderr, "ERROR: Failed to reset hash table.\n");
+			exit(EXIT_FAILURE);
+		}
+
+		s = rdtsc();
+		for (i = 0; i < keys_length; i++)
+			d += table_insert(keys[keys_index[i]]) == false;
+		e = rdtsc();
+		a += e - s;
+	}
+	printf(" Random insertion: %" PRIu64 " ticks\n", a / (r * keys_length));
 
 	a = 0;
 	for (j = 0; j < r; j++) {
@@ -224,7 +282,21 @@ main(int argc, char *argv[])
 		e = rdtsc();
 		a += e - s;
 	}
-	printf("  Serial replace: %" PRIu64 " ticks\n", a / (r * keys_length));
+	printf("   Serial replace: %" PRIu64 " ticks\n", a / (r * keys_length));
+
+	a = 0;
+	for (j = 0; j < r; j++) {
+		s = rdtsc();
+		for (i = keys_length; i > 0; i--) {
+			if (table_get(keys[i - 1]) == NULL) {
+				fprintf(stderr, "ERROR: Unexpected NULL value.\n");
+				exit(EXIT_FAILURE);
+			}
+		}
+		e = rdtsc();
+		a += e - s;
+	}
+	printf("      Reverse get: %" PRIu64 " ticks\n", a / (r * keys_length));
 
 	a = 0;
 	for (j = 0; j < r; j++) {
@@ -238,7 +310,7 @@ main(int argc, char *argv[])
 		e = rdtsc();
 		a += e - s;
 	}
-	printf("      Serial get: %" PRIu64 " ticks\n", a / (r * keys_length));
+	printf("       Serial get: %" PRIu64 " ticks\n", a / (r * keys_length));
 
 	a = 0;
 	for (j = 0; j < r; j++) {
@@ -251,7 +323,7 @@ main(int argc, char *argv[])
 		for (i = 0; i < keys_length; i++)
 			table_insert(keys[i]);
 	}
-	printf("   Serial remove: %" PRIu64 " ticks\n", a / (r * keys_length));
+	printf("    Serial remove: %" PRIu64 " ticks\n", a / (r * keys_length));
 
 	a = 0;
 	for (j = 0; j < r; j++) {
@@ -262,7 +334,7 @@ main(int argc, char *argv[])
 		e = rdtsc();
 		a += e - s;
 	}
-	printf("    Negative get: %" PRIu64 " ticks\n", a / (r * keys_length));
+	printf("     Negative get: %" PRIu64 " ticks\n", a / (r * keys_length));
 
 	return 0;
 }
