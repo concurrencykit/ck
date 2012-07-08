@@ -119,6 +119,17 @@ static struct ck_malloc my_allocator = {
 };
 
 static void
+hash_function(ck_ht_hash_t *h, const void *key, size_t key_length, uint64_t seed)
+{
+	const uintptr_t *value = key;
+
+	(void)key_length;
+	(void)seed;
+	h->value = *value;
+	return;
+}
+
+static void
 table_init(void)
 {
 
@@ -126,7 +137,7 @@ table_init(void)
 	ck_epoch_register(&epoch_ht, &epoch_wr);
 	srand48((long int)time(NULL));
 	ck_ht_allocator_set(&my_allocator);
-	if (ck_ht_init(&ht, CK_HT_MODE_DIRECT, NULL, 8, lrand48()) == false) {
+	if (ck_ht_init(&ht, CK_HT_MODE_DIRECT, hash_function, 8, lrand48()) == false) {
 		perror("ck_ht_init");
 		exit(EXIT_FAILURE);
 	}
