@@ -33,8 +33,10 @@
 Concurrency Kit (libck, \-lck)
 .Sh SYNOPSIS
 .In ck_ht.h
+.Ft typedef void
+.Fn ck_ht_hash_cb_t "ck_ht_hash_t *h" "const void *key" "size_t key_length" "uint64_t seed"
 .Ft bool
-.Fn ck_ht_init "ck_ht_t *ht" "enum ck_ht_mode mode" "uint64_t capacity" "uint64_t seed"
+.Fn ck_ht_init "ck_ht_t *ht" "enum ck_ht_mode mode" "ck_ht_hash_cb_t hash_function" "uint64_t capacity" "uint64_t seed"
 .Sh DESCRIPTION
 The
 .Fn ck_ht_init
@@ -76,6 +78,33 @@ and
 .Xr ck_entry_set_direct 3
 functions.
 .El
+.Pp
+The argument
+.Fa hash_function
+is a pointer to a user-specified hash function. It is optional,
+if
+.Dv NULL
+is specified, then the default hash function implementation will be
+used (
+.Xr ck_ht_hash 3 ).
+A user-specified hash function takes four arguments. The
+.Fa h
+argument is a pointer to a hash value object. The hash function
+is expected to update the
+.Fa value
+object of type
+.Fa uint64_t
+contained with-in the object pointed to by
+.Fa h .
+The
+.Fa key
+argument is a pointer to a key, the
+.Fa key_length
+argument is the length of the key and the
+.Fa seed
+argument is the initial seed associated with the hash table.
+This initial seed is specified by the user in
+.Xr ck_ht_init 3 .
 .Pp
 The argument
 .Fa capacity
