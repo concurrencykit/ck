@@ -2,6 +2,7 @@
 
 all:
 	$(MAKE) -C ./ck_bitmap/validate all
+	$(MAKE) -C ./ck_backoff/validate all
 	$(MAKE) -C ./ck_queue/validate all
 	$(MAKE) -C ./ck_brlock/validate all
 	$(MAKE) -C ./ck_ht/validate all
@@ -30,6 +31,7 @@ all:
 	$(MAKE) -C ./ck_bag/validate all
 
 clean:
+	$(MAKE) -C ./ck_backoff/validate clean
 	$(MAKE) -C ./ck_bitmap/validate clean
 	$(MAKE) -C ./ck_queue/validate clean
 	$(MAKE) -C ./ck_brlock/validate clean

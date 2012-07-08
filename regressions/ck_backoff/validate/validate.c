@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2012 Samy Al Bahra.
+ * Copyright 2011-2012 Samy Al Bahra.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -24,55 +24,53 @@
  * SUCH DAMAGE.
  */
 
-#ifndef _CK_BACKOFF_H
-#define _CK_BACKOFF_H
+#include <stdio.h>
+#include <stdlib.h>
 
-#include <ck_cc.h>
+#include <ck_backoff.h>
+#include "../../common.h"
 
-#ifndef CK_BACKOFF_CEILING
-#define CK_BACKOFF_CEILING ((1 << 20) - 1)
-#endif
-
-#define CK_BACKOFF_INITIALIZER (1 << 9)
-
-typedef volatile unsigned int ck_backoff_t;
-
-/*
- * This is an exponential back-off implementation.
- */
-CK_CC_INLINE static void
-ck_backoff_eb(volatile unsigned int *c)
+int
+main(void)
 {
-	volatile unsigned int i;
-	unsigned int ceiling;
+	ck_backoff_t backoff = CK_BACKOFF_INITIALIZER;
+	const ck_backoff_t ceiling = CK_BACKOFF_CEILING + 1;
+	unsigned int i = 0;
 
-	ceiling = *c;
+	fprintf(stderr, "Ceiling is: %u (%#x)\n", CK_BACKOFF_CEILING, CK_BACKOFF_CEILING);
 
-	for (i = 0; i < ceiling; i++);
+	for (;;) {
+		ck_backoff_t previous = backoff;
+		ck_backoff_gb(&backoff);
 
-	ceiling *= ceiling;
-	ceiling &= CK_BACKOFF_CEILING;
-	ceiling += CK_BACKOFF_INITIALIZER;
+		if (previous == ceiling) {
+			if (backoff != ceiling) {
+				fprintf(stderr, "[C] GB: expected %u, got %u\n", ceiling, backoff);
+				exit(EXIT_FAILURE);
+			}
 
-	*c = ceiling;
-	return;
+			if (i++ >= 1)
+				break;
+		} else if (previous != backoff >> 1) {
+			fprintf(stderr, "[N] GB: expected %u (%u), got %u\n", previous << 1, previous, backoff);
+			exit(EXIT_FAILURE);
+		}
+	}
+
+	backoff = CK_BACKOFF_INITIALIZER;
+	for (;;) {
+		ck_backoff_t previous = backoff;
+		ck_backoff_eb(&backoff);
+
+		if (backoff = previous) {
+			if (i++ >= 3)
+				break;
+		} else if (previous * previous >= backoff) {
+			fprintf(stderr, "[N] EB: expected %u (%u), got %u\n", previous * previous, previous, backoff);
+			exit(EXIT_FAILURE);
+		}
+	}
+
+	return 0;
 }
 
-/*
- * This is a geometric back-off implementation.
- */
-CK_CC_INLINE static void
-ck_backoff_gb(volatile unsigned int *c)
-{
-	volatile unsigned int i;
-	unsigned int ceiling;
-
-	ceiling = *c;
-
-	for (i = 0; i < ceiling; i++);
-
-	*c = ceiling <<= ceiling < CK_BACKOFF_CEILING;
-	return;
-}
-
-#endif /* _CK_BACKOFF_H */
