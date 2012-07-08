@@ -314,6 +314,22 @@ main(int argc, char *argv[])
 
 	a = 0;
 	for (j = 0; j < r; j++) {
+		keys_shuffle(keys_index);
+
+		s = rdtsc();
+		for (i = 0; i < keys_length; i++) {
+			if (table_get(keys[keys_index[i]]) == NULL) {
+				fprintf(stderr, "ERROR: Unexpected NULL value.\n");
+				exit(EXIT_FAILURE);
+			}
+		}
+		e = rdtsc();
+		a += e - s;
+	}
+	printf("       Random get: %" PRIu64 " ticks\n", a / (r * keys_length));
+
+	a = 0;
+	for (j = 0; j < r; j++) {
 		s = rdtsc();
 		for (i = 0; i < keys_length; i++)
 			table_remove(keys[i]);
