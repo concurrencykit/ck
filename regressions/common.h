@@ -119,7 +119,7 @@ rdtsc(void)
                                 : "%eax", "%ebx", "%ecx", "%edx", "memory");
 
         return (((uint64_t)edx << 32) | eax);
-#endif /* !HAVE_RDTSCP */
+#endif /* !CK_MD_RDTSCP */
 #elif defined(__sparcv9__)
         uint64_t r;
 
