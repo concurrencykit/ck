@@ -522,21 +522,16 @@ ck_ht_get_spmc(ck_ht_t *table,
 {
 	struct ck_ht_entry *candidate, snapshot;
 	struct ck_ht_map *map;
-
-#ifdef CK_HT_PP
 	uint64_t d, d_prime;
 
 restart:
-#endif
 	map = ck_pr_load_ptr(&table->map);
 
-#ifdef CK_HT_PP
 	/*
 	 * Platforms that cannot read key and key_length atomically must reprobe
 	 * on the scan of any single entry.
 	 */
 	d = ck_pr_load_64(&map->deletions);
-#endif
 
 	if (table->mode == CK_HT_MODE_BYTESTRING) {
 		candidate = ck_ht_map_probe(map, h, &snapshot, NULL,
@@ -546,7 +541,6 @@ restart:
 		    (void *)entry->key, sizeof(entry->key), NULL);
 	}
 
-#ifdef CK_HT_PP
 	d_prime = ck_pr_load_64(&map->deletions);
 	if (d != d_prime) {
 		/*
@@ -556,7 +550,6 @@ restart:
 		 */
 		goto restart;
 	}
-#endif
 
 	if (candidate == NULL || snapshot.key == CK_HT_KEY_EMPTY)
 		return false;
