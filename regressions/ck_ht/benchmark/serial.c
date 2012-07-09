@@ -173,7 +173,7 @@ main(int argc, char *argv[])
 	char buffer[512];
 	size_t i, j, r;
 	unsigned int d = 0;
-	uint64_t s, e, a;
+	uint64_t s, e, a, ri, si, ai, sr, rg, sg, ag, sd, ng;
 	char **t;
 
 	r = 20;
@@ -218,8 +218,10 @@ main(int argc, char *argv[])
 	for (i = 0; i < keys_length; i++)
 		d += table_insert(keys[i]) == false;
 
-	fprintf(stderr, "%zu entries stored and %u duplicates.\n\n",
+	fprintf(stderr, "# %zu entries stored and %u duplicates.\n",
 	    table_count(), d);
+
+	fprintf(stderr, "#    reverse_insertion serial_insertion random_insertion serial_replace reverse_get serial_get random_get serial_remove negative_get\n\n");
 
 	a = 0;
 	for (j = 0; j < r; j++) {
@@ -234,7 +236,7 @@ main(int argc, char *argv[])
 		e = rdtsc();
 		a += e - s;
 	}
-	printf("Reverse insertion: %" PRIu64 " ticks\n", a / (r * keys_length));
+	ri = a / (r * keys_length);
 
 	a = 0;
 	for (j = 0; j < r; j++) {
@@ -249,7 +251,7 @@ main(int argc, char *argv[])
 		e = rdtsc();
 		a += e - s;
 	}
-	printf(" Serial insertion: %" PRIu64 " ticks\n", a / (r * keys_length));
+	si = a / (r * keys_length);
 
 	a = 0;
 	for (j = 0; j < r; j++) {
@@ -266,7 +268,7 @@ main(int argc, char *argv[])
 		e = rdtsc();
 		a += e - s;
 	}
-	printf(" Random insertion: %" PRIu64 " ticks\n", a / (r * keys_length));
+	ai = a / (r * keys_length);
 
 	a = 0;
 	for (j = 0; j < r; j++) {
@@ -276,7 +278,7 @@ main(int argc, char *argv[])
 		e = rdtsc();
 		a += e - s;
 	}
-	printf("   Serial replace: %" PRIu64 " ticks\n", a / (r * keys_length));
+	sr = a / (r * keys_length);
 
 	a = 0;
 	for (j = 0; j < r; j++) {
@@ -290,7 +292,7 @@ main(int argc, char *argv[])
 		e = rdtsc();
 		a += e - s;
 	}
-	printf("      Reverse get: %" PRIu64 " ticks\n", a / (r * keys_length));
+	rg = a / (r * keys_length);
 
 	a = 0;
 	for (j = 0; j < r; j++) {
@@ -304,7 +306,7 @@ main(int argc, char *argv[])
 		e = rdtsc();
 		a += e - s;
 	}
-	printf("       Serial get: %" PRIu64 " ticks\n", a / (r * keys_length));
+	sg = a / (r * keys_length);
 
 	a = 0;
 	for (j = 0; j < r; j++) {
@@ -320,7 +322,7 @@ main(int argc, char *argv[])
 		e = rdtsc();
 		a += e - s;
 	}
-	printf("       Random get: %" PRIu64 " ticks\n", a / (r * keys_length));
+	ag = a / (r * keys_length);
 
 	a = 0;
 	for (j = 0; j < r; j++) {
@@ -333,7 +335,7 @@ main(int argc, char *argv[])
 		for (i = 0; i < keys_length; i++)
 			table_insert(keys[i]);
 	}
-	printf("    Serial remove: %" PRIu64 " ticks\n", a / (r * keys_length));
+	sd = a / (r * keys_length);
 
 	a = 0;
 	for (j = 0; j < r; j++) {
@@ -344,7 +346,19 @@ main(int argc, char *argv[])
 		e = rdtsc();
 		a += e - s;
 	}
-	printf("     Negative get: %" PRIu64 " ticks\n", a / (r * keys_length));
+	ng = a / (r * keys_length);
+
+	printf("%zu "
+	    "%" PRIu64 " "
+	    "%" PRIu64 " "
+	    "%" PRIu64 " "
+	    "%" PRIu64 " "
+	    "%" PRIu64 " "
+	    "%" PRIu64 " "
+	    "%" PRIu64 " "
+	    "%" PRIu64 " "
+	    "%" PRIu64 "\n",
+	    keys_length, ri, si, ai, sr, rg, sg, rg, sd, ng);
 
 	return 0;
 }
