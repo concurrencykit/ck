@@ -36,7 +36,7 @@ Concurrency Kit (libck, \-lck)
 .Ft typedef void
 .Fn ck_ht_hash_cb_t "ck_ht_hash_t *h" "const void *key" "size_t key_length" "uint64_t seed"
 .Ft bool
-.Fn ck_ht_init "ck_ht_t *ht" "enum ck_ht_mode mode" "ck_ht_hash_cb_t hash_function" "uint64_t capacity" "uint64_t seed"
+.Fn ck_ht_init "ck_ht_t *ht" "enum ck_ht_mode mode" "ck_ht_hash_cb_t *hash_function" "struct ck_malloc *allocator" "uint64_t capacity" "uint64_t seed"
 .Sh DESCRIPTION
 The
 .Fn ck_ht_init
@@ -63,7 +63,8 @@ to be interacted with using the
 .Xr ck_ht_entry_value 3 ,
 and
 .Xr ck_ht_entry_set 3
-functions.
+functions. Attempting a hash table operation with a key of value
+NULL or (void *)UINTPTR_MAX will result in undefined behavior.
 .It CK_HT_MODE_DIRECT
 The hash table is meant to store key-value pointers where
 the key is of fixed width field compatible with the
@@ -76,7 +77,8 @@ with using the
 .Xr ck_ht_entry_value_direct 3
 and
 .Xr ck_entry_set_direct 3
-functions.
+functions. Attempting a hash table operation with a key of value of 0 or
+UINTPTR_MAX will result in undefined behavior.
 .El
 .Pp
 The argument
@@ -105,6 +107,15 @@ argument is the length of the key and the
 argument is the initial seed associated with the hash table.
 This initial seed is specified by the user in
 .Xr ck_ht_init 3 .
+.Pp
+The
+.Fa allocator
+argument is a pointer to a structure containing
+.Fa malloc
+and
+.Fa free
+function pointers which respectively define the memory allocation and
+destruction functions to be used by the hash table being initialized.
 .Pp
 The argument
 .Fa capacity

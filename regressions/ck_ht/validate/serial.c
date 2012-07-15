@@ -77,8 +77,7 @@ main(void)
 	ck_ht_iterator_t iterator = CK_HT_ITERATOR_INITIALIZER;
 	ck_ht_entry_t *cursor;
 
-	ck_ht_allocator_set(&my_allocator);
-	if (ck_ht_init(&ht, CK_HT_MODE_BYTESTRING, NULL, 8, 6602834) == false) {
+	if (ck_ht_init(&ht, CK_HT_MODE_BYTESTRING, NULL, &my_allocator, 8, 6602834) == false) {
 		perror("ck_ht_init");
 		exit(EXIT_FAILURE);
 	}
@@ -247,7 +246,7 @@ main(void)
 	}
 
 	ck_ht_destroy(&ht);
-	if (ck_ht_init(&ht, CK_HT_MODE_DIRECT, NULL, 8, 6602834) == false) {
+	if (ck_ht_init(&ht, CK_HT_MODE_DIRECT, NULL, &my_allocator, 8, 6602834) == false) {
 		perror("ck_ht_init");
 		exit(EXIT_FAILURE);
 	}

@@ -136,8 +136,7 @@ table_init(void)
 	ck_epoch_init(&epoch_ht, 10);
 	ck_epoch_register(&epoch_ht, &epoch_wr);
 	srand48((long int)time(NULL));
-	ck_ht_allocator_set(&my_allocator);
-	if (ck_ht_init(&ht, CK_HT_MODE_DIRECT, hash_function, 8, lrand48()) == false) {
+	if (ck_ht_init(&ht, CK_HT_MODE_DIRECT, hash_function, &my_allocator, 8, lrand48()) == false) {
 		perror("ck_ht_init");
 		exit(EXIT_FAILURE);
 	}

@@ -74,8 +74,6 @@ struct ck_ht_map {
 	struct ck_ht_entry *entries;
 };
 
-static struct ck_malloc allocator;
-
 void
 ck_ht_hash(struct ck_ht_hash *h,
 	   struct ck_ht *table,
@@ -108,21 +106,8 @@ ck_ht_hash_wrapper(struct ck_ht_hash *h,
 	return;
 }
 
-bool
-ck_ht_allocator_set(struct ck_malloc *m)
-{
-
-	if (m->malloc == NULL || m->free == NULL)
-		return false;
-
-	allocator.malloc = m->malloc;
-	allocator.free = m->free;
-
-	return true;
-}
-
 static struct ck_ht_map *
-ck_ht_map_create(enum ck_ht_mode mode, uint64_t entries)
+ck_ht_map_create(struct ck_ht *table, uint64_t entries)
 {
 	struct ck_ht_map *map;
 	uint64_t size, n_entries;
@@ -131,11 +116,11 @@ ck_ht_map_create(enum ck_ht_mode mode, uint64_t entries)
 	size = sizeof(struct ck_ht_map) +
 		   (sizeof(struct ck_ht_entry) * n_entries + CK_MD_CACHELINE - 1);
 
-	map = allocator.malloc(size);
+	map = table->m->malloc(size);
 	if (map == NULL)
 		return NULL;
 
-	map->mode = mode;
+	map->mode = table->mode;
 	map->size = size;
 	map->probe_limit = ck_internal_max_64(n_entries >>
 	    (CK_HT_BUCKET_SHIFT + 2), CK_HT_PROBE_DEFAULT);
@@ -150,7 +135,7 @@ ck_ht_map_create(enum ck_ht_mode mode, uint64_t entries)
 	    CK_MD_CACHELINE - 1) & ~(CK_MD_CACHELINE - 1));
 
 	if (map->entries == NULL) {
-		allocator.free(map, size, false);
+		table->m->free(map, size, false);
 		return NULL;
 	}
 
@@ -159,10 +144,10 @@ ck_ht_map_create(enum ck_ht_mode mode, uint64_t entries)
 }
 
 static void
-ck_ht_map_destroy(struct ck_ht_map *map, bool defer)
+ck_ht_map_destroy(struct ck_malloc *m, struct ck_ht_map *map, bool defer)
 {
 
-	allocator.free(map, map->size, defer);
+	m->free(map, map->size, defer);
 	return;
 }
 
@@ -180,9 +165,18 @@ ck_ht_map_probe_next(struct ck_ht_map *map, size_t offset, ck_ht_hash_t h)
 }
 
 bool
-ck_ht_init(ck_ht_t *table, enum ck_ht_mode mode, ck_ht_hash_cb_t *h, uint64_t entries, uint64_t seed)
+ck_ht_init(ck_ht_t *table,
+	   enum ck_ht_mode mode,
+	   ck_ht_hash_cb_t *h,
+	   struct ck_malloc *m,
+	   uint64_t entries,
+	   uint64_t seed)
 {
 
+	if (m == NULL || m->malloc == NULL || m->free == NULL)
+		return false;
+
+	table->m = m;
 	table->mode = mode;
 	table->seed = seed;
 
@@ -192,7 +186,7 @@ ck_ht_init(ck_ht_t *table, enum ck_ht_mode mode, ck_ht_hash_cb_t *h, uint64_t en
 		table->h = h;
 	}
 
-	table->map = ck_ht_map_create(mode, entries);
+	table->map = ck_ht_map_create(table, entries);
 	return table->map != NULL;
 }
 
@@ -369,12 +363,12 @@ ck_ht_reset_spmc(struct ck_ht *table)
 	struct ck_ht_map *map, *update;
 
 	map = table->map;
-	update = ck_ht_map_create(table->mode, map->capacity);
+	update = ck_ht_map_create(table, map->capacity);
 	if (update == NULL)
 		return false;
 
 	ck_pr_store_ptr(&table->map, update);
-	ck_ht_map_destroy(map, true);
+	ck_ht_map_destroy(table->m, map, true);
 	return true;
 }
 
@@ -393,7 +387,7 @@ restart:
 	if (map->capacity >= capacity)
 		return false;
 
-	update = ck_ht_map_create(table->mode, capacity);
+	update = ck_ht_map_create(table, capacity);
 	if (update == NULL)
 		return false;
 
@@ -447,7 +441,7 @@ restart:
 			 * We have hit the probe limit, the map needs to be even
 			 * larger.
 			 */
-			ck_ht_map_destroy(update, false);
+			ck_ht_map_destroy(table->m, update, false);
 			capacity <<= 1;
 			goto restart;
 		}
@@ -455,7 +449,7 @@ restart:
 
 	ck_pr_fence_store();
 	ck_pr_store_ptr(&table->map, update);
-	ck_ht_map_destroy(map, true);
+	ck_ht_map_destroy(table->m, map, true);
 	return true;
 }
 
@@ -720,7 +714,7 @@ void
 ck_ht_destroy(struct ck_ht *table)
 {
 
-	ck_ht_map_destroy(table->map, false);
+	ck_ht_map_destroy(table->m, table->map, false);
 	return;
 }
 
