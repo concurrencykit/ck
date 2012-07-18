@@ -135,6 +135,7 @@ ck_hp_fifo_dequeue_mpmc(ck_hp_record_t *record,
 
 	for (;;) {
 		head = ck_pr_load_ptr(&fifo->head);
+		ck_pr_fence_load();
 		tail = ck_pr_load_ptr(&fifo->tail);
 		ck_hp_set(record, 0, head);
 		ck_pr_fence_memory();
@@ -169,6 +170,7 @@ ck_hp_fifo_trydequeue_mpmc(ck_hp_record_t *record,
 	struct ck_hp_fifo_entry *head, *tail, *next;
 
 	head = ck_pr_load_ptr(&fifo->head);
+	ck_pr_fence_load();
 	tail = ck_pr_load_ptr(&fifo->tail);
 	ck_hp_set(record, 0, head);
 	ck_pr_fence_memory();
