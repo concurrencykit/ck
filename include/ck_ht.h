@@ -188,12 +188,19 @@ ck_ht_entry_set(struct ck_ht_entry *entry,
 
 CK_CC_INLINE static void
 ck_ht_entry_set_direct(struct ck_ht_entry *entry,
+		       ck_ht_hash_t h,
 		       uintptr_t key,
 		       uintptr_t value)
 {
 
 	entry->key = key;
 	entry->value = value;
+
+#ifndef CK_HT_PP
+	entry->hash = h.value;
+#else
+	(void)h;
+#endif
 	return;
 }
 
