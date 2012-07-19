@@ -226,7 +226,6 @@ bool ck_ht_next(ck_ht_t *, ck_ht_iterator_t *, ck_ht_entry_t **entry);
 
 void ck_ht_hash(ck_ht_hash_t *, ck_ht_t *, const void *, uint16_t);
 void ck_ht_hash_direct(ck_ht_hash_t *, ck_ht_t *, uintptr_t);
-bool ck_ht_allocator_set(struct ck_malloc *);
 bool ck_ht_init(ck_ht_t *, enum ck_ht_mode, ck_ht_hash_cb_t *, struct ck_malloc *, uint64_t, uint64_t);
 void ck_ht_destroy(ck_ht_t *);
 bool ck_ht_set_spmc(ck_ht_t *, ck_ht_hash_t, ck_ht_entry_t *);
