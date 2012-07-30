@@ -75,4 +75,11 @@
 #pragma GCC poison malloc free
 #endif
 
+/*
+ * Some compilers are overly strict regarding aliasing semantics.
+ * Unfortunately, in many cases it makes more sense to pay aliasing
+ * cost rather than overly expensive register spillage.
+ */
+#define CK_CC_ALIASED __attribute__((__may_alias__))
+
 #endif /* _CK_GCC_CC_H */
