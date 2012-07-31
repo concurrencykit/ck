@@ -1,0 +1,80 @@
+.\"
+.\" Copyright 2012 Abel P. Mathew
+.\" Copyright 2012 Samy Al Bahra.
+.\" All rights reserved.
+.\"
+.\" Redistribution and use in source and binary forms, with or without
+.\" modification, are permitted provided that the following conditions
+.\" are met:
+.\" 1. Redistributions of source code must retain the above copyright
+.\"    notice, this list of conditions and the following disclaimer.
+.\" 2. Redistributions in binary form must reproduce the above copyright
+.\"    notice, this list of conditions and the following disclaimer in the
+.\"    documentation and/or other materials provided with the distribution.
+.\"
+.\" THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
+.\" ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+.\" IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+.\" ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
+.\" FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+.\" DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+.\" OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+.\" HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+.\" LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+.\" OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+.\" SUCH DAMAGE.
+.\"
+.\"
+.Dd July 16th, 2012
+.Dt CK_BAG_SET_SPMC 3
+.Sh NAME
+.Nm ck_bag_set_spmc
+.Nd Replace the first occurence of a value in a bag. Insert value into the bag if value didn't previously exist.
+.Sh LIBRARY
+Concurrency Kit (libck, \-lck)
+.Sh SYNOPSIS
+.In ck_bag.h
+.Ft bool
+.Fn ck_bag_set_spmc "ck_bag_t *bag, void *compare, void *update"
+.Sh DESCRIPTION
+The 
+.Fn ck_bag_set_spmc
+function will find the first occurence of the
+.Fa compare
+argument in the ck_bag pointed to by the
+.Fa bag
+argument and replace this entry with the value passed in by the 
+.Fa update
+argument. If the no entries in the
+.Fa bag
+are equal to the 
+.Fa compare
+argument, then a new entry with the value of 
+.Fa update
+will placed in the bag.
+This function is safe in the presence of concurrent
+.Fn ck_bag_next
+operations.
+.Sh RETURN VALUES
+Upon completion 
+.Fn ck_bag_set_spmc
+returns true on success, false on failure.
+.Sh ERRORS
+Behavior is undefined if the ck_bag pointed to by the
+.Fa bag
+argument has not been initialized.
+.Sh SEE ALSO
+.Xr ck_bag_allocator_set(3),
+.Xr ck_bag_block_next(3),
+.Xr ck_bag_destroy(3),
+.Xr ck_bag_iterator_init(3),
+.Xr ck_bag_next(3),
+.Xr ck_bag_remove_spmc(3),
+.Xr ck_bag_block_count(3),
+.Xr ck_bag_count(3),
+.Xr ck_bag_init(3),
+.Xr ck_bag_member_spmc(3),
+.Xr ck_bag_put_spmc(3),
+.Xr ck_bag_set_spmc(3)
+.Pp
+Additional information available at http://concurrencykit.org/
