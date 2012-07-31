@@ -162,7 +162,7 @@ table_replace(uintptr_t value)
 	ck_ht_hash_t h;
 
 	ck_ht_hash_direct(&h, &ht, value);
-	ck_ht_entry_set_direct(&entry, value, 6605241);
+	ck_ht_entry_set_direct(&entry, h, value, 6605241);
 	return ck_ht_set_spmc(&ht, h, &entry);
 }
 
@@ -187,7 +187,7 @@ table_insert(uintptr_t value)
 	ck_ht_hash_t h;
 
 	ck_ht_hash_direct(&h, &ht, value);
-	ck_ht_entry_set_direct(&entry, value, value);
+	ck_ht_entry_set_direct(&entry, h, value, value);
 	return ck_ht_put_spmc(&ht, h, &entry);
 }
 

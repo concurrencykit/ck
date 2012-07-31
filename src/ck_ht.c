@@ -404,9 +404,17 @@ restart:
 			key = ck_ht_entry_key(previous);
 			key_length = ck_ht_entry_key_length(previous);
 
+#ifndef CK_HT_PP
+			h.value = previous->hash;
+#else
 			table->h(&h, key, key_length, table->seed);
+#endif
 		} else {
+#ifndef CK_HT_PP
+			h.value = previous->hash;
+#else
 			table->h(&h, &previous->key, sizeof(previous->key), table->seed);
+#endif
 		}
 
 		offset = h.value & update->mask;

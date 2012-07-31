@@ -249,8 +249,9 @@ ck_fifo_mpmc_enqueue(struct ck_fifo_mpmc *fifo,
 
 	for (;;) {
 		tail.generation = ck_pr_load_ptr(&fifo->tail.generation);
+		ck_pr_fence_load();
 		tail.pointer = ck_pr_load_ptr(&fifo->tail.pointer);
-
+		ck_pr_fence_load_depends();
 		next.generation = ck_pr_load_ptr(&tail.pointer->next.generation);
 		next.pointer = ck_pr_load_ptr(&tail.pointer->next.pointer);
 
@@ -299,8 +300,9 @@ ck_fifo_mpmc_tryenqueue(struct ck_fifo_mpmc *fifo,
 	ck_pr_fence_store();
 
 	tail.generation = ck_pr_load_ptr(&fifo->tail.generation);
+	ck_pr_fence_load();
 	tail.pointer = ck_pr_load_ptr(&fifo->tail.pointer);
-
+	ck_pr_fence_load_depends();
 	next.generation = ck_pr_load_ptr(&tail.pointer->next.generation);
 	next.pointer = ck_pr_load_ptr(&tail.pointer->next.pointer);
 
@@ -344,9 +346,10 @@ ck_fifo_mpmc_dequeue(struct ck_fifo_mpmc *fifo,
 
 	for (;;) {
 		head.generation = ck_pr_load_ptr(&fifo->head.generation);
+		ck_pr_fence_load();
 		head.pointer = ck_pr_load_ptr(&fifo->head.pointer);
-
 		tail.generation = ck_pr_load_ptr(&fifo->tail.generation);
+		ck_pr_fence_load();
 		tail.pointer = ck_pr_load_ptr(&fifo->tail.pointer);
 
 		next.generation = ck_pr_load_ptr(&head.pointer->next.generation);
@@ -388,9 +391,11 @@ ck_fifo_mpmc_trydequeue(struct ck_fifo_mpmc *fifo,
 	struct ck_fifo_mpmc_pointer head, tail, next, update;
 
 	head.generation = ck_pr_load_ptr(&fifo->head.generation);
+	ck_pr_fence_load();
 	head.pointer = ck_pr_load_ptr(&fifo->head.pointer);
 
 	tail.generation = ck_pr_load_ptr(&fifo->tail.generation);
+	ck_pr_fence_load();
 	tail.pointer = ck_pr_load_ptr(&fifo->tail.pointer);
 
 	next.generation = ck_pr_load_ptr(&head.pointer->next.generation);

@@ -34,15 +34,17 @@ Concurrency Kit (libck, \-lck)
 .Sh SYNOPSIS
 .In ck_ht.h
 .Ft void
-.Fn ck_ht_entry_set "ck_ht_entry_t *entry" "uintptr_t key" "uintptr_t value"
+.Fn ck_ht_entry_set_direct "ck_ht_entry_t *entry" "ck_ht_hash_t h" "uintptr_t key" "uintptr_t value"
 .Sh DESCRIPTION
 The
 .Fn ck_ht_entry_set
 function will initialize the object pointed to by
 .Fa entry
-with the key value specified in the
+with the hash value specified by the
+.Fa h
+argument, the key value specified in the
 .Fa key
-argument and a value specified by the
+argument and the value specified by the
 .Fa value
 argument.
 .Pp

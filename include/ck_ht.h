@@ -188,12 +188,19 @@ ck_ht_entry_set(struct ck_ht_entry *entry,
 
 CK_CC_INLINE static void
 ck_ht_entry_set_direct(struct ck_ht_entry *entry,
+		       ck_ht_hash_t h,
 		       uintptr_t key,
 		       uintptr_t value)
 {
 
 	entry->key = key;
 	entry->value = value;
+
+#ifndef CK_HT_PP
+	entry->hash = h.value;
+#else
+	(void)h;
+#endif
 	return;
 }
 
@@ -219,7 +226,6 @@ bool ck_ht_next(ck_ht_t *, ck_ht_iterator_t *, ck_ht_entry_t **entry);
 
 void ck_ht_hash(ck_ht_hash_t *, ck_ht_t *, const void *, uint16_t);
 void ck_ht_hash_direct(ck_ht_hash_t *, ck_ht_t *, uintptr_t);
-bool ck_ht_allocator_set(struct ck_malloc *);
 bool ck_ht_init(ck_ht_t *, enum ck_ht_mode, ck_ht_hash_cb_t *, struct ck_malloc *, uint64_t, uint64_t);
 void ck_ht_destroy(ck_ht_t *);
 bool ck_ht_set_spmc(ck_ht_t *, ck_ht_hash_t, ck_ht_entry_t *);

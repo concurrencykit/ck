@@ -53,12 +53,12 @@ rm -rf $RPM_BUILD_ROOT
 
 %files
 %defattr(-,root,root,-)
-%{_libdir}/libck.so
 %{_libdir}/libck.so.@VERSION@
 %{_libdir}/libck.so.@VERSION_MAJOR@
 
 %files devel
 %defattr(-,root,root)
+%{_libdir}/libck.so
 %{_includedir}/%{name}/*.h
 %{_includedir}/%{name}/*/*.h
 %{_includedir}/%{name}/*/*/*.h

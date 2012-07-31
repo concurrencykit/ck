@@ -254,7 +254,7 @@ main(void)
 	l = 0;
 	for (i = 0; i < sizeof(direct) / sizeof(*direct); i++) {
 		ck_ht_hash_direct(&h, &ht, direct[i]);
-		ck_ht_entry_set_direct(&entry, direct[i], (uintptr_t)test[i]);
+		ck_ht_entry_set_direct(&entry, h, direct[i], (uintptr_t)test[i]);
 		l += ck_ht_put_spmc(&ht, h, &entry) == false;
 	}
 
@@ -265,7 +265,7 @@ main(void)
 
 	for (i = 0; i < sizeof(direct) / sizeof(*direct); i++) {
 		ck_ht_hash_direct(&h, &ht, direct[i]);
-		ck_ht_entry_set_direct(&entry, direct[i], (uintptr_t)"REPLACED");
+		ck_ht_entry_set_direct(&entry, h, direct[i], (uintptr_t)"REPLACED");
 		l += ck_ht_set_spmc(&ht, h, &entry) == false;
 	}
 
