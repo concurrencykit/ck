@@ -41,6 +41,7 @@ typedef struct ck_sequence ck_sequence_t;
 CK_CC_INLINE static void
 ck_sequence_init(struct ck_sequence *sq)
 {
+
 	ck_pr_store_uint(&sq->sequence, 0);
 	return;
 }
@@ -68,6 +69,7 @@ ck_sequence_read_begin(struct ck_sequence *sq)
 		ck_pr_stall();
 	}
 
+	ck_pr_fence_load();
 	return version;
 }
 
