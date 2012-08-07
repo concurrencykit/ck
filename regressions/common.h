@@ -95,8 +95,8 @@ aff_iterate(struct affinity *acb CK_CC_UNUSED)
 CK_CC_INLINE static uint64_t
 rdtsc(void)
 {
-        uint32_t eax = 0, edx;
 #if defined(__x86_64__)
+	uint32_t eax = 0, edx;
 #if defined(CK_MD_RDTSCP)
 	__asm__ __volatile__("rdtscp"
 				: "+a" (eax), "=d" (edx)
@@ -121,7 +121,7 @@ rdtsc(void)
         return (((uint64_t)edx << 32) | eax);
 #endif /* !CK_MD_RDTSCP */
 #elif defined(__sparcv9__)
-        uint64_t r;
+	uint64_t r;
 
         __asm__ __volatile__("rd %%tick, %0"
 				: "=r" (r)
@@ -129,9 +129,9 @@ rdtsc(void)
 				: "memory");
         return r;
 #elif defined(__ppc64__)
-     uint32_t high, low, snapshot;
+	uint32_t high, low, snapshot;
 
-     do {
+	do {
 	  __asm__ __volatile__("isync;"
 			       "mftbu %0;"
 			       "mftb  %1;"
@@ -139,9 +139,9 @@ rdtsc(void)
 				: "=r" (high), "=r" (low), "=r" (snapshot)
 				:
 				: "memory");
-     } while (snapshot != high);
+	} while (snapshot != high);
 
-     return (((uint64_t)high << 32) | low);
+	return (((uint64_t)high << 32) | low);
 #else
 	return 0;
 #endif
