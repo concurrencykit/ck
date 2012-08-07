@@ -53,7 +53,7 @@ consumer(void *unused CK_CC_UNUSED)
 {
         struct example copy;
         uint32_t version;
-        unsigned int counter = 0;
+        unsigned int retries = 0;
         unsigned int i;
 
 	unused = NULL;
@@ -72,22 +72,24 @@ consumer(void *unused CK_CC_UNUSED)
                  */
                 do {
                         version = ck_sequence_read_begin(&seqlock);
-                        copy = global;
-                        counter++;
-                } while (ck_sequence_read_retry(&seqlock, version));
+                        copy.a = ck_pr_load_uint(&global.a);
+                        copy.b = ck_pr_load_uint(&global.b);
+			copy.c = ck_pr_load_uint(&global.c);
+			retries++;
+                } while (ck_sequence_read_retry(&seqlock, version) == true);
 
 		if (copy.b != copy.a + 1000) {
-			fprintf(stderr, "ERROR: Failed regression: copy.b\n");
+			fprintf(stderr, "ERROR: Failed regression: copy.b (%u != %u + %u / %u)\n", copy.b, copy.a, 1000, copy.a + 1000);
 			exit(EXIT_FAILURE);
 		}
 
 		if (copy.c != copy.a + copy.b) {
-			fprintf(stderr, "ERROR: Failed regression: copy.c\n");
+			fprintf(stderr, "ERROR: Failed regression: copy.c (%u != %u + %u / %u)\n", copy.c, copy.a, copy.b, copy.a + copy.b);
 			exit(EXIT_FAILURE);
 		}
         }
 
-        fprintf(stderr, "%u retries.\n", counter - STEPS);
+        fprintf(stderr, "%u retries.\n", retries - STEPS);
 	ck_pr_dec_uint(&barrier);
         return (NULL);
 }
@@ -136,8 +138,8 @@ main(int argc, char *argv[])
                  */
                 ck_sequence_write_begin(&seqlock);
                 global.a = counter++;
-                ck_pr_store_uint(&global.b, global.a + 1000);
-                ck_pr_store_uint(&global.c, global.b + global.a);
+		global.b = global.a + 1000;
+		global.c = global.b + global.a;
                 ck_sequence_write_end(&seqlock);
 
 		if (counter == 1)
