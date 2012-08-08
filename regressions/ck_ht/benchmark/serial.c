@@ -111,13 +111,15 @@ table_get(const char *value)
 	ck_ht_entry_t entry;
 	ck_ht_hash_t h;
 	size_t l = strlen(value);
+	void *v = NULL;
 
 	ck_ht_hash(&h, &ht, value, l);
 	ck_ht_entry_key_set(&entry, value, l);
-	if (ck_ht_get_spmc(&ht, h, &entry) == true)
-		return ck_ht_entry_value(&entry);
 
-	return NULL;
+	if (ck_ht_get_spmc(&ht, h, &entry) == true) {
+		v = ck_ht_entry_value(&entry);
+	}
+	return v;
 }
 
 static bool
@@ -278,6 +280,10 @@ main(int argc, char *argv[])
 		a += e - s;
 	}
 	sr = a / (r * keys_length);
+
+	table_reset();
+	for (i = 0; i < keys_length; i++)
+		table_insert(keys[i]);
 
 	a = 0;
 	for (j = 0; j < r; j++) {
