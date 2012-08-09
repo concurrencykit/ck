@@ -79,11 +79,10 @@
 	ck_ring_enqueue_spsc_##name(struct ck_ring_##name *ring,		\
 				    struct type *entry)				\
 	{									\
-		unsigned int consumer, producer, size;				\
+		unsigned int consumer, producer;				\
 										\
 		consumer = ck_pr_load_uint(&ring->c_head);			\
 		producer = ck_pr_load_uint(&ring->p_tail);			\
-		size = ck_pr_load_uint(&ring->size);				\
 										\
 		if (((producer + 1) & ring->mask) == consumer) 			\
 			return (false);						\
@@ -161,11 +160,10 @@ ck_ring_capacity(struct ck_ring *ring)
 CK_CC_INLINE static bool
 ck_ring_enqueue_spsc(struct ck_ring *ring, void *entry)
 {
-	unsigned int consumer, producer, size;
+	unsigned int consumer, producer;
 
 	consumer = ck_pr_load_uint(&ring->c_head);
 	producer = ck_pr_load_uint(&ring->p_tail);
-	size = ck_pr_load_uint(&ring->size);
 
 	if (((producer + 1) & ring->mask) == consumer)
 		return (false);
