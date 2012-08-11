@@ -66,8 +66,16 @@ struct ck_ht_entry {
 } CK_CC_ALIGNED;
 typedef struct ck_ht_entry ck_ht_entry_t;
 
+/*
+ * The user is free to define their own stub values.
+ */
+#ifndef CK_HT_KEY_EMPTY
 #define CK_HT_KEY_EMPTY		((uintptr_t)0)
-#define CK_HT_KEY_TOMBSTONE	(~(uintptr_t)0)
+#endif
+
+#ifndef CK_HT_KEY_TOMBSTONE
+#define CK_HT_KEY_TOMBSTONE	(~CK_HT_KEY_EMPTY)
+#endif
 
 /*
  * Hash callback function. First argument is updated to contain a hash value,
