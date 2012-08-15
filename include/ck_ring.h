@@ -74,7 +74,7 @@
 	ck_ring_capacity_##name(struct ck_ring_##name *ring)			\
 	{									\
 										\
-		return ck_pr_load_uint(&ring->size);				\
+		return ring->size;						\
 	}									\
 	CK_CC_INLINE static bool						\
 	ck_ring_enqueue_spsc_##name(struct ck_ring_##name *ring,		\
