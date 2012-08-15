@@ -95,7 +95,7 @@ main(int argc, char *argv[])
 	int i;
 	unsigned int size;
 
-	if (argc != 3) {
+	if (argc < 3) {
 		fprintf(stderr, "Usage: correct <number of threads> <affinity delta>\n");
 		exit(EXIT_FAILURE);
 	}

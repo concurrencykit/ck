@@ -35,7 +35,7 @@
 
 #include "../../common.h"
 
-#define NUM_READER_THREADS 8
+#define NUM_READER_THREADS 2
 #define READ_LATENCY 8
 
 static ck_bag_t bag;
@@ -43,7 +43,7 @@ static ck_epoch_t epoch_bag;
 static ck_epoch_record_t epoch_wr;
 static int leave;
 static unsigned int barrier;
-static unsigned int writer_max = 131072;
+static unsigned int writer_max = 32768;
 
 struct bag_epoch {
 	ck_epoch_entry_t epoch_entry;
@@ -291,7 +291,7 @@ main(int argc, char **argv)
 		pthread_create(&readers[i], NULL, reader, NULL);
 	}
 
-	sleep(120);
+	sleep(30);
 
 	ck_pr_store_int(&leave, 1);
 	for (i = 0; i < NUM_READER_THREADS; i++)

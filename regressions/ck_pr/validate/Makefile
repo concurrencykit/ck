@@ -1,4 +1,4 @@
-.PHONY: clean distribution
+.PHONY: check clean distribution
 
 OBJECTS=ck_pr_cas ck_pr_faa ck_pr_inc ck_pr_dec ck_pr_bts \
 	ck_pr_btr ck_pr_btc ck_pr_load ck_pr_store 	  \
@@ -7,6 +7,13 @@ OBJECTS=ck_pr_cas ck_pr_faa ck_pr_inc ck_pr_dec ck_pr_bts \
 	ck_pr_unary
 
 all: $(OBJECTS)
+
+check: all
+	rc=0;                           \
+	for d in $(OBJECTS) ; do        \
+		echo $$d;		\
+		./$$d || exit 1;     	\
+	done;
 
 ck_pr_cas: ck_pr_cas.c
 	$(CC) $(CFLAGS) -o ck_pr_cas ck_pr_cas.c

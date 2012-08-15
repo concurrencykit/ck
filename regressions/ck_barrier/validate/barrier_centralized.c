@@ -87,7 +87,7 @@ main(int argc, char *argv[])
 	pthread_t *threads;
 	int i;
 
-	if (argc != 3) {
+	if (argc < 3) {
 		fprintf(stderr, "Usage: correct <number of threads> <affinity delta>\n");
 		exit(EXIT_FAILURE);
 	}

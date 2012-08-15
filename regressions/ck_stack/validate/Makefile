@@ -1,4 +1,4 @@
-.PHONY: clean distribution
+.PHONY: check clean distribution
 
 OBJECTS=serial mpnc_push mpmc_push upmc_push spinlock_push spinlock_eb_push \
 	mpmc_pop upmc_pop spinlock_pop spinlock_eb_pop			    \
@@ -6,6 +6,18 @@ OBJECTS=serial mpnc_push mpmc_push upmc_push spinlock_push spinlock_eb_push \
 	mpmc_pair spinlock_pair spinlock_eb_pair pthreads_pair
 
 all: $(OBJECTS)
+
+check: all
+	./serial
+	./mpmc_pair $(CORES) 1 0
+	./upmc_trypop $(CORES) 1 0
+	./mpmc_trypop $(CORES) 1 0
+	./mpmc_trypair $(CORES) 1 0
+	./mpmc_pop $(CORES) 1 0
+	./upmc_pop $(CORES) 1 0
+	./mpnc_push $(CORES) 1 0
+	./mpmc_push $(CORES) 1 0
+	./upmc_push $(CORES) 1 0
 
 serial: serial.c
 	$(CC) $(CFLAGS) -o serial serial.c

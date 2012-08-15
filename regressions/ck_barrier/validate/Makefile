@@ -1,4 +1,4 @@
-.PHONY: clean distribution
+.PHONY: check clean distribution
 
 OBJECTS=barrier_centralized barrier_combining barrier_dissemination barrier_tournament barrier_mcs
 
@@ -18,6 +18,14 @@ barrier_tournament: barrier_tournament.c ../../../include/ck_barrier.h ../../../
 
 barrier_mcs: barrier_mcs.c ../../../include/ck_barrier.h ../../../src/ck_barrier_mcs.c
 	$(CC) $(CFLAGS) -o barrier_mcs barrier_mcs.c ../../../src/ck_barrier_mcs.c
+
+check: all
+	rc=0;                                                   \
+	for d in $(OBJECTS) ; do                                \
+		echo $$d;					\
+		./$$d $(CORES) 1 1 || rc=1;     		\
+	done;                                                   \
+	exit $$rc
 
 clean:
 	rm -rf *.dSYM *~ *.o $(OBJECTS)

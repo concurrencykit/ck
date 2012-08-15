@@ -1,4 +1,4 @@
-.PHONY: all clean distribution regressions install install-headers doc uninstall
+.PHONY: all check clean distribution doc install install-headers regressions uninstall
 
 CFLAGS=@CFLAGS@
 VERSION=@VERSION@
@@ -21,6 +21,11 @@ doc:
 regressions:
 	$(MAKE) -C regressions all || exit
 	@echo ---[ Regressions have built successfully.
+
+check: regressions
+	@echo ---[ Executing unit tests...
+	$(MAKE) -C regressions check
+	@echo ---[ Unit tests have completed successfully.
 
 install-headers:
 	mkdir -p $(DESTDIR)/$(HEADERS) || exit

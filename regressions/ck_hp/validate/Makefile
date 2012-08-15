@@ -1,8 +1,14 @@
-.PHONY: clean distribution
+.PHONY: check clean distribution
 
 OBJECTS=ck_hp_stack nbds_haz_test serial ck_hp_fifo
 
 all: $(OBJECTS)
+
+check: all
+	./serial
+	./ck_hp_stack $(CORES) 10 1
+	./ck_hp_fifo $(CORES) 1 64000 10 
+	./nbds_haz_test $(CORES) 10 1
 
 ck_hp_stack: ../../../src/ck_hp.c ck_hp_stack.c ../../../include/ck_hp_stack.h
 	$(CC) $(CFLAGS) ../../../src/ck_hp.c -o ck_hp_stack ck_hp_stack.c

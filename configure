@@ -85,6 +85,7 @@ generate()
  	    -e "s#@HEADERS@#$HEADERS#g"				\
 	    -e "s#@LIBRARY@#$LIBRARY#g"				\
 	    -e "s#@PREFIX@#$PREFIX#g"				\
+	    -e "s#@CORES@#$CORES#g"				\
 	    -e "s#@LD@#$LD#g"					\
 	    -e "s#@LDFLAGS@#$LDFLAGS#g"				\
 	    -e "s#@PTHREAD_CFLAGS@#$PTHREAD_CFLAGS#g"		\
@@ -108,6 +109,7 @@ generate_stdout()
 	echo "           LDFLAGS = $LDFLAGS"
 	echo "              GZIP = $GZIP"
 	echo "      POINTER_PACK = $POINTER_PACK_ENABLE"
+	echo "             CORES = $CORES"
 	echo
 	echo "Headers will be installed in $HEADERS"
 	echo "Libraries will be installed in $LIBRARY"
@@ -129,6 +131,9 @@ for option in $*; do
 		echo "  --libdir=N               Libraries directory (default is ${PREFIX}/lib)"
 		echo "  --mandir=N               Manual pages directory (default is ${PREFIX}/man)"
 		echo "  --prefix=N               Installs library files in N (default is $PREFIX)"
+		echo
+		echo "The following options will modify code generation."
+		echo "  --cores=N                Specify number of cores available on target machine"
 		echo "  --enable-pointer-packing Assumes 48-bit address encoding"
 		echo
 		echo "The following environment variables may be used:"
@@ -142,6 +147,9 @@ for option in $*; do
 		;;
 	--enable-pointer-packing)
 		POINTER_PACK_ENABLE="CK_MD_POINTER_PACK_ENABLE"
+		;;
+	--cores=*)
+		CORES=$value
 		;;
 	--profile=*)
 		PROFILE=$value
@@ -200,6 +208,7 @@ if test "$PROFILE"; then
 	exit $EXIT_SUCCESS
 fi
 
+DCORES=2
 printf "Detecting operating system......."
 SYSTEM=`uname -s 2> /dev/null`
 case "$SYSTEM" in
@@ -207,21 +216,26 @@ case "$SYSTEM" in
 		SYSTEM=solaris
 		;;
 	"Linux"|"uClinux")
+		DCORES=`grep '^processor.*:.*' /proc/cpuinfo|wc -l`
 		SYSTEM=linux
 		;;
 	"FreeBSD"|"GNU/kFreeBSD")
+		DCORES=`sysctl -n hw.ncpu`
 		SYSTEM=freebsd
 		;;
 	"NetBSD")
+		DCORES=`sysctl -n hw.ncpu`
 		SYSTEM=netbsd
 		;;
 	"OpenBSD")
 		SYSTEM=openbsd
 		;;
 	"DragonFly")
+		DCORES=`sysctl -n hw.ncpu`
 		SYSTEM=dragonflybsd
 		;;
 	"Darwin")
+		DCORES=`sysctl -n hw.ncpu`
 		SYSTEM=darwin
 		;;
 	*)
@@ -231,6 +245,7 @@ esac
 
 assert "$SYSTEM" "$SYSTEM" "unsupported"
 
+CORES=${CORES:-${DCORES}}
 printf "Detecting machine architecture..."
 PLATFORM=`uname -m 2> /dev/null`
 case $PLATFORM in

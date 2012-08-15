@@ -1,9 +1,13 @@
-.PHONY: clean distribution
+.PHONY: check clean distribution
 
 HEADER=../../../include/ck_queue.h
 OBJECTS=ck_slist ck_list
 
 all: $(OBJECTS)
+
+check: all
+	./ck_slist $(CORES) 100000
+	./ck_list $(CORES) 100000
 
 ck_slist: $(HEADER) ck_slist.c
 	$(CC) $(CFLAGS) -o ck_slist ck_slist.c

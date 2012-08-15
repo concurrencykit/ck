@@ -98,7 +98,7 @@ main(int argc, char *argv[])
 	}
 	ck_barrier_combining_init(&barrier, init_root);
 
-	if (argc != 4) {
+	if (argc < 4) {
 		fprintf(stderr, "Usage: correct <total groups> <threads per group> <affinity delta>\n");
 		exit(EXIT_FAILURE);
 	}

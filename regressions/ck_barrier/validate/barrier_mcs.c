@@ -91,7 +91,7 @@ main(int argc, char *argv[])
 	ck_barrier_mcs_t *barrier;
 	int i;
 
-	if (argc != 3) {
+	if (argc < 3) {
 		fprintf(stderr, "Usage: correct <number of threads> <affinity delta>\n");
 		exit(EXIT_FAILURE);
 	}

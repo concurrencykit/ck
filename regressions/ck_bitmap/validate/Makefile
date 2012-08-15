@@ -1,4 +1,4 @@
-.PHONY: clean
+.PHONY: check clean
 
 OBJECTS=serial
 
@@ -9,6 +9,9 @@ serial: serial.c ../../../include/ck_bitmap.h
 
 clean:
 	rm -rf *~ *.o $(OBJECTS) *.dSYM
+
+check: all
+	./serial
 
 include ../../../build/regressions.build
 CFLAGS+=-D_GNU_SOURCE

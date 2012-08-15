@@ -1,8 +1,14 @@
-.PHONY: clean distribution
+.PHONY: check clean distribution
 
 OBJECTS=ck_fifo_spsc ck_fifo_mpmc ck_fifo_spsc_iterator ck_fifo_mpmc_iterator
 
-all: ck_fifo_spsc ck_fifo_mpmc ck_fifo_spsc_iterator ck_fifo_mpmc_iterator
+all: $(OBJECTS)
+
+check: all
+	./ck_fifo_spsc $(CORES) 1 64000
+	./ck_fifo_mpmc $(CORES) 1 64000
+	./ck_fifo_spsc_iterator
+	./ck_fifo_mpmc_iterator
 
 ck_fifo_spsc: ck_fifo_spsc.c
 	$(CC) $(CFLAGS) -o ck_fifo_spsc ck_fifo_spsc.c
