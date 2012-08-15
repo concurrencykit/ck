@@ -228,6 +228,7 @@ case "$SYSTEM" in
 		SYSTEM=netbsd
 		;;
 	"OpenBSD")
+		DCORES=`sysctl -n hw.ncpu`
 		SYSTEM=openbsd
 		;;
 	"DragonFly")
