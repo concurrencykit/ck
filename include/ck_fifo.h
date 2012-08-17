@@ -144,7 +144,7 @@ ck_fifo_spsc_dequeue(struct ck_fifo_spsc *fifo, void *value)
 	/* If entry is visible, guarantee store to value is visible. */
 	ck_pr_fence_load();
 	ck_pr_store_ptr(value, entry->value);
-	fifo->head = entry;
+	ck_pr_store_ptr(&fifo->head, entry);
 	return (true);
 }
 
