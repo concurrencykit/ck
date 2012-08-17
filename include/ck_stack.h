@@ -56,10 +56,13 @@ ck_stack_push_upmc(struct ck_stack *target, struct ck_stack_entry *entry)
 	struct ck_stack_entry *stack;
 
 	stack = ck_pr_load_ptr(&target->head);
-	ck_pr_store_ptr(&entry->next, stack);
+	entry->next = stack;
+	ck_pr_fence_store();
 
-	while (ck_pr_cas_ptr_value(&target->head, stack, entry, &stack) == false)
-		ck_pr_store_ptr(&entry->next, stack);
+	while (ck_pr_cas_ptr_value(&target->head, stack, entry, &stack) == false) {
+		entry->next = stack;
+		ck_pr_fence_store();
+	}
 
 	return;
 }
@@ -77,7 +80,8 @@ ck_stack_trypush_upmc(struct ck_stack *target, struct ck_stack_entry *entry)
 	struct ck_stack_entry *stack;
 
 	stack = ck_pr_load_ptr(&target->head);
-	ck_pr_store_ptr(&entry->next, stack);
+	entry->next = stack;
+	ck_pr_fence_store();
 
 	return ck_pr_cas_ptr(&target->head, stack, entry);
 }
@@ -91,15 +95,20 @@ ck_stack_trypush_upmc(struct ck_stack *target, struct ck_stack_entry *entry)
 CK_CC_INLINE static struct ck_stack_entry *
 ck_stack_pop_upmc(struct ck_stack *target)
 {
-	struct ck_stack_entry *entry;
+	struct ck_stack_entry *entry, *next;
 
 	entry = ck_pr_load_ptr(&target->head);
 	if (entry == NULL)
 		return (NULL);
 
-	while (ck_pr_cas_ptr_value(&target->head, entry, entry->next, &entry) == false) {
+	ck_pr_fence_load();
+	next = entry->next;
+	while (ck_pr_cas_ptr_value(&target->head, entry, next, &entry) == false) {
 		if (entry == NULL)
 			break;
+
+		ck_pr_fence_load();
+		next = entry->next;
 	}
 
 	return (entry);
@@ -123,6 +132,7 @@ ck_stack_trypop_upmc(struct ck_stack *target, struct ck_stack_entry **r)
 	if (entry == NULL)
 		return false;
 
+	ck_pr_fence_load();
 	if (ck_pr_cas_ptr(&target->head, entry, entry->next) == true) {
 		*r = entry;
 		return true;
@@ -143,6 +153,7 @@ ck_stack_batch_pop_upmc(struct ck_stack *target)
 	struct ck_stack_entry *entry;
 
 	entry = ck_pr_fas_ptr(&target->head, NULL);
+	ck_pr_fence_load();
 	return (entry);
 }
 #endif /* CK_F_STACK_BATCH_POP_UPMC */
@@ -190,6 +201,8 @@ ck_stack_pop_mpmc(struct ck_stack *target)
 	if (original.head == NULL)
 		return (NULL);
 
+	ck_pr_fence_load();
+
 	update.generation = original.generation + 1;
 	update.head = original.head->next;
 
@@ -197,8 +210,10 @@ ck_stack_pop_mpmc(struct ck_stack *target)
 		if (original.head == NULL)
 			return (NULL);
 
-		ck_pr_store_ptr(&update.generation, original.generation + 1);
-		ck_pr_store_ptr(&update.head, original.head->next);
+		update.generation = original.generation + 1;
+
+		ck_pr_fence_load();
+		update.head = original.head->next;
 	}
 
 	return (original.head);
@@ -218,6 +233,7 @@ ck_stack_trypop_mpmc(struct ck_stack *target, struct ck_stack_entry **r)
 		return false;
 
 	update.generation = original.generation + 1;
+	ck_pr_fence_load();
 	update.head = original.head->next;
 
 	if (ck_pr_cas_ptr_2_value(target, &original, &update, &original) == true) {
@@ -316,9 +332,7 @@ ck_stack_init(struct ck_stack *stack)
 {
 
 	stack->head = NULL;
-	stack->generation = 0;
-
-	ck_pr_fence_store();
+	stack->generation = NULL;
 	return;
 }
 
