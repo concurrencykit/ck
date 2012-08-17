@@ -89,7 +89,7 @@
 			return (false);						\
 										\
 		ring->ring[producer] = *entry;					\
-		ck_pr_fence_memory();						\
+		ck_pr_fence_store();						\
 		ck_pr_store_uint(&ring->p_tail,	(producer + 1) & ring->mask);	\
 										\
 		return (true);							\
