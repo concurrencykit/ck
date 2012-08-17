@@ -93,6 +93,7 @@ ck_hp_fifo_enqueue_mpmc(ck_hp_record_t *record,
 			break;
 	}
 
+	ck_pr_fence_store();
 	ck_pr_cas_ptr(&fifo->tail, tail, entry);
 	return;
 }
@@ -122,6 +123,7 @@ ck_hp_fifo_tryenqueue_mpmc(ck_hp_record_t *record,
 	} else if (ck_pr_cas_ptr(&fifo->tail->next, next, entry) == false)
 		return false;
 
+	ck_pr_fence_store();
 	ck_pr_cas_ptr(&fifo->tail, tail, entry);
 	return true;
 }
