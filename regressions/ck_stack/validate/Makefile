@@ -3,7 +3,8 @@
 OBJECTS=serial mpnc_push mpmc_push upmc_push spinlock_push spinlock_eb_push \
 	mpmc_pop upmc_pop spinlock_pop spinlock_eb_pop			    \
 	upmc_trypop mpmc_trypop mpmc_trypair				    \
-	mpmc_pair spinlock_pair spinlock_eb_pair pthreads_pair
+	mpmc_pair spinlock_pair spinlock_eb_pair pthreads_pair		    \
+	mpmc_trypush upmc_trypush
 
 all: $(OBJECTS)
 
@@ -18,6 +19,8 @@ check: all
 	./mpnc_push $(CORES) 1 0
 	./mpmc_push $(CORES) 1 0
 	./upmc_push $(CORES) 1 0
+	./mpmc_trypush $(CORES) 1 0
+	./upmc_trypush $(CORES) 1 0
 
 serial: serial.c
 	$(CC) $(CFLAGS) -o serial serial.c
