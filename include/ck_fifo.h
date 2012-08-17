@@ -130,8 +130,7 @@ ck_fifo_spsc_enqueue(struct ck_fifo_spsc *fifo,
 CK_CC_INLINE static bool
 ck_fifo_spsc_dequeue(struct ck_fifo_spsc *fifo, void *value)
 {
-	struct ck_fifo_spsc_entry *stub, *entry;
-	void *store;
+	struct ck_fifo_spsc_entry *entry;
 
 	/*
 	 * The head pointer is guaranteed to always point to a stub entry.
@@ -217,12 +216,10 @@ CK_CC_INLINE static void
 ck_fifo_mpmc_init(struct ck_fifo_mpmc *fifo, struct ck_fifo_mpmc_entry *stub)
 {
 
-	ck_pr_store_ptr(&fifo->head.pointer, stub);
-	ck_pr_store_ptr(&fifo->head.generation, 0);
-	ck_pr_store_ptr(&fifo->tail.pointer, stub);
-	ck_pr_store_ptr(&fifo->tail.generation, 0);
-	ck_pr_store_ptr(&stub->next.pointer, NULL);
-	ck_pr_store_ptr(&stub->next.generation, 0);
+	stub->next.pointer = NULL;
+	stub->next.generation = NULL;
+	fifo->head.pointer = fifo->tail.pointer = stub;
+	fifo->head.generation = fifo->tail.generation = NULL;
 	return;
 }
 
@@ -277,6 +274,7 @@ ck_fifo_mpmc_enqueue(struct ck_fifo_mpmc *fifo,
 
 	/* After a successful insert, forward the tail to the new entry. */
 	update.generation = tail.generation + 1;
+	ck_pr_fence_store();
 	ck_pr_cas_ptr_2(&fifo->tail, &tail, &update);
 	return;
 }
@@ -327,6 +325,7 @@ ck_fifo_mpmc_tryenqueue(struct ck_fifo_mpmc *fifo,
 	}
 
 	/* After a successful insert, forward the tail to the new entry. */
+	ck_pr_fence_store();
 	update.generation = tail.generation + 1;
 	ck_pr_cas_ptr_2(&fifo->tail, &tail, &update);
 	return true;
