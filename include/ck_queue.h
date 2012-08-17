@@ -137,17 +137,17 @@ struct {									\
 
 #define	CK_SLIST_FOREACH(var, head, field)					\
 	for ((var) = CK_SLIST_FIRST((head));					\
-	    (var);								\
+	    (var) && (ck_pr_fence_load(), 1);					\
 	    (var) = CK_SLIST_NEXT((var), field))
 
-#define	CK_SLIST_FOREACH_SAFE(var, head, field, tvar)				\
-	for ((var) = (head)->slh_first;						\
-	    (var) && ((tvar) = (var)->field.sle_next, 1);			\
+#define	CK_SLIST_FOREACH_SAFE(var, head, field, tvar)				 \
+	for ((var) = CK_SLIST_FIRST(head);					 \
+	    (var) && (ck_pr_fence_load(), (tvar) = CK_SLIST_NEXT(var, field), 1);\
 	    (var) = (tvar))
 
 #define	CK_SLIST_FOREACH_PREVPTR(var, varp, head, field)			\
 	for ((varp) = &(head)->slh_first;					\
-	    ((var) = ck_pr_load_ptr(varp)) != NULL;				\
+	    ((var) = ck_pr_load_ptr(varp)) != NULL && (ck_pr_fence_load(), 1);	\
 	    (varp) = &(var)->field.sle_next)
 
 #define	CK_SLIST_INIT(head) do {						\
@@ -220,12 +220,12 @@ struct {									\
 
 #define	CK_LIST_FOREACH(var, head, field)					\
 	for ((var) = CK_LIST_FIRST((head));					\
-	    (var);								\
+	    (var) && (ck_pr_fence_load(), 1);					\
 	    (var) = CK_LIST_NEXT((var), field))
 
-#define	CK_LIST_FOREACH_SAFE(var, head, field, tvar)				\
-	for ((var) = CK_LIST_FIRST((head));					\
-	    (var) && ((tvar) = CK_LIST_NEXT((var), field), 1);			\
+#define	CK_LIST_FOREACH_SAFE(var, head, field, tvar)				  \
+	for ((var) = CK_LIST_FIRST((head));					  \
+	    (var) && (ck_pr_fence_load(), (tvar) = CK_LIST_NEXT((var), field), 1);\
 	    (var) = (tvar))
 
 #define	CK_LIST_INIT(head) do {							\
