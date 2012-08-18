@@ -109,6 +109,14 @@ CK_PR_FENCE(memory)
 
 #undef CK_PR_FENCE
 
+static inline void
+ck_pr_barrier(void)
+{
+
+	__asm__ __volatile__("" ::: "memory");
+	return;
+}
+
 /*
  * Atomic compare and swap.
  */

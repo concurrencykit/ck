@@ -86,6 +86,14 @@ CK_PR_FENCE(memory, "mfence")
 
 #undef CK_PR_FENCE
 
+static inline void
+ck_pr_barrier(void)
+{
+
+	__asm__ __volatile__("" ::: "memory");
+	return;
+}
+
 /*
  * Atomic fetch-and-store operations.
  */

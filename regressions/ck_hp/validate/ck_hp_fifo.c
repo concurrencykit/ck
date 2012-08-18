@@ -81,16 +81,15 @@ test(void *c)
 			entry->tid = context->tid;
 			ck_hp_fifo_enqueue_mpmc(&record, &fifo, fifo_entry, entry);
 
-			CK_CC_BARRIER();
+			ck_pr_barrier();
 
 			fifo_entry = ck_hp_fifo_dequeue_mpmc(&record, &fifo, &entry);
 			if (fifo_entry == NULL) {
 				fprintf(stderr, "ERROR [%u] Queue should never be empty.\n", context->tid);
-				pause();
 				exit(EXIT_FAILURE);
 			}
 
-			CK_CC_BARRIER();
+			ck_pr_barrier();
 
 			if (entry->tid < 0 || entry->tid >= nthr) {
 				fprintf(stderr, "ERROR [%u] Incorrect value in entry.\n", entry->tid);

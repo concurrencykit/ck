@@ -71,6 +71,14 @@ CK_PR_FENCE(memory, "membar #MemIssue")
 
 #undef CK_PR_FENCE
 
+static inline void
+ck_pr_barrier(void)
+{
+
+	__asm__ __volatile__("" ::: "memory");
+	return;
+}
+
 #define CK_PR_LOAD(S, M, T, C, I)				\
 	CK_CC_INLINE static T					\
 	ck_pr_load_##S(M *target)				\

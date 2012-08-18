@@ -69,11 +69,6 @@
 #define CK_CC_CACHELINE CK_CC_ALIGN(CK_MD_CACHELINE)
 
 /*
- * Compiler barrier.
- */
-#define CK_CC_BARRIER() __asm__ __volatile__("" ::: "memory")
-
-/*
  * These are functions which should be avoided.
  */
 #ifdef __freestanding__
