@@ -41,7 +41,7 @@
 #include "../../common.h"
 
 #ifndef ITERATE
-#define ITERATE 5000000
+#define ITERATE 1000000
 #endif
 
 static struct affinity a;
