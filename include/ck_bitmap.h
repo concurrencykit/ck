@@ -288,5 +288,4 @@ ck_bitmap_next(struct ck_bitmap *bitmap,
 	return false;
 }
 
-
 #endif /* _CK_BITMAP_H */
