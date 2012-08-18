@@ -1,4 +1,4 @@
-.PHONY: all check clean dist distclean doc install install-headers regressions uninstall
+.PHONY: all check clean distclean doc install install-headers regressions uninstall
 
 CFLAGS=@CFLAGS@
 VERSION=@VERSION@
@@ -68,13 +68,6 @@ clean:
 	$(MAKE) -C src clean
 	$(MAKE) -C regressions clean
 	rm -f *~ *.o *.tar.gz
-
-dist: distclean
-	rm -rf $(DISTDIR)
-	mkdir $(DISTDIR)
-	gnutar -czf $(DISTFILE) --anchored --exclude ./.git --exclude ./$(DISTDIR) --transform "s,^\.,ck-$(VERSION)," .
-	cp $(DISTFILE) .
-	rm -rf $(DISTDIR)
 
 distclean: clean
 	rm -f include/ck_md.h
