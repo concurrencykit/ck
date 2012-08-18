@@ -53,7 +53,7 @@ CK_CC_INLINE static void
 ck_rwlock_write_unlock(ck_rwlock_t *rw)
 {
 
-	ck_pr_fence_store();
+	ck_pr_fence_memory();
 	ck_pr_store_uint(&rw->writer, false);
 	return;
 }
@@ -74,12 +74,12 @@ ck_rwlock_write_trylock(ck_rwlock_t *rw)
 	if (ck_pr_fas_uint(&rw->writer, 1) != 0)
 		return false;
 
+	ck_pr_fence_memory();
 	if (ck_pr_load_uint(&rw->n_readers) != 0) {
 		ck_rwlock_write_unlock(rw);
 		return false;
 	}
 
-	ck_pr_fence_store();
 	return true;
 }
 
@@ -90,10 +90,11 @@ ck_rwlock_write_lock(ck_rwlock_t *rw)
 	while (ck_pr_fas_uint(&rw->writer, 1) != 0)
 		ck_pr_stall();
 
+	ck_pr_fence_memory();
+
 	while (ck_pr_load_uint(&rw->n_readers) != 0)
 		ck_pr_stall();
 
-	ck_pr_fence_store();
 	return;
 }
 
@@ -105,13 +106,13 @@ ck_rwlock_read_trylock(ck_rwlock_t *rw)
 		return false;
 
 	ck_pr_inc_uint(&rw->n_readers);
+	ck_pr_fence_memory();
 	if (ck_pr_load_uint(&rw->writer) == 0)
 		goto leave;
 	ck_pr_dec_uint(&rw->n_readers);
 	return false;
 
 leave:
-	ck_pr_fence_load();
 	return true;
 }
 
@@ -124,12 +125,12 @@ ck_rwlock_read_lock(ck_rwlock_t *rw)
 			ck_pr_stall();
 
 		ck_pr_inc_uint(&rw->n_readers);
+		ck_pr_fence_memory();
 		if (ck_pr_load_uint(&rw->writer) == 0)
 			break;
 		ck_pr_dec_uint(&rw->n_readers);
 	}
 
-	ck_pr_fence_load();
 	return;
 }
 
@@ -165,10 +166,10 @@ ck_rwlock_recursive_write_lock(ck_rwlock_recursive_t *rw, unsigned int tid)
 	while (ck_pr_cas_uint(&rw->rw.writer, 0, tid) == false)
 		ck_pr_stall();
 
+	ck_pr_fence_memory();
+
 	while (ck_pr_load_uint(&rw->rw.n_readers) != 0)
 		ck_pr_stall();
-
-	ck_pr_fence_store();
 
 leave:
 	rw->wc++;
@@ -187,6 +188,8 @@ ck_rwlock_recursive_write_trylock(ck_rwlock_recursive_t *rw, unsigned int tid)
 	if (ck_pr_cas_uint(&rw->rw.writer, 0, tid) == false)
 		return false;
 
+	ck_pr_fence_memory();
+
 	if (ck_pr_load_uint(&rw->rw.n_readers) != 0) {
 		ck_pr_store_uint(&rw->rw.writer, 0);
 		return false;
@@ -201,8 +204,10 @@ CK_CC_INLINE static void
 ck_rwlock_recursive_write_unlock(ck_rwlock_recursive_t *rw)
 {
 
-	if (--rw->wc == 0)
+	if (--rw->wc == 0) {
+		ck_pr_fence_memory();
 		ck_pr_store_uint(&rw->rw.writer, 0);
+	}
 
 	return;
 }
