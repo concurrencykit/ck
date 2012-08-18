@@ -45,6 +45,10 @@
 
 #define CK_CC_PAD(x) union { char pad[x]; }
 
+#ifndef CK_CC_BARRIER
+#define CK_CC_BARRIER()
+#endif
+
 #ifndef CK_CC_ALIASED
 #define CK_CC_ALIASED
 #endif
