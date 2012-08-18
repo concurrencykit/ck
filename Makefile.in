@@ -67,7 +67,7 @@ clean:
 	$(MAKE) -C doc clean
 	$(MAKE) -C src clean
 	$(MAKE) -C regressions clean
-	rm -f *~ *.o
+	rm -f *~ *.o *.tar.gz
 
 dist: distclean
 	rm -rf $(DISTDIR)
