@@ -1,4 +1,4 @@
-.PHONY: all check clean distribution doc install install-headers regressions uninstall
+.PHONY: all check clean dist distclean doc install install-headers regressions uninstall
 
 CFLAGS=@CFLAGS@
 VERSION=@VERSION@
@@ -7,6 +7,8 @@ PREFIX=@PREFIX@
 LIBRARY=@LIBRARY@
 HEADERS=@HEADERS@
 PKGCONFIG_DATA=@LIBRARY@/pkgconfig
+DISTDIR=.spool
+DISTFILE=$(DISTDIR)/ck-$(VERSION).tar.gz
 
 all: doc
 	$(MAKE) -C src all || exit
@@ -67,10 +69,18 @@ clean:
 	$(MAKE) -C regressions clean
 	rm -f *~ *.o
 
-distribution: clean
+dist: distclean
+	rm -rf $(DISTDIR)
+	mkdir $(DISTDIR)
+	gnutar -czf $(DISTFILE) --anchored --exclude ./.git --exclude ./$(DISTDIR) --transform "s,^\.,ck-$(VERSION)," .
+	cp $(DISTFILE) .
+	rm -rf $(DISTDIR)
+
+distclean: clean
 	rm -f include/ck_md.h
 	rm -f build/regressions.build
 	rm -f build/ck.build
 	rm -f build/ck.pc
 	rm -f Makefile
 	rm -f doc/Makefile
+
