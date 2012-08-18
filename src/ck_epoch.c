@@ -67,10 +67,13 @@ ck_epoch_recycle(struct ck_epoch *global)
 	if (ck_pr_load_uint(&global->n_free) == 0)
 		return (NULL);
 
+	ck_pr_fence_load();
+
 	CK_STACK_FOREACH(&global->records, cursor) {
 		record = ck_epoch_record_container(cursor);
 
 		if (ck_pr_load_uint(&record->status) == CK_EPOCH_FREE) {
+			ck_pr_fence_load();
 			status = ck_pr_fas_uint(&record->status, CK_EPOCH_USED);
 			if (status == CK_EPOCH_FREE) {
 				ck_pr_dec_uint(&global->n_free);
@@ -109,8 +112,7 @@ ck_epoch_unregister(struct ck_epoch_record *record)
 {
 	size_t i;
 
-	record->status = CK_EPOCH_FREE;
-	record->active = 0;
+	ck_pr_store_uint(&record->active, 0);
 	record->epoch = 0;
 	record->delta = 0;
 	record->n_pending = 0;
@@ -120,8 +122,9 @@ ck_epoch_unregister(struct ck_epoch_record *record)
 	for (i = 0; i < CK_EPOCH_LENGTH; i++)
 		ck_stack_init(&record->pending[i]);
 
-	ck_pr_inc_uint(&record->global->n_free);
 	ck_pr_fence_store();
+	ck_pr_store_uint(&record->status, CK_EPOCH_FREE);
+	ck_pr_inc_uint(&record->global->n_free);
 	return;
 }
 
@@ -168,13 +171,14 @@ ck_epoch_reclaim(struct ck_epoch_record *record)
 	 */
 	CK_STACK_FOREACH_SAFE(&record->pending[g_epoch], cursor, next) {
 		struct ck_epoch_entry *entry = ck_epoch_entry_container(cursor);
+
 		entry->destroy(entry);
 		record->n_pending--;
 		record->n_reclamations++;
 	}
 
 	ck_stack_init(&record->pending[g_epoch]);
-	record->epoch = g_epoch;
+	ck_pr_store_uint(&record->epoch, g_epoch);
 	record->delta = 0;
 	return true;
 }
@@ -185,7 +189,6 @@ ck_epoch_write_begin(struct ck_epoch_record *record)
 	struct ck_epoch *global = record->global;
 
 	ck_pr_store_uint(&record->active, record->active + 1);
-	ck_pr_fence_store();
 
 	/*
 	 * In the case of recursive write sections, avoid ticking
@@ -193,6 +196,8 @@ ck_epoch_write_begin(struct ck_epoch_record *record)
 	 */
 	if (record->active > 1)
 		return;
+
+	ck_pr_fence_memory();
 
 	for (;;) {
 		if (ck_epoch_reclaim(record) == true)
