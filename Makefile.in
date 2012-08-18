@@ -1,4 +1,4 @@
-.PHONY: all check clean distclean doc install install-headers regressions uninstall
+.PHONY: all check clean dist distclean doc install install-headers regressions uninstall
 
 CFLAGS=@CFLAGS@
 VERSION=@VERSION@
@@ -7,8 +7,6 @@ PREFIX=@PREFIX@
 LIBRARY=@LIBRARY@
 HEADERS=@HEADERS@
 PKGCONFIG_DATA=@LIBRARY@/pkgconfig
-DISTDIR=.spool
-DISTFILE=$(DISTDIR)/ck-$(VERSION).tar.gz
 
 all: doc
 	$(MAKE) -C src all || exit
@@ -68,6 +66,10 @@ clean:
 	$(MAKE) -C src clean
 	$(MAKE) -C regressions clean
 	rm -f *~ *.o *.tar.gz
+
+dist:
+	git archive --format=tar --prefix=ck-$(VERSION)/ HEAD \
+		| gzip > ck-$(VERSION).tar.gz
 
 distclean: clean
 	rm -f include/ck_md.h

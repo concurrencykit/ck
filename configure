@@ -32,7 +32,7 @@ EXIT_SUCCESS=0
 EXIT_FAILURE=1
 
 MAINTAINER='sbahra@repnop.org'
-VERSION='0.2.7'
+VERSION=${VERSION:-'0.2.7'}
 VERSION_MAJOR='0'
 BUILD="$PWD/build/ck.build"
 PREFIX=${PREFIX:-"/usr/local"}
@@ -100,6 +100,7 @@ generate_stdout()
 {
 
 	echo
+	echo "           VERSION = $VERSION"
 	echo "           PROFILE = $PROFILE"
 	echo "                CC = $CC"
 	echo "          COMPILER = $COMPILER"
