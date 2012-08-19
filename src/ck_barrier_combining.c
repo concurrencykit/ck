@@ -182,8 +182,10 @@ ck_barrier_combining_aux(struct ck_barrier_combining *barrier,
 		 * are at the barrier.
 		 */
 		ck_pr_store_uint(&tnode->count, 0);
+		ck_pr_fence_store();
 		ck_pr_store_uint(&tnode->sense, ~tnode->sense);
 	} else {
+		ck_pr_fence_memory();
 		while (sense != ck_pr_load_uint(&tnode->sense))
 			ck_pr_stall();
 	}

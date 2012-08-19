@@ -45,10 +45,12 @@ ck_barrier_centralized(struct ck_barrier_centralized *barrier,
 	value = ck_pr_faa_uint(&barrier->value, 1);
 	if (value == n_threads - 1) {
 		ck_pr_store_uint(&barrier->value, 0);
+		ck_pr_fence_store();
 		ck_pr_store_uint(&barrier->sense, sense);
 		return;
 	}
 
+	ck_pr_fence_memory();
 	while (sense != ck_pr_load_uint(&barrier->sense))
 		ck_pr_stall();
 
