@@ -104,6 +104,7 @@ ck_hp_recycle(struct ck_hp *global)
 		record = ck_hp_record_container(entry);
 
 		if (ck_pr_load_int(&record->state) == CK_HP_FREE) {
+			ck_pr_fence_load();
 			state = ck_pr_fas_int(&record->state, CK_HP_USED);
 			if (state == CK_HP_FREE) {
 				ck_pr_dec_uint(&global->n_free);
@@ -123,6 +124,7 @@ ck_hp_unregister(struct ck_hp_record *entry)
 	entry->n_peak = 0;
 	entry->n_reclamations = 0;
 	ck_stack_init(&entry->pending);
+	ck_pr_fence_store();
 	ck_pr_store_int(&entry->state, CK_HP_FREE);
 	ck_pr_inc_uint(&entry->global->n_free);
 	return;
@@ -140,10 +142,11 @@ ck_hp_register(struct ck_hp *state,
 	entry->n_pending = 0;
 	entry->n_peak = 0;
 	entry->n_reclamations = 0;
+	memset(pointers, 0, state->degree * sizeof(void *));
 	ck_stack_init(&entry->pending);
+	ck_pr_fence_store();
 	ck_stack_push_upmc(&state->subscribers, &entry->global_entry);
 	ck_pr_inc_uint(&state->n_subscribers);
-	memset(pointers, 0, state->degree * sizeof(void *));
 	return;
 }
 
