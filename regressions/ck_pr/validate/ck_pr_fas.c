@@ -81,6 +81,11 @@ static void
 rg_width(int m)
 {
 
+	/* Other architectures are bi-endian. */
+#if !defined(__x86__) && !defined(__x86_64__)
+	return;
+#endif
+
 #ifdef CK_F_PR_FAS_64
 	if (m == 64) {
 #if defined(CK_F_PR_FAS_32)
