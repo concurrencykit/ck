@@ -1,6 +1,6 @@
 Name: ck
 Version: @VERSION@
-Release: 5%{?dist}
+Release: 1%{?dist}
 Group: Development/Libraries
 Summary: Concurrency Kit
 License: Revised BSD License
