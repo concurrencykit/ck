@@ -347,7 +347,6 @@ ck_spinlock_dec_lock(struct ck_spinlock_dec *lock)
 		 * UINT_MAX lock requests can happen while the lock is held.
 		 */
 		ck_pr_dec_uint_zero(&lock->value, &r);
-		ck_pr_fence_store();
 		if (r == true)
 			break;
 
