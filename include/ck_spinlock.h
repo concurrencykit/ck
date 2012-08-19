@@ -529,7 +529,6 @@ ck_spinlock_mcs_lock(struct ck_spinlock_mcs **queue, struct ck_spinlock_mcs *nod
 	 */
 	ck_pr_store_uint(&node->locked, true);
 	ck_pr_store_ptr(&node->next, NULL);
-	ck_pr_fence_store();
 
 	/*
 	 * Swap current tail with current lock request. If the swap operation
@@ -553,7 +552,6 @@ ck_spinlock_mcs_unlock(struct ck_spinlock_mcs **queue, struct ck_spinlock_mcs *n
 {
 	struct ck_spinlock_mcs *next;
 
-	ck_pr_fence_load();
 	next = ck_pr_load_ptr(&node->next);
 	if (next == NULL) {
 		/*
@@ -580,6 +578,7 @@ ck_spinlock_mcs_unlock(struct ck_spinlock_mcs **queue, struct ck_spinlock_mcs *n
 	}
 
 	/* Allow the next lock operation to complete. */
+	ck_pr_fence_memory();
 	ck_pr_store_uint(&next->locked, false);
 
 	return;
