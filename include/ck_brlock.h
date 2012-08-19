@@ -198,6 +198,7 @@ ck_brlock_read_lock(struct ck_brlock *br, struct ck_brlock_reader *reader)
 		ck_pr_store_uint(&reader->n_readers, 0);
 	}
 
+	ck_pr_fence_load();
 	return;
 }
 
@@ -235,6 +236,7 @@ ck_brlock_read_trylock(struct ck_brlock *br,
 			return false;
 	}
 
+	ck_pr_fence_load();
 	return true;
 }
 
