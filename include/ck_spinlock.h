@@ -133,6 +133,9 @@ ck_spinlock_anderson_lock(struct ck_spinlock_anderson *lock,
 		position &= lock->mask;
 	}
 
+	/* Serialize with respect to previous thread's store. */
+	ck_pr_fence_load();
+
 	/* Spin until slot is marked as unlocked. First slot is initialized to false. */
 	while (ck_pr_load_uint(&lock->slots[position].locked) == true)
 		ck_pr_stall();
@@ -142,7 +145,6 @@ ck_spinlock_anderson_lock(struct ck_spinlock_anderson *lock,
 	ck_pr_fence_store();
 
 	*slot = lock->slots + position;
-
 	return;
 }
 
