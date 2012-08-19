@@ -67,8 +67,6 @@ ck_epoch_recycle(struct ck_epoch *global)
 	if (ck_pr_load_uint(&global->n_free) == 0)
 		return (NULL);
 
-	ck_pr_fence_load();
-
 	CK_STACK_FOREACH(&global->records, cursor) {
 		record = ck_epoch_record_container(cursor);
 
