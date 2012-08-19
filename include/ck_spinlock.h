@@ -586,7 +586,7 @@ ck_spinlock_mcs_unlock(struct ck_spinlock_mcs **queue, struct ck_spinlock_mcs *n
 
 struct ck_spinlock_clh {
 	unsigned int wait;
-	struct ck_spinlock_clh_thread *previous;
+	struct ck_spinlock_clh *previous;
 };
 typedef struct ck_spinlock_clh ck_spinlock_clh_t;
 
@@ -606,13 +606,16 @@ ck_spinlock_clh_lock(struct ck_spinlock_clh **queue, struct ck_spinlock_clh *thr
 {
 	struct ck_spinlock_clh *previous;
 
+	/* Indicate to the next thread on queue that they will have to block. */
 	ck_pr_store_uint(&thread->wait, true);
+	ck_pr_fence_store();
 
 	/* Mark current request as last request. Save reference to previous request. */
 	previous = ck_pr_fas_ptr(queue, thread);
-	ck_pr_store_ptr(&thread->previous, previous);
+	thread->previous = previous;
 
 	/* Wait until previous thread is done with lock. */
+	ck_pr_fence_load();
 	while (ck_pr_load_uint(&previous->wait) == true)
 		ck_pr_stall();
 
@@ -624,8 +627,6 @@ ck_spinlock_clh_unlock(struct ck_spinlock_clh **thread)
 {
 	struct ck_spinlock_clh *previous;
 
-	ck_pr_fence_memory();
-
 	/*
 	 * If there are waiters, they are spinning on the current node wait
 	 * flag. The flag is cleared so that the successor may complete an
@@ -633,7 +634,10 @@ ck_spinlock_clh_unlock(struct ck_spinlock_clh **thread)
 	 * may be updated by a successor's lock operation. In order to avoid
 	 * this, save a copy of the predecessor before setting the flag.
 	 */
-	previous = ck_pr_load_ptr(&(*thread)->previous);
+	previous = thread[0]->previous;
+
+	/* We have to pay this cost anyways, use it as a compiler barrier too. */
+	ck_pr_fence_memory();
 	ck_pr_store_uint(&(*thread)->wait, false);
 
 	/*
@@ -641,7 +645,7 @@ ck_spinlock_clh_unlock(struct ck_spinlock_clh **thread)
 	 * so update caller to use previous structure. This allows successor
 	 * all the time in the world to successfully read updated wait flag.
 	 */
-	ck_pr_store_ptr(thread, previous);
+	*thread = previous;
 	return;
 }
 #endif /* CK_F_SPINLOCK_CLH */
