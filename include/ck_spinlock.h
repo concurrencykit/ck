@@ -420,7 +420,11 @@ ck_spinlock_ticket_lock(struct ck_spinlock_ticket *ticket)
 	/* Get our ticket number and set next ticket number. */
 	request = ck_pr_faa_uint(&ticket->next, 1);
 
-	/* Busy-wait until our ticket number is current. */
+	/*
+	 * Busy-wait until our ticket number is current.
+	 * We can get away without a fence here assuming
+	 * our position counter does not overflow.
+	 */
 	while (ck_pr_load_uint(&ticket->position) != request)
 		ck_pr_stall();
 
@@ -469,7 +473,7 @@ ck_spinlock_ticket_unlock(struct ck_spinlock_ticket *ticket)
 	 * it is only an issue if there are 2^32 pending lock requests.
 	 */
 	update = ck_pr_load_uint(&ticket->position);
-	ck_pr_store_uint(&ticket->position, ++update);
+	ck_pr_store_uint(&ticket->position, update + 1);
 	return;
 }
 #endif /* CK_F_SPINLOCK_TICKET */
