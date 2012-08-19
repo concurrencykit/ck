@@ -479,10 +479,10 @@ restart:
 #ifdef CK_HT_PP
 			void *key;
 			uint16_t key_length;
-#endif
 
 			key = ck_ht_entry_key(previous);
 			key_length = ck_ht_entry_key_length(previous);
+#endif
 
 #ifndef CK_HT_PP
 			h.value = previous->hash;
