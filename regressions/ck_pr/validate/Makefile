@@ -9,7 +9,6 @@ OBJECTS=ck_pr_cas ck_pr_faa ck_pr_inc ck_pr_dec ck_pr_bts \
 all: $(OBJECTS)
 
 check: all
-	rc=0;                           \
 	for d in $(OBJECTS) ; do        \
 		echo $$d;		\
 		./$$d || exit 1;     	\
