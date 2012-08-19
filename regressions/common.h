@@ -28,7 +28,6 @@
 #include <ck_pr.h>
 
 #ifdef __linux__
-#define _GNU_SOURCE
 #include <sched.h>
 #include <unistd.h>
 #include <sys/types.h>

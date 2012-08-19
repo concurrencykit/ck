@@ -12,3 +12,4 @@ clean:
 	rm -rf validate *.dSYM
 
 include ../../../build/regressions.build
+CFLAGS+=-D_GNU_SOURCE
