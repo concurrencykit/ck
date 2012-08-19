@@ -172,7 +172,7 @@ main(int argc, char *argv[])
 	pthread_t *thread;
 	struct timeval stv, etv;
 
-#if defined(MPMC) && (!defined(CK_F_STACK_PUSH_MPMC) || !defined(CK_F_STACK_POP_MPMC))
+#if (defined(TRYMPMC) || defined(MPMC)) && (!defined(CK_F_STACK_PUSH_MPMC) || !defined(CK_F_STACK_POP_MPMC))
         fprintf(stderr, "Unsupported.\n");
         return 0;
 #endif
