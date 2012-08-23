@@ -108,6 +108,7 @@
 										\
 		ck_pr_fence_load();						\
 		*data = ring->ring[consumer];					\
+		ck_pr_fence_store();						\
 		ck_pr_store_uint(&ring->c_head, (consumer + 1) & ring->mask);	\
 										\
 		return (true);							\
@@ -213,6 +214,7 @@ ck_ring_dequeue_spsc(struct ck_ring *ring, void *data)
 	 * before this operation completes.
 	 */
 	ck_pr_store_ptr(data, ring->ring[consumer]);
+	ck_pr_fence_store();
 	ck_pr_store_uint(&ring->c_head, (consumer + 1) & ring->mask);
 	return (true);
 }
