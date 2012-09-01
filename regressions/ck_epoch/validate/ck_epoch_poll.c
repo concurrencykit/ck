@@ -44,14 +44,13 @@
 
 #include "../../common.h"
 
-static unsigned int threshold;
 static unsigned int n_threads;
 static unsigned int barrier;
 static unsigned int e_barrier;
 static unsigned int readers;
 
 #ifndef PAIRS
-#define PAIRS 5000000
+#define PAIRS 1000000
 #endif
 
 #ifndef ITERATE
@@ -68,6 +67,7 @@ static ck_epoch_t stack_epoch;
 CK_STACK_CONTAINER(struct node, stack_entry, stack_container)
 CK_EPOCH_CONTAINER(struct node, epoch_entry, epoch_container)
 static struct affinity a;
+static const char animate[] = "-/|\\";
 
 static void
 destructor(ck_epoch_entry_t *p)
@@ -111,13 +111,15 @@ read_thread(void *unused CK_CC_UNUSED)
 
 	j = 0;
 	for (;;) {
-		ck_epoch_read_begin(&record);
+		ck_epoch_begin(&stack_epoch, &record);
 		CK_STACK_FOREACH(&stack, cursor) {
-			n = cursor;
+			if (cursor == NULL)
+				continue;
+
+			n = CK_STACK_NEXT(cursor);
 			j++;
-			n++;
 		}
-		ck_epoch_read_end(&record);
+		ck_epoch_end(&stack_epoch, &record);
 
 		if (j != 0 && ck_pr_load_uint(&readers) == 0)
 			ck_pr_store_uint(&readers, 1);
@@ -168,32 +170,36 @@ thread(void *unused CK_CC_UNUSED)
 		}
 
 		for (i = 0; i < PAIRS; i++) {
-			ck_epoch_write_begin(&record);
 			ck_stack_push_upmc(&stack, &entry[i]->stack_entry);
-			ck_epoch_write_end(&record);
 		}
 
 		while (ck_pr_load_uint(&readers) == 0)
 			ck_pr_stall();
 
-		for (i = 0; i < PAIRS; i++) {
-			ck_epoch_write_begin(&record);
-			s = ck_stack_pop_upmc(&stack);
-			ck_epoch_write_end(&record);
+		fprintf(stderr, "\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b[W] %2.2f: %c", (double)j / ITERATE, animate[i % strlen(animate)]);
 
+		for (i = 0; i < PAIRS; i++) {
+			s = ck_stack_pop_upmc(&stack);
 			e = stack_container(s);
-			ck_epoch_free(&record, &e->epoch_entry, destructor);
+
+			ck_epoch_call(&record, &e->epoch_entry, destructor);
+
+			if (i % 1024)
+				ck_epoch_poll(&stack_epoch, &record);
+
+			if (i % 8192)
+				fprintf(stderr, "\b%c", animate[i % strlen(animate)]);
 		}
 	}
 
-	ck_pr_inc_uint(&e_barrier);
-	while (ck_pr_load_uint(&e_barrier) < n_threads);
-
-	fprintf(stderr, "[W] Peak: %u (%2.2f%%)\n    Reclamations: %" PRIu64 "\n\n",
+	ck_epoch_synchronize(&stack_epoch, &record);
+	fprintf(stderr, "\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b[W] Peak: %u (%2.2f%%)\n    Reclamations: %lu\n\n",
 			record.n_peak,
 			(double)record.n_peak / ((double)PAIRS * ITERATE) * 100,
-			record.n_reclamations);
+			record.n_dispatch);
 
+	ck_pr_inc_uint(&e_barrier);
+	while (ck_pr_load_uint(&e_barrier) < n_threads);
 	return (NULL);
 }
 
@@ -203,19 +209,18 @@ main(int argc, char *argv[])
 	unsigned int i;
 	pthread_t *threads;
 
-	if (argc != 4) {
-		fprintf(stderr, "Usage: stack <threads> <threshold> <delta>\n");
+	if (argc != 3) {
+		fprintf(stderr, "Usage: stack <threads> <affinity delta>\n");
 		exit(EXIT_FAILURE);
 	}
 
 	n_threads = atoi(argv[1]);
-	threshold = atoi(argv[2]);
-	a.delta = atoi(argv[3]);
+	a.delta = atoi(argv[2]);
 	a.request = 0;
 
 	threads = malloc(sizeof(pthread_t) * n_threads);
 
-	ck_epoch_init(&stack_epoch, threshold);
+	ck_epoch_init(&stack_epoch);
 
 	for (i = 0; i < n_threads - 1; i++)
 		pthread_create(threads + i, NULL, read_thread, NULL);

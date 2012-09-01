@@ -38,19 +38,20 @@
 #include <ck_stack.h>
 #include <stdbool.h>
 
-/*
- * CK_EPOCH_LENGTH must be a power of 2.
- */
 #ifndef CK_EPOCH_LENGTH
 #define CK_EPOCH_LENGTH 4
 #endif
 
 struct ck_epoch_entry;
 typedef struct ck_epoch_entry ck_epoch_entry_t;
-typedef void (*ck_epoch_destructor_t)(ck_epoch_entry_t *);
+typedef void ck_epoch_cb_t(ck_epoch_entry_t *);
 
+/*
+ * This should be embedded into objects you wish to be the target of
+ * ck_epoch_cb_t functions (with ck_epoch_call).
+ */
 struct ck_epoch_entry {
-	ck_epoch_destructor_t destroy;
+	ck_epoch_cb_t *function;
 	ck_stack_entry_t stack_entry;
 };
 
@@ -59,17 +60,14 @@ struct ck_epoch_entry {
  */
 #define CK_EPOCH_CONTAINER(T, M, N) CK_CC_CONTAINER(struct ck_epoch_entry, T, M, N)
 
-struct ck_epoch;
 struct ck_epoch_record {
-	unsigned int active;
+	unsigned int state;
 	unsigned int epoch;
-	ck_stack_t pending[CK_EPOCH_LENGTH];
+	unsigned int active;
 	unsigned int n_pending;
-	unsigned int status;
-	unsigned int delta;
 	unsigned int n_peak;
-	uint64_t     n_reclamations;
-	struct ck_epoch *global;
+	unsigned long n_dispatch;
+	ck_stack_t pending[CK_EPOCH_LENGTH];
 	ck_stack_entry_t record_next;
 } CK_CC_CACHELINE;
 typedef struct ck_epoch_record ck_epoch_record_t;
@@ -78,13 +76,12 @@ struct ck_epoch {
 	unsigned int epoch;
 	char pad[CK_MD_CACHELINE - sizeof(unsigned int)];
 	ck_stack_t records;
-	unsigned int threshold;
 	unsigned int n_free;
 };
 typedef struct ck_epoch ck_epoch_t;
 
 CK_CC_INLINE static void
-ck_epoch_read_begin(ck_epoch_record_t *record)
+ck_epoch_begin(ck_epoch_t *epoch, ck_epoch_record_t *record)
 {
 
 	/*
@@ -92,8 +89,7 @@ ck_epoch_read_begin(ck_epoch_record_t *record)
 	 * section.
 	 */
 	if (record->active == 0) {
-		unsigned int g_epoch = ck_pr_load_uint(&record->global->epoch);
-		g_epoch &= CK_EPOCH_LENGTH - 1;
+		unsigned int g_epoch = ck_pr_load_uint(&epoch->epoch);
 		ck_pr_store_uint(&record->epoch, g_epoch);
 	}
 
@@ -103,45 +99,41 @@ ck_epoch_read_begin(ck_epoch_record_t *record)
 }
 
 CK_CC_INLINE static void
-ck_epoch_read_end(ck_epoch_record_t *record)
+ck_epoch_end(ck_epoch_t *global, ck_epoch_record_t *record)
 {
 
-	ck_pr_fence_load();
+	(void)global;
+
+	ck_pr_fence_memory();
 	ck_pr_store_uint(&record->active, record->active - 1);
 	return;
 }
 
+/*
+ * Defers the execution of the function pointed to by the "cb"
+ * argument until an epoch counter loop. This allows for a
+ * non-blocking deferral.
+ */
 CK_CC_INLINE static void
-ck_epoch_write_end(ck_epoch_record_t *record)
+ck_epoch_call(ck_epoch_record_t *record,
+	      ck_epoch_entry_t *entry,
+	      ck_epoch_cb_t *function)
 {
+	unsigned int offset = record->epoch & (CK_EPOCH_LENGTH - 1);
 
-	ck_pr_fence_store();
-	ck_pr_store_uint(&record->active, record->active - 1);
+	record->n_pending++;
+	entry->function = function;
+	ck_stack_push_spnc(&record->pending[offset], &entry->stack_entry);
 	return;
 }
 
-CK_CC_INLINE static void
-ck_epoch_retire(ck_epoch_record_t *record, ck_epoch_entry_t *entry, ck_epoch_destructor_t destroy)
-{
-
-	entry->destroy = destroy;
-	ck_stack_push_spnc(&record->pending[record->epoch], &entry->stack_entry);
-	record->n_pending += 1;
-
-	if (record->n_pending > record->n_peak)
-		record->n_peak = record->n_pending;
-
-	return;
-}
-
-void ck_epoch_init(ck_epoch_t *, unsigned int);
+void ck_epoch_init(ck_epoch_t *);
 ck_epoch_record_t *ck_epoch_recycle(ck_epoch_t *);
 void ck_epoch_register(ck_epoch_t *, ck_epoch_record_t *);
 void ck_epoch_unregister(ck_epoch_record_t *);
-void ck_epoch_tick(ck_epoch_t *, ck_epoch_record_t *);
-bool ck_epoch_reclaim(ck_epoch_record_t *);
-void ck_epoch_write_begin(ck_epoch_record_t *);
-void ck_epoch_free(ck_epoch_record_t *, ck_epoch_entry_t *, ck_epoch_destructor_t);
-void ck_epoch_purge(ck_epoch_record_t *record);
+bool ck_epoch_poll(ck_epoch_t *, ck_epoch_record_t *);
+void ck_epoch_call(ck_epoch_record_t *, ck_epoch_entry_t *, ck_epoch_cb_t *);
+void ck_epoch_synchronize(ck_epoch_t *, ck_epoch_record_t *);
+void ck_epoch_barrier(ck_epoch_t *, ck_epoch_record_t *);
 
 #endif /* _CK_EPOCH_H */

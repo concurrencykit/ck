@@ -74,7 +74,7 @@ bag_free(void *p, size_t b, bool r)
 	(void)b;
 
 	if (r == true) {
-		ck_epoch_free(&epoch_wr, &(--e)->epoch_entry, bag_destroy);
+		ck_epoch_call(&epoch_wr, &(--e)->epoch_entry, bag_destroy);
 	} else {
 		free(--e);
 	}
@@ -107,7 +107,7 @@ reader(void *arg)
 	 * guarantee across the bag.
 	 */
 	for (;;) {
-		ck_epoch_read_begin(&epoch_record);
+		ck_epoch_begin(&epoch_bag, &epoch_record);
 		ck_bag_iterator_init(&iterator, &bag);
 		curr_max = prev_max = prev = -1;
 		block = NULL;
@@ -141,8 +141,7 @@ reader(void *arg)
 			prev = curr;
 			n_entries++;
 		}
-
-		ck_epoch_read_end(&epoch_record);
+		ck_epoch_end(&epoch_bag, &epoch_record);
 
 		iterations++;
 		if (ck_pr_load_int(&leave) == 1)
@@ -169,7 +168,6 @@ writer_thread(void *unused)
 
 	for (;;) {
 		iteration++;
-		ck_epoch_write_begin(&epoch_wr);
 		for (i = 1; i <= writer_max; i++) {
 			if (ck_bag_put_spmc(&bag, (void *)(uintptr_t)i) == false) {
 				perror("ck_bag_put_spmc");
@@ -206,7 +204,7 @@ writer_thread(void *unused)
 			}
 		}
 
-		ck_epoch_write_end(&epoch_wr);
+		ck_epoch_poll(&epoch_bag, &epoch_wr);
 	}
 
 	fprintf(stderr, "Writer %u iterations, %u writes per iteration.\n", iteration, writer_max);
@@ -247,7 +245,7 @@ main(int argc, char **argv)
 		writer_max = (unsigned int)r;
 	}
 
-	ck_epoch_init(&epoch_bag, 100);
+	ck_epoch_init(&epoch_bag);
 	ck_epoch_register(&epoch_bag, &epoch_wr);
 	ck_bag_allocator_set(&allocator, sizeof(struct bag_epoch));
 	if (ck_bag_init(&bag, b, CK_BAG_ALLOCATE_GEOMETRIC) == false) {

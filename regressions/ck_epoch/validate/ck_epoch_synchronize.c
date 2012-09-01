@@ -47,21 +47,35 @@
 static unsigned int n_threads;
 static unsigned int barrier;
 static unsigned int e_barrier;
+static unsigned int readers;
 
 #ifndef PAIRS
 #define PAIRS 5000000
 #endif
 
+#ifndef ITERATE
+#define ITERATE 20
+#endif
+
+#ifndef PAIRS_S
+#define PAIRS_S 10000
+#endif
+
+#ifndef ITERATE_S
+#define ITERATE_S 20
+#endif
+
 struct node {
 	unsigned int value;
-	ck_epoch_entry_t epoch_entry;
 	ck_stack_entry_t stack_entry;
+	ck_epoch_entry_t epoch_entry;
 };
-static ck_stack_t stack = {NULL, NULL};
+static ck_stack_t stack = CK_STACK_INITIALIZER;
 static ck_epoch_t stack_epoch;
 CK_STACK_CONTAINER(struct node, stack_entry, stack_container)
 CK_EPOCH_CONTAINER(struct node, epoch_entry, epoch_container)
 static struct affinity a;
+static const char animate[] = "-/|\\";
 
 static void
 destructor(ck_epoch_entry_t *p)
@@ -73,13 +87,18 @@ destructor(ck_epoch_entry_t *p)
 }
 
 static void *
-thread(void *unused CK_CC_UNUSED)
+read_thread(void *unused CK_CC_UNUSED)
 {
-	struct node **entry, *e;
-	ck_epoch_record_t record;
-	ck_stack_entry_t *s;
-	unsigned long smr = 0;
-	unsigned int i;
+	unsigned int j;
+	ck_epoch_record_t record CK_CC_CACHELINE;
+	ck_stack_entry_t *cursor;
+
+	/*
+	 * This is redundant post-incremented in order to silence some
+	 * irrelevant GCC warnings. It is volatile in order to prevent
+	 * elimination.
+	 */
+	volatile ck_stack_entry_t *n;
 
 	ck_epoch_register(&stack_epoch, &record);
 
@@ -88,54 +107,111 @@ thread(void *unused CK_CC_UNUSED)
 		exit(EXIT_FAILURE);
 	}
 
-	entry = malloc(sizeof(struct node *) * PAIRS);
-	if (entry == NULL) {
-		fprintf(stderr, "Failed allocation.\n");
-		exit(EXIT_FAILURE);
-	}
-
-	for (i = 0; i < PAIRS; i++) {
-		entry[i] = malloc(sizeof(struct node));
-		if (entry == NULL) {
-			fprintf(stderr, "Failed individual allocation\n");
-			exit(EXIT_FAILURE);
-		}
-	}
-
 	ck_pr_inc_uint(&barrier);
 	while (ck_pr_load_uint(&barrier) < n_threads);
 
-	for (i = 0; i < PAIRS; i++) {
+	while (CK_STACK_ISEMPTY(&stack) == true) {
+		if (ck_pr_load_uint(&readers) != 0)
+			break;
+
+		ck_pr_stall();
+	}
+
+	j = 0;
+	for (;;) {
 		ck_epoch_begin(&stack_epoch, &record);
-		ck_stack_push_upmc(&stack, &entry[i]->stack_entry);
-		s = ck_stack_pop_upmc(&stack);
+		CK_STACK_FOREACH(&stack, cursor) {
+			if (cursor == NULL)
+				continue;
+
+			n = CK_STACK_NEXT(cursor);
+			j++;
+		}
 		ck_epoch_end(&stack_epoch, &record);
 
-		e = stack_container(s);
-		ck_epoch_call(&record, &e->epoch_entry, destructor);
-		smr += ck_epoch_poll(&stack_epoch, &record) == false;
+		if (j != 0 && ck_pr_load_uint(&readers) == 0)
+			ck_pr_store_uint(&readers, 1);
+
+		if (CK_STACK_ISEMPTY(&stack) == true &&
+		    ck_pr_load_uint(&e_barrier) != 0)
+			break;
 	}
 
 	ck_pr_inc_uint(&e_barrier);
 	while (ck_pr_load_uint(&e_barrier) < n_threads);
 
-	fprintf(stderr, "Deferrals: %lu (%2.2f)\n", smr, (double)smr / PAIRS);
-	fprintf(stderr, "Peak: %u (%2.2f%%), %u pending\nReclamations: %lu\n\n",
-			record.n_peak,
-			(double)record.n_peak / PAIRS * 100,
-			record.n_pending,
-			record.n_dispatch);
+	fprintf(stderr, "[R] Observed entries: %u\n", j);
+	return (NULL);
+}
 
-	ck_epoch_synchronize(&stack_epoch, &record);
-	ck_pr_inc_uint(&e_barrier);
-	while (ck_pr_load_uint(&e_barrier) < (n_threads << 1));
+static void *
+thread(void *unused CK_CC_UNUSED)
+{
+	struct node **entry, *e;
+	unsigned int i, j;
+	ck_epoch_record_t record;
+	ck_stack_entry_t *s;
 
-	if (record.n_pending != 0) {
-		fprintf(stderr, "ERROR: %u pending, expecting none.\n",
-				record.n_pending);
+	ck_epoch_register(&stack_epoch, &record);
+
+	if (aff_iterate(&a)) {
+		perror("ERROR: failed to affine thread");
 		exit(EXIT_FAILURE);
 	}
 
+	ck_pr_inc_uint(&barrier);
+	while (ck_pr_load_uint(&barrier) < n_threads);
+
+	entry = malloc(sizeof(struct node *) * PAIRS_S);
+	if (entry == NULL) {
+		fprintf(stderr, "Failed allocation.\n");
+		exit(EXIT_FAILURE);
+	}
+
+	for (j = 0; j < ITERATE_S; j++) {
+		for (i = 0; i < PAIRS_S; i++) {
+			entry[i] = malloc(sizeof(struct node));
+			if (entry == NULL) {
+				fprintf(stderr, "Failed individual allocation\n");
+				exit(EXIT_FAILURE);
+			}
+		}
+
+		for (i = 0; i < PAIRS_S; i++) {
+			ck_stack_push_upmc(&stack, &entry[i]->stack_entry);
+		}
+
+		while (ck_pr_load_uint(&readers) == 0)
+			ck_pr_stall();
+
+		fprintf(stderr, "\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b[W] %2.2f: %c", (double)j / ITERATE_S, animate[i % strlen(animate)]);
+
+		for (i = 0; i < PAIRS_S; i++) {
+			s = ck_stack_pop_upmc(&stack);
+			e = stack_container(s);
+
+			ck_epoch_synchronize(&stack_epoch, &record);
+
+			if (i & 1) {
+				ck_epoch_call(&record, &e->epoch_entry, destructor);
+			} else {
+				destructor(&e->epoch_entry);
+			}
+
+			if (i % 8192) {
+				fprintf(stderr, "\b%c", animate[i % strlen(animate)]);
+			}
+		}
+	}
+
+	ck_epoch_synchronize(&stack_epoch, &record);
+	fprintf(stderr, "\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b[W] Peak: %u (%2.2f%%)\n    Reclamations: %lu\n\n",
+			record.n_peak,
+			(double)record.n_peak / ((double)PAIRS * ITERATE) * 100,
+			record.n_dispatch);
+
+	ck_pr_inc_uint(&e_barrier);
+	while (ck_pr_load_uint(&e_barrier) < n_threads);
 	return (NULL);
 }
 
@@ -158,8 +234,10 @@ main(int argc, char *argv[])
 
 	ck_epoch_init(&stack_epoch);
 
-	for (i = 0; i < n_threads; i++)
-		pthread_create(threads + i, NULL, thread, NULL);
+	for (i = 0; i < n_threads - 1; i++)
+		pthread_create(threads + i, NULL, read_thread, NULL);
+
+	pthread_create(threads + i, NULL, thread, NULL);
 
 	for (i = 0; i < n_threads; i++)
 		pthread_join(threads[i], NULL);

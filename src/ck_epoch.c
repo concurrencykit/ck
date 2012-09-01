@@ -37,22 +37,114 @@
 #include <ck_stack.h>
 #include <stdbool.h>
 
+/*
+ * Only three distinct epoch values are needed. If any thread is in
+ * a "critical section" then it would have acquired some snapshot (e)
+ * of the global epoch value (e_g) and set an active flag. Any hazardous
+ * references will only occur after a full memory barrier. For example,
+ * assume an initial e_g value of 1, e value of 0 and active value of 0.
+ *
+ * ck_epoch_begin(...)
+ *   e = e_g
+ *   active = 1
+ *   memory_barrier();
+ *
+ * Any serialized reads may observe e = 0 or e = 1 with active = 0, or
+ * e = 0 or e = 1 with active = 1. The e_g value can only go from 1
+ * to 2 if every thread has already observed the value of "1" (or the
+ * value we are incrementing from). This guarantees us that for any
+ * given value e_g, any threads with-in critical sections (referred
+ * to as "active" threads from here on) would have an e value of
+ * e_g - 1 or e_g. This also means that hazardous references may be
+ * shared in both e_g - 1 and e_g even if they are logically deleted
+ * in e_g.
+ *
+ * For example, assume all threads have an e value of e_g. Another
+ * thread may increment to e_g to e_g + 1. Older threads may have
+ * a reference to an object which is only deleted in e_g + 1. It
+ * could be that reader threads are executing some hash table look-ups,
+ * while some other writer thread (which causes epoch counter tick)
+ * actually deletes the same items that reader threads are looking
+ * up (this writer thread having an e value of e_g + 1). This is possible
+ * if the writer thread re-observes the epoch after the counter tick.
+ *
+ * Psuedo-code for writer:
+ *   ck_epoch_begin()
+ *   ht_delete(x)
+ *   ck_epoch_end()
+ *   ck_epoch_begin()
+ *   ht_delete(x)
+ *   ck_epoch_end()
+ *
+ * Psuedo-code for reader:
+ *   for (;;) {
+ *      x = ht_lookup(x)
+ *      ck_pr_inc(&x->value);
+ *   }
+ *
+ * Of course, it is also possible for references logically deleted
+ * at e_g - 1 to still be accessed at e_g as threads are "active"
+ * at the same time (real-world time) mutating shared objects.
+ *
+ * Now, if the epoch counter is ticked to e_g + 1, then no new 
+ * hazardous references could exist to objects logically deleted at
+ * e_g - 1. The reason for this is that at e_g + 1, all epoch read-side
+ * critical sections started at e_g - 1 must have been completed. If
+ * any epoch read-side critical sections at e_g - 1 were still active,
+ * then we would never increment to e_g + 1 (active != 0 ^ e != e_g).
+ * Additionally, e_g may still have hazardous references to objects logically
+ * deleted at e_g - 1 which means objects logically deleted at e_g - 1 cannot
+ * be deleted at e_g + 1 (since it is valid for active threads to be at e_g or
+ * e_g + 1 and threads at e_g still require safe memory accesses).
+ *
+ * However, at e_g + 2, all active threads must be either at e_g + 1 or
+ * e_g + 2. Though e_g + 2 may share hazardous references with e_g + 1,
+ * and e_g + 1 shares hazardous references to e_g, no active threads are
+ * at e_g or e_g - 1. This means no hazardous references could exist to
+ * objects deleted at e_g - 1 (at e_g + 2).
+ *
+ * To summarize these important points,
+ *   1) Active threads will always have a value of e_g or e_g - 1.
+ *   2) Items that are logically deleted at e_g or e_g - 1 cannot be
+ *      physically deleted.
+ *   3) Objects logically deleted at e_g - 1 can be physically destroyed
+ *      at e_g + 2. In other words, for any current value of the global epoch
+ *      counter e_g, objects logically deleted at e_g can be physically
+ *      deleted at e_g + 3.
+ *
+ * Last but not least, if we are at e_g + 2, then no active thread is at
+ * e_g which means it is safe to apply modulo-3 arithmetic to e_g value
+ * in order to re-use e_g to represent the e_g + 3 state. This means it is
+ * sufficient to represent e_g using only the values 0, 1 or 2. Every time
+ * a thread re-visits a e_g (which can be determined with a non-empty deferral
+ * list) it can assume objects in the e_g deferral list involved at least
+ * three e_g transitions and are thus, safe, for physical deletion. 
+ *
+ * Blocking semantics for epoch reclamation have additional restrictions.
+ * Though we only require three deferral lists, reasonable blocking semantics
+ * must be able to more gracefully handle bursty write work-loads which could
+ * easily cause e_g wrap-around if modulo-3 arithmetic is used. This allows for
+ * easy-to-trigger live-lock situations. The work-around to work around
+ * this is to not apply modulo arithmetic to e_g but only to deferral list
+ * indexing.
+ */
+#define CK_EPOCH_GRACE 3U
+
 enum {
-	CK_EPOCH_USED = 0,
-	CK_EPOCH_FREE = 1
+	CK_EPOCH_STATE_USED = 0,
+	CK_EPOCH_STATE_FREE = 1
 };
 
 CK_STACK_CONTAINER(struct ck_epoch_record, record_next, ck_epoch_record_container)
 CK_STACK_CONTAINER(struct ck_epoch_entry, stack_entry, ck_epoch_entry_container)
 
 void
-ck_epoch_init(struct ck_epoch *global, unsigned int threshold)
+ck_epoch_init(struct ck_epoch *global)
 {
 
 	ck_stack_init(&global->records);
 	global->epoch = 1;
 	global->n_free = 0;
-	global->threshold = threshold;
 	ck_pr_fence_store();
 	return;
 }
@@ -62,7 +154,7 @@ ck_epoch_recycle(struct ck_epoch *global)
 {
 	struct ck_epoch_record *record;
 	ck_stack_entry_t *cursor;
-	unsigned int status;
+	unsigned int state;
 
 	if (ck_pr_load_uint(&global->n_free) == 0)
 		return (NULL);
@@ -70,10 +162,10 @@ ck_epoch_recycle(struct ck_epoch *global)
 	CK_STACK_FOREACH(&global->records, cursor) {
 		record = ck_epoch_record_container(cursor);
 
-		if (ck_pr_load_uint(&record->status) == CK_EPOCH_FREE) {
+		if (ck_pr_load_uint(&record->state) == CK_EPOCH_STATE_FREE) {
 			ck_pr_fence_load();
-			status = ck_pr_fas_uint(&record->status, CK_EPOCH_USED);
-			if (status == CK_EPOCH_FREE) {
+			state = ck_pr_fas_uint(&record->state, CK_EPOCH_STATE_USED);
+			if (state == CK_EPOCH_STATE_FREE) {
 				ck_pr_dec_uint(&global->n_free);
 				return record;
 			}
@@ -88,14 +180,12 @@ ck_epoch_register(struct ck_epoch *global, struct ck_epoch_record *record)
 {
 	size_t i;
 
-	record->status = CK_EPOCH_USED;
+	record->state = CK_EPOCH_STATE_USED;
 	record->active = 0;
 	record->epoch = 0;
-	record->delta = 0;
-	record->n_pending = 0;
+	record->n_dispatch = 0;
 	record->n_peak = 0;
-	record->n_reclamations = 0;
-	record->global = global;
+	record->n_pending = 0;
 
 	for (i = 0; i < CK_EPOCH_LENGTH; i++)
 		ck_stack_init(&record->pending[i]);
@@ -112,151 +202,148 @@ ck_epoch_unregister(struct ck_epoch_record *record)
 
 	record->active = 0;
 	record->epoch = 0;
-	record->delta = 0;
-	record->n_pending = 0;
+	record->n_dispatch = 0;
 	record->n_peak = 0;
-	record->n_reclamations = 0;
+	record->n_pending = 0;
 
 	for (i = 0; i < CK_EPOCH_LENGTH; i++)
 		ck_stack_init(&record->pending[i]);
 
 	ck_pr_fence_store();
-	ck_pr_store_uint(&record->status, CK_EPOCH_FREE);
-	ck_pr_inc_uint(&record->global->n_free);
+	ck_pr_store_uint(&record->state, CK_EPOCH_STATE_FREE);
 	return;
 }
 
-void
-ck_epoch_tick(struct ck_epoch *global, struct ck_epoch_record *record)
+static struct ck_epoch_record *
+ck_epoch_scan(struct ck_epoch *global, struct ck_epoch_record *cr, unsigned int epoch)
 {
-	struct ck_epoch_record *c_record;
 	ck_stack_entry_t *cursor;
-	unsigned int g_epoch = ck_pr_load_uint(&global->epoch);
 
-	CK_STACK_FOREACH(&global->records, cursor) {
-		c_record = ck_epoch_record_container(cursor);
-		if (ck_pr_load_uint(&c_record->status) == CK_EPOCH_FREE ||
-		    c_record == record)
-			continue;
-
-		if (ck_pr_load_uint(&c_record->active) != 0 &&
-		    ck_pr_load_uint(&c_record->epoch) != g_epoch)
-			return;
+	if (cr == NULL) {
+		cursor = CK_STACK_FIRST(&global->records);
+	} else {
+		cursor = &cr->record_next;
 	}
 
-	/*
-	 * If we have multiple writers, it is much easier to starve
-	 * reclamation if we loop through the epoch domain. It may
-	 * be worth it to add an SPMC variant to ck_epoch that relies
-	 * on atomic increment operations instead.
-	 */
-	ck_pr_cas_uint(&global->epoch, g_epoch, (g_epoch + 1) & (CK_EPOCH_LENGTH - 1));
-	return;
+	while (cursor != NULL) {
+		unsigned int state;
+
+		cr = ck_epoch_record_container(cursor);
+
+		state = ck_pr_load_uint(&cr->state);
+		if (state & CK_EPOCH_STATE_FREE)
+			continue;
+
+		if (ck_pr_load_uint(&cr->active) != 0 &&
+		    ck_pr_load_uint(&cr->epoch) != epoch)
+			return cr;
+
+		cursor = CK_STACK_NEXT(cursor);
+	}
+
+	return NULL;
 }
 
-bool
-ck_epoch_reclaim(struct ck_epoch_record *record)
+static void
+ck_epoch_dispatch(struct ck_epoch_record *record, unsigned int e)
 {
-	struct ck_epoch *global = record->global;
-	unsigned int g_epoch = ck_pr_load_uint(&global->epoch);
-	unsigned int epoch = record->epoch;
+	unsigned int epoch = e & (CK_EPOCH_LENGTH - 1);
 	ck_stack_entry_t *next, *cursor;
+	unsigned int i = 0;
 
-	if (epoch == g_epoch)
-		return false;
-
-	/*
-	 * This means all threads with a potential reference to a
-	 * hazard pointer will have a view as new as or newer than
-	 * the calling thread. No active reference should exist to
-	 * any object in the record's pending list.
-	 */
-	CK_STACK_FOREACH_SAFE(&record->pending[g_epoch], cursor, next) {
+	CK_STACK_FOREACH_SAFE(&record->pending[epoch], cursor, next) {
 		struct ck_epoch_entry *entry = ck_epoch_entry_container(cursor);
 
-		entry->destroy(entry);
-		record->n_pending--;
-		record->n_reclamations++;
+		entry->function(entry);
+		i++;
 	}
-
-	ck_stack_init(&record->pending[g_epoch]);
-	ck_pr_store_uint(&record->epoch, g_epoch);
-	record->delta = 0;
-	return true;
-}
-
-void
-ck_epoch_write_begin(struct ck_epoch_record *record)
-{
-	struct ck_epoch *global = record->global;
-
-	ck_pr_store_uint(&record->active, record->active + 1);
-
-	/*
-	 * In the case of recursive write sections, avoid ticking
-	 * over global epoch.
-	 */
-	if (record->active > 1)
-		return;
-
-	ck_pr_fence_memory();
-	for (;;) {
-		/*
-		 * Reclaim deferred objects if possible and
-		 * acquire a new snapshot of the global epoch.
-		 */
-		if (ck_epoch_reclaim(record) == true)
-			break;
-
-		/*
-		 * If we are above the global epoch record threshold,
-		 * attempt to tick over the global epoch counter.
-		 */
-		if (++record->delta >= global->threshold) {
-			record->delta = 0;
-			ck_epoch_tick(global, record);
-			continue;
-		}
-
-		break;
-	}
-
-	return;
-}
-
-void
-ck_epoch_free(struct ck_epoch_record *record,
-	      ck_epoch_entry_t *entry,
-	      ck_epoch_destructor_t destroy)
-{
-	unsigned int epoch = ck_pr_load_uint(&record->epoch);
-	struct ck_epoch *global = record->global;
-
-	entry->destroy = destroy;
-	ck_stack_push_spnc(&record->pending[epoch], &entry->stack_entry);
-	record->n_pending += 1;
 
 	if (record->n_pending > record->n_peak)
 		record->n_peak = record->n_pending;
 
-	if (record->n_pending >= global->threshold && ck_epoch_reclaim(record) == false)
-		ck_epoch_tick(global, record);
+	record->n_dispatch += i;
+	record->n_pending -= i;
+	ck_stack_init(&record->pending[epoch]);
+	return;
+}
 
+/*
+ * This function must not be called with-in read section.
+ */
+void
+ck_epoch_barrier(struct ck_epoch *global, struct ck_epoch_record *record)
+{
+	struct ck_epoch_record *cr;
+	unsigned int delta, epoch, goal, i;
+
+	/*
+	 * Guarantee any mutations previous to the barrier will be made visible
+	 * with respect to epoch snapshots we will read.
+	 */
+	ck_pr_fence_memory();
+
+	delta = epoch = ck_pr_load_uint(&global->epoch);
+	goal = epoch + CK_EPOCH_GRACE;
+
+	for (i = 0, cr = NULL; i < CK_EPOCH_GRACE; cr = NULL, i++) {
+		/* Determine whether all threads have observed the current epoch. */
+		while (cr = ck_epoch_scan(global, cr, delta), cr != NULL)
+			ck_pr_stall();
+
+		/*
+		 * Increment current epoch. CAS semantics are used to eliminate
+		 * increment operations for synchronization that occurs for the
+		 * same global epoch value snapshot.
+		 *
+		 * If we can guarantee there will only be one active barrier
+		 * or epoch tick at a given time, then it is sufficient to
+		 * use an increment operation. In a multi-barrier workload,
+		 * however, it is possible to overflow the epoch value if we
+		 * apply modulo-3 arithmetic.
+		 */
+		ck_pr_cas_uint_value(&global->epoch, delta, delta + 1, &delta);
+
+		/* Right now, epoch overflow is handled as an edge case. */
+		if ((goal > epoch) & (delta > goal))
+			break;
+	}
+
+	/*
+	 * As the synchronize operation is non-blocking, it is possible other
+	 * writers have already observed three or more epoch generations
+	 * relative to the generation the caller has observed. In this case,
+	 * it is safe to assume we are also in a grace period and are able to
+	 * dispatch all calls across all lists.
+	 */
+	for (epoch = 0; epoch < CK_EPOCH_LENGTH; epoch++)
+		ck_epoch_dispatch(record, epoch);
+
+	record->epoch = delta;
 	return;
 }
 
 void
-ck_epoch_purge(struct ck_epoch_record *record)
+ck_epoch_synchronize(struct ck_epoch *global, struct ck_epoch_record *record)
 {
-	ck_backoff_t backoff = CK_BACKOFF_INITIALIZER;
 
-	while (record->n_pending > 0) {
-		ck_epoch_reclaim(record);
-		ck_epoch_tick(record->global, record);
-		if (record->n_pending > 0)
-			ck_backoff_gb(&backoff);
-	}
-
+	ck_epoch_barrier(global, record);
 	return;
+}
+
+bool
+ck_epoch_poll(struct ck_epoch *global, struct ck_epoch_record *record)
+{
+	unsigned int epoch = ck_pr_load_uint(&global->epoch);
+	unsigned int snapshot;
+	struct ck_epoch_record *cr = NULL;
+
+	cr = ck_epoch_scan(global, cr, epoch);
+	if (cr != NULL)
+		return false;
+
+	ck_pr_cas_uint_value(&global->epoch, epoch, epoch + 1, &snapshot);
+	ck_epoch_dispatch(record, epoch + 1);
+	record->epoch = snapshot;
+	return true;
 }
 
