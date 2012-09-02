@@ -277,16 +277,24 @@ ck_epoch_barrier(struct ck_epoch *global, struct ck_epoch_record *record)
 	unsigned int delta, epoch, goal, i;
 
 	/*
+	 * Technically, we are vulnerable to an overflow in presence of multiple
+	 * writers. Realistically, this will require 2^32 scans. You can use
+	 * epoch-protected sections on the writer-side if this is a concern.
+	 */
+	delta = epoch = ck_pr_load_uint(&global->epoch);
+	goal = epoch + CK_EPOCH_GRACE;
+
+	/*
 	 * Guarantee any mutations previous to the barrier will be made visible
 	 * with respect to epoch snapshots we will read.
 	 */
 	ck_pr_fence_memory();
 
-	delta = epoch = ck_pr_load_uint(&global->epoch);
-	goal = epoch + CK_EPOCH_GRACE;
-
 	for (i = 0, cr = NULL; i < CK_EPOCH_GRACE; cr = NULL, i++) {
-		/* Determine whether all threads have observed the current epoch. */
+		/*
+		 * Determine whether all threads have observed the current epoch.
+		 * We can get away without a fence here.
+		 */
 		while (cr = ck_epoch_scan(global, cr, delta), cr != NULL)
 			ck_pr_stall();
 
@@ -337,6 +345,8 @@ ck_epoch_poll(struct ck_epoch *global, struct ck_epoch_record *record)
 	unsigned int snapshot;
 	struct ck_epoch_record *cr = NULL;
 
+	/* Serialize record epoch snapshots with respect to global epoch load. */
+	ck_pr_fence_memory();
 	cr = ck_epoch_scan(global, cr, epoch);
 	if (cr != NULL)
 		return false;

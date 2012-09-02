@@ -80,6 +80,9 @@ struct ck_epoch {
 };
 typedef struct ck_epoch ck_epoch_t;
 
+/*
+ * Marks the beginning of an epoch-protected section.
+ */
 CK_CC_INLINE static void
 ck_epoch_begin(ck_epoch_t *epoch, ck_epoch_record_t *record)
 {
@@ -98,6 +101,9 @@ ck_epoch_begin(ck_epoch_t *epoch, ck_epoch_record_t *record)
 	return;
 }
 
+/*
+ * Marks the end of an epoch-protected section.
+ */
 CK_CC_INLINE static void
 ck_epoch_end(ck_epoch_t *global, ck_epoch_record_t *record)
 {
