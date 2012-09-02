@@ -39,6 +39,7 @@
 #include <ck_pr.h>
 #include <stdbool.h>
 #include <stddef.h>
+#include <string.h>
 #include <ck_epoch.h>
 #include <ck_stack.h>
 
