@@ -121,11 +121,13 @@ ck_epoch_end(ck_epoch_t *global, ck_epoch_record_t *record)
  * non-blocking deferral.
  */
 CK_CC_INLINE static void
-ck_epoch_call(ck_epoch_record_t *record,
+ck_epoch_call(ck_epoch_t *epoch,
+	      ck_epoch_record_t *record,
 	      ck_epoch_entry_t *entry,
 	      ck_epoch_cb_t *function)
 {
-	unsigned int offset = record->epoch & (CK_EPOCH_LENGTH - 1);
+	unsigned int e = ck_pr_load_uint(&epoch->epoch);
+	unsigned int offset = e & (CK_EPOCH_LENGTH - 1);
 
 	record->n_pending++;
 	entry->function = function;
@@ -138,7 +140,6 @@ ck_epoch_record_t *ck_epoch_recycle(ck_epoch_t *);
 void ck_epoch_register(ck_epoch_t *, ck_epoch_record_t *);
 void ck_epoch_unregister(ck_epoch_record_t *);
 bool ck_epoch_poll(ck_epoch_t *, ck_epoch_record_t *);
-void ck_epoch_call(ck_epoch_record_t *, ck_epoch_entry_t *, ck_epoch_cb_t *);
 void ck_epoch_synchronize(ck_epoch_t *, ck_epoch_record_t *);
 void ck_epoch_barrier(ck_epoch_t *, ck_epoch_record_t *);
 

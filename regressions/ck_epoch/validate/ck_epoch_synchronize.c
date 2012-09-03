@@ -194,7 +194,7 @@ thread(void *unused CK_CC_UNUSED)
 			ck_epoch_synchronize(&stack_epoch, &record);
 
 			if (i & 1) {
-				ck_epoch_call(&record, &e->epoch_entry, destructor);
+				ck_epoch_call(&stack_epoch, &record, &e->epoch_entry, destructor);
 			} else {
 				destructor(&e->epoch_entry);
 			}

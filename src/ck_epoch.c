@@ -128,7 +128,7 @@
  * this is to not apply modulo arithmetic to e_g but only to deferral list
  * indexing.
  */
-#define CK_EPOCH_GRACE 3U
+#define CK_EPOCH_GRACE 4U
 
 enum {
 	CK_EPOCH_STATE_USED = 0,
@@ -338,6 +338,16 @@ ck_epoch_synchronize(struct ck_epoch *global, struct ck_epoch_record *record)
 	return;
 }
 
+/*
+ * It may be woeth it to actually apply these deferral semantics to an epoch
+ * that was observed at ck_epoch_call time. The problem is that the latter would
+ * require a full fence.
+ *
+ * ck_epoch_call will dispatch to the latest epoch snapshot that was observed.
+ * There are cases where it will fail to reclaim as early as it could. If this
+ * becomes a problem, we could actually use a heap for epoch buckets but that
+ * is far from ideal too.
+ */
 bool
 ck_epoch_poll(struct ck_epoch *global, struct ck_epoch_record *record)
 {
@@ -346,6 +356,7 @@ ck_epoch_poll(struct ck_epoch *global, struct ck_epoch_record *record)
 	struct ck_epoch_record *cr = NULL;
 
 	/* Serialize record epoch snapshots with respect to global epoch load. */
+	record->epoch = epoch;
 	ck_pr_fence_memory();
 	cr = ck_epoch_scan(global, cr, epoch);
 	if (cr != NULL)
@@ -353,7 +364,6 @@ ck_epoch_poll(struct ck_epoch *global, struct ck_epoch_record *record)
 
 	ck_pr_cas_uint_value(&global->epoch, epoch, epoch + 1, &snapshot);
 	ck_epoch_dispatch(record, epoch + 1);
-	record->epoch = snapshot;
 	return true;
 }
 

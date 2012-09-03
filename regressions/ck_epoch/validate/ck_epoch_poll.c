@@ -183,7 +183,7 @@ thread(void *unused CK_CC_UNUSED)
 			s = ck_stack_pop_upmc(&stack);
 			e = stack_container(s);
 
-			ck_epoch_call(&record, &e->epoch_entry, destructor);
+			ck_epoch_call(&stack_epoch, &record, &e->epoch_entry, destructor);
 
 			if (i % 1024)
 				ck_epoch_poll(&stack_epoch, &record);

@@ -38,13 +38,15 @@ typedef struct ck_epoch_entry ck_epoch_entry_t;
 
 typedef void ck_epoch_cb_t(ck_epoch_entry_t *);
 .Ft void
-.Fn ck_epoch_call "ck_epoch_record_t *record" "ck_epoch_entry_t *entry" "ck_epoch_cb_t *function"
+.Fn ck_epoch_call "ck_epoch_t *epoch" "ck_epoch_record_t *record" "ck_epoch_entry_t *entry" "ck_epoch_cb_t *function"
 .Sh DESCRIPTION
 The
 .Fn ck_epoch_call 3
 function will defer the execution of the function pointed to by
 .Fa function
-until a grace-period has been detected. The function will be provided
+until a grace-period has been detected in
+.Fa epoch .
+The function will be provided
 the pointer specified by 
 .Fa entry .
 The function will execute at some time in the future via calls to
