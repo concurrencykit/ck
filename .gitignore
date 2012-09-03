@@ -1,6 +1,10 @@
 build/ck.build
 build/ck.pc
 build/regressions.build
+build/ck.spec
+include/ck_md.h
+Makefile
+*.gz
 *.o
 *.a
 *.so
