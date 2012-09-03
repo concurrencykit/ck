@@ -1,196 +1,76 @@
-.PHONY: all clean
+.PHONY: clean install uninstall
 
 MANDIR=@MANDIR@
 GZIP=@GZIP@
 GZIP_SUFFIX=.3@GZIP_SUFFIX@
-OBJECTS=ck_ht_count$(GZIP_SUFFIX) 	  		\
-	ck_ht_destroy$(GZIP_SUFFIX)	  		\
-	ck_ht_get_spmc$(GZIP_SUFFIX)	  		\
-	ck_ht_grow_spmc$(GZIP_SUFFIX)	  		\
-	ck_ht_hash$(GZIP_SUFFIX)	  		\
-	ck_ht_hash_direct$(GZIP_SUFFIX)	  		\
-	ck_ht_init$(GZIP_SUFFIX)	  		\
-	ck_ht_put_spmc$(GZIP_SUFFIX)	  		\
-	ck_ht_remove_spmc$(GZIP_SUFFIX)	  		\
-	ck_ht_reset_spmc$(GZIP_SUFFIX)	  		\
-	ck_ht_set_spmc$(GZIP_SUFFIX)	  		\
-	ck_ht_entry_empty$(GZIP_SUFFIX)	  		\
-	ck_ht_entry_key$(GZIP_SUFFIX)			\
-	ck_ht_entry_key_direct$(GZIP_SUFFIX)		\
-	ck_ht_entry_key_length$(GZIP_SUFFIX)		\
-	ck_ht_entry_key_set$(GZIP_SUFFIX)		\
-	ck_ht_entry_key_set_direct$(GZIP_SUFFIX)	\
-	ck_ht_entry_set$(GZIP_SUFFIX)			\
-	ck_ht_entry_set_direct$(GZIP_SUFFIX)		\
-	ck_ht_entry_value_direct$(GZIP_SUFFIX)		\
-	ck_ht_entry_value$(GZIP_SUFFIX)			\
-	ck_ht_iterator_init$(GZIP_SUFFIX)		\
-	ck_ht_next$(GZIP_SUFFIX)			\
-	ck_bitmap_init$(GZIP_SUFFIX)			\
-	ck_bitmap_reset_mpmc$(GZIP_SUFFIX)		\
-	ck_bitmap_set_mpmc$(GZIP_SUFFIX)		\
-	ck_bitmap_test$(GZIP_SUFFIX)			\
-	ck_bitmap_base$(GZIP_SUFFIX)			\
-	ck_bitmap_size$(GZIP_SUFFIX)			\
-	ck_bitmap_clear$(GZIP_SUFFIX)			\
-	ck_bitmap_bits$(GZIP_SUFFIX)			\
-	ck_bitmap_buffer$(GZIP_SUFFIX)			\
-	ck_bitmap_next$(GZIP_SUFFIX)			\
-	ck_bitmap_iterator_init$(GZIP_SUFFIX)		\
-	ck_epoch_barrier$(GZIP_SUFFIX)			\
-	ck_epoch_begin$(GZIP_SUFFIX)			\
-	ck_epoch_call$(GZIP_SUFFIX)			\
-	ck_epoch_end$(GZIP_SUFFIX)			\
-	ck_epoch_init$(GZIP_SUFFIX)			\
-	ck_epoch_poll$(GZIP_SUFFIX)			\
-	ck_epoch_recycle$(GZIP_SUFFIX)			\
-	ck_epoch_register$(GZIP_SUFFIX)			\
-	ck_epoch_synchronize$(GZIP_SUFFIX)		\
-	ck_epoch_unregister$(GZIP_SUFFIX)
+OBJECTS=ck_ht_count 	  		\
+	ck_ht_destroy	  		\
+	ck_ht_get_spmc	  		\
+	ck_ht_grow_spmc	  		\
+	ck_ht_hash	  		\
+	ck_ht_hash_direct	  	\
+	ck_ht_init	  		\
+	ck_ht_put_spmc	  		\
+	ck_ht_remove_spmc	  	\
+	ck_ht_reset_spmc	  	\
+	ck_ht_set_spmc	  		\
+	ck_ht_entry_empty	  	\
+	ck_ht_entry_key			\
+	ck_ht_entry_key_direct		\
+	ck_ht_entry_key_length		\
+	ck_ht_entry_key_set		\
+	ck_ht_entry_key_set_direct	\
+	ck_ht_entry_set			\
+	ck_ht_entry_set_direct		\
+	ck_ht_entry_value_direct	\
+	ck_ht_entry_value		\
+	ck_ht_iterator_init		\
+	ck_ht_next			\
+	ck_bitmap_init			\
+	ck_bitmap_reset_mpmc		\
+	ck_bitmap_set_mpmc		\
+	ck_bitmap_test			\
+	ck_bitmap_base			\
+	ck_bitmap_size			\
+	ck_bitmap_clear			\
+	ck_bitmap_bits			\
+	ck_bitmap_buffer		\
+	ck_bitmap_next			\
+	ck_bitmap_iterator_init		\
+	ck_epoch_barrier		\
+	ck_epoch_begin			\
+	ck_epoch_call			\
+	ck_epoch_end			\
+	ck_epoch_init			\
+	ck_epoch_poll			\
+	ck_epoch_recycle		\
+	ck_epoch_register		\
+	ck_epoch_synchronize		\
+	ck_epoch_unregister		\
+	ck_bag_allocator_set		\
+	ck_bag_block_count		\
+	ck_bag_block_next		\
+	ck_bag_count			\
+	ck_bag_destroy			\
+	ck_bag_init			\
+	ck_bag_iterator_init		\
+	ck_bag_member_spmc		\
+	ck_bag_next			\
+	ck_bag_put_spmc			\
+	ck_bag_remove_spmc		\
+	ck_bag_set_spmc
 
-all: $(OBJECTS)
-
-ck_epoch_barrier$(GZIP_SUFFIX): ck_epoch_barrier
-	$(GZIP) ck_epoch_barrier > ck_epoch_barrier$(GZIP_SUFFIX)
-
-ck_epoch_begin$(GZIP_SUFFIX): ck_epoch_begin
-	$(GZIP) ck_epoch_begin > ck_epoch_begin$(GZIP_SUFFIX)
-
-ck_epoch_call$(GZIP_SUFFIX): ck_epoch_call
-	$(GZIP) ck_epoch_call > ck_epoch_call$(GZIP_SUFFIX)
-
-ck_epoch_end$(GZIP_SUFFIX): ck_epoch_end
-	$(GZIP) ck_epoch_end > ck_epoch_end$(GZIP_SUFFIX)
-
-ck_epoch_init$(GZIP_SUFFIX): ck_epoch_init
-	$(GZIP) ck_epoch_init > ck_epoch_init$(GZIP_SUFFIX)
-
-ck_epoch_poll$(GZIP_SUFFIX): ck_epoch_poll
-	$(GZIP) ck_epoch_poll > ck_epoch_poll$(GZIP_SUFFIX)
-
-ck_epoch_recycle$(GZIP_SUFFIX): ck_epoch_recycle
-	$(GZIP) ck_epoch_recycle > ck_epoch_recycle$(GZIP_SUFFIX)
-
-ck_epoch_register$(GZIP_SUFFIX): ck_epoch_register
-	$(GZIP) ck_epoch_register > ck_epoch_register$(GZIP_SUFFIX)
-
-ck_epoch_synchronize$(GZIP_SUFFIX): ck_epoch_synchronize
-	$(GZIP) ck_epoch_synchronize > ck_epoch_synchronize$(GZIP_SUFFIX)
-
-ck_epoch_unregister$(GZIP_SUFFIX): ck_epoch_unregister
-	$(GZIP) ck_epoch_unregister > ck_epoch_unregister$(GZIP_SUFFIX)
-
-ck_bitmap_next$(GZIP_SUFFIX): ck_bitmap_next
-	$(GZIP) ck_bitmap_next > ck_bitmap_next$(GZIP_SUFFIX)
-
-ck_bitmap_iterator_init$(GZIP_SUFFIX): ck_bitmap_iterator_init
-	$(GZIP) ck_bitmap_iterator_init > ck_bitmap_iterator_init$(GZIP_SUFFIX)
-
-ck_bitmap_init$(GZIP_SUFFIX): ck_bitmap_init
-	$(GZIP) ck_bitmap_init > ck_bitmap_init$(GZIP_SUFFIX)
-
-ck_bitmap_buffer$(GZIP_SUFFIX): ck_bitmap_buffer
-	$(GZIP) ck_bitmap_buffer > ck_bitmap_buffer$(GZIP_SUFFIX)
-
-ck_bitmap_bits$(GZIP_SUFFIX): ck_bitmap_bits
-	$(GZIP) ck_bitmap_bits > ck_bitmap_bits$(GZIP_SUFFIX)
-
-ck_bitmap_clear$(GZIP_SUFFIX): ck_bitmap_clear
-	$(GZIP) ck_bitmap_clear > ck_bitmap_clear$(GZIP_SUFFIX)
-
-ck_bitmap_size$(GZIP_SUFFIX): ck_bitmap_size
-	$(GZIP) ck_bitmap_size > ck_bitmap_size$(GZIP_SUFFIX)
-
-ck_bitmap_base$(GZIP_SUFFIX): ck_bitmap_base
-	$(GZIP) ck_bitmap_base > ck_bitmap_base$(GZIP_SUFFIX)
-
-ck_bitmap_test$(GZIP_SUFFIX): ck_bitmap_test
-	$(GZIP) ck_bitmap_test > ck_bitmap_test$(GZIP_SUFFIX)
-
-ck_bitmap_reset_mpmc$(GZIP_SUFFIX): ck_bitmap_reset_mpmc
-	$(GZIP) ck_bitmap_reset_mpmc > ck_bitmap_reset_mpmc$(GZIP_SUFFIX)
-
-ck_bitmap_set_mpmc$(GZIP_SUFFIX): ck_bitmap_set_mpmc
-	$(GZIP) ck_bitmap_set_mpmc > ck_bitmap_set_mpmc$(GZIP_SUFFIX)
-
-ck_ht_allocator_set$(GZIP_SUFFIX): ck_ht_allocator_set
-	$(GZIP) ck_ht_allocator_set > ck_ht_allocator_set$(GZIP_SUFFIX)
-
-ck_ht_count$(GZIP_SUFFIX): ck_ht_count
-	$(GZIP) ck_ht_count > ck_ht_count$(GZIP_SUFFIX)
-
-ck_ht_destroy$(GZIP_SUFFIX): ck_ht_destroy
-	$(GZIP) ck_ht_destroy > ck_ht_destroy$(GZIP_SUFFIX)
-
-ck_ht_get_spmc$(GZIP_SUFFIX): ck_ht_get_spmc
-	$(GZIP) ck_ht_get_spmc > ck_ht_get_spmc$(GZIP_SUFFIX)
-
-ck_ht_grow_spmc$(GZIP_SUFFIX): ck_ht_grow_spmc
-	$(GZIP) ck_ht_grow_spmc > ck_ht_grow_spmc$(GZIP_SUFFIX)
-
-ck_ht_hash$(GZIP_SUFFIX): ck_ht_hash
-	$(GZIP) ck_ht_hash > ck_ht_hash$(GZIP_SUFFIX)
-
-ck_ht_hash_direct$(GZIP_SUFFIX): ck_ht_hash_direct
-	$(GZIP) ck_ht_hash_direct > ck_ht_hash_direct$(GZIP_SUFFIX)
-
-ck_ht_init$(GZIP_SUFFIX): ck_ht_init
-	$(GZIP) ck_ht_init > ck_ht_init$(GZIP_SUFFIX)
-
-ck_ht_put_spmc$(GZIP_SUFFIX): ck_ht_put_spmc
-	$(GZIP) ck_ht_put_spmc > ck_ht_put_spmc$(GZIP_SUFFIX)
-
-ck_ht_remove_spmc$(GZIP_SUFFIX): ck_ht_remove_spmc
-	$(GZIP) ck_ht_remove_spmc > ck_ht_remove_spmc$(GZIP_SUFFIX)
-
-ck_ht_reset_spmc$(GZIP_SUFFIX): ck_ht_reset_spmc
-	$(GZIP) ck_ht_reset_spmc > ck_ht_reset_spmc$(GZIP_SUFFIX)
-
-ck_ht_set_spmc$(GZIP_SUFFIX): ck_ht_set_spmc
-	$(GZIP) ck_ht_set_spmc > ck_ht_set_spmc$(GZIP_SUFFIX)
-
-ck_ht_entry_value$(GZIP_SUFFIX): ck_ht_entry_value
-	$(GZIP) ck_ht_entry_value > ck_ht_entry_value$(GZIP_SUFFIX)
-
-ck_ht_entry_value_direct$(GZIP_SUFFIX): ck_ht_entry_value_direct
-	$(GZIP) ck_ht_entry_value_direct > ck_ht_entry_value_direct$(GZIP_SUFFIX)
-
-ck_ht_entry_empty$(GZIP_SUFFIX): ck_ht_entry_empty
-	$(GZIP) ck_ht_entry_empty > ck_ht_entry_empty$(GZIP_SUFFIX)
-
-ck_ht_entry_key_direct$(GZIP_SUFFIX): ck_ht_entry_key_direct
-	$(GZIP) ck_ht_entry_key_direct > ck_ht_entry_key_direct$(GZIP_SUFFIX)
-
-ck_ht_entry_key$(GZIP_SUFFIX): ck_ht_entry_key
-	$(GZIP) ck_ht_entry_key > ck_ht_entry_key$(GZIP_SUFFIX)
-
-ck_ht_entry_set_direct$(GZIP_SUFFIX): ck_ht_entry_set_direct
-	$(GZIP) ck_ht_entry_set_direct > ck_ht_entry_set_direct$(GZIP_SUFFIX)
-
-ck_ht_entry_set$(GZIP_SUFFIX): ck_ht_entry_set
-	$(GZIP) ck_ht_entry_set > ck_ht_entry_set$(GZIP_SUFFIX)
-
-ck_ht_next$(GZIP_SUFFIX): ck_ht_next
-	$(GZIP) ck_ht_next > ck_ht_next$(GZIP_SUFFIX)
-
-ck_ht_iterator_init$(GZIP_SUFFIX): ck_ht_iterator_init
-	$(GZIP) ck_ht_iterator_init > ck_ht_iterator_init$(GZIP_SUFFIX)
-
-ck_ht_entry_key_length$(GZIP_SUFFIX): ck_ht_entry_key_length
-	$(GZIP) ck_ht_entry_key_length > ck_ht_entry_key_length$(GZIP_SUFFIX)
-
-ck_ht_entry_key_set$(GZIP_SUFFIX): ck_ht_entry_key_set
-	$(GZIP) ck_ht_entry_key_set > ck_ht_entry_key_set$(GZIP_SUFFIX)
-
-ck_ht_entry_key_set_direct$(GZIP_SUFFIX): ck_ht_entry_key_set_direct
-	$(GZIP) ck_ht_entry_key_set_direct > ck_ht_entry_key_set_direct$(GZIP_SUFFIX)
+all: 
+	for target in $(OBJECTS); do 			   \
+		$(GZIP) $$target > $$target$(GZIP_SUFFIX); \
+	done
 
 install:
 	mkdir -p $(DESTDIR)/$(MANDIR)/man3 || exit
 	cp *$(GZIP_SUFFIX) $(DESTDIR)/$(MANDIR)/man3 || exit
 
 uninstall:
-	for target in $(OBJECTS); do \
+	for target in $(OBJECTS); do 			  \
 		rm -f $(DESTDIR)/$(MANDIR)/man3/$$target; \
 	done
 
