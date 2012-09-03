@@ -38,8 +38,8 @@
 #include <stdbool.h>
 
 /*
- * Only three distinct epoch values are needed. If any thread is in
- * a "critical section" then it would have acquired some snapshot (e)
+ * Four rather than three distinct values are used for reclamation.
+ * Any thread in a "critical section" would have acquired some snapshot (e)
  * of the global epoch value (e_g) and set an active flag. Any hazardous
  * references will only occur after a full memory barrier. For example,
  * assume an initial e_g value of 1, e value of 0 and active value of 0.
