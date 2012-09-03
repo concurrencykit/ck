@@ -38,11 +38,12 @@
 #include <stdbool.h>
 
 /*
- * Four rather than three distinct values are used for reclamation.
- * Any thread in a "critical section" would have acquired some snapshot (e)
- * of the global epoch value (e_g) and set an active flag. Any hazardous
- * references will only occur after a full memory barrier. For example,
- * assume an initial e_g value of 1, e value of 0 and active value of 0.
+ * Only three distinct values are used for reclamation, but reclamation occurs
+ * at e + 2 rather than e + 1. Any thread in a "critical section" would have
+ * acquired some snapshot (e) of the global epoch value (e_g) and set an active
+ * flag. Any hazardous references will only occur after a full memory barrier.
+ * For example, assume an initial e_g value of 1, e value of 0 and active value
+ * of 0.
  *
  * ck_epoch_begin(...)
  *   e = e_g
@@ -128,7 +129,7 @@
  * this is to not apply modulo arithmetic to e_g but only to deferral list
  * indexing.
  */
-#define CK_EPOCH_GRACE 4U
+#define CK_EPOCH_GRACE 3U
 
 enum {
 	CK_EPOCH_STATE_USED = 0,
