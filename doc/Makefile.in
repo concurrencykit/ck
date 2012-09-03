@@ -37,9 +37,49 @@ OBJECTS=ck_ht_allocator_set$(GZIP_SUFFIX) 		\
 	ck_bitmap_bits$(GZIP_SUFFIX)			\
 	ck_bitmap_buffer$(GZIP_SUFFIX)			\
 	ck_bitmap_next$(GZIP_SUFFIX)			\
-	ck_bitmap_iterator_init$(GZIP_SUFFIX)
+	ck_bitmap_iterator_init$(GZIP_SUFFIX)		\
+	ck_epoch_barrier$(GZIP_SUFFIX)			\
+	ck_epoch_begin$(GZIP_SUFFIX)			\
+	ck_epoch_call$(GZIP_SUFFIX)			\
+	ck_epoch_end$(GZIP_SUFFIX)			\
+	ck_epoch_init$(GZIP_SUFFIX)			\
+	ck_epoch_poll$(GZIP_SUFFIX)			\
+	ck_epoch_recycle$(GZIP_SUFFIX)			\
+	ck_epoch_register$(GZIP_SUFFIX)			\
+	ck_epoch_synchronize$(GZIP_SUFFIX)		\
+	ck_epoch_unregister$(GZIP_SUFFIX)
 
 all: $(OBJECTS)
+
+ck_epoch_barrier$(GZIP_SUFFIX): ck_epoch_barrier
+	$(GZIP) ck_epoch_barrier > ck_epoch_barrier$(GZIP_SUFFIX)
+
+ck_epoch_begin$(GZIP_SUFFIX): ck_epoch_begin
+	$(GZIP) ck_epoch_begin > ck_epoch_begin$(GZIP_SUFFIX)
+
+ck_epoch_call$(GZIP_SUFFIX): ck_epoch_call
+	$(GZIP) ck_epoch_call > ck_epoch_call$(GZIP_SUFFIX)
+
+ck_epoch_end$(GZIP_SUFFIX): ck_epoch_end
+	$(GZIP) ck_epoch_end > ck_epoch_end$(GZIP_SUFFIX)
+
+ck_epoch_init$(GZIP_SUFFIX): ck_epoch_init
+	$(GZIP) ck_epoch_init > ck_epoch_init$(GZIP_SUFFIX)
+
+ck_epoch_poll$(GZIP_SUFFIX): ck_epoch_poll
+	$(GZIP) ck_epoch_poll > ck_epoch_poll$(GZIP_SUFFIX)
+
+ck_epoch_recycle$(GZIP_SUFFIX): ck_epoch_recycle
+	$(GZIP) ck_epoch_recycle > ck_epoch_recycle$(GZIP_SUFFIX)
+
+ck_epoch_register$(GZIP_SUFFIX): ck_epoch_register
+	$(GZIP) ck_epoch_register > ck_epoch_register$(GZIP_SUFFIX)
+
+ck_epoch_synchronize$(GZIP_SUFFIX): ck_epoch_synchronize
+	$(GZIP) ck_epoch_synchronize > ck_epoch_synchronize$(GZIP_SUFFIX)
+
+ck_epoch_unregister$(GZIP_SUFFIX): ck_epoch_unregister
+	$(GZIP) ck_epoch_unregister > ck_epoch_unregister$(GZIP_SUFFIX)
 
 ck_bitmap_next$(GZIP_SUFFIX): ck_bitmap_next
 	$(GZIP) ck_bitmap_next > ck_bitmap_next$(GZIP_SUFFIX)
