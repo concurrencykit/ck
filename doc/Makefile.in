@@ -3,8 +3,7 @@
 MANDIR=@MANDIR@
 GZIP=@GZIP@
 GZIP_SUFFIX=.3@GZIP_SUFFIX@
-OBJECTS=ck_ht_allocator_set$(GZIP_SUFFIX) 		\
-	ck_ht_count$(GZIP_SUFFIX) 	  		\
+OBJECTS=ck_ht_count$(GZIP_SUFFIX) 	  		\
 	ck_ht_destroy$(GZIP_SUFFIX)	  		\
 	ck_ht_get_spmc$(GZIP_SUFFIX)	  		\
 	ck_ht_grow_spmc$(GZIP_SUFFIX)	  		\

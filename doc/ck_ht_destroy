@@ -39,7 +39,7 @@ Concurrency Kit (libck, \-lck)
 The
 .Fn ck_ht_destroy
 function will request that the underlying allocator, as specified by the
-.Xr ck_ht_allocator_set 3
+.Xr ck_ht_init 3
 function, immediately destroy the object pointed to by the
 .Fa ht
 argument.
@@ -59,7 +59,6 @@ This function is guaranteed not to fail.
 .El
 .Sh SEE ALSO
 .Xr ck_ht_init 3 ,
-.Xr ck_ht_allocator_set 3 ,
 .Xr ck_ht_hash 3 ,
 .Xr ck_ht_hash_direct 3 ,
 .Xr ck_ht_set_spmc 3 ,

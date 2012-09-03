@@ -62,7 +62,6 @@ This function will not fail.
 .Sh SEE ALSO
 .Xr ck_ht_init 3 ,
 .Xr ck_ht_destroy 3 ,
-.Xr ck_ht_allocator_set 3 ,
 .Xr ck_ht_hash 3 ,
 .Xr ck_ht_hash_direct 3 ,
 .Xr ck_ht_set_spmc 3 ,
