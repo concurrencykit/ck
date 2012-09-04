@@ -340,7 +340,7 @@ ck_epoch_synchronize(struct ck_epoch *global, struct ck_epoch_record *record)
 }
 
 /*
- * It may be woeth it to actually apply these deferral semantics to an epoch
+ * It may be worth it to actually apply these deferral semantics to an epoch
  * that was observed at ck_epoch_call time. The problem is that the latter would
  * require a full fence.
  *
