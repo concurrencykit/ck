@@ -125,9 +125,8 @@
  * Though we only require three deferral lists, reasonable blocking semantics
  * must be able to more gracefully handle bursty write work-loads which could
  * easily cause e_g wrap-around if modulo-3 arithmetic is used. This allows for
- * easy-to-trigger live-lock situations. The work-around to work around
- * this is to not apply modulo arithmetic to e_g but only to deferral list
- * indexing.
+ * easy-to-trigger live-lock situations. The work-around to this is to not apply
+ * modulo arithmetic to e_g but only to deferral list indexing.
  */
 #define CK_EPOCH_GRACE 3U
 
@@ -291,7 +290,7 @@ ck_epoch_barrier(struct ck_epoch *global, struct ck_epoch_record *record)
 	 */
 	ck_pr_fence_memory();
 
-	for (i = 0, cr = NULL; i < CK_EPOCH_GRACE; cr = NULL, i++) {
+	for (i = 0, cr = NULL; i < CK_EPOCH_GRACE - 1; cr = NULL, i++) {
 		/*
 		 * Determine whether all threads have observed the current epoch.
 		 * We can get away without a fence here.
@@ -310,12 +309,28 @@ ck_epoch_barrier(struct ck_epoch *global, struct ck_epoch_record *record)
 		 * however, it is possible to overflow the epoch value if we
 		 * apply modulo-3 arithmetic.
 		 */
-		ck_pr_cas_uint_value(&global->epoch, delta, delta + 1, &delta);
-
-		/* Right now, epoch overflow is handled as an edge case. */
-		if ((goal > epoch) & (delta > goal))
-			break;
+		if (ck_pr_cas_uint_value(&global->epoch, delta, delta + 1, &delta) == true) {
+			delta = delta + 1;
+		} else if ((goal > epoch) & (delta > goal)) {
+			/*
+			 * Right now, epoch overflow is handled as an edge case. If
+			 * we have already observed an epoch generation, then we can
+			 * be sure no hazardous references exist to objects from this
+			 * generation. We can actually avoid an addtional scan step
+			 * at this point.
+			 */
+			goto dispatch;
+		}
 	}
+
+	/*
+	 * At this point, we are at e + 2. If all threads have observed
+	 * this epoch value, then no threads are at e + 1 and no references
+	 * could exist to the snapshot of e observed at the time this
+	 * function was called.
+	 */
+	while (cr = ck_epoch_scan(global, cr, delta), cr != NULL)
+		ck_pr_stall();
 
 	/*
 	 * As the synchronize operation is non-blocking, it is possible other
@@ -324,6 +339,7 @@ ck_epoch_barrier(struct ck_epoch *global, struct ck_epoch_record *record)
 	 * it is safe to assume we are also in a grace period and are able to
 	 * dispatch all calls across all lists.
 	 */
+dispatch:
 	for (epoch = 0; epoch < CK_EPOCH_LENGTH; epoch++)
 		ck_epoch_dispatch(record, epoch);
 
