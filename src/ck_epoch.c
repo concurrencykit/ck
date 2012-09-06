@@ -330,11 +330,15 @@ ck_epoch_barrier(struct ck_epoch *global, struct ck_epoch_record *record)
 	 * function was called.
 	 */
 	while (cr = ck_epoch_scan(global, cr, delta), cr != NULL) {
+		ck_pr_stall();
+
+		/*
+		 * If the epoch value was changed from underneath us then
+		 * our epoch must have been observed at some point.
+		 */
 		epoch = ck_pr_load_uint(&global->epoch);
 		if (epoch != delta)
 			break;
-
-		ck_pr_stall();
 	}
 
 	/*
