@@ -50,14 +50,6 @@ static unsigned int barrier;
 static unsigned int e_barrier;
 static unsigned int readers;
 
-#ifndef PAIRS
-#define PAIRS 5000000
-#endif
-
-#ifndef ITERATE
-#define ITERATE 20
-#endif
-
 #ifndef PAIRS_S
 #define PAIRS_S 10000
 #endif
@@ -208,7 +200,7 @@ thread(void *unused CK_CC_UNUSED)
 	ck_epoch_synchronize(&stack_epoch, &record);
 	fprintf(stderr, "\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b[W] Peak: %u (%2.2f%%)\n    Reclamations: %lu\n\n",
 			record.n_peak,
-			(double)record.n_peak / ((double)PAIRS * ITERATE) * 100,
+			(double)record.n_peak / ((double)PAIRS_S * ITERATE_S) * 100,
 			record.n_dispatch);
 
 	ck_pr_inc_uint(&e_barrier);

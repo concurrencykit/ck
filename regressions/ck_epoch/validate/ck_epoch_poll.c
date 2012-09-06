@@ -51,7 +51,7 @@ static unsigned int e_barrier;
 static unsigned int readers;
 
 #ifndef PAIRS
-#define PAIRS 1000000
+#define PAIRS 100000
 #endif
 
 #ifndef ITERATE
