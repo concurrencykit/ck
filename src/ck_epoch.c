@@ -329,8 +329,13 @@ ck_epoch_barrier(struct ck_epoch *global, struct ck_epoch_record *record)
 	 * could exist to the snapshot of e observed at the time this
 	 * function was called.
 	 */
-	while (cr = ck_epoch_scan(global, cr, delta), cr != NULL)
+	while (cr = ck_epoch_scan(global, cr, delta), cr != NULL) {
+		epoch = ck_pr_load_uint(&global->epoch);
+		if (epoch != delta)
+			break;
+
 		ck_pr_stall();
+	}
 
 	/*
 	 * As the synchronize operation is non-blocking, it is possible other
