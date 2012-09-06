@@ -311,7 +311,7 @@ ck_epoch_barrier(struct ck_epoch *global, struct ck_epoch_record *record)
 		 */
 		if (ck_pr_cas_uint_value(&global->epoch, delta, delta + 1, &delta) == true) {
 			delta = delta + 1;
-		} else if ((goal > epoch) & (delta > goal)) {
+		} else if ((goal > epoch) & (delta >= goal)) {
 			/*
 			 * Right now, epoch overflow is handled as an edge case. If
 			 * we have already observed an epoch generation, then we can
