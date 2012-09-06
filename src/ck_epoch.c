@@ -382,13 +382,19 @@ ck_epoch_poll(struct ck_epoch *global, struct ck_epoch_record *record)
 	struct ck_epoch_record *cr = NULL;
 
 	/* Serialize record epoch snapshots with respect to global epoch load. */
-	record->epoch = epoch;
 	ck_pr_fence_memory();
 	cr = ck_epoch_scan(global, cr, epoch);
-	if (cr != NULL)
+	if (cr != NULL) {
+		record->epoch = epoch;
 		return false;
+	}
 
-	ck_pr_cas_uint_value(&global->epoch, epoch, epoch + 1, &snapshot);
+	if (ck_pr_cas_uint_value(&global->epoch, epoch, epoch + 1, &snapshot) == false) {
+		record->epoch = snapshot;
+	} else {
+		record->epoch = epoch + 1;
+	}
+
 	ck_epoch_dispatch(record, epoch + 1);
 	return true;
 }
