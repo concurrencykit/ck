@@ -215,10 +215,14 @@ ck_epoch_unregister(struct ck_epoch_record *record)
 }
 
 static struct ck_epoch_record *
-ck_epoch_scan(struct ck_epoch *global, struct ck_epoch_record *cr, unsigned int epoch)
+ck_epoch_scan(struct ck_epoch *global,
+	      struct ck_epoch_record *cr,
+	      unsigned int epoch,
+	      bool *af)
 {
 	ck_stack_entry_t *cursor;
 
+	*af = false;
 	if (cr == NULL) {
 		cursor = CK_STACK_FIRST(&global->records);
 	} else {
@@ -226,7 +230,7 @@ ck_epoch_scan(struct ck_epoch *global, struct ck_epoch_record *cr, unsigned int 
 	}
 
 	while (cursor != NULL) {
-		unsigned int state;
+		unsigned int state, active;
 
 		cr = ck_epoch_record_container(cursor);
 
@@ -234,8 +238,10 @@ ck_epoch_scan(struct ck_epoch *global, struct ck_epoch_record *cr, unsigned int 
 		if (state & CK_EPOCH_STATE_FREE)
 			continue;
 
-		if (ck_pr_load_uint(&cr->active) != 0 &&
-		    ck_pr_load_uint(&cr->epoch) != epoch)
+		active = ck_pr_load_uint(&cr->active);
+		*af |= active;
+
+		if (active != 0 && ck_pr_load_uint(&cr->epoch) != epoch)
 			return cr;
 
 		cursor = CK_STACK_NEXT(cursor);
@@ -275,6 +281,7 @@ ck_epoch_barrier(struct ck_epoch *global, struct ck_epoch_record *record)
 {
 	struct ck_epoch_record *cr;
 	unsigned int delta, epoch, goal, i;
+	bool active;
 
 	/*
 	 * Technically, we are vulnerable to an overflow in presence of multiple
@@ -295,8 +302,15 @@ ck_epoch_barrier(struct ck_epoch *global, struct ck_epoch_record *record)
 		 * Determine whether all threads have observed the current epoch.
 		 * We can get away without a fence here.
 		 */
-		while (cr = ck_epoch_scan(global, cr, delta), cr != NULL)
+		while (cr = ck_epoch_scan(global, cr, delta, &active), cr != NULL)
 			ck_pr_stall();
+
+		/*
+		 * If we have observed all threads as inactive, then we assume
+		 * we are at a grace period.
+		 */
+		if (active == false)
+			goto dispatch;
 
 		/*
 		 * Increment current epoch. CAS semantics are used to eliminate
@@ -329,15 +343,20 @@ ck_epoch_barrier(struct ck_epoch *global, struct ck_epoch_record *record)
 	 * could exist to the snapshot of e observed at the time this
 	 * function was called.
 	 */
-	while (cr = ck_epoch_scan(global, cr, delta), cr != NULL) {
+	while (cr = ck_epoch_scan(global, cr, delta, &active), cr != NULL) {
 		ck_pr_stall();
 
 		/*
 		 * If the epoch value was changed from underneath us then
 		 * our epoch must have been observed at some point.
+		 *
+		 * If all threads have gone inactive, we are also at a grace
+		 * period as any reads succeeding this call to synchronize
+		 * will imply a full memory barrier (logically deleted objects
+		 * will not be visible).
 		 */
 		epoch = ck_pr_load_uint(&global->epoch);
-		if (epoch != delta)
+		if ((epoch != delta) | (active == false))
 			break;
 	}
 
@@ -377,18 +396,29 @@ ck_epoch_synchronize(struct ck_epoch *global, struct ck_epoch_record *record)
 bool
 ck_epoch_poll(struct ck_epoch *global, struct ck_epoch_record *record)
 {
+	bool active;
+	struct ck_epoch_record *cr = NULL;
 	unsigned int epoch = ck_pr_load_uint(&global->epoch);
 	unsigned int snapshot;
-	struct ck_epoch_record *cr = NULL;
 
 	/* Serialize record epoch snapshots with respect to global epoch load. */
 	ck_pr_fence_memory();
-	cr = ck_epoch_scan(global, cr, epoch);
+	cr = ck_epoch_scan(global, cr, epoch, &active);
 	if (cr != NULL) {
 		record->epoch = epoch;
 		return false;
 	}
 
+	/* We are at a grace period if all threads are inactive. */
+	if (active == false) {
+		record->epoch = epoch;
+		for (epoch = 0; epoch < CK_EPOCH_LENGTH; epoch++)
+			ck_epoch_dispatch(record, epoch);
+
+		return true;
+	}
+
+	/* If an active thread exists, rely on epoch observation. */
 	if (ck_pr_cas_uint_value(&global->epoch, epoch, epoch + 1, &snapshot) == false) {
 		record->epoch = snapshot;
 	} else {
