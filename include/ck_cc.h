@@ -49,4 +49,32 @@
 #define CK_CC_ALIASED
 #endif
 
+#ifndef CK_CC_UNUSED
+#define CK_CC_UNUSED
+#endif
+
+#ifndef CK_CC_USED
+#define CK_CC_USED
+#endif
+
+#ifndef CK_CC_IMM
+#define CK_CC_IMM
+#endif
+
+#ifndef CK_CC_PACKED
+#define CK_CC_PACKED
+#endif
+
+#ifndef CK_CC_WEAKREF
+#define CK_CC_WEAKREF
+#endif
+
+#ifndef CK_CC_ALIGN
+#define CK_CC_ALIGN(X)
+#endif
+
+#ifndef CK_CC_CACHELINE
+#define CK_CC_CACHELINE
+#endif
+
 #endif /* _CK_CC_H */
