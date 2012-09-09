@@ -33,7 +33,6 @@
 Concurrency Kit (libck, \-lck)
 .Sh SYNOPSIS
 .In ck_epoch.h
-
 .Ft void
 .Fn ck_epoch_begin "ck_epoch_t *epoch" "ck_epoch_record_t *record"
 .Sh DESCRIPTION
