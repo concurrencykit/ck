@@ -57,13 +57,14 @@ struct ck_ht_entry {
 #ifdef CK_HT_PP
 	uintptr_t key;
 	uintptr_t value CK_CC_PACKED;
+} CK_CC_ALIGN(16);
 #else
 	uintptr_t key;
 	uintptr_t value;
 	uint64_t key_length;
 	uint64_t hash;
+} CK_CC_ALIGN(32);
 #endif
-} CK_CC_ALIGNED;
 typedef struct ck_ht_entry ck_ht_entry_t;
 
 /*
