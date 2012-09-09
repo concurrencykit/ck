@@ -93,10 +93,11 @@
  * critical sections started at e_g - 1 must have been completed. If
  * any epoch read-side critical sections at e_g - 1 were still active,
  * then we would never increment to e_g + 1 (active != 0 ^ e != e_g).
- * Additionally, e_g may still have hazardous references to objects logically
- * deleted at e_g - 1 which means objects logically deleted at e_g - 1 cannot
- * be deleted at e_g + 1 (since it is valid for active threads to be at e_g or
- * e_g + 1 and threads at e_g still require safe memory accesses).
+ * Additionally, e_g may still have hazardous references to objects
+ * logically deleted at e_g - 1 which means objects logically deleted
+ * at e_g - 1 cannot be deleted at e_g + 1 unless all threads have
+ * observed e_g + 1 (since it is valid for active threads to be at e_g
+ * and threads at e_g still require safe memory accesses).
  *
  * However, at e_g + 2, all active threads must be either at e_g + 1 or
  * e_g + 2. Though e_g + 2 may share hazardous references with e_g + 1,
@@ -106,12 +107,10 @@
  *
  * To summarize these important points,
  *   1) Active threads will always have a value of e_g or e_g - 1.
- *   2) Items that are logically deleted at e_g or e_g - 1 cannot be
+ *   2) Items that are logically deleted e_g or e_g - 1 cannot be
  *      physically deleted.
  *   3) Objects logically deleted at e_g - 1 can be physically destroyed
- *      at e_g + 2. In other words, for any current value of the global epoch
- *      counter e_g, objects logically deleted at e_g can be physically
- *      deleted at e_g + 3.
+ *      at e_g + 2 or at e_g + 1 if no threads are at e_g.
  *
  * Last but not least, if we are at e_g + 2, then no active thread is at
  * e_g which means it is safe to apply modulo-3 arithmetic to e_g value
@@ -302,8 +301,10 @@ ck_epoch_barrier(struct ck_epoch *global, struct ck_epoch_record *record)
 		 * Determine whether all threads have observed the current epoch.
 		 * We can get away without a fence here.
 		 */
-		while (cr = ck_epoch_scan(global, cr, delta, &active), cr != NULL)
+		while (cr = ck_epoch_scan(global, cr, delta, &active), cr != NULL) {
 			ck_pr_stall();
+			delta = ck_pr_load_uint(&global->epoch);
+		}
 
 		/*
 		 * If we have observed all threads as inactive, then we assume
