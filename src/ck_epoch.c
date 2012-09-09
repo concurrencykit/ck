@@ -302,8 +302,16 @@ ck_epoch_barrier(struct ck_epoch *global, struct ck_epoch_record *record)
 		 * We can get away without a fence here.
 		 */
 		while (cr = ck_epoch_scan(global, cr, delta, &active), cr != NULL) {
+			unsigned int e_d;
+
 			ck_pr_stall();
-			delta = ck_pr_load_uint(&global->epoch);
+
+			/* Another writer may have already observed a grace period. */
+			e_d = ck_pr_load_uint(&global->epoch);
+			if (e_d != delta) {
+				delta = e_d;
+				goto reload;
+			}
 		}
 
 		/*
@@ -326,7 +334,11 @@ ck_epoch_barrier(struct ck_epoch *global, struct ck_epoch_record *record)
 		 */
 		if (ck_pr_cas_uint_value(&global->epoch, delta, delta + 1, &delta) == true) {
 			delta = delta + 1;
-		} else if ((goal > epoch) & (delta >= goal)) {
+			continue;
+		}
+
+reload:
+		if ((goal > epoch) & (delta >= goal)) {
 			/*
 			 * Right now, epoch overflow is handled as an edge case. If
 			 * we have already observed an epoch generation, then we can
