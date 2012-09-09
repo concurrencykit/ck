@@ -1,12 +1,13 @@
 .PHONY: check clean distribution
 
 OBJECTS=ck_stack ck_epoch_synchronize ck_epoch_poll
+HALF=`expr $(CORES) / 2`
 
 all: $(OBJECTS)
 
 check: all
 	./ck_stack $(CORES) 1
-	./ck_epoch_synchronize $(CORES) 1
+	./ck_epoch_synchronize $(HALF) $(HALF) 1
 	./ck_epoch_poll $(CORES) 1
 
 ck_epoch_synchronize: ck_epoch_synchronize.c ../../../include/ck_stack.h ../../../include/ck_epoch.h ../../../src/ck_epoch.c
@@ -22,4 +23,4 @@ clean:
 	rm -rf *~ *.o $(OBJECTS) *.dSYM
 
 include ../../../build/regressions.build
-CFLAGS+=$(PTHREAD_CFLAGS) -D_GNU_SOURCE
+CFLAGS+=$(PTHREAD_CFLAGS) -D_GNU_SOURCE -O0 -g3
