@@ -105,7 +105,7 @@ ht_free(void *p, size_t b, bool r)
 
 	if (r == true) {
 		/* Destruction requires safe memory reclamation. */
-		ck_epoch_call(&epoch_wr, &(--e)->epoch_entry, ht_destroy);
+		ck_epoch_call(&epoch_ht, &epoch_wr, &(--e)->epoch_entry, ht_destroy);
 	} else {
 		free(--e);
 	}

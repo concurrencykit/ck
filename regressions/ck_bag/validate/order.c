@@ -74,7 +74,7 @@ bag_free(void *p, size_t b, bool r)
 	(void)b;
 
 	if (r == true) {
-		ck_epoch_call(&epoch_wr, &(--e)->epoch_entry, bag_destroy);
+		ck_epoch_call(&epoch_bag, &epoch_wr, &(--e)->epoch_entry, bag_destroy);
 	} else {
 		free(--e);
 	}
