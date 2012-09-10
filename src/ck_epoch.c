@@ -294,7 +294,7 @@ ck_epoch_barrier(struct ck_epoch *global, struct ck_epoch_record *record)
 	 * Guarantee any mutations previous to the barrier will be made visible
 	 * with respect to epoch snapshots we will read.
 	 */
-	ck_pr_fence_memory();
+	ck_pr_fence_strict_memory();
 
 	for (i = 0, cr = NULL; i < CK_EPOCH_GRACE - 1; cr = NULL, i++) {
 		/*
