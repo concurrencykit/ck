@@ -258,7 +258,7 @@ retry:
 					continue;
 
 #ifdef CK_HT_PP
-				if (cursor->value >> 48 != ((h.value >> 32) & 0xFFFF))
+				if ((cursor->value >> CK_MD_VMA_BITS) != ((h.value >> 32) & CK_HT_KEY_MASK))
 					continue;
 #else
 				if (cursor->hash != h.value)
@@ -369,7 +369,7 @@ retry:
 				if (k != key_length)
 					continue;
 #ifdef CK_HT_PP
-				if (snapshot->value >> 48 != ((h.value >> 32) & 0xFFFF))
+				if ((snapshot->value >> CK_MD_VMA_BITS) != ((h.value >> 32) & CK_HT_KEY_MASK))
 					continue;
 #else
 				if (snapshot->hash != h.value)

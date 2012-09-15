@@ -8,7 +8,8 @@ OBJECTS=ck_barrier_centralized.o	\
 	ck_epoch.o			\
 	ck_ht.o				\
 	ck_hp.o				\
-	ck_bag.o
+	ck_bag.o			\
+	ck_hs.o
 
 all: libck.so libck.a
 
@@ -23,6 +24,9 @@ ck_bag.o: ../include/ck_bag.h ck_bag.c
 
 ck_epoch.o: ../include/ck_epoch.h ck_epoch.c
 	$(CC) $(CFLAGS) -c -o ck_epoch.o ck_epoch.c
+
+ck_hs.o: ../include/ck_hs.h ck_hs.c
+	$(CC) $(CFLAGS) -c -o ck_hs.o ck_hs.c
 
 ck_ht.o: ../include/ck_ht.h ck_ht.c
 	$(CC) $(CFLAGS) -c -o ck_ht.o ck_ht.c
