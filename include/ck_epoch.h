@@ -93,11 +93,20 @@ ck_epoch_begin(ck_epoch_t *epoch, ck_epoch_record_t *record)
 	 */
 	if (record->active == 0) {
 		unsigned int g_epoch = ck_pr_load_uint(&epoch->epoch);
+
+		/*
+		 * It is possible for loads to be re-ordered before the store
+		 * is committed into the caller's epoch and active fields.
+		 * Execute a full barrier to serialize stores with respect to
+		 * loads
+		 */
 		ck_pr_store_uint(&record->epoch, g_epoch);
+		ck_pr_store_uint(&record->active, 1);
+		ck_pr_fence_strict_memory();
+		return;
 	}
 
 	ck_pr_store_uint(&record->active, record->active + 1);
-	ck_pr_fence_memory();
 	return;
 }
 

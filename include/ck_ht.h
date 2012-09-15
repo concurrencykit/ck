@@ -49,8 +49,12 @@ enum ck_ht_mode {
 	CK_HT_MODE_BYTESTRING
 };
 
-#if defined(__x86_64__) && defined(CK_MD_POINTER_PACK_ENABLE)
+#if defined(CK_MD_POINTER_PACK_ENABLE) && defined(CK_MD_VMA_BITS)
 #define CK_HT_PP
+#define CK_HT_KEY_LENGTH ((sizeof(void *) * 8) - CK_MD_VMA_BITS)
+#define CK_HT_KEY_MASK   ((1U << CK_HT_KEY_LENGTH) - 1)
+#else
+#define CK_HT_KEY_LENGTH 65535U
 #endif
 
 struct ck_ht_entry {
@@ -132,7 +136,7 @@ ck_ht_entry_key_set(ck_ht_entry_t *entry, const void *key, uint16_t key_length)
 {
 
 #ifdef CK_HT_PP
-	entry->key = (uintptr_t)key | ((uintptr_t)key_length << 48);
+	entry->key = (uintptr_t)key | ((uintptr_t)key_length << CK_MD_VMA_BITS);
 #else
 	entry->key = (uintptr_t)key;
 	entry->key_length = key_length;
@@ -146,7 +150,7 @@ ck_ht_entry_key(ck_ht_entry_t *entry)
 {
 
 #ifdef CK_HT_PP
-	return (void *)(entry->key & (((uintptr_t)1 << 48) - 1));
+	return (void *)(entry->key & (((uintptr_t)1 << CK_MD_VMA_BITS) - 1));
 #else
 	return (void *)entry->key;
 #endif
@@ -157,7 +161,7 @@ ck_ht_entry_key_length(ck_ht_entry_t *entry)
 {
 
 #ifdef CK_HT_PP
-	return entry->key >> 48;
+	return entry->key >> CK_MD_VMA_BITS;
 #else
 	return entry->key_length;
 #endif
@@ -168,7 +172,7 @@ ck_ht_entry_value(ck_ht_entry_t *entry)
 {
 
 #ifdef CK_HT_PP
-	return (void *)(entry->value & (((uintptr_t)1 << 48) - 1));
+	return (void *)(entry->value & (((uintptr_t)1 << CK_MD_VMA_BITS) - 1));
 #else
 	return (void *)entry->value;
 #endif
@@ -183,8 +187,8 @@ ck_ht_entry_set(struct ck_ht_entry *entry,
 {
 
 #ifdef CK_HT_PP
-	entry->key = (uintptr_t)key | ((uintptr_t)key_length << 48);
-	entry->value = (uintptr_t)value | ((uintptr_t)(h.value >> 32) << 48);
+	entry->key = (uintptr_t)key | ((uintptr_t)key_length << CK_MD_VMA_BITS);
+	entry->value = (uintptr_t)value | ((uintptr_t)(h.value >> 32) << CK_MD_VMA_BITS);
 #else
 	entry->key = (uintptr_t)key;
 	entry->value = (uintptr_t)value;

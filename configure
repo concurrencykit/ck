@@ -92,7 +92,9 @@ generate()
 	    -e "s#@MANDIR@#$MANDIR#g"				\
 	    -e "s#@GZIP@#$GZIP#g"				\
 	    -e "s#@GZIP_SUFFIX@#$GZIP_SUFFIX#g"			\
-	    -e "s#@POINTER_PACK_ENABLE@#$POINTER_PACK_ENABLE#g"			\
+	    -e "s#@POINTER_PACK_ENABLE@#$POINTER_PACK_ENABLE#g"	\
+	    -e "s#@VMA_BITS@#$VMA_BITS_R#g"			\
+	    -e "s#@VMA_BITS_VALUE@#$VMA_BITS_VALUE_R#g"		\
 		$1 > $2
 }
 
@@ -109,8 +111,9 @@ generate_stdout()
 	echo "                LD = $LD"
 	echo "           LDFLAGS = $LDFLAGS"
 	echo "              GZIP = $GZIP"
-	echo "      POINTER_PACK = $POINTER_PACK_ENABLE"
 	echo "             CORES = $CORES"
+	echo "      POINTER_PACK = $POINTER_PACK_ENABLE"
+	echo "          VMA_BITS = $VMA_BITS"
 	echo
 	echo "Headers will be installed in $HEADERS"
 	echo "Libraries will be installed in $LIBRARY"
@@ -136,6 +139,7 @@ for option in $*; do
 		echo "The following options will modify code generation."
 		echo "  --cores=N                Specify number of cores available on target machine"
 		echo "  --enable-pointer-packing Assumes 48-bit address encoding"
+		echo "  --vma-bits=N             Specify valid number of VMA bits"
 		echo
 		echo "The following environment variables may be used:"
 		echo "   CC       C compiler command"
@@ -145,6 +149,9 @@ for option in $*; do
 		echo
 		echo "Report bugs to ${MAINTAINER}."
 		exit $EXIT_SUCCESS
+		;;
+	--vma-bits=*)
+		VMA_BITS=$value
 		;;
 	--enable-pointer-packing)
 		POINTER_PACK_ENABLE="CK_MD_POINTER_PACK_ENABLE"
@@ -336,6 +343,38 @@ esac
 
 assert "$PLATFORM" "$PLATFORM" "unsupported"
 
+printf "Detecting VMA bits..............."
+if test "$VMA_BITS" = ""; then
+	if test "$PLATFORM" = "x86" || test $PLATFORM = "x86_64"; then
+		case $SYSTEM in
+			darwin)
+				VMA=`sysctl -n machdep.cpu.address_bits.virtual`
+				;;
+			linux)
+				VMA=`awk '/address sizes/ {print $7;exit}' /proc/cpuinfo`
+				;;
+			*)
+				VMA="unknown"
+				;;
+		esac
+	fi
+
+	VMA_BITS=$VMA
+else
+	VMA=$VMA_BITS
+fi
+
+if test "$VMA" = "unknown"; then
+	echo "unknown"
+	VMA_BITS_R="CK_MD_VMA_BITS_UNKNOWN"
+	VMA_BITS_VALUE_R=""
+	POINTER_PACK_ENABLE="CK_MD_POINTER_PACK_DISABLE"
+else
+	echo "success [$VMA]"
+	VMA_BITS_R="CK_MD_VMA_BITS"
+	VMA_BITS_VALUE_R="${VMA_BITS}ULL"
+fi
+
 # Platform will be used as a macro.
 PROFILE="${PROFILE:-$PLATFORM}"
 PLATFORM="__${PLATFORM}__"
@@ -380,7 +419,6 @@ if test -z "$CC" -o ! -x "$CC"; then
 fi
 assert "$CC" "not found"
 
-# Make sure GCC 4.X, the only supported compiler, is being used.
 cat << EOF > .1.c
 #include <stdio.h>
 int main(void) {
