@@ -46,6 +46,9 @@ argument and a value pointed to by the
 .Fa value
 argument. The length of the key is specified by
 .Fa key_length.
+The maximum value of
+.Fa key_length
+is defined by the CK_HT_KEY_LENGTH macro.
 This function is typically used to initialize an
 entry for
 .Xr ck_ht_set_spmc 3
