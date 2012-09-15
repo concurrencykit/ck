@@ -54,7 +54,7 @@ enum ck_ht_mode {
 #define CK_HT_KEY_LENGTH ((sizeof(void *) * 8) - CK_MD_VMA_BITS)
 #define CK_HT_KEY_MASK   ((1U << CK_HT_KEY_LENGTH) - 1)
 #else
-#define CK_HT_KEY_LENGTH 65535
+#define CK_HT_KEY_LENGTH 65535U
 #endif
 
 struct ck_ht_entry {
