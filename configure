@@ -368,6 +368,7 @@ if test "$VMA" = "unknown"; then
 	echo "unknown"
 	VMA_BITS_R="CK_MD_VMA_BITS_UNKNOWN"
 	VMA_BITS_VALUE_R=""
+	POINTER_PACK_ENABLE="CK_MD_POINTER_PACK_DISABLE"
 else
 	echo "success [$VMA]"
 	VMA_BITS_R="CK_MD_VMA_BITS"
