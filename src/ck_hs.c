@@ -168,16 +168,16 @@ ck_hs_reset(struct ck_hs *hs)
 }
 
 static inline unsigned long
-ck_hs_map_probe_next(struct ck_hs_map *map, unsigned long offset, ck_hs_hash_t h, unsigned long level, unsigned long probes)
+ck_hs_map_probe_next(struct ck_hs_map *map, unsigned long offset, unsigned long h, unsigned long level, unsigned long probes)
 {
-	ck_hs_hash_t r;
+	unsigned long r;
 	unsigned long stride;
 
 	(void)probes;
 	(void)level;
 
-	r.value = h.value >> map->step;
-	stride = (r.value & ~CK_HS_PROBE_L1_MASK) << 1 | (r.value & CK_HS_PROBE_L1_MASK);
+	r = h >> map->step;
+	stride = (r & ~CK_HS_PROBE_L1_MASK) << 1 | (r & CK_HS_PROBE_L1_MASK);
 
 	return (offset + (stride | CK_HS_PROBE_L1)) & map->mask;
 }
@@ -201,7 +201,7 @@ restart:
 		return false;
 
 	for (k = 0; k < map->capacity; k++) {
-		struct ck_hs_hash h;
+		unsigned long h;
 
 		previous = map->entries[k];
 		if (previous == CK_HS_EMPTY || previous == CK_HS_TOMBSTONE)
@@ -213,7 +213,7 @@ restart:
 #endif
 
 		h = hs->hf(previous, hs->seed);
-		offset = h.value & update->mask;
+		offset = h & update->mask;
 		probes = 0;
 
 		for (i = 0; i < update->probe_limit; i++) {
@@ -224,7 +224,7 @@ restart:
 
 				probes++;
 				if (*cursor == CK_HS_EMPTY) {
-					*cursor = previous;
+					*cursor = map->entries[k];
 					update->n_entries++;
 
 					if (probes > update->probe_maximum)
@@ -261,7 +261,7 @@ ck_hs_map_probe(struct ck_hs *hs,
 		struct ck_hs_map *map,
 		unsigned long *n_probes,
 		void ***priority,
-		ck_hs_hash_t h,
+		unsigned long h,
 		const void *key,
 		void **object,
 		unsigned long probe_limit)
@@ -274,11 +274,11 @@ ck_hs_map_probe(struct ck_hs *hs,
 
 #ifdef CK_HS_PP
 	/* If we are storing object pointers, then we may leverage pointer packing. */
-	struct ck_hs_hash hv;
+	unsigned long hv;
 
 	if (hs->mode & CK_HS_MODE_OBJECT) {
-		hv.value = (h.value >> 25) & CK_HS_KEY_MASK;
-		compare = (void *)((uintptr_t)key | (hv.value << CK_MD_VMA_BITS));
+		hv = (h >> 25) & CK_HS_KEY_MASK;
+		compare = (void *)((uintptr_t)key | (hv << CK_MD_VMA_BITS));
 	} else {
 		compare = key;
 	}
@@ -286,7 +286,7 @@ ck_hs_map_probe(struct ck_hs *hs,
 	compare = key;
 #endif
 
-	offset = h.value & map->mask;
+	offset = h & map->mask;
 	*object = NULL;
 
 	for (i = 0; i < probe_limit; i++) {
@@ -310,7 +310,7 @@ ck_hs_map_probe(struct ck_hs *hs,
 
 #ifdef CK_HS_PP
 			if (hs->mode & CK_HS_MODE_OBJECT) {
-				if (((uintptr_t)k >> CK_MD_VMA_BITS) != hv.value)
+				if (((uintptr_t)k >> CK_MD_VMA_BITS) != hv)
 					continue;
 
 				k = (void *)((uintptr_t)k & (((uintptr_t)1 << CK_MD_VMA_BITS) - 1));
@@ -344,7 +344,7 @@ leave:
 
 bool
 ck_hs_set(struct ck_hs *hs,
-          struct ck_hs_hash h,
+          unsigned long h,
 	  const void *key,
 	  void **previous)
 {
@@ -366,7 +366,7 @@ restart:
 
 #ifdef CK_HS_PP
 	if (hs->mode & CK_HS_MODE_OBJECT) {
-		insert = (void *)((uintptr_t)key | ((h.value >> 25) << CK_MD_VMA_BITS));
+		insert = (void *)((uintptr_t)key | ((h >> 25) << CK_MD_VMA_BITS));
 	} else {
 		insert = (void *)key;
 	}
@@ -386,7 +386,7 @@ restart:
 		 * is visible with respect to concurrent probe sequences.
 		 */
 		if (*slot != CK_HS_EMPTY) {
-			ck_pr_inc_uint(&map->generation[h.value & CK_HS_G_MASK]);
+			ck_pr_inc_uint(&map->generation[h & CK_HS_G_MASK]);
 			ck_pr_fence_store();
 			ck_pr_store_ptr(slot, CK_HS_TOMBSTONE);
 		}
@@ -410,7 +410,7 @@ restart:
 
 bool
 ck_hs_put(struct ck_hs *hs,
-          struct ck_hs_hash h,
+          unsigned long h,
 	  const void *key)
 {
 	void **slot, **first, *object, *insert;
@@ -433,7 +433,7 @@ restart:
 
 #ifdef CK_HS_PP
 	if (hs->mode & CK_HS_MODE_OBJECT) {
-		insert = (void *)((uintptr_t)key | ((h.value >> 25) << CK_MD_VMA_BITS));
+		insert = (void *)((uintptr_t)key | ((h >> 25) << CK_MD_VMA_BITS));
 	} else {
 		insert = (void *)key;
 	}
@@ -447,7 +447,7 @@ restart:
 	if (first != NULL) {
 		/* If an earlier bucket was found, then go ahead and replace it. */
 		ck_pr_store_ptr(first, insert);
-		ck_pr_inc_uint(&map->generation[h.value & CK_HS_G_MASK]);
+		ck_pr_inc_uint(&map->generation[h & CK_HS_G_MASK]);
 
 		/* Guarantee that new object is visible with respect to generation increment. */
 		ck_pr_fence_store();
@@ -466,7 +466,7 @@ restart:
 
 void *
 ck_hs_get(struct ck_hs *hs,
-	  struct ck_hs_hash h,
+	  unsigned long h,
 	  const void *key)
 {
 	void **slot, **first, *object;
@@ -477,7 +477,7 @@ ck_hs_get(struct ck_hs *hs,
 
 	do { 
 		map = ck_pr_load_ptr(&hs->map);
-		generation = &map->generation[h.value & CK_HS_G_MASK];
+		generation = &map->generation[h & CK_HS_G_MASK];
 		g = ck_pr_load_uint(generation);
 		probe = ck_pr_load_uint(&map->probe_maximum);
 		ck_pr_fence_load();
@@ -495,7 +495,7 @@ ck_hs_get(struct ck_hs *hs,
 
 void *
 ck_hs_remove(struct ck_hs *hs,
-	     struct ck_hs_hash h,
+	     unsigned long h,
 	     const void *key)
 {
 	void **slot, **first, *object;

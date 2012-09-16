@@ -64,14 +64,14 @@ const char *test[] = {"Samy", "Al", "Bahra", "dances", "in", "the", "wind.", "On
 
 const char *negative = "negative";
 
-static ck_hs_hash_t
+static unsigned long
 hs_hash(const void *object, unsigned long seed)
 {
 	const char *c = object;
-	ck_hs_hash_t h;
+	unsigned long h;
 
 	(void)seed;
-	h.value = c[0];
+	h = c[0];
 	return h;
 }
 
@@ -85,8 +85,9 @@ hs_compare(const void *previous, const void *compare)
 int
 main(void)
 {
+	const char *blob = "blobs";
+	unsigned long h;
 	ck_hs_t hs;
-	ck_hs_hash_t h;
 	size_t i;
 
 	if (ck_hs_init(&hs, CK_HS_MODE_SPMC | CK_HS_MODE_OBJECT, hs_hash, hs_compare, &my_allocator, 8, 6602834) == false) {
@@ -96,7 +97,7 @@ main(void)
 
 	/* Test serial put semantics. */
 	for (i = 0; i < sizeof(test) / sizeof(*test); i++) {
-		h.value = test[i][0];
+		h = test[i][0];
 		ck_hs_put(&hs, h, test[i]);
 		if (ck_hs_put(&hs, h, test[i]) == true) {
 			fprintf(stderr, "ERROR [1]: put must fail on collision.\n");
@@ -107,7 +108,7 @@ main(void)
 	/* Test grow semantics. */
 	ck_hs_grow(&hs, 32);
 	for (i = 0; i < sizeof(test) / sizeof(*test); i++) {
-		h.value = test[i][0];
+		h = test[i][0];
 		if (ck_hs_put(&hs, h, test[i]) == true) {
 			fprintf(stderr, "ERROR [2]: put must fail on collision.\n");
 			exit(EXIT_FAILURE);
@@ -119,10 +120,21 @@ main(void)
 		}
 	}
 
+	h = ULONG_MAX;
+	if (ck_hs_put(&hs, h, blob) == false) {
+		fprintf(stderr, "ERROR: Duplicate put failed.\n");
+		exit(EXIT_FAILURE);
+	}
+
+	if (ck_hs_put(&hs, h, blob) == true) {
+		fprintf(stderr, "ERROR: Duplicate put succeeded.\n");
+		exit(EXIT_FAILURE);
+	}
+
 	/* Grow set and check get semantics. */
 	ck_hs_grow(&hs, 128);
 	for (i = 0; i < sizeof(test) / sizeof(*test); i++) {
-		h.value = test[i][0];
+		h = test[i][0];
 		if (ck_hs_get(&hs, h, test[i]) == NULL) {
 			fprintf(stderr, "ERROR: get must not fail\n");
 			exit(EXIT_FAILURE);
@@ -133,7 +145,7 @@ main(void)
 	for (i = 0; i < sizeof(test) / sizeof(*test); i++) {
 		void *r;
 
-		h.value = test[i][0];
+		h = test[i][0];
 		if (ck_hs_get(&hs, h, test[i]) == NULL)
 			continue;
 
@@ -153,7 +165,7 @@ main(void)
 		void *r;
 		bool d;
 
-		h.value = test[i][0];
+		h = test[i][0];
 		d = ck_hs_get(&hs, h, test[i]) != NULL;
 		if (ck_hs_set(&hs, h, test[i], &r) == false) {
 			fprintf(stderr, "ERROR: Failed to set\n");

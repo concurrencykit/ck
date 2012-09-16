@@ -67,13 +67,13 @@ static struct ck_malloc my_allocator = {
 	.free = hs_free
 };
 
-static ck_hs_hash_t
+static unsigned long
 hs_hash(const void *object, unsigned long seed)
 {
 	const char *c = object;
-	ck_hs_hash_t h;
+	unsigned long h;
 
-	h.value = (unsigned long)MurmurHash64A(c, strlen(c), seed);
+	h = (unsigned long)MurmurHash64A(c, strlen(c), seed);
 	return h;
 }
 
@@ -100,9 +100,9 @@ set_init(void)
 static bool
 set_remove(const char *value)
 {
-	ck_hs_hash_t h;
+	unsigned long h;
 
-	h.value = (unsigned long)MurmurHash64A(value, strlen(value), hs.seed);
+	h = hs_hash(value, hs.seed);
 	ck_hs_remove(&hs, h, value);
 	return true;
 }
@@ -110,20 +110,21 @@ set_remove(const char *value)
 static bool
 set_replace(const char *value)
 {
-	ck_hs_hash_t h;
+	unsigned long h;
 	void *previous;
 
-	h.value = (unsigned long)MurmurHash64A(value, strlen(value), hs.seed);
-	return ck_hs_set(&hs, h, value, &previous);
+	h = hs_hash(value, hs.seed);
+	ck_hs_set(&hs, h, value, &previous);
+	return previous != NULL;
 }
 
 static void *
 set_get(const char *value)
 {
-	ck_hs_hash_t h;
+	unsigned long h;
 	void *v;
 
-	h.value = (unsigned long)MurmurHash64A(value, strlen(value), hs.seed);
+	h = hs_hash(value, hs.seed);
 	v = ck_hs_get(&hs, h, value);
 	return v;
 }
@@ -131,9 +132,9 @@ set_get(const char *value)
 static bool
 set_insert(const char *value)
 {
-	ck_hs_hash_t h;
+	unsigned long h;
 
-	h.value = (unsigned long)MurmurHash64A(value, strlen(value), hs.seed);
+	h = hs_hash(value, hs.seed);
 	return ck_hs_put(&hs, h, value);
 }
 
@@ -219,7 +220,6 @@ main(int argc, char *argv[])
 	keys = t;
 
 	set_init();
-
 	for (i = 0; i < keys_length; i++)
 		d += set_insert(keys[i]) == false;
 	ck_hs_stat(&hs, &st);

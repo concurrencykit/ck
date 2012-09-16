@@ -78,13 +78,13 @@ alarm_handler(int s)
 	return;
 }
 
-static ck_hs_hash_t
+static unsigned long
 hs_hash(const void *object, unsigned long seed)
 {
 	const char *c = object;
-	ck_hs_hash_t h;
+	unsigned long h;
 
-	h.value = (unsigned long)MurmurHash64A(c, strlen(c), seed);
+	h = (unsigned long)MurmurHash64A(c, strlen(c), seed);
 	return h;
 }
 
@@ -152,29 +152,29 @@ set_init(void)
 static bool
 set_remove(const char *value)
 {
-	ck_hs_hash_t h;
+	unsigned long h;
 
-	h.value = (unsigned long)MurmurHash64A(value, strlen(value), hs.seed);
+	h = (unsigned long)MurmurHash64A(value, strlen(value), hs.seed);
 	return (bool)ck_hs_remove(&hs, h, value);
 }
 
 static bool
 set_replace(const char *value)
 {
-	ck_hs_hash_t h;
+	unsigned long h;
 	void *previous;
 
-	h.value = (unsigned long)MurmurHash64A(value, strlen(value), hs.seed);
+	h = (unsigned long)MurmurHash64A(value, strlen(value), hs.seed);
 	return ck_hs_set(&hs, h, value, &previous);
 }
 
 static void *
 set_get(const char *value)
 {
-	ck_hs_hash_t h;
+	unsigned long h;
 	void *v;
 
-	h.value = (unsigned long)MurmurHash64A(value, strlen(value), hs.seed);
+	h = (unsigned long)MurmurHash64A(value, strlen(value), hs.seed);
 	v = ck_hs_get(&hs, h, value);
 	return v;
 }
@@ -182,9 +182,9 @@ set_get(const char *value)
 static bool
 set_insert(const char *value)
 {
-	ck_hs_hash_t h;
+	unsigned long h;
 
-	h.value = (unsigned long)MurmurHash64A(value, strlen(value), hs.seed);
+	h = (unsigned long)MurmurHash64A(value, strlen(value), hs.seed);
 	return ck_hs_put(&hs, h, value);
 }
 
