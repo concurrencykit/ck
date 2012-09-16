@@ -289,7 +289,9 @@ main(int argc, char **argv)
 		pthread_create(&readers[i], NULL, reader, NULL);
 	}
 
+	fprintf(stderr, "Waiting...");
 	sleep(30);
+	fprintf(stderr, "done\n");
 
 	ck_pr_store_int(&leave, 1);
 	for (i = 0; i < NUM_READER_THREADS; i++)
