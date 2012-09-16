@@ -37,7 +37,7 @@
 #define CK_BAG_PAGESIZE CK_MD_PAGESIZE
 
 #ifdef CK_BAG_PP
-#define CK_BAG_MAX_N_ENTRIES (1 << 12)
+#define CK_BAG_MAX_N_ENTRIES (1 << ((sizeof(void *) * 8) - CK_MD_VMA_BITS))
 #endif
 
 static struct ck_malloc allocator;
@@ -164,7 +164,7 @@ ck_bag_put_spmc(struct ck_bag *bag, void *entry)
 	ck_pr_fence_store();
 
 #ifdef CK_BAG_PP
-	next = ((uintptr_t)n_entries_block << 48);
+	next = ((uintptr_t)n_entries_block << CK_MD_VMA_BITS);
 #endif
 
 
@@ -284,7 +284,7 @@ found:
 
 		next_ptr = (uintptr_t)(void *)ck_bag_block_next(copy->next.ptr);
 #ifdef CK_BAG_PP
-		copy->next.ptr = (void *)(((uintptr_t)n_entries << 48) | next_ptr);
+		copy->next.ptr = (void *)(((uintptr_t)n_entries << CK_MD_VMA_BITS) | next_ptr);
 #else
 		copy->next.n_entries = n_entries;
 		copy->next.ptr = (struct ck_bag_block *)next_ptr;

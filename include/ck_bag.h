@@ -63,8 +63,8 @@ enum ck_bag_allocation_strategy {
 };
 
 /*
- *  max: max n_entries per block
- * 	bytes: sizeof(ck_bag_block) + sizeof(flex. array member)
+ *	max: max n_entries per block
+ *	bytes: sizeof(ck_bag_block) + sizeof(flex. array member)
  * 		+ inline allocator overhead
  */
 struct ck_bag_block_info {
@@ -75,7 +75,7 @@ struct ck_bag_block_info {
 /*
  * Determine whether pointer packing should be enabled.
  */
-#if defined(CK_BAG_PP) && defined(CK_MD_POINTER_PACK_ENABLE)
+#if defined(CK_MD_POINTER_PACK_ENABLE) && defined(CK_MD_VMA_BITS)
 #define CK_BAG_PP
 #endif
 
@@ -114,7 +114,7 @@ struct ck_bag_iterator {
 typedef struct ck_bag_iterator ck_bag_iterator_t;
 
 #ifdef CK_BAG_PP
-#define CK_BAG_BLOCK_ENTRIES_MASK ((uintptr_t)0xFFFF << 48)
+#define CK_BAG_BLOCK_ENTRIES_MASK (~(uintptr_t)0 << CK_MD_VMA_BITS)
 #endif
 
 CK_CC_INLINE static struct ck_bag_block *
@@ -140,7 +140,7 @@ ck_bag_block_count(struct ck_bag_block *block)
 {
 
 #ifdef CK_BAG_PP
-	return (uintptr_t)ck_pr_load_ptr(&block->next.ptr) >> 48;
+	return (uintptr_t)ck_pr_load_ptr(&block->next.ptr) >> CK_MD_VMA_BITS;
 #else
 	return (uintptr_t)ck_pr_load_ptr(&block->next.n_entries);
 #endif
