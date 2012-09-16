@@ -50,13 +50,13 @@
 
 struct ck_hs_map {
 	unsigned int generation[CK_HS_G];
-	unsigned int tombstones;
 	unsigned int probe_maximum;
-	unsigned int probe_limit;
-	unsigned long n_entries;
 	unsigned long mask;
-	unsigned long capacity;
 	unsigned long step;
+	unsigned int probe_limit;
+	unsigned int tombstones;
+	unsigned long n_entries;
+	unsigned long capacity;
 	unsigned long size;
 	void **entries;
 };
