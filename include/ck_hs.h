@@ -1,0 +1,104 @@
+/*
+ * Copyright 2012 Samy Al Bahra.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE AUTHOR AND CONTRIBUTORS ``AS IS'' AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR OR CONTRIBUTORS BE LIABLE
+ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+ * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+ * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+ * SUCH DAMAGE.
+ */
+
+#ifndef _CK_HS_H
+#define _CK_HS_H
+
+#include <ck_pr.h>
+
+#include <ck_cc.h>
+#include <ck_malloc.h>
+#include <ck_md.h>
+#include <ck_stdint.h>
+#include <stdbool.h>
+#include <stddef.h>
+
+struct ck_hs_hash {
+	unsigned long value;
+};
+typedef struct ck_hs_hash ck_hs_hash_t;
+
+#define CK_HS_MODE_SPMC     1
+#define CK_HS_MODE_DIRECT   2
+#define CK_HS_MODE_OBJECT   8
+
+/* Currently unsupported. */
+#define CK_HS_MODE_MPMC    (void)
+
+/*
+ * Hash callback function.
+ */
+typedef ck_hs_hash_t ck_hs_hash_cb_t(const void *, unsigned long);
+
+/*
+ * Returns pointer to object if objects are equivalent.
+ */
+typedef bool ck_hs_compare_cb_t(const void *, const void *);
+
+#if defined(CK_MD_POINTER_PACK_ENABLE) && defined(CK_MD_VMA_BITS)
+#define CK_HS_PP
+#define CK_HS_KEY_MASK ((1U << ((sizeof(void *) * 8) - CK_MD_VMA_BITS)) - 1)
+#endif
+
+struct ck_hs_map;
+struct ck_hs {
+	struct ck_malloc *m;
+	struct ck_hs_map *map;
+	unsigned int mode;
+	unsigned long seed;
+	ck_hs_hash_cb_t *hf;
+	ck_hs_compare_cb_t *compare;
+};
+typedef struct ck_hs ck_hs_t;
+
+struct ck_hs_stat {
+	unsigned long tombstones;
+	unsigned long n_entries;
+	unsigned int probe_maximum;
+};
+
+struct ck_hs_iterator {
+	void **cursor;
+	unsigned long offset;
+};
+typedef struct ck_hs_iterator ck_hs_iterator_t;
+
+#define CK_HS_ITERATOR_INITIALIZER { NULL, 0 }
+
+void ck_hs_iterator_init(ck_hs_iterator_t *);
+bool ck_hs_next(ck_hs_t *, ck_hs_iterator_t *, void **);
+bool ck_hs_init(ck_hs_t *, unsigned int, ck_hs_hash_cb_t *, ck_hs_compare_cb_t *, struct ck_malloc *, unsigned long, unsigned long);
+void ck_hs_destroy(ck_hs_t *);
+void *ck_hs_get(ck_hs_t *, ck_hs_hash_t, const void *);
+bool ck_hs_put(ck_hs_t *, ck_hs_hash_t, const void *);
+bool ck_hs_set(ck_hs_t *, ck_hs_hash_t, const void *, void **);
+void *ck_hs_remove(ck_hs_t *, ck_hs_hash_t, const void *);
+bool ck_hs_grow(ck_hs_t *, unsigned long);
+unsigned long ck_hs_count(ck_hs_t *);
+bool ck_hs_reset(ck_hs_t *);
+void ck_hs_stat(ck_hs_t *, struct ck_hs_stat *);
+
+#endif /* _CK_HS_H */

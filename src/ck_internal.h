@@ -60,6 +60,12 @@ ck_internal_power_2(uint32_t v)
         return (++v);
 }
 
+CK_CC_INLINE static unsigned long
+ck_internal_max(unsigned long x, unsigned long y)
+{
+
+	return x ^ ((x ^ y) & -(x < y));
+}
 
 CK_CC_INLINE static uint64_t
 ck_internal_max_64(uint64_t x, uint64_t y)
@@ -75,15 +81,30 @@ ck_internal_max_32(uint32_t x, uint32_t y)
 	return x ^ ((x ^ y) & -(x < y));
 }
 
+CK_CC_INLINE static unsigned long
+ck_internal_bsf(unsigned long v)
+{
+	unsigned int i;
+	const unsigned int s = sizeof(unsigned long) * 8 - 1;
+
+	for (i = 0; i < s; i++) {
+		if (v & (1 << (s - i)))
+			return i;
+	}
+
+	return 1;
+}
+
 CK_CC_INLINE static uint64_t
 ck_internal_bsf_64(uint64_t v)
 {
 	unsigned int i;
+	const unsigned int s = sizeof(unsigned long) * 8 - 1;
 
-	for (i = 0; i < 8; i++) {
+	for (i = 0; i < s; i++) {
 		if (v & (1 << (63 - i)))
 			return i;
 	}
 
-	return i;
+	return 1;
 }
