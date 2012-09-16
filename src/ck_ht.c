@@ -75,6 +75,17 @@ struct ck_ht_map {
 };
 
 void
+ck_ht_stat(struct ck_ht *table,
+	   struct ck_ht_stat *st)
+{
+	struct ck_ht_map *map = table->map;
+
+	st->n_entries = map->n_entries;
+	st->probe_maximum = map->probe_maximum;
+	return;
+}
+
+void
 ck_ht_hash(struct ck_ht_hash *h,
 	   struct ck_ht *table,
 	   const void *key,

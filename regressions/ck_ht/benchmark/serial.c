@@ -176,6 +176,7 @@ main(int argc, char *argv[])
 	unsigned int d = 0;
 	uint64_t s, e, a, ri, si, ai, sr, rg, sg, ag, sd, ng;
 	char **t;
+	struct ck_ht_stat st;
 
 	r = 20;
 	s = 8;
@@ -218,9 +219,10 @@ main(int argc, char *argv[])
 
 	for (i = 0; i < keys_length; i++)
 		d += table_insert(keys[i]) == false;
+	ck_ht_stat(&ht, &st);
 
-	fprintf(stderr, "# %zu entries stored and %u duplicates.\n",
-	    table_count(), d);
+	fprintf(stderr, "# %zu entries stored, %u duplicates, %" PRIu64 " probe.\n",
+	    table_count(), d, st.probe_maximum);
 
 	fprintf(stderr, "#    reverse_insertion serial_insertion random_insertion serial_replace reverse_get serial_get random_get serial_remove negative_get\n\n");
 

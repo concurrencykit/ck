@@ -99,6 +99,11 @@ struct ck_ht {
 };
 typedef struct ck_ht ck_ht_t;
 
+struct ck_ht_stat {
+	uint64_t probe_maximum;
+	uint64_t n_entries;
+};
+
 struct ck_ht_iterator {
 	struct ck_ht_entry *current;
 	uint64_t offset;
@@ -237,6 +242,7 @@ ck_ht_entry_value_direct(ck_ht_entry_t *entry)
  */
 bool ck_ht_next(ck_ht_t *, ck_ht_iterator_t *, ck_ht_entry_t **entry);
 
+void ck_ht_stat(ck_ht_t *, struct ck_ht_stat *);
 void ck_ht_hash(ck_ht_hash_t *, ck_ht_t *, const void *, uint16_t);
 void ck_ht_hash_direct(ck_ht_hash_t *, ck_ht_t *, uintptr_t);
 bool ck_ht_init(ck_ht_t *, enum ck_ht_mode, ck_ht_hash_cb_t *, struct ck_malloc *, uint64_t, uint64_t);
