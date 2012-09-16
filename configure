@@ -138,7 +138,7 @@ for option in $*; do
 		echo
 		echo "The following options will modify code generation."
 		echo "  --cores=N                Specify number of cores available on target machine"
-		echo "  --enable-pointer-packing Assumes 48-bit address encoding"
+		echo "  --enable-pointer-packing Assumes address encoding is subset of pointer range"
 		echo "  --vma-bits=N             Specify valid number of VMA bits"
 		echo
 		echo "The following environment variables may be used:"
