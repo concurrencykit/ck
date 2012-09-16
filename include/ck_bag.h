@@ -63,8 +63,8 @@ enum ck_bag_allocation_strategy {
 };
 
 /*
- *  max: max n_entries per block
- * 	bytes: sizeof(ck_bag_block) + sizeof(flex. array member)
+ *	max: max n_entries per block
+ *	bytes: sizeof(ck_bag_block) + sizeof(flex. array member)
  * 		+ inline allocator overhead
  */
 struct ck_bag_block_info {
@@ -114,8 +114,7 @@ struct ck_bag_iterator {
 typedef struct ck_bag_iterator ck_bag_iterator_t;
 
 #ifdef CK_BAG_PP
-#define CK_BAG_KEY_LENGTH ((sizeof(void *) * 8) - CK_MD_VMA_BITS)
-#define CK_BAG_BLOCK_ENTRIES_MASK ((uintptr_t)(1U << CK_BAG_KEY_LENGTH) << CK_MD_VMA_BITS)
+#define CK_BAG_BLOCK_ENTRIES_MASK (~(uintptr_t)0 << CK_MD_VMA_BITS)
 #endif
 
 CK_CC_INLINE static struct ck_bag_block *

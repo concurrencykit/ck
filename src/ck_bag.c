@@ -37,7 +37,7 @@
 #define CK_BAG_PAGESIZE CK_MD_PAGESIZE
 
 #ifdef CK_BAG_PP
-#define CK_BAG_MAX_N_ENTRIES (1 << 12)
+#define CK_BAG_MAX_N_ENTRIES (1 << ((sizeof(void *) * 8) - CK_MD_VMA_BITS))
 #endif
 
 static struct ck_malloc allocator;
