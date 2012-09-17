@@ -62,7 +62,7 @@ ck_pr_stall(void)
 	return;
 }
 
-#ifdef CK_MD_RMO
+#if defined(CK_MD_RMO) || defined(CK_MD_PSO)
 #define CK_PR_FENCE(T, I)				\
 	CK_CC_INLINE static void			\
 	ck_pr_fence_strict_##T(void)			\
@@ -91,7 +91,7 @@ ck_pr_stall(void)
 	{						\
 		__asm__ __volatile__("" ::: "memory");	\
 	}
-#endif /* !CK_MD_RMO */
+#endif /* !CK_MD_RMO && !CK_MD_PSO */
 
 CK_PR_FENCE(load, "lfence")
 CK_PR_FENCE(load_depends, "")
