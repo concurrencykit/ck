@@ -208,7 +208,7 @@ reader(void *unused)
 	size_t i;
 	ck_epoch_record_t epoch_record;
 	int state_previous = HS_STATE_STOP;
-	int n_state;
+	int n_state = 0;
 	uint64_t s, j, a;
 
 	(void)unused;
