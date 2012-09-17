@@ -155,7 +155,7 @@ main(void)
 		}
 
 		if (strcmp(r, test[i]) != 0) {
-			fprintf(stderr, "ERROR: Removed incorrect node (%s != %s)\n", r, test[i]);
+			fprintf(stderr, "ERROR: Removed incorrect node (%s != %s)\n", (char *)r, test[i]);
 			exit(EXIT_FAILURE);
 		}
 	}
@@ -175,7 +175,7 @@ main(void)
 		/* Expected replacement. */
 		if (d == true && (r == NULL || strcmp(r, test[i]) != 0)) {
 			fprintf(stderr, "ERROR: Incorrect previous value: %s != %s\n",
-			    test[i], r);
+			    test[i], (char *)r);
 		}
 
 		if (ck_hs_set(&hs, h, test[i], &r) == false) {
@@ -184,7 +184,7 @@ main(void)
 		}
 
 		if (strcmp(r, test[i]) != 0) {
-			fprintf(stderr, "ERROR: Invalid pointer: %s != %s\n", r, test[i]);
+			fprintf(stderr, "ERROR: Invalid pointer: %s != %s\n", (char *)r, test[i]);
 			exit(EXIT_FAILURE);
 		}
 	}

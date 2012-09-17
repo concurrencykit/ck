@@ -237,7 +237,7 @@ reader(void *unused)
 			if (strcmp(r, keys[i]) == 0)
 				continue;
 
-			fprintf(stderr, "ERROR: Found invalid value: [%s] but expected [%s]\n", r, keys[i]);
+			fprintf(stderr, "ERROR: Found invalid value: [%s] but expected [%s]\n", (char *)r, keys[i]);
 			exit(EXIT_FAILURE);
 		}
 		a += rdtsc() - s;
