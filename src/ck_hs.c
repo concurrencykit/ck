@@ -196,7 +196,7 @@ ck_hs_map_probe_next(struct ck_hs_map *map, unsigned long offset, unsigned long 
 
 bool
 ck_hs_grow(struct ck_hs *hs,
-		unsigned long capacity)
+	   unsigned long capacity)
 {
 	struct ck_hs_map *map, *update;
 	void **bucket, *previous;
