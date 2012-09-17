@@ -27,7 +27,7 @@
 .Dd March 29, 2012
 .Dt CK_HT_HASH_DIRECT 3
 .Sh NAME
-.Nm ck_ht_hash
+.Nm ck_ht_hash_direct
 .Nd generate a hash value for a hash table
 .Sh LIBRARY
 Concurrency Kit (libck, \-lck)

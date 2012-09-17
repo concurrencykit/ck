@@ -27,8 +27,8 @@
 .Dd March 29, 2012
 .Dt CK_HT_SET_SPMC 3
 .Sh NAME
-.Nm ck_ht_hash
-.Nd generate a hash value for a hash table
+.Nm ck_ht_set_spmc
+.Nd store key-value pair into hash table
 .Sh LIBRARY
 Concurrency Kit (libck, \-lck)
 .Sh SYNOPSIS
