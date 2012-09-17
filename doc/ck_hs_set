@@ -73,7 +73,7 @@ Upon successful completion,
 returns true and otherwise returns false on failure.
 .Sh ERRORS
 Behavior is undefined if
-.Fa entry
+.Fa key
 or
 .Fa hs
 are uninitialized. The function will also
