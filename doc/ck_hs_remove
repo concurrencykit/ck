@@ -68,9 +68,7 @@ Behavior is undefined if
 .Fa key
 or
 .Fa hs
-are uninitialized. The function will also
-return false if the hash set could not enlarged
-to accomodate key insertion.
+are uninitialized.
 .Sh SEE ALSO
 .Xr ck_hs_init 3 ,
 .Xr ck_hs_destroy 3 ,

@@ -73,7 +73,7 @@ Behavior is undefined if
 or
 .Fa hs
 are uninitialized. The function will also
-return false if the hash set could not enlarged
+return false if the hash set could not be enlarged
 to accomodate key insertion.
 .Sh SEE ALSO
 .Xr ck_hs_init 3 ,
