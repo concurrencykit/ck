@@ -365,7 +365,7 @@ main(int argc, char *argv[])
 	    "%" PRIu64 " "
 	    "%" PRIu64 " "
 	    "%" PRIu64 "\n",
-	    keys_length, ri, si, ai, sr, rg, sg, rg, sd, ng);
+	    keys_length, ri, si, ai, sr, rg, sg, ag, sd, ng);
 
 	return 0;
 }
