@@ -59,7 +59,8 @@ OBJECTS=ck_ht_count 	  		\
 	ck_bag_put_spmc			\
 	ck_bag_remove_spmc		\
 	ck_bag_set_spmc			\
-	ck_hs_init
+	ck_hs_init			\
+	ck_hs_destroy
 
 all: 
 	for target in $(OBJECTS); do 			   \
