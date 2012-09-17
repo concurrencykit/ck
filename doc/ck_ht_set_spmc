@@ -111,6 +111,7 @@ if the hash table required to be grown but failed
 while attempting to grow.
 .El
 .Sh SEE ALSO
+.Xr ck_ht_stat 3 ,
 .Xr ck_ht_init 3 ,
 .Xr ck_ht_destroy 3 ,
 .Xr ck_ht_hash 3 ,

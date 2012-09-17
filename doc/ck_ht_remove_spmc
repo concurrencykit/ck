@@ -88,6 +88,7 @@ If the entry could not be found then
 will return
 .Dv false.
 .Sh SEE ALSO
+.Xr ck_ht_stat 3 ,
 .Xr ck_ht_init 3 ,
 .Xr ck_ht_destroy 3 ,
 .Xr ck_ht_hash 3 ,

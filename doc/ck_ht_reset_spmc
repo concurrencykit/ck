@@ -52,6 +52,7 @@ and will otherwise return
 This function will only fail if a replacement hash table
 could not be allocated internally.
 .Sh SEE ALSO
+.Xr ck_ht_stat 3 ,
 .Xr ck_ht_init 3 ,
 .Xr ck_ht_destroy 3 ,
 .Xr ck_ht_hash 3 ,

@@ -24,43 +24,38 @@
 .\" SUCH DAMAGE.
 .\"
 .\"
-.Dd March 30, 2012
-.Dt CK_HT_ENTRY_VALUE_DIRECT 3
+.Dd September 17, 2012
+.Dt CK_HT_STAT 3
 .Sh NAME
-.Nm ck_ht_entry_value_direct
-.Nd return value as specified in hash table entry
+.Nm ck_ht_stat
+.Nd get hash table status
 .Sh LIBRARY
 Concurrency Kit (libck, \-lck)
 .Sh SYNOPSIS
 .In ck_ht.h
-.Ft uintptr_t
-.Fn ck_ht_entry_value_direct "ck_ht_entry_t *entry"
+.Ft void
+.Fn ck_ht_stat "ck_ht_t *ht" "struct ck_ht_stat *st"
 .Sh DESCRIPTION
 The
-.Fn ck_ht_entry_value_direct
-function will return the value of the key-value pair as specified in the
-object pointed to by the
-.Fa entry
-argument.
-.Pp
-It is expected that the entry is
-associated with a hash table initialized with
-.Dv CK_HT_MODE_DIRECT
-(see
-.Xr ck_ht_init 3
-for more information).
+.Fn ck_ht_stat 3
+function will store various hash set statistics in the object
+pointed to by
+.Fa st .
+The ck_ht_stat structure is defined as follows:
+.Bd -literal -offset indent
+struct ck_ht_stat {
+	uint64_t probe_maximum; /* Longest read-side probe sequence. */
+	uint64_t n_entries;     /* Current number of keys in hash set. */
+};
 .Sh RETURN VALUES
-The
-.Fn ck_ht_entry_value_direct
-function returns the value stored in the object pointed to by the
-.Fa entry
-argument.
+.Fn ck_ht_stat 3
+has no return value.
 .Sh ERRORS
 Behavior is undefined if
-.Fa entry
-has not been initialized or if the key is empty.
+.Fa ht
+has not been initialized.
 .Sh SEE ALSO
-.Xr ck_ht_stat 3 ,
+.Xr ck_ht_count 3 ,
 .Xr ck_ht_init 3 ,
 .Xr ck_ht_destroy 3 ,
 .Xr ck_ht_hash 3 ,
@@ -70,17 +65,17 @@ has not been initialized or if the key is empty.
 .Xr ck_ht_get_spmc 3 ,
 .Xr ck_ht_grow_spmc 3 ,
 .Xr ck_ht_remove_spmc 3 ,
-.Xr ck_ht_count 3 ,
 .Xr ck_ht_reset 3 ,
 .Xr ck_ht_entry_empty 3 ,
 .Xr ck_ht_entry_key_set 3 ,
 .Xr ck_ht_entry_key_set_direct 3 ,
-.Xr ck_ht_entry_key_length 3 ,
 .Xr ck_ht_entry_key 3 ,
+.Xr ck_ht_entry_key_length 3 ,
+.Xr ck_ht_entry_value 3 ,
 .Xr ck_ht_entry_set 3 ,
 .Xr ck_ht_entry_set_direct 3 ,
 .Xr ck_ht_entry_key_direct 3 ,
-.Xr ck_ht_entry_value 3 ,
+.Xr ck_ht_entry_value_direct 3 ,
 .Xr ck_ht_iterator_init 3 ,
 .Xr ck_ht_next 3
 .Pp

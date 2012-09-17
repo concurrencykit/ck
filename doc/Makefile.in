@@ -26,6 +26,7 @@ OBJECTS=ck_ht_count 	  		\
 	ck_ht_entry_value		\
 	ck_ht_iterator_init		\
 	ck_ht_next			\
+	ck_ht_stat			\
 	ck_bitmap_init			\
 	ck_bitmap_reset_mpmc		\
 	ck_bitmap_set_mpmc		\

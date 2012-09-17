@@ -58,6 +58,7 @@ has no return value.
 This function is guaranteed not to fail.
 .El
 .Sh SEE ALSO
+.Xr ck_ht_stat 3 ,
 .Xr ck_ht_init 3 ,
 .Xr ck_ht_hash 3 ,
 .Xr ck_ht_hash_direct 3 ,
