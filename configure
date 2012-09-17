@@ -224,7 +224,7 @@ case "$SYSTEM" in
 		SYSTEM=solaris
 		;;
 	"Linux"|"uClinux")
-		DCORES=`grep '^processor.*:.*' /proc/cpuinfo|wc -l`
+		DCORES=`egrep '(^CPU|processor.*:.*)' /proc/cpuinfo|wc -l`
 		SYSTEM=linux
 		;;
 	"FreeBSD"|"GNU/kFreeBSD")
