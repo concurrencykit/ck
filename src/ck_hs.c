@@ -115,6 +115,14 @@ ck_hs_map_destroy(struct ck_malloc *m, struct ck_hs_map *map, bool defer)
 	return;
 }
 
+void
+ck_hs_destroy(struct ck_hs *hs)
+{
+
+	ck_hs_map_destroy(hs->m, hs->map, false);
+	return;
+}
+
 static struct ck_hs_map *
 ck_hs_map_create(struct ck_hs *hs, unsigned long entries)
 {
