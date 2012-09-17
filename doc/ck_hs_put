@@ -59,7 +59,10 @@ was successfully stored in the hash set pointed to by
 The function will fail if a key with an
 equivalent value to
 .Fa key
-is already present in the hash set.
+is already present in the hash set. For replacement
+semantics, please see the
+.Xr ck_hs_set 3
+function.
 .Sh RETURN VALUES
 Upon successful completion,
 .Fn ck_hs_put 3
