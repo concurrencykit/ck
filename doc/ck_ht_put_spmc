@@ -83,7 +83,7 @@ was successful then the key-value pair in
 .Fa entry
 was successfully stored in the hash table pointed
 to by
-.Fa h
+.Fa ht
 and will fail if the key specified in
 .Fa entry
 already exists with-in the hash table. Replacement semantics
