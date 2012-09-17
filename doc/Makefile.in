@@ -64,7 +64,8 @@ OBJECTS=ck_ht_count 	  		\
 	CK_HS_HASH			\
 	ck_hs_iterator_init		\
 	ck_hs_next			\
-	ck_hs_get
+	ck_hs_get			\
+	ck_hs_put
 
 all: 
 	for target in $(OBJECTS); do 			   \
