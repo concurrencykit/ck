@@ -70,7 +70,8 @@ OBJECTS=ck_ht_count 	  		\
 	ck_hs_remove			\
 	ck_hs_grow			\
 	ck_hs_count			\
-	ck_hs_reset
+	ck_hs_reset			\
+	ck_hs_stat
 
 all: 
 	for target in $(OBJECTS); do 			   \
