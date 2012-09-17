@@ -143,7 +143,7 @@ ck_hs_map_create(struct ck_hs *hs, unsigned long entries)
 	map->n_entries = 0;
 
 	/* Align map allocation to cache line. */
-	map->entries = (void *)((uintptr_t)(map + 1) + (CK_MD_CACHELINE - 1) & ~(CK_MD_CACHELINE - 1));
+	map->entries = (void *)(((uintptr_t)(map + 1) + CK_MD_CACHELINE - 1) & ~(CK_MD_CACHELINE - 1));
 	memset(map->entries, 0, sizeof(void *) * n_entries);
 	memset(map->generation, 0, sizeof map->generation);
 
@@ -274,7 +274,7 @@ ck_hs_map_probe(struct ck_hs *hs,
 
 #ifdef CK_HS_PP
 	/* If we are storing object pointers, then we may leverage pointer packing. */
-	unsigned long hv;
+	unsigned long hv = 0;
 
 	if (hs->mode & CK_HS_MODE_OBJECT) {
 		hv = (h >> 25) & CK_HS_KEY_MASK;
