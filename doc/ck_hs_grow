@@ -51,7 +51,7 @@ to the next power of two if it is not already a power of two.
 .Sh RETURN VALUES
 Upon successful completion,
 .Fn ck_hs_grow 3
-return true and otherwise returns a false on failure.
+returns true and otherwise returns false on failure.
 .Sh ERRORS
 Behavior is undefined if
 .Fa hs
