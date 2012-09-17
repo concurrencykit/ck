@@ -32,6 +32,7 @@
 #endif
 
 #include <ck_cc.h>
+#include <ck_md.h>
 #include <ck_stdint.h>
 #include <stdbool.h>
 
@@ -61,6 +62,18 @@ ck_pr_stall(void)
 	return;
 }
 
+#ifdef CK_MD_RMO
+#define CK_PR_FENCE(T, I)				\
+	CK_CC_INLINE static void			\
+	ck_pr_fence_strict_##T(void)			\
+	{						\
+		__asm__ __volatile__(I ::: "memory");	\
+	}						\
+	CK_CC_INLINE static void ck_pr_fence_##T(void)	\
+	{						\
+		__asm__ __volatile__(I ::: "memory");	\
+	}
+#else
 /*
  * IA32 has strong memory ordering guarantees, so memory
  * fences are enabled if and only if the user specifies that
@@ -78,6 +91,7 @@ ck_pr_stall(void)
 	{						\
 		__asm__ __volatile__("" ::: "memory");	\
 	}
+#endif /* !CK_MD_RMO */
 
 CK_PR_FENCE(load, "lfence")
 CK_PR_FENCE(load_depends, "")

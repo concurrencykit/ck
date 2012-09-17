@@ -95,6 +95,7 @@ generate()
 	    -e "s#@POINTER_PACK_ENABLE@#$POINTER_PACK_ENABLE#g"	\
 	    -e "s#@VMA_BITS@#$VMA_BITS_R#g"			\
 	    -e "s#@VMA_BITS_VALUE@#$VMA_BITS_VALUE_R#g"		\
+	    -e "s#@MM@#$MM#g"					\
 		$1 > $2
 }
 
@@ -114,6 +115,7 @@ generate_stdout()
 	echo "             CORES = $CORES"
 	echo "      POINTER_PACK = $POINTER_PACK_ENABLE"
 	echo "          VMA_BITS = $VMA_BITS"
+	echo "      MEMORY_MODEL = $MM"
 	echo
 	echo "Headers will be installed in $HEADERS"
 	echo "Libraries will be installed in $LIBRARY"
@@ -139,6 +141,7 @@ for option in $*; do
 		echo "The following options will modify code generation."
 		echo "  --cores=N                Specify number of cores available on target machine"
 		echo "  --enable-pointer-packing Assumes address encoding is subset of pointer range"
+		echo "  --memory-model=N         Specify memory model (currently tso, pso or rmo)"
 		echo "  --vma-bits=N             Specify valid number of VMA bits"
 		echo
 		echo "The following environment variables may be used:"
@@ -149,6 +152,23 @@ for option in $*; do
 		echo
 		echo "Report bugs to ${MAINTAINER}."
 		exit $EXIT_SUCCESS
+		;;
+	--memory-model=*)
+		case "$value" in
+		"tso")
+			MM="CK_MD_TSO"
+			;;
+		"rmo")
+			MM="CK_MD_RMO"
+			;;
+		"pso")
+			MM="CK_MD_PSO"
+			;;
+		*)
+			echo "./configure [--help]"
+			exit $EXIT_FAILURE
+			;;
+		esac
 		;;
 	--vma-bits=*)
 		VMA_BITS=$value
@@ -259,16 +279,19 @@ printf "Detecting machine architecture..."
 PLATFORM=`uname -m 2> /dev/null`
 case $PLATFORM in
 	"macppc"|"Power Macintosh"|"powerpc")
+		MM="${MM:-"CK_MD_RMO"}"
 		PLATFORM=ppc
 		ENVIRONMENT=32
 		LDFLAGS="-m32 $LDFLAGS"
 		;;
 	"sun4u"|"sun4v"|"sparc64")
+		MM="${MM:-"CK_MD_TSO"}"
 		PLATFORM=sparcv9
 		ENVIRONMENT=64
 		LDFLAGS="-m64 $LDFLAGS"
 		;;
 	i386|i486|i586|i686|i586_i686|pentium*|athlon*|k5|k6|k6_2|k6_3)
+		MM="${MM:-"CK_MD_TSO"}"
 		case $SYSTEM in
 			darwin)
 				ENVIRONMENT=64
@@ -317,8 +340,10 @@ case $PLATFORM in
 		PLATFORM=x86_64
 		ENVIRONMENT=64
 		LDFLAGS="-m64 $LDFLAGS"
+		MM="${MM:-"CK_MD_TSO"}"
 		;;
 	"i86pc")
+		MM="${MM:-"CK_MD_TSO"}"
 		ISA=`isainfo -n 2> /dev/null || echo i386`
 		case "$ISA" in
 			"amd64")
@@ -333,11 +358,13 @@ case $PLATFORM in
 		esac
 		;;
 	"ppc64")
+		MM="${MM:-"CK_MD_RMO"}"
 		PLATFORM=ppc64
 		ENVIRONMENT=64
 		;;
 	*)
 		PLATFORM=
+		MM="${MM:-"CK_MD_RMO"}"
 		;;
 esac
 

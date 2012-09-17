@@ -32,6 +32,7 @@
 #endif
 
 #include <ck_cc.h>
+#include <ck_md.h>
 
 /*
  * The following represent supported atomic operations.
@@ -53,9 +54,7 @@ ck_pr_stall(void)
 	return;
 }
 
-/*
- * We must assume RMO.
- */
+#if defined(CK_MD_RMO)
 #define CK_PR_FENCE(T, I)                               \
         CK_CC_INLINE static void                        \
         ck_pr_fence_strict_##T(void)                    \
@@ -66,6 +65,18 @@ ck_pr_stall(void)
         {                                               \
                 __asm__ __volatile__(I ::: "memory");   \
         }
+#else
+#define CK_PR_FENCE(T, I)                               \
+        CK_CC_INLINE static void                        \
+        ck_pr_fence_strict_##T(void)                    \
+        {                                               \
+                __asm__ __volatile__(I ::: "memory");   \
+        }                                               \
+        CK_CC_INLINE static void ck_pr_fence_##T(void)  \
+        {                                               \
+                __asm__ __volatile__("" ::: "memory");  \
+        }
+#endif /* !CK_MD_RMO */
 
 CK_PR_FENCE(load_depends, "")
 CK_PR_FENCE(store, "eieio")
