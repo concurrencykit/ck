@@ -81,6 +81,10 @@ ck_hs_next(struct ck_hs *hs, struct ck_hs_iterator *i, void **key)
 	do {
 		*key = map->entries[i->offset];
 		if (key != CK_HS_EMPTY && key != CK_HS_TOMBSTONE) {
+#ifdef CK_HS_PP
+			if (hs->mode & CK_HS_MODE_OBJECT)
+				*key = (void *)((uintptr_t)*key & (((uintptr_t)1 << CK_MD_VMA_BITS) - 1));
+#endif
 			i->offset++;
 			return true;
 		}
