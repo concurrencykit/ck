@@ -94,7 +94,7 @@ read_thread(void *unused CK_CC_UNUSED)
 	 * irrelevant GCC warnings. It is volatile in order to prevent
 	 * elimination.
 	 */
-	volatile ck_stack_entry_t *n;
+	volatile ck_stack_entry_t *n CK_CC_USED;
 
 	ck_epoch_register(&stack_epoch, &record);
 
