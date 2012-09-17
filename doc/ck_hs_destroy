@@ -25,7 +25,7 @@
 .\"
 .\"
 .Dd March 28, 2012
-.Dt CK_HS_INIT 3
+.Dt CK_HS_DESTROY 3
 .Sh NAME
 .Nm ck_hs_destroy
 .Nd initialize a hash set
