@@ -74,18 +74,20 @@ bool
 ck_hs_next(struct ck_hs *hs, struct ck_hs_iterator *i, void **key)
 {
 	struct ck_hs_map *map = hs->map;
+	void *value;
 
 	if (i->offset >= map->capacity)
 		return false;
 
 	do {
-		*key = map->entries[i->offset];
-		if (key != CK_HS_EMPTY && key != CK_HS_TOMBSTONE) {
+		value = map->entries[i->offset];
+		if (value != CK_HS_EMPTY && value != CK_HS_TOMBSTONE) {
 #ifdef CK_HS_PP
 			if (hs->mode & CK_HS_MODE_OBJECT)
-				*key = (void *)((uintptr_t)*key & (((uintptr_t)1 << CK_MD_VMA_BITS) - 1));
+				value = (void *)((uintptr_t)value & (((uintptr_t)1 << CK_MD_VMA_BITS) - 1));
 #endif
 			i->offset++;
+			*key = value;
 			return true;
 		}
 	} while (++i->offset < map->capacity);
