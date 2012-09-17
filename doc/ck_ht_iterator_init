@@ -34,7 +34,7 @@ Concurrency Kit (libck, \-lck)
 .Sh SYNOPSIS
 .In ck_ht.h
 .Pp
-.Dv ck_ht_iterator_t *iterator = CK_HT_ITERATOR_INITIALIZER
+.Dv ck_ht_iterator_t iterator = CK_HT_ITERATOR_INITIALIZER
 .Pp
 .Ft void
 .Fn ck_ht_iterator_init "ck_ht_iterator_t *iterator"
