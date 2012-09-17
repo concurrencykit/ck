@@ -102,7 +102,7 @@ set_remove(const char *value)
 {
 	unsigned long h;
 
-	h = hs_hash(value, hs.seed);
+	h = CK_HS_HASH(&hs, hs_hash, value);
 	ck_hs_remove(&hs, h, value);
 	return true;
 }
@@ -113,7 +113,7 @@ set_replace(const char *value)
 	unsigned long h;
 	void *previous;
 
-	h = hs_hash(value, hs.seed);
+	h = CK_HS_HASH(&hs, hs_hash, value);
 	ck_hs_set(&hs, h, value, &previous);
 	return previous != NULL;
 }
@@ -124,7 +124,7 @@ set_get(const char *value)
 	unsigned long h;
 	void *v;
 
-	h = hs_hash(value, hs.seed);
+	h = CK_HS_HASH(&hs, hs_hash, value);
 	v = ck_hs_get(&hs, h, value);
 	return v;
 }
@@ -134,7 +134,7 @@ set_insert(const char *value)
 {
 	unsigned long h;
 
-	h = hs_hash(value, hs.seed);
+	h = CK_HS_HASH(&hs, hs_hash, value);
 	return ck_hs_put(&hs, h, value);
 }
 
