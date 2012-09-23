@@ -113,7 +113,6 @@ ck_rwlock_read_trylock(ck_rwlock_t *rw)
 	return false;
 
 leave:
-	ck_pr_fence_load();
 	return true;
 }
 
@@ -132,7 +131,6 @@ ck_rwlock_read_lock(ck_rwlock_t *rw)
 		ck_pr_dec_uint(&rw->n_readers);
 	}
 
-	ck_pr_fence_load();
 	return;
 }
 
@@ -140,7 +138,7 @@ CK_CC_INLINE static void
 ck_rwlock_read_unlock(ck_rwlock_t *rw)
 {
 
-	ck_pr_fence_load();
+	ck_pr_fence_memory();
 	ck_pr_dec_uint(&rw->n_readers);
 	return;
 }
