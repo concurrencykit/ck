@@ -143,7 +143,6 @@ ck_bytelock_read_lock(struct ck_bytelock *bytelock, unsigned int slot)
 				ck_pr_stall();
 		}
 
-		ck_pr_fence_load();
 		return;
 	}
 
@@ -157,13 +156,12 @@ ck_bytelock_read_lock(struct ck_bytelock *bytelock, unsigned int slot)
 		 * already been published and it is guaranteed no
 		 * write acquisition will succeed until we drain out.
 		 */
-		if (ck_pr_load_uint(&bytelock->owner) == 0) {
+		if (ck_pr_load_uint(&bytelock->owner) == 0)
 			break;
-		} else {
-			ck_pr_store_8(&bytelock->readers[slot], false);
-			while (ck_pr_load_uint(&bytelock->owner) != 0)
-				ck_pr_stall();
-		}
+
+		ck_pr_store_8(&bytelock->readers[slot], false);
+		while (ck_pr_load_uint(&bytelock->owner) != 0)
+			ck_pr_stall();
 	}
 
 	return;
