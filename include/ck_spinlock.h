@@ -191,6 +191,9 @@ ck_spinlock_fas_trylock(struct ck_spinlock_fas *lock)
 	bool value;
 
 	value = ck_pr_fas_uint(&lock->value, true);
+	if (value == false)
+		ck_pr_fence_memory();
+
 	return (!value);
 }
 
@@ -210,6 +213,7 @@ ck_spinlock_fas_lock(struct ck_spinlock_fas *lock)
 			ck_pr_stall();
 	}
 
+	ck_pr_fence_memory();
 	return;
 }
 
@@ -221,6 +225,7 @@ ck_spinlock_fas_lock_eb(struct ck_spinlock_fas *lock)
 	while (ck_pr_fas_uint(&lock->value, true) == true)
 		ck_backoff_eb(&backoff);
 
+	ck_pr_fence_memory();
 	return;
 }
 
@@ -260,6 +265,9 @@ ck_spinlock_cas_trylock(struct ck_spinlock_cas *lock)
 	unsigned int value;
 
 	value = ck_pr_fas_uint(&lock->value, true);
+	if (value == false)
+		ck_pr_fence_memory();
+
 	return (!value);
 }
 
@@ -279,6 +287,7 @@ ck_spinlock_cas_lock(struct ck_spinlock_cas *lock)
 			ck_pr_stall();
 	}
 
+	ck_pr_fence_memory();
 	return;
 }
 
@@ -290,6 +299,7 @@ ck_spinlock_cas_lock_eb(struct ck_spinlock_cas *lock)
 	while (ck_pr_cas_uint(&lock->value, false, true) == false)
 		ck_backoff_eb(&backoff);
 
+	ck_pr_fence_memory();
 	return;
 }
 
@@ -324,8 +334,12 @@ ck_spinlock_dec_trylock(struct ck_spinlock_dec *lock)
 	unsigned int value;
 
 	value = ck_pr_fas_uint(&lock->value, 0);
-	ck_pr_fence_store();
-	return (value == 1);
+	if (value == 1) {
+		ck_pr_fence_memory();
+		return true;
+	}
+
+	return false;
 }
 
 CK_CC_INLINE static bool
@@ -347,6 +361,7 @@ ck_spinlock_dec_lock(struct ck_spinlock_dec *lock)
 		 * UINT_MAX lock requests can happen while the lock is held.
 		 */
 		ck_pr_dec_uint_zero(&lock->value, &r);
+		ck_pr_fence_memory();
 		if (r == true)
 			break;
 
@@ -372,6 +387,7 @@ ck_spinlock_dec_lock_eb(struct ck_spinlock_dec *lock)
 		ck_backoff_eb(&backoff);
 	}
 
+	ck_pr_fence_memory();
 	return;
 }
 
@@ -428,6 +444,7 @@ ck_spinlock_ticket_lock(struct ck_spinlock_ticket *ticket)
 	while (ck_pr_load_uint(&ticket->position) != request)
 		ck_pr_stall();
 
+	ck_pr_fence_memory();
 	return;
 }
 
@@ -457,6 +474,7 @@ ck_spinlock_ticket_lock_pb(struct ck_spinlock_ticket *ticket)
 		ck_backoff_eb(&backoff);
 	}
 
+	ck_pr_fence_memory();
 	return;
 }
 
@@ -508,7 +526,12 @@ ck_spinlock_mcs_trylock(struct ck_spinlock_mcs **queue, struct ck_spinlock_mcs *
 	ck_pr_store_ptr(&node->next, NULL);
 	ck_pr_fence_store();
 
-	return ck_pr_cas_ptr(queue, NULL, node);
+	if (ck_pr_cas_ptr(queue, NULL, node) == true) {
+		ck_pr_fence_load();
+		return true;
+	}
+
+	return false;
 }
 
 CK_CC_INLINE static bool
@@ -535,6 +558,7 @@ ck_spinlock_mcs_lock(struct ck_spinlock_mcs **queue, struct ck_spinlock_mcs *nod
 	 * returns NULL, it means the queue was empty. If the queue was empty,
 	 * then the operation is complete.
 	 */
+	ck_pr_fence_memory();
 	previous = ck_pr_fas_ptr(queue, node);
 	if (previous == NULL)
 		return;
@@ -560,8 +584,10 @@ ck_spinlock_mcs_unlock(struct ck_spinlock_mcs **queue, struct ck_spinlock_mcs *n
 		 * mark the spinlock queue as empty.
 		 */
 		if (ck_pr_load_ptr(queue) == node &&
-		    ck_pr_cas_ptr(queue, node, NULL) == true)
+		    ck_pr_cas_ptr(queue, node, NULL) == true) {
+			ck_pr_fence_memory();
 			return;
+		}
 
 		/*
 		 * If the node is not the current tail then a lock operation is
