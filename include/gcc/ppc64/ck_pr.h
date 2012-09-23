@@ -78,8 +78,12 @@ ck_pr_stall(void)
         }
 #endif /* !CK_MD_RMO && !CK_MD_PSO */
 
+/*
+ * These are derived from:
+ *     http://www.ibm.com/developerworks/systems/articles/powerpc.html
+ */
 CK_PR_FENCE(load_depends, "")
-CK_PR_FENCE(store, "eieio")
+CK_PR_FENCE(store, "lwsync")
 CK_PR_FENCE(load, "lwsync")
 CK_PR_FENCE(memory, "sync")
 
@@ -155,15 +159,13 @@ ck_pr_cas_64_value(uint64_t *target, uint64_t compare, uint64_t set, uint64_t *v
 {
 	uint64_t previous;
 
-        __asm__ __volatile__("isync;"
-			     "1:"
+        __asm__ __volatile__("1:"
 			     "ldarx %0, 0, %1;"
 			     "cmpd  0, %0, %3;"
 			     "bne-  2f;"
 			     "stdcx. %2, 0, %1;"
 			     "bne-  1b;"
 			     "2:"
-			     "lwsync;"
                                 : "=&r" (previous)
                                 : "r"   (target),
 				  "r"   (set),
@@ -179,15 +181,13 @@ ck_pr_cas_ptr_value(void *target, void *compare, void *set, void *value)
 {
 	void *previous;
 
-        __asm__ __volatile__("isync;"
-			     "1:"
+        __asm__ __volatile__("1:"
 			     "ldarx %0, 0, %1;"
 			     "cmpd  0, %0, %3;"
 			     "bne-  2f;"
 			     "stdcx. %2, 0, %1;"
 			     "bne-  1b;"
 			     "2:"
-			     "lwsync;"
                                 : "=&r" (previous)
                                 : "r"   (target),
 				  "r"   (set),
@@ -203,15 +203,13 @@ ck_pr_cas_64(uint64_t *target, uint64_t compare, uint64_t set)
 {
 	uint64_t previous;
 
-        __asm__ __volatile__("isync;"
-			     "1:"
+        __asm__ __volatile__("1:"
 			     "ldarx %0, 0, %1;"
 			     "cmpd  0, %0, %3;"
 			     "bne-  2f;"
 			     "stdcx. %2, 0, %1;"
 			     "bne-  1b;"
 			     "2:"
-			     "lwsync;"
                                 : "=&r" (previous)
                                 : "r"   (target),
 				  "r"   (set),
@@ -226,15 +224,13 @@ ck_pr_cas_ptr(void *target, void *compare, void *set)
 {
 	void *previous;
 
-        __asm__ __volatile__("isync;"
-			     "1:"
+        __asm__ __volatile__("1:"
 			     "ldarx %0, 0, %1;"
 			     "cmpd  0, %0, %3;"
 			     "bne-  2f;"
 			     "stdcx. %2, 0, %1;"
 			     "bne-  1b;"
 			     "2:"
-			     "lwsync;"
                                 : "=&r" (previous)
                                 : "r"   (target),
 				  "r"   (set),
@@ -249,15 +245,13 @@ ck_pr_cas_ptr(void *target, void *compare, void *set)
 	ck_pr_cas_##N##_value(T *target, T compare, T set, T *value)	\
 	{								\
 		T previous;						\
-		__asm__ __volatile__("isync;"				\
-				     "1:"				\
+		__asm__ __volatile__("1:"				\
 				     "lwarx %0, 0, %1;"			\
 				     "cmpw  0, %0, %3;"			\
 				     "bne-  2f;"			\
 				     "stwcx. %2, 0, %1;"		\
 				     "bne-  1b;"			\
 				     "2:"				\
-				     "lwsync;"				\
 					: "=&r" (previous)		\
 					: "r"   (target),		\
 					  "r"   (set),			\
@@ -270,15 +264,13 @@ ck_pr_cas_ptr(void *target, void *compare, void *set)
 	ck_pr_cas_##N(T *target, T compare, T set)			\
 	{								\
 		T previous;						\
-		__asm__ __volatile__("isync;"				\
-				     "1:"				\
+		__asm__ __volatile__("1:"				\
 				     "lwarx %0, 0, %1;"			\
 				     "cmpw  0, %0, %3;"			\
 				     "bne-  2f;"			\
 				     "stwcx. %2, 0, %1;"		\
 				     "bne-  1b;"			\
 				     "2:"				\
-				     "lwsync;"				\
 					: "=&r" (previous)		\
 					: "r"   (target),		\
 					  "r"   (set),			\
@@ -298,12 +290,10 @@ CK_PR_CAS(int, int)
 	ck_pr_fas_##N(M *target, T v)				\
 	{							\
 		T previous;					\
-		__asm__ __volatile__("isync;"			\
-				     "1:"			\
+		__asm__ __volatile__("1:"			\
 				     "l" W "arx %0, 0, %1;"	\
 				     "st" W "cx. %2, 0, %1;"	\
 				     "bne- 1b;"			\
-				     "lwsync;"			\
 					: "=&r" (previous)	\
 					: "r"   (target),	\
 					  "r"   (v)		\
@@ -398,13 +388,11 @@ ck_pr_faa_ptr(void *target, uintptr_t delta)
 {
 	uintptr_t previous, r;
 
-	__asm__ __volatile__("isync;"
-			     "1:"
+	__asm__ __volatile__("1:"
 			     "ldarx %0, 0, %2;"
 			     "add %1, %3, %0;"
 			     "stdcx. %1, 0, %2;"
 			     "bne-  1b;"
-			     "lwsync;"
 				: "=&r" (previous),
 				  "=&r" (r)
 				: "r"   (target),
@@ -419,13 +407,11 @@ ck_pr_faa_ptr(void *target, uintptr_t delta)
 	ck_pr_faa_##S(T *target, T delta)				\
 	{								\
 		T previous, r;						\
-		__asm__ __volatile__("isync;"				\
-				     "1:"				\
+		__asm__ __volatile__("1:"				\
 				     "l" W "arx %0, 0, %2;"		\
 				     "add %1, %3, %0;"			\
 				     "st" W "cx. %1, 0, %2;"		\
 				     "bne-  1b;"			\
-				     "lwsync;"				\
 					: "=&r" (previous),		\
 					  "=&r" (r)			\
 					: "r"   (target),		\
