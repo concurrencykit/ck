@@ -51,7 +51,7 @@ struct block {
 static struct affinity a;
 static unsigned int locked = 0;
 static int nthr;
-static ck_bytelock_t lock = CK_BYTELOCK_INITIALIZER;
+static ck_bytelock_t lock CK_CC_CACHELINE = CK_BYTELOCK_INITIALIZER;
 
 static void *
 thread(void *null)
