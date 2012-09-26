@@ -207,11 +207,6 @@ ck_ring_dequeue_spsc(struct ck_ring *ring, void *data)
 	 * being a reality on POSIX). This interface is
 	 * troublesome on platforms where sizeof(void *)
 	 * is not guaranteed to be sizeof(T *).
-	 *
-	 * It is guaranteed that the value of
-	 * ring->ring[consumer] is either in *data or aliased
-	 * to some location whose value is to be stored in data
-	 * before this operation completes.
 	 */
 	ck_pr_store_ptr(data, ring->ring[consumer]);
 	ck_pr_fence_store();
