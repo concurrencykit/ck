@@ -122,6 +122,7 @@ main(int argc, char *argv[])
 {
 	pthread_t *thread;
 	struct test *n;
+	struct test_list target;
 	int n_threads, i;
 
 	if (argc != 3) {
@@ -199,17 +200,19 @@ main(int argc, char *argv[])
 		assert(r == 0);
 	}
 
+	CK_SLIST_MOVE(&target, &head, list_entry);
+
 	for (i = 1; i <= goal; i++) {
 		volatile int j;
 
-		if (CK_SLIST_EMPTY(&head) == false)
-			CK_SLIST_REMOVE_HEAD(&head, list_entry);
+		if (CK_SLIST_EMPTY(&target) == false)
+			CK_SLIST_REMOVE_HEAD(&target, list_entry);
 
 		for (j = 0; j <= 1000; j++);
 
-		if (CK_SLIST_EMPTY(&head) == false) {
-			struct test *r = CK_SLIST_FIRST(&head);
-			CK_SLIST_REMOVE(&head, r, test, list_entry);
+		if (CK_SLIST_EMPTY(&target) == false) {
+			struct test *r = CK_SLIST_FIRST(&target);
+			CK_SLIST_REMOVE(&target, r, test, list_entry);
 		}
 	}
 

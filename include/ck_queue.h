@@ -105,6 +105,7 @@
  * _REMOVE_HEAD			+		-
  * _REMOVE			+		+
  * _SWAP			+		+
+ * _MOVE			+		+
  */
 
 /*
@@ -188,6 +189,10 @@ struct {									\
 		(head)->slh_first->field.sle_next);				\
 } while (0)
 
+#define CK_SLIST_MOVE(head1, head2, field) do {					\
+	ck_pr_store_ptr(&(head1)->slh_first, (head2)->slh_first);		\
+} while (0)
+
 /*
  * This operation is not applied atomically.
  */
@@ -263,6 +268,12 @@ struct {									\
 	ck_pr_store_ptr((elm)->field.le_prev, (elm)->field.le_next);		\
 	if ((elm)->field.le_next != NULL)					\
 		(elm)->field.le_next->field.le_prev = (elm)->field.le_prev;	\
+} while (0)
+
+#define CK_LIST_MOVE(head1, head2, field) do {				\
+	ck_pr_store_ptr(&(head1)->lh_first, (head2)->lh_first);		\
+	if ((head1)->lh_first != NULL)					\
+		(head1)->lh_first->field.le_prev = &(head1)->lh_first;	\
 } while (0)
 
 /*
