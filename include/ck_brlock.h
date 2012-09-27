@@ -187,10 +187,17 @@ ck_brlock_read_lock(struct ck_brlock *br, struct ck_brlock_reader *reader)
 		while (ck_pr_load_uint(&br->writer) == true)
 			ck_pr_stall();
 
+#if defined(__x86__) || defined(__x86_64__)
 		ck_pr_fas_uint(&reader->n_readers, 1);
 
 		/* Serialize counter update with respect to writer snapshot. */
 		ck_pr_fence_memory();
+#else
+		ck_pr_store_uint(&readers->n_readers, 1);
+
+		/* Loads can be re-ordered before previous stores, even on TSO. */
+		ck_pr_fence_strict_memory();
+#endif
 
 		if (ck_pr_load_uint(&br->writer) == false)
 			break;
