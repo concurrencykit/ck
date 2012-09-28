@@ -88,7 +88,7 @@ ck_internal_bsf(unsigned long v)
 	const unsigned int s = sizeof(unsigned long) * 8 - 1;
 
 	for (i = 0; i < s; i++) {
-		if (v & (1U << (s - i)))
+		if (v & (1UL << (s - i)))
 			return i;
 	}
 
@@ -102,7 +102,7 @@ ck_internal_bsf_64(uint64_t v)
 	const unsigned int s = sizeof(unsigned long) * 8 - 1;
 
 	for (i = 0; i < s; i++) {
-		if (v & (1U << (63U - i)))
+		if (v & (1ULL << (63U - i)))
 			return i;
 	}
 
