@@ -160,6 +160,66 @@ ck_ring_capacity(struct ck_ring *ring)
 }
 
 CK_CC_INLINE static bool
+ck_ring_enqueue_mpmc(struct ck_ring *ring, void *entry)
+{
+	unsigned int consumer, producer, delta;
+	bool success;
+	void *r;
+
+	producer = ck_pr_load_uint(&ring->p_tail);
+
+	do {
+		consumer = ck_pr_load_uint(&ring->c_head);
+		delta = (producer + 1) & ring->mask;
+		if (delta == consumer)
+			return false;
+
+		/* Speculate slot availability. */
+		r = ck_pr_load_ptr(&ring->ring[producer]);
+		success = ck_pr_cas_ptr(&ring->ring[producer], r, entry);
+
+		/* Publish value before publishing counter update. */
+		ck_pr_fence_store();
+
+		/* This is the linearization point. */
+		ck_pr_cas_uint_value(&ring->p_tail,
+				     producer,
+				     delta,
+				     &producer);
+	} while (success == false);
+
+	return true;
+}
+
+CK_CC_INLINE static bool
+ck_ring_dequeue_mpmc(struct ck_ring *ring, void *data)
+{
+	unsigned int consumer, producer;
+	void *r;
+
+	consumer = ck_pr_load_uint(&ring->c_head);
+
+	do {
+		producer = ck_pr_load_uint(&ring->p_tail);
+
+		if (consumer == producer)
+			return false;
+
+		ck_pr_fence_load();
+		r = ck_pr_load_ptr(&ring->ring[consumer]);
+
+		/* Serialize load with respect to head update. */
+		ck_pr_fence_memory();
+	} while (ck_pr_cas_uint_value(&ring->c_head,
+				      consumer,
+				      (consumer + 1) & ring->mask,
+				      &consumer) == false);
+
+	ck_pr_store_ptr(data, r);
+	return true;
+}
+
+CK_CC_INLINE static bool
 ck_ring_enqueue_spsc(struct ck_ring *ring, void *entry)
 {
 	unsigned int consumer, producer;
