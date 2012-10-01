@@ -246,6 +246,12 @@ ck_ring_dequeue_spmc(struct ck_ring *ring, void *data)
 
 	do {
 		position = consumer & ring->mask;
+
+		/*
+		 * Producer counter must represent state relative to
+		 * our latest consumer snapshot.
+		 */
+		ck_pr_fence_load();
 		producer = ck_pr_load_uint(&ring->p_tail);
 
 		if (position == producer)
