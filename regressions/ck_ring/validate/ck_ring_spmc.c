@@ -31,6 +31,7 @@
 #include <pthread.h>
 
 #include <ck_ring.h>
+#include <ck_spinlock.h>
 #include "../../common.h"
 
 #ifndef ITERATIONS
@@ -44,6 +45,7 @@ struct context {
 };
 
 struct entry {
+	unsigned long value_long;
 	unsigned int magic;
 	unsigned int ref;
 	int tid;
@@ -52,18 +54,18 @@ struct entry {
 
 static int nthr;
 static ck_ring_t *ring;
-static ck_ring_t ring_mpmc;
+static ck_ring_t ring_spmc;
 static struct affinity a;
 static int size;
 static volatile int barrier;
 static int eb;
 
 static void *
-test_mpmc(void *c)
+test_spmc(void *c)
 {
-	struct entry *entry;
-	unsigned int observed = 0, foreign = 0;
-	int i, j;
+	unsigned int observed = 0;
+	int i, j, tid;
+	unsigned long previous = 0;
 
 	(void)c;
         if (aff_iterate(&a)) {
@@ -71,40 +73,22 @@ test_mpmc(void *c)
                 exit(EXIT_FAILURE);
         }
 
-	ck_pr_inc_int(&eb);
-	while (ck_pr_load_int(&eb) != nthr);
+	tid = ck_pr_faa_int(&eb, 1);
+	while (ck_pr_load_int(&eb) != nthr - 1);
 
 	for (i = 0; i < ITERATIONS; i++) {
 		for (j = 0; j < size; j++) {
 			struct entry *o;
 
-			entry = malloc(sizeof(*entry));
-			assert(entry != NULL);
-			entry->magic = 0xdead;
-			entry->tid = j;
-			entry->value = j;
-			entry->ref = 0;
-
-			if (ck_ring_enqueue_mpmc(&ring_mpmc, entry) == false) {
-				free(entry);
-				j--;
-				if (j < 0)
-					j = 0;
-			}
-
 			/* Keep trying until we encounter at least one node. */
-			if (ck_ring_dequeue_mpmc(&ring_mpmc, &o) == false) {
-				j--;
-				if (j < 0)
-					j = 0;
-				
-				continue;
-			}
+			while (ck_ring_dequeue_spmc(&ring_spmc, &o) == false);
 
 			observed++;
-			foreign += entry != o;
-			if (o->value < 0 || o->value >= size || o->value != o->tid || o->magic != 0xdead) {
-				fprintf(stderr, "[%p] (%x) (%d, %d) >< (0, %d)\n",
+			if (o->value < 0
+			    || o->value != o->tid
+			    || o->magic != 0xdead
+			    || (previous != 0 && previous >= o->value_long)) {
+				fprintf(stderr, "[0x%p] (%x) (%d, %d) >< (0, %d)\n",
 					(void *)o, o->magic, o->tid, o->value, size);
 				exit(EXIT_FAILURE);
 			}
@@ -112,6 +96,7 @@ test_mpmc(void *c)
 			o->magic = 0xbeef;
 			o->value = -31337;
 			o->tid = -31338;
+			previous = o->value_long;
 
 			if (ck_pr_faa_uint(&o->ref, 1) != 0) {
 				fprintf(stderr, "[%p] We dequeued twice.\n", (void *)o);
@@ -122,7 +107,7 @@ test_mpmc(void *c)
 		}
 	}
 
-	fprintf(stderr, "Observed %u / Foreign %u\n", observed, foreign);
+	fprintf(stderr, "[%d] Observed %u\n", tid, observed);
 	return NULL;
 }
 
@@ -155,7 +140,7 @@ test(void *c)
 			entries[i].value = i;
 			entries[i].tid = 0;
 
-			r = ck_ring_enqueue_mpmc(ring, entries + i);
+			r = ck_ring_enqueue_spmc(ring, entries + i);
 			assert(r != false);
 		}
 
@@ -178,7 +163,7 @@ test(void *c)
 
 	for (i = 0; i < ITERATIONS; i++) {
 		for (j = 0; j < size; j++) {
-			while (ck_ring_dequeue_mpmc(ring + context->previous, &entry) == false);
+			while (ck_ring_dequeue_spmc(ring + context->previous, &entry) == false);
 
 			if (context->previous != (unsigned int)entry->tid) {
 				fprintf(stderr, "[%u:%p] %u != %u\n",
@@ -193,7 +178,7 @@ test(void *c)
 			}
 
 			entry->tid = context->tid;
-			r = ck_ring_enqueue_mpmc(ring + context->tid, entry);
+			r = ck_ring_enqueue_spmc(ring + context->tid, entry);
 			assert(r == true);
 		}
 	}
@@ -206,6 +191,7 @@ main(int argc, char *argv[])
 {
 	int i, r;
 	void *buffer;
+	unsigned long l;
 	struct context *context;
 	pthread_t *thread;
 
@@ -259,18 +245,34 @@ main(int argc, char *argv[])
 		pthread_join(thread[i], NULL);
 	fprintf(stderr, " done\n");
 
-	fprintf(stderr, "MPMC test:\n");
+	fprintf(stderr, "SPMC test:\n");
 	buffer = malloc(sizeof(void *) * (size + 1));
 	assert(buffer);
 	memset(buffer, 0, sizeof(void *) * (size + 1));
-	ck_ring_init(&ring_mpmc, buffer, size + 1);
-	for (i = 0; i < nthr; i++) {
-		r = pthread_create(thread + i, NULL, test_mpmc, context + i);
+	ck_ring_init(&ring_spmc, buffer, size + 1);
+	for (i = 0; i < nthr - 1; i++) {
+		r = pthread_create(thread + i, NULL, test_spmc, context + i);
 		assert(r == 0);
 	}
 
-	for (i = 0; i < nthr; i++)
+	for (l = 0; l < (unsigned long)size * ITERATIONS * (nthr - 1) ; l++) {
+		struct entry *entry = malloc(sizeof *entry);
+
+		assert(entry != NULL);
+		entry->value_long = l;
+		entry->value = (int)l;
+		entry->tid = (int)l;
+		entry->magic = 0xdead;
+		entry->ref = 0;
+
+		/* Wait until queue is not full. */
+		while (ck_ring_enqueue_spmc(&ring_spmc, entry) == false)
+			ck_pr_stall();
+	}
+
+	for (i = 0; i < nthr - 1; i++)
 		pthread_join(thread[i], NULL);
+
 	return (0);
 }
 

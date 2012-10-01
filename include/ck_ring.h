@@ -31,9 +31,7 @@
 #include <ck_md.h>
 #include <ck_pr.h>
 #include <stdbool.h>
-
-#ifndef CK_F_RING
-#define CK_F_RING
+#include <string.h>
 
 /*
  * Concurrent ring buffer.
@@ -159,77 +157,17 @@ ck_ring_capacity(struct ck_ring *ring)
 	return ring->size;
 }
 
-/* XXX: MPMC variant is incorrect, replacement in works. */
-CK_CC_INLINE static bool
-ck_ring_enqueue_mpmc(struct ck_ring *ring, void *entry)
-{
-	unsigned int consumer, producer, delta;
-	bool success;
-	void *r;
-
-	producer = ck_pr_load_uint(&ring->p_tail);
-
-	do {
-		consumer = ck_pr_load_uint(&ring->c_head);
-		delta = (producer + 1) & ring->mask;
-		if (delta == consumer)
-			return false;
-
-		/* Speculate slot availability. */
-		r = ck_pr_load_ptr(&ring->ring[producer]);
-		success = ck_pr_cas_ptr(&ring->ring[producer], r, entry);
-
-		/* Publish value before publishing counter update. */
-		ck_pr_fence_store();
-
-		/* This is the linearization point. */
-		ck_pr_cas_uint_value(&ring->p_tail,
-				     producer,
-				     delta,
-				     &producer);
-	} while (success == false);
-
-	return true;
-}
-
-CK_CC_INLINE static bool
-ck_ring_dequeue_mpmc(struct ck_ring *ring, void *data)
-{
-	unsigned int consumer, producer;
-	void *r;
-
-	consumer = ck_pr_load_uint(&ring->c_head);
-
-	do {
-		producer = ck_pr_load_uint(&ring->p_tail);
-
-		if (consumer == producer)
-			return false;
-
-		ck_pr_fence_load();
-		r = ck_pr_load_ptr(&ring->ring[consumer]);
-
-		/* Serialize load with respect to head update. */
-		ck_pr_fence_memory();
-	} while (ck_pr_cas_uint_value(&ring->c_head,
-				      consumer,
-				      (consumer + 1) & ring->mask,
-				      &consumer) == false);
-
-	ck_pr_store_ptr(data, r);
-	return true;
-}
-
 CK_CC_INLINE static bool
 ck_ring_enqueue_spsc(struct ck_ring *ring, void *entry)
 {
-	unsigned int consumer, producer;
+	unsigned int consumer, producer, delta;
 
 	consumer = ck_pr_load_uint(&ring->c_head);
 	producer = ring->p_tail;
+	delta = (producer + 1) & ring->mask;
 
-	if (((producer + 1) & ring->mask) == consumer)
-		return (false);
+	if (delta == consumer)
+		return false;
 
 	ring->ring[producer] = entry;
 
@@ -238,8 +176,8 @@ ck_ring_enqueue_spsc(struct ck_ring *ring, void *entry)
 	 * that the slot is available for consumption.
 	 */
 	ck_pr_fence_store();
-	ck_pr_store_uint(&ring->p_tail, (producer + 1) & ring->mask);
-	return (true);
+	ck_pr_store_uint(&ring->p_tail, delta);
+	return true;
 }
 
 /*
@@ -275,17 +213,69 @@ ck_ring_dequeue_spsc(struct ck_ring *ring, void *data)
 	return (true);
 }
 
+CK_CC_INLINE static bool
+ck_ring_enqueue_spmc(struct ck_ring *ring, void *entry)
+{
+	unsigned int consumer, producer, delta;
+
+	consumer = ck_pr_load_uint(&ring->c_head) & ring->mask;
+	producer = ring->p_tail;
+	delta = (producer + 1) & ring->mask;
+
+	if (delta == consumer)
+		return false;
+
+	ring->ring[producer] = entry;
+
+	/*
+	 * Make sure to update slot value before indicating
+	 * that the slot is available for consumption.
+	 */
+	ck_pr_fence_store();
+	ck_pr_store_uint(&ring->p_tail, delta);
+	return true;
+}
+
+CK_CC_INLINE static bool
+ck_ring_dequeue_spmc(struct ck_ring *ring, void *data)
+{
+	unsigned int consumer, producer, position;
+	void *r;
+
+	consumer = ck_pr_load_uint(&ring->c_head);
+
+	do {
+		position = consumer & ring->mask;
+		producer = ck_pr_load_uint(&ring->p_tail);
+
+		if (position == producer)
+			return false;
+
+		ck_pr_fence_load();
+		r = ck_pr_load_ptr(&ring->ring[position]);
+
+		/* Serialize load with respect to head update. */
+		ck_pr_fence_memory();
+	} while (ck_pr_cas_uint_value(&ring->c_head,
+				      consumer,
+				      consumer + 1,
+				      &consumer) == false);
+
+	ck_pr_store_ptr(data, r);
+	return true;
+}
+
 CK_CC_INLINE static void
 ck_ring_init(struct ck_ring *ring, void *buffer, unsigned int size)
 {
 
-	ck_pr_store_uint(&ring->size, size);
-	ck_pr_store_uint(&ring->mask, size - 1);
-	ck_pr_store_uint(&ring->p_tail, 0);
-	ck_pr_store_uint(&ring->c_head, 0);
-	ck_pr_store_ptr(&ring->ring, buffer);
+	memset(buffer, 0, sizeof(void *) * size);
+	ring->size = size;
+	ring->mask = size - 1;
+	ring->p_tail = 0;
+	ring->c_head = 0;
+	ring->ring = buffer;
 	return;
 }
-#endif /* CK_F_RING */
 
 #endif /* _CK_RING_H */

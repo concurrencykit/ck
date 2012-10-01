@@ -1,13 +1,13 @@
 .PHONY: check clean distribution
 
-OBJECTS=ck_ring_spsc ck_ring_spsc_template ck_ring_mpmc
+OBJECTS=ck_ring_spsc ck_ring_spsc_template ck_ring_spmc
 
 all: $(OBJECTS)
 
 check: all
 	./ck_ring_spsc $(CORES) 1 65536
 	./ck_ring_spsc_template $(CORES) 1 65536
-	./ck_ring_mpmc $(CORES) 1 65536
+	./ck_ring_spmc $(CORES) 1 65536
 
 ck_ring_spsc_template: ck_ring_spsc_template.c ../../../include/ck_ring.h
 	$(CC) $(CFLAGS) -o ck_ring_spsc_template ck_ring_spsc_template.c
@@ -15,8 +15,8 @@ ck_ring_spsc_template: ck_ring_spsc_template.c ../../../include/ck_ring.h
 ck_ring_spsc: ck_ring_spsc.c ../../../include/ck_ring.h
 	$(CC) $(CFLAGS) -o ck_ring_spsc ck_ring_spsc.c
 
-ck_ring_mpmc: ck_ring_mpmc.c ../../../include/ck_ring.h
-	$(CC) $(CFLAGS) -o ck_ring_mpmc ck_ring_mpmc.c
+ck_ring_spmc: ck_ring_spmc.c ../../../include/ck_ring.h
+	$(CC) $(CFLAGS) -o ck_ring_spmc ck_ring_spmc.c
 
 clean:
 	rm -rf *~ *.o $(OBJECTS) *.dSYM
