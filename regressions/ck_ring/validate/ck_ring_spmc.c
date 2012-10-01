@@ -54,7 +54,7 @@ struct entry {
 
 static int nthr;
 static ck_ring_t *ring;
-static ck_ring_t ring_spmc;
+static ck_ring_t ring_spmc CK_CC_CACHELINE;
 static struct affinity a;
 static int size;
 static volatile int barrier;
@@ -74,6 +74,7 @@ test_spmc(void *c)
         }
 
 	tid = ck_pr_faa_int(&eb, 1);
+	ck_pr_fence_memory();
 	while (ck_pr_load_int(&eb) != nthr - 1);
 
 	for (i = 0; i < ITERATIONS; i++) {
