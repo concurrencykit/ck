@@ -159,6 +159,7 @@ ck_ring_capacity(struct ck_ring *ring)
 	return ring->size;
 }
 
+/* XXX: MPMC variant is incorrect, replacement in works. */
 CK_CC_INLINE static bool
 ck_ring_enqueue_mpmc(struct ck_ring *ring, void *entry)
 {
