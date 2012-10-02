@@ -161,22 +161,23 @@ CK_CC_INLINE static bool
 ck_ring_enqueue_spsc(struct ck_ring *ring, void *entry)
 {
 	unsigned int consumer, producer, delta;
+	unsigned int mask = ring->mask;
 
 	consumer = ck_pr_load_uint(&ring->c_head);
 	producer = ring->p_tail;
-	delta = (producer + 1) & ring->mask;
+	delta = (producer + 1) & mask;
 
-	if (delta == consumer)
+	if (delta == (consumer & mask))
 		return false;
 
-	ring->ring[producer] = entry;
+	ring->ring[producer & mask] = entry;
 
 	/*
 	 * Make sure to update slot value before indicating
 	 * that the slot is available for consumption.
 	 */
 	ck_pr_fence_store();
-	ck_pr_store_uint(&ring->p_tail, delta);
+	ck_pr_store_uint(&ring->p_tail, producer + 1);
 	return true;
 }
 
@@ -192,7 +193,7 @@ ck_ring_dequeue_spsc(struct ck_ring *ring, void *data)
 	producer = ck_pr_load_uint(&ring->p_tail);
 
 	if (consumer == producer)
-		return (false);
+		return false;
 
 	/*
 	 * Make sure to serialize with respect to our snapshot
@@ -207,10 +208,10 @@ ck_ring_dequeue_spsc(struct ck_ring *ring, void *data)
 	 * troublesome on platforms where sizeof(void *)
 	 * is not guaranteed to be sizeof(T *).
 	 */
-	ck_pr_store_ptr(data, ring->ring[consumer]);
+	ck_pr_store_ptr(data, ring->ring[consumer & ring->mask]);
 	ck_pr_fence_store();
-	ck_pr_store_uint(&ring->c_head, (consumer + 1) & ring->mask);
-	return (true);
+	ck_pr_store_uint(&ring->c_head, consumer + 1);
+	return true;
 }
 
 CK_CC_INLINE static bool
