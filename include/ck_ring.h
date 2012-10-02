@@ -217,15 +217,16 @@ CK_CC_INLINE static bool
 ck_ring_enqueue_spmc(struct ck_ring *ring, void *entry)
 {
 	unsigned int consumer, producer, delta;
+	unsigned int mask = ring->mask;
 
-	consumer = ck_pr_load_uint(&ring->c_head) & ring->mask;
+	consumer = ck_pr_load_uint(&ring->c_head);
 	producer = ring->p_tail;
-	delta = (producer + 1) & ring->mask;
+	delta = producer + 1;
 
-	if (delta == consumer)
+	if ((delta & mask) == (consumer & mask))
 		return false;
 
-	ring->ring[producer] = entry;
+	ring->ring[producer & mask] = entry;
 
 	/*
 	 * Make sure to update slot value before indicating
@@ -239,14 +240,12 @@ ck_ring_enqueue_spmc(struct ck_ring *ring, void *entry)
 CK_CC_INLINE static bool
 ck_ring_dequeue_spmc(struct ck_ring *ring, void *data)
 {
-	unsigned int consumer, producer, position;
+	unsigned int consumer, producer;
 	void *r;
 
 	consumer = ck_pr_load_uint(&ring->c_head);
 
 	do {
-		position = consumer & ring->mask;
-
 		/*
 		 * Producer counter must represent state relative to
 		 * our latest consumer snapshot.
@@ -254,11 +253,11 @@ ck_ring_dequeue_spmc(struct ck_ring *ring, void *data)
 		ck_pr_fence_load();
 		producer = ck_pr_load_uint(&ring->p_tail);
 
-		if (position == producer)
+		if (consumer == producer)
 			return false;
 
 		ck_pr_fence_load();
-		r = ck_pr_load_ptr(&ring->ring[position]);
+		r = ck_pr_load_ptr(&ring->ring[consumer & ring->mask]);
 
 		/* Serialize load with respect to head update. */
 		ck_pr_fence_memory();
