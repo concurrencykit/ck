@@ -132,8 +132,8 @@ test(void *c)
 		}
 
 		for (i = 0; i < size; i++) {
+			memset(&entry, 0, sizeof(entry));
 			entry.value = i;
-			entry.tid = 0;
 
 			r = CK_RING_ENQUEUE_SPMC(spmc_ring, ring, &entry);
 			assert(r != false);
