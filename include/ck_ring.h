@@ -156,6 +156,10 @@
 	ck_ring_enqueue_spsc_##name(object, value)
 #define CK_RING_DEQUEUE_SPSC(name, object, value)	\
 	ck_ring_dequeue_spsc_##name(object, value)
+#define CK_RING_DEQUEUE_SPMC(name, object, value)	\
+	ck_ring_dequeue_spmc_##name(object, value)
+#define CK_RING_ENQUEUE_SPMC(name, object, value)	\
+	ck_ring_enqueue_spmc_##name(object, value)
 
 struct ck_ring {
 	unsigned int c_head;
