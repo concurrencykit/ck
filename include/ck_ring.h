@@ -78,19 +78,20 @@
 	ck_ring_enqueue_spsc_##name(struct ck_ring_##name *ring,		\
 				    struct type *entry)				\
 	{									\
-		unsigned int consumer, producer;				\
+		unsigned int consumer, producer, delta;				\
+		unsigned int mask = ring->mask;					\
 										\
 		consumer = ck_pr_load_uint(&ring->c_head);			\
 		producer = ring->p_tail;					\
+		delta = producer + 1;						\
 										\
-		if (((producer + 1) & ring->mask) == consumer) 			\
-			return (false);						\
+		if ((delta & mask) == (consumer & mask))			\
+			return false;						\
 										\
-		ring->ring[producer] = *entry;					\
+		ring->ring[producer & mask] = *entry;				\
 		ck_pr_fence_store();						\
-		ck_pr_store_uint(&ring->p_tail,	(producer + 1) & ring->mask);	\
-										\
-		return (true);							\
+		ck_pr_store_uint(&ring->p_tail, delta);				\
+		return true;							\
 	}									\
 	CK_CC_INLINE static bool 						\
 	ck_ring_dequeue_spsc_##name(struct ck_ring_##name *ring,		\
@@ -105,11 +106,41 @@
 			return (false);						\
 										\
 		ck_pr_fence_load();						\
-		*data = ring->ring[consumer];					\
+		*data = ring->ring[consumer & ring->mask];			\
 		ck_pr_fence_store();						\
-		ck_pr_store_uint(&ring->c_head, (consumer + 1) & ring->mask);	\
+		ck_pr_store_uint(&ring->c_head, consumer + 1);			\
 										\
 		return (true);							\
+	}									\
+	CK_CC_INLINE static bool						\
+	ck_ring_enqueue_spmc_##name(struct ck_ring_##name *ring, void *entry)	\
+	{									\
+										\
+		return ck_ring_enqueue_spsc_##name(ring, entry);		\
+	}									\
+	CK_CC_INLINE static bool						\
+	ck_ring_dequeue_spmc_##name(struct ck_ring_##name *ring,		\
+				    struct type *data)				\
+	{									\
+		unsigned int consumer, producer;				\
+										\
+		consumer = ck_pr_load_uint(&ring->c_head);			\
+		do {								\
+			ck_pr_fence_load();					\
+			producer = ck_pr_load_uint(&ring->p_tail);		\
+										\
+			if (consumer == producer)				\
+				return false;					\
+										\
+			ck_pr_fence_load();					\
+			*data = ring->ring[consumer & ring->mask];		\
+			ck_pr_fence_memory();					\
+		} while (ck_pr_cas_uint_value(&ring->c_head,			\
+					      consumer,				\
+					      consumer + 1,			\
+					      &consumer) == false);		\
+										\
+		return true;							\
 	}
 
 
