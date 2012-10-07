@@ -96,7 +96,7 @@ ck_pr_barrier(void)
 
 #define CK_PR_LOAD(S, M, T, C, I)				\
 	CK_CC_INLINE static T					\
-	ck_pr_load_##S(M *target)				\
+	ck_pr_load_##S(const M *target)				\
 	{							\
 		T r;						\
 		__asm__ __volatile__(I "%U1%X1 %0, %1"		\
@@ -132,7 +132,7 @@ CK_PR_LOAD_S(char, char, "lbz")
 		return;						\
 	}
 
-CK_PR_STORE(ptr, void, void *, uint32_t, "stw")
+CK_PR_STORE(ptr, void, const void *, uint32_t, "stw")
 
 #define CK_PR_STORE_S(S, T, I) CK_PR_STORE(S, T, T, T, I)
 
