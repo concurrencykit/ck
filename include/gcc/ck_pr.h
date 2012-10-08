@@ -62,8 +62,7 @@ CK_CC_INLINE static void *
 ck_pr_load_ptr(const void *target)
 {
 
-	void *r = CK_PR_ACCESS(*(void **)target);
-	return r;
+	return CK_PR_ACCESS(*(void **)target);
 }
 
 CK_CC_INLINE static void
