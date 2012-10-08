@@ -76,8 +76,7 @@ thread(void *b)
 		ck_barrier_mcs(barrier, &state);
 		counter = ck_pr_load_int(&counters[i]);
 		if (counter != nthr * (j / ENTRIES + 1)) {
-			fprintf(stderr, "FAILED [%d:%d]: %d != %d\n", i, j - 1, counter, nthr);
-			exit(EXIT_FAILURE);
+			ck_error("FAILED [%d:%d]: %d != %d\n", i, j - 1, counter, nthr);
 		}
 	}
 
@@ -92,44 +91,39 @@ main(int argc, char *argv[])
 	int i;
 
 	if (argc < 3) {
-		fprintf(stderr, "Usage: correct <number of threads> <affinity delta>\n");
-		exit(EXIT_FAILURE);
+		ck_error("Usage: correct <number of threads> <affinity delta>\n");
 	}
 
 	nthr = atoi(argv[1]);
 	if (nthr <= 0) {
-		fprintf(stderr, "ERROR: Number of threads must be greater than 0\n");
-		exit(EXIT_FAILURE);
+		ck_error("ERROR: Number of threads must be greater than 0\n");
 	}
 
 	threads = malloc(sizeof(pthread_t) * nthr);
 	if (threads == NULL) {
-		fprintf(stderr, "ERROR: Could not allocate thread structures\n");
-		exit(EXIT_FAILURE);
+		ck_error("ERROR: Could not allocate thread structures\n");
 	}
 
 	barrier = malloc(sizeof(ck_barrier_mcs_t) * nthr);
 	if (barrier == NULL) {
-		fprintf(stderr, "ERROR: Could not allocate barrier structures\n");
-		exit(EXIT_FAILURE);
+		ck_error("ERROR: Could not allocate barrier structures\n");
 	}
 	ck_barrier_mcs_init(barrier, nthr);
 
 	a.delta = atoi(argv[2]);
 
-	fprintf(stderr, "Creating threads (barrier)...");
+	ck_error("Creating threads (barrier)...");
 	for (i = 0; i < nthr; i++) {
 		if (pthread_create(&threads[i], NULL, thread, barrier)) {
-			fprintf(stderr, "ERROR: Could not create thread %d\n", i);
-			exit(EXIT_FAILURE);
+			ck_error("ERROR: Could not create thread %d\n", i);
 		}
 	}
-	fprintf(stderr, "done\n");
+	ck_error("done\n");
 
-	fprintf(stderr, "Waiting for threads to finish correctness regression...");
+	ck_error("Waiting for threads to finish correctness regression...");
 	for (i = 0; i < nthr; i++)
 		pthread_join(threads[i], NULL);
-	fprintf(stderr, "done (passed)\n");
+	ck_error("done (passed)\n");
 
 
 	return (0);

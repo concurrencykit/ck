@@ -198,8 +198,7 @@ main(int argc, char *argv[])
 #endif
 
 	if (argc != 4) {
-		fprintf(stderr, "Usage: stack <threads> <delta> <critical>\n");
-		exit(EXIT_FAILURE);
+		ck_error("Usage: stack <threads> <delta> <critical>\n");
 	}
 
 	{
@@ -210,8 +209,7 @@ main(int argc, char *argv[])
 			perror("ERROR: too many threads");
 			exit(EXIT_FAILURE);
 		} else if (*e != '\0') {
-			fprintf(stderr, "ERROR: input format is incorrect\n");
-			exit(EXIT_FAILURE);
+			ck_error("ERROR: input format is incorrect\n");
 		}
 
 		d = strtol(argv[2], &e, 10);
@@ -219,8 +217,7 @@ main(int argc, char *argv[])
 			perror("ERROR: delta is too large");
 			exit(EXIT_FAILURE);
 		} else if (*e != '\0') {
-			fprintf(stderr, "ERROR: input format is incorrect\n");
-			exit(EXIT_FAILURE);
+			ck_error("ERROR: input format is incorrect\n");
 		}
 
 		critical = strtoul(argv[3], &e, 10);
@@ -228,8 +225,7 @@ main(int argc, char *argv[])
 			perror("ERROR: critical section is too large");
 			exit(EXIT_FAILURE);
 		} else if (*e != '\0') {
-			fprintf(stderr, "ERROR: input format is incorrect\n");
-			exit(EXIT_FAILURE);
+			ck_error("ERROR: input format is incorrect\n");
 		}
 	}
 

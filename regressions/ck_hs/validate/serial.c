@@ -33,6 +33,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "../../common.h"
+
 static void *
 hs_malloc(size_t r)
 {
@@ -100,8 +102,7 @@ main(void)
 		h = test[i][0];
 		ck_hs_put(&hs, h, test[i]);
 		if (ck_hs_put(&hs, h, test[i]) == true) {
-			fprintf(stderr, "ERROR [1]: put must fail on collision.\n");
-			exit(EXIT_FAILURE);
+			ck_error("ERROR [1]: put must fail on collision.\n");
 		}
 	}
 
@@ -110,25 +111,21 @@ main(void)
 	for (i = 0; i < sizeof(test) / sizeof(*test); i++) {
 		h = test[i][0];
 		if (ck_hs_put(&hs, h, test[i]) == true) {
-			fprintf(stderr, "ERROR [2]: put must fail on collision.\n");
-			exit(EXIT_FAILURE);
+			ck_error("ERROR [2]: put must fail on collision.\n");
 		}
 
 		if (ck_hs_get(&hs, h, test[i]) == NULL) {
-			fprintf(stderr, "ERROR: get must not fail\n");
-			exit(EXIT_FAILURE);
+			ck_error("ERROR: get must not fail\n");
 		}
 	}
 
 	h = ULONG_MAX;
 	if (ck_hs_put(&hs, h, blob) == false) {
-		fprintf(stderr, "ERROR: Duplicate put failed.\n");
-		exit(EXIT_FAILURE);
+		ck_error("ERROR: Duplicate put failed.\n");
 	}
 
 	if (ck_hs_put(&hs, h, blob) == true) {
-		fprintf(stderr, "ERROR: Duplicate put succeeded.\n");
-		exit(EXIT_FAILURE);
+		ck_error("ERROR: Duplicate put succeeded.\n");
 	}
 
 	/* Grow set and check get semantics. */
@@ -136,8 +133,7 @@ main(void)
 	for (i = 0; i < sizeof(test) / sizeof(*test); i++) {
 		h = test[i][0];
 		if (ck_hs_get(&hs, h, test[i]) == NULL) {
-			fprintf(stderr, "ERROR: get must not fail\n");
-			exit(EXIT_FAILURE);
+			ck_error("ERROR: get must not fail\n");
 		}
 	}
 
@@ -150,13 +146,11 @@ main(void)
 			continue;
 
 		if (r = ck_hs_remove(&hs, h, test[i]), r == NULL) {
-			fprintf(stderr, "ERROR: remove must not fail\n");
-			exit(EXIT_FAILURE);
+			ck_error("ERROR: remove must not fail\n");
 		}
 
 		if (strcmp(r, test[i]) != 0) {
-			fprintf(stderr, "ERROR: Removed incorrect node (%s != %s)\n", (char *)r, test[i]);
-			exit(EXIT_FAILURE);
+			ck_error("ERROR: Removed incorrect node (%s != %s)\n", (char *)r, test[i]);
 		}
 	}
 
@@ -168,24 +162,21 @@ main(void)
 		h = test[i][0];
 		d = ck_hs_get(&hs, h, test[i]) != NULL;
 		if (ck_hs_set(&hs, h, test[i], &r) == false) {
-			fprintf(stderr, "ERROR: Failed to set\n");
-			exit(EXIT_FAILURE);
+			ck_error("ERROR: Failed to set\n");
 		}
 
 		/* Expected replacement. */
 		if (d == true && (r == NULL || strcmp(r, test[i]) != 0)) {
-			fprintf(stderr, "ERROR: Incorrect previous value: %s != %s\n",
+			ck_error("ERROR: Incorrect previous value: %s != %s\n",
 			    test[i], (char *)r);
 		}
 
 		if (ck_hs_set(&hs, h, test[i], &r) == false) {
-			fprintf(stderr, "ERROR: Failed to set [1]\n");
-			exit(EXIT_FAILURE);
+			ck_error("ERROR: Failed to set [1]\n");
 		}
 
 		if (strcmp(r, test[i]) != 0) {
-			fprintf(stderr, "ERROR: Invalid pointer: %s != %s\n", (char *)r, test[i]);
-			exit(EXIT_FAILURE);
+			ck_error("ERROR: Invalid pointer: %s != %s\n", (char *)r, test[i]);
 		}
 	}
 

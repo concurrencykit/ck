@@ -37,23 +37,20 @@ main(void)
 	const ck_backoff_t ceiling = CK_BACKOFF_CEILING + 1;
 	unsigned int i = 0;
 
-	fprintf(stderr, "Ceiling is: %u (%#x)\n", CK_BACKOFF_CEILING, CK_BACKOFF_CEILING);
+	ck_error("Ceiling is: %u (%#x)\n", CK_BACKOFF_CEILING, CK_BACKOFF_CEILING);
 
 	for (;;) {
 		ck_backoff_t previous = backoff;
 		ck_backoff_gb(&backoff);
 
 		if (previous == ceiling) {
-			if (backoff != ceiling) {
-				fprintf(stderr, "[C] GB: expected %u, got %u\n", ceiling, backoff);
-				exit(EXIT_FAILURE);
-			}
+			if (backoff != ceiling)
+				ck_error("[C] GB: expected %u, got %u\n", ceiling, backoff);
 
 			if (i++ >= 1)
 				break;
 		} else if (previous != backoff >> 1) {
-			fprintf(stderr, "[N] GB: expected %u (%u), got %u\n", previous << 1, previous, backoff);
-			exit(EXIT_FAILURE);
+			ck_error("[N] GB: expected %u (%u), got %u\n", previous << 1, previous, backoff);
 		}
 	}
 
@@ -66,8 +63,7 @@ main(void)
 			if (i++ >= 3)
 				break;
 		} else if (previous * previous >= backoff) {
-			fprintf(stderr, "[N] EB: expected %u (%u), got %u\n", previous * previous, previous, backoff);
-			exit(EXIT_FAILURE);
+			ck_error("[N] EB: expected %u (%u), got %u\n", previous * previous, previous, backoff);
 		}
 	}
 

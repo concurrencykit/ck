@@ -136,13 +136,13 @@ main(int argc, char *argv[])
 	struct block *context;
 
 	if (argc != 4) {
-		fprintf(stderr, "Usage: " LOCK_NAME " <number of threads> <affinity delta> <critical section>\n");
+		ck_error("Usage: " LOCK_NAME " <number of threads> <affinity delta> <critical section>\n");
 		exit(EXIT_FAILURE);
 	}
 
 	nthr = atoi(argv[1]);
 	if (nthr <= 0) {
-		fprintf(stderr, "ERROR: Number of threads must be greater than 0\n");
+		ck_error("ERROR: Number of threads must be greater than 0\n");
 		exit(EXIT_FAILURE);
 	}
 
@@ -152,19 +152,19 @@ main(int argc, char *argv[])
 
 	critical = atoi(argv[3]);
 	if (critical < 0) {
-		fprintf(stderr, "ERROR: critical section cannot be negative\n");
+		ck_error("ERROR: critical section cannot be negative\n");
 		exit(EXIT_FAILURE);
 	}
 
 	threads = malloc(sizeof(pthread_t) * nthr);
 	if (threads == NULL) {
-		fprintf(stderr, "ERROR: Could not allocate thread structures\n");
+		ck_error("ERROR: Could not allocate thread structures\n");
 		exit(EXIT_FAILURE);
 	}
 
 	context = malloc(sizeof(struct block) * nthr);
 	if (context == NULL) {
-		fprintf(stderr, "ERROR: Could not allocate thread contexts\n");
+		ck_error("ERROR: Could not allocate thread contexts\n");
 		exit(EXIT_FAILURE);
 	}
 
@@ -173,29 +173,29 @@ main(int argc, char *argv[])
 
 	count = malloc(sizeof(*count) * nthr);
 	if (count == NULL) {
-		fprintf(stderr, "ERROR: Could not create acquisition buffer\n");
+		ck_error("ERROR: Could not create acquisition buffer\n");
 		exit(EXIT_FAILURE);
 	}
 	memset(count, 0, sizeof(*count) * nthr);
 
-	fprintf(stderr, "Creating threads (fairness)...");
+	ck_error("Creating threads (fairness)...");
 	for (i = 0; i < nthr; i++) {
 		context[i].tid = i;
 		if (pthread_create(&threads[i], NULL, fairness, context + i)) {
-			fprintf(stderr, "ERROR: Could not create thread %d\n", i);
+			ck_error("ERROR: Could not create thread %d\n", i);
 			exit(EXIT_FAILURE);
 		}
 	}
-	fprintf(stderr, "done\n");
+	ck_error("done\n");
 
 	ck_pr_store_uint(&ready, 1);
 	sleep(10);
 	ck_pr_store_uint(&ready, 0);
 
-	fprintf(stderr, "Waiting for threads to finish acquisition regression...");
+	ck_error("Waiting for threads to finish acquisition regression...");
 	for (i = 0; i < nthr; i++)
 		pthread_join(threads[i], NULL);
-	fprintf(stderr, "done\n\n");
+	ck_error("done\n\n");
 
 	for (i = 0, v = 0; i < nthr; i++) {
 		printf("%d %15" PRIu64 "\n", i, count[i].value);

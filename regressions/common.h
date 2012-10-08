@@ -26,6 +26,8 @@
 
 #include <ck_cc.h>
 #include <ck_pr.h>
+#include <stdarg.h>
+#include <stdlib.h>
 
 #ifdef __linux__
 #include <sched.h>
@@ -145,5 +147,16 @@ rdtsc(void)
 #else
 	return 0;
 #endif
+}
+
+CK_CC_USED static void
+ck_error(const char *message, ...)
+{
+	va_list ap;
+
+	va_start(ap, message);
+	vfprintf(stderr, message, ap);
+	va_end(ap);
+	exit(EXIT_FAILURE);
 }
 

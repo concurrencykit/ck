@@ -124,16 +124,12 @@ reader(void *arg)
 			curr = (uintptr_t)(curr_ptr);
 			if (curr < prev) {
 				/* Ascending order within block violated */
-				fprintf(stderr, "%p: %p: %ju\n", (void *)&epoch_record, (void *)iterator.block, (uintmax_t)curr);
-				fprintf(stderr, "ERROR: %ju < %ju \n",
-				    (uintmax_t)curr, (uintmax_t)prev);
-				exit(EXIT_FAILURE);
+				ck_error("%p: %p: %ju\nERROR: %ju < %ju\n",
+					(void *)&epoch_record, (void *)iterator.block, (uintmax_t)curr, (uintmax_t)curr, (uintmax_t)prev);
 			} else if (prev_max != -1 && curr > prev_max) {
 				/* Max of prev block > max of current block */
-				fprintf(stderr, "%p: %p: %ju\n", (void *)&epoch_record, (void *)iterator.block, (uintmax_t)curr);
-				fprintf(stderr, "ERROR: %ju > prev_max: %ju\n",
-				    (uintmax_t)curr, (uintmax_t)prev_max);
-				exit(EXIT_FAILURE);
+				ck_error("%p: %p: %ju\nERROR: %ju > %ju\n",
+					(void *)&epoch_record, (void *)iterator.block, (uintmax_t)curr, (uintmax_t)curr, (uintmax_t)prev_max);
 			}
 
 			curr_max = curr;
@@ -148,7 +144,7 @@ reader(void *arg)
 			break;
 	}
 
-	fprintf(stderr, "Read %llu entries in %llu iterations.\n", n_entries, iterations);
+	ck_error("Read %llu entries in %llu iterations.\n", n_entries, iterations);
 
 	ck_pr_inc_uint(&barrier);
 	while (ck_pr_load_uint(&barrier) != NUM_READER_THREADS + 1)
@@ -175,8 +171,7 @@ writer_thread(void *unused)
 			}
 
 			if (ck_bag_member_spmc(&bag, (void *)(uintptr_t)i) == false) {
-				fprintf(stderr, "ck_bag_put_spmc [%u]: %u\n", iteration, i);
-				exit(EXIT_FAILURE);
+				ck_error("ck_bag_put_spmc [%u]: %u\n", iteration, i);
 			}
 		}
 
@@ -186,28 +181,25 @@ writer_thread(void *unused)
 		for (i = 1; i < writer_max; i++) {
 			void *replace = (void *)(uintptr_t)i;
 			if (ck_bag_set_spmc(&bag, (void *)(uintptr_t)i, replace) == false) {
-				fprintf(stderr, "ERROR: set %ju != %ju",
+				ck_error("ERROR: set %ju != %ju",
 						(uintmax_t)(uintptr_t)replace, (uintmax_t)i);
-				exit(EXIT_FAILURE);
 			}
 		}
 
 		for (i = writer_max; i > 0; i--) {
 			if (ck_bag_member_spmc(&bag, (void *)(uintptr_t)i) == false) {
-				fprintf(stderr, "ck_bag_member_spmc [%u]: %u\n", iteration, i);
-				exit(EXIT_FAILURE);
+				ck_error("ck_bag_member_spmc [%u]: %u\n", iteration, i);
 			}
 
 			if (ck_bag_remove_spmc(&bag, (void *)(uintptr_t)i) == false) {
-				fprintf(stderr, "ck_bag_remove_spmc [%u]: %u\n", iteration, i);
-				exit(EXIT_FAILURE);
+				ck_error("ck_bag_remove_spmc [%u]: %u\n", iteration, i);
 			}
 		}
 
 		ck_epoch_poll(&epoch_bag, &epoch_wr);
 	}
 
-	fprintf(stderr, "Writer %u iterations, %u writes per iteration.\n", iteration, writer_max);
+	ck_error("Writer %u iterations, %u writes per iteration.\n", iteration, writer_max);
 	while (ck_pr_load_uint(&barrier) != NUM_READER_THREADS)
 		ck_pr_stall();
 
@@ -228,8 +220,7 @@ main(int argc, char **argv)
 	if (argc >= 2) {
 		int r = atoi(argv[1]);
 		if (r <= 0) {
-			fprintf(stderr, "# entries in block must be > 0\n");
-			exit(EXIT_FAILURE);
+			ck_error("# entries in block must be > 0\n");
 		}
 
 		b = (size_t)r;
@@ -238,8 +229,7 @@ main(int argc, char **argv)
 	if (argc >= 3) {
 		int r = atoi(argv[2]);
 		if (r < 16) {
-			fprintf(stderr, "# entries must be >= 16\n");
-			exit(EXIT_FAILURE);
+			ck_error("# entries must be >= 16\n");
 		}
 
 		writer_max = (unsigned int)r;
@@ -249,10 +239,9 @@ main(int argc, char **argv)
 	ck_epoch_register(&epoch_bag, &epoch_wr);
 	ck_bag_allocator_set(&allocator, sizeof(struct bag_epoch));
 	if (ck_bag_init(&bag, b, CK_BAG_ALLOCATE_GEOMETRIC) == false) {
-		fprintf(stderr, "Error: failed ck_bag_init().");
-		exit(EXIT_FAILURE);
+		ck_error("Error: failed ck_bag_init().");
 	}
-	fprintf(stderr, "Configuration: %u entries, %zu bytes/block, %zu entries/block\n", writer_max, bag.info.bytes, bag.info.max);
+	ck_error("Configuration: %u entries, %zu bytes/block, %zu entries/block\n", writer_max, bag.info.bytes, bag.info.max);
 
 	i = 1;
 	/* Basic Test */
@@ -277,7 +266,7 @@ main(int argc, char **argv)
 	while (ck_bag_next(&bag_it, &curr_ptr)) {
 		curr = (uintptr_t)(curr_ptr);
 		if (curr > (uintptr_t)i)
-			fprintf(stderr, "ERROR: %ju != %u\n", (uintmax_t)curr, i);
+			ck_error("ERROR: %ju != %u\n", (uintmax_t)curr, i);
 
 		ck_bag_remove_spmc(&bag, curr_ptr);
 	}
@@ -289,16 +278,16 @@ main(int argc, char **argv)
 		pthread_create(&readers[i], NULL, reader, NULL);
 	}
 
-	fprintf(stderr, "Waiting...");
+	ck_error("Waiting...");
 	sleep(30);
-	fprintf(stderr, "done\n");
+	ck_error("done\n");
 
 	ck_pr_store_int(&leave, 1);
 	for (i = 0; i < NUM_READER_THREADS; i++)
 		pthread_join(readers[i], NULL);
 
 	pthread_join(writer, NULL);
-	fprintf(stderr, "Current entries: %u\n", ck_bag_count(&bag));
+	ck_error("Current entries: %u\n", ck_bag_count(&bag));
 	ck_bag_destroy(&bag);
 	return 0;
 }

@@ -86,38 +86,33 @@ main(int argc, char *argv[])
 	int i;
 
 	if (argc != 3) {
-		fprintf(stderr, "Correct usage: <number of threads> <affinity delta>\n");
-		exit(EXIT_FAILURE);
+		ck_error("Correct usage: <number of threads> <affinity delta>\n");
 	}
 
 	nthr = atoi(argv[1]);
         if (nthr <= 0) {
-                fprintf(stderr, "ERROR: Number of threads must be greater than 0\n");
-                exit(EXIT_FAILURE);
+                ck_error("ERROR: Number of threads must be greater than 0\n");
         }
 
         threads = malloc(sizeof(pthread_t) * nthr);
         if (threads == NULL) {
-                fprintf(stderr, "ERROR: Could not allocate thread structures\n");
-                exit(EXIT_FAILURE);
+                ck_error("ERROR: Could not allocate thread structures\n");
         }
 
 	counters = calloc(sizeof(struct counter), nthr);
 	if (counters == NULL) {
-		fprintf(stderr, "ERROR: Could not allocate counters\n");
-		exit(EXIT_FAILURE);
+		ck_error("ERROR: Could not allocate counters\n");
 	}
 
         a.delta = atoi(argv[2]);
 
-        fprintf(stderr, "Creating threads (barrier)...");
+        ck_error("Creating threads (barrier)...");
         for (i = 0; i < nthr; ++i) {
                 if (pthread_create(&threads[i], NULL, thread, NULL)) {
-                        fprintf(stderr, "ERROR: Could not create thread %d\n", i);
-                        exit(EXIT_FAILURE);
+                        ck_error("ERROR: Could not create thread %d\n", i);
                 }
         }
-        fprintf(stderr, "done\n");
+        ck_error("done\n");
 
 	sleep(10);
 

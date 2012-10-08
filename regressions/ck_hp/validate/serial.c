@@ -38,6 +38,8 @@
 #include <stddef.h>
 #include <ck_hp.h>
 
+#include "../../common.h"
+
 struct entry {
 	unsigned int value;
 	ck_hp_hazard_t hazard;
@@ -47,7 +49,7 @@ static void
 destructor(void *pointer)
 {
 
-	fprintf(stderr, "Free %p\n", pointer);
+	ck_error("Free %p\n", pointer);
 	free(pointer);
 	return;
 }
@@ -67,8 +69,7 @@ main(int argc, char *argv[])
 
 	pointers = malloc(sizeof(void *));
 	if (pointers == NULL) {
-		fprintf(stderr, "ERROR: Failed to allocate slot.\n");
-		exit(EXIT_FAILURE);
+		ck_error("ERROR: Failed to allocate slot.\n");
 	}
 	ck_hp_register(&state, &record[0], pointers);
 	ck_hp_reclaim(&record[0]);
@@ -91,8 +92,7 @@ main(int argc, char *argv[])
 
 	pointers = malloc(sizeof(void *));
 	if (pointers == NULL) {
-		fprintf(stderr, "ERROR: Failed to allocate slot.\n");
-		exit(EXIT_FAILURE);
+		ck_error("ERROR: Failed to allocate slot.\n");
 	}
 	ck_hp_register(&state, &record[1], pointers);
 	ck_hp_reclaim(&record[1]);

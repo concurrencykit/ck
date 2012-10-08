@@ -201,8 +201,7 @@ main(int argc, char *argv[])
 	pthread_t *threads;
 
 	if (argc != 4) {
-		fprintf(stderr, "Usage: stack <threads> <threshold> <delta>\n");
-		exit(EXIT_FAILURE);
+		ck_error("Usage: stack <threads> <threshold> <delta>\n");
 	}
 
 	n_threads = atoi(argv[1]);
@@ -220,6 +219,6 @@ main(int argc, char *argv[])
 	for (i = 0; i < n_threads; i++)
 		pthread_join(threads[i], NULL);
 
-	fprintf(stderr, "Push: %u\nPop: %u\n", pushs, pops);
+	ck_error("Push: %u\nPop: %u\n", pushs, pops);
 	return (0);
 }

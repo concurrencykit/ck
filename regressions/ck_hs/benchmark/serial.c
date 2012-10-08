@@ -187,8 +187,7 @@ main(int argc, char *argv[])
 	srand(time(NULL));
 
 	if (argc < 2) {
-		fprintf(stderr, "Usage: ck_hs <dictionary> [<repetitions> <initial size>]\n");
-		exit(EXIT_FAILURE);
+		ck_error("Usage: ck_hs <dictionary> [<repetitions> <initial size>]\n");
 	}
 
 	if (argc >= 3)
@@ -224,16 +223,15 @@ main(int argc, char *argv[])
 		d += set_insert(keys[i]) == false;
 	ck_hs_stat(&hs, &st);
 
-	fprintf(stderr, "# %zu entries stored, %u duplicates, %u probe.\n",
+	ck_error("# %zu entries stored, %u duplicates, %u probe.\n",
 	    set_count(), d, st.probe_maximum);
 
-	fprintf(stderr, "#    reverse_insertion serial_insertion random_insertion serial_replace reverse_get serial_get random_get serial_remove negative_get\n\n");
+	ck_error("#    reverse_insertion serial_insertion random_insertion serial_replace reverse_get serial_get random_get serial_remove negative_get\n\n");
 
 	a = 0;
 	for (j = 0; j < r; j++) {
 		if (set_reset() == false) {
-			fprintf(stderr, "ERROR: Failed to reset hash table.\n");
-			exit(EXIT_FAILURE);
+			ck_error("ERROR: Failed to reset hash table.\n");
 		}
 
 		s = rdtsc();
@@ -247,8 +245,7 @@ main(int argc, char *argv[])
 	a = 0;
 	for (j = 0; j < r; j++) {
 		if (set_reset() == false) {
-			fprintf(stderr, "ERROR: Failed to reset hash table.\n");
-			exit(EXIT_FAILURE);
+			ck_error("ERROR: Failed to reset hash table.\n");
 		}
 
 		s = rdtsc();
@@ -264,8 +261,7 @@ main(int argc, char *argv[])
 		keys_shuffle(keys);
 
 		if (set_reset() == false) {
-			fprintf(stderr, "ERROR: Failed to reset hash table.\n");
-			exit(EXIT_FAILURE);
+			ck_error("ERROR: Failed to reset hash table.\n");
 		}
 
 		s = rdtsc();
@@ -295,8 +291,7 @@ main(int argc, char *argv[])
 		s = rdtsc();
 		for (i = keys_length; i > 0; i--) {
 			if (set_get(keys[i - 1]) == NULL) {
-				fprintf(stderr, "ERROR: Unexpected NULL value.\n");
-				exit(EXIT_FAILURE);
+				ck_error("ERROR: Unexpected NULL value.\n");
 			}
 		}
 		e = rdtsc();
@@ -309,8 +304,7 @@ main(int argc, char *argv[])
 		s = rdtsc();
 		for (i = 0; i < keys_length; i++) {
 			if (set_get(keys[i]) == NULL) {
-				fprintf(stderr, "ERROR: Unexpected NULL value.\n");
-				exit(EXIT_FAILURE);
+				ck_error("ERROR: Unexpected NULL value.\n");
 			}
 		}
 		e = rdtsc();
@@ -325,8 +319,7 @@ main(int argc, char *argv[])
 		s = rdtsc();
 		for (i = 0; i < keys_length; i++) {
 			if (set_get(keys[i]) == NULL) {
-				fprintf(stderr, "ERROR: Unexpected NULL value.\n");
-				exit(EXIT_FAILURE);
+				ck_error("ERROR: Unexpected NULL value.\n");
 			}
 		}
 		e = rdtsc();

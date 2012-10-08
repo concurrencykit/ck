@@ -26,20 +26,17 @@ main(int argc, char *argv[])
 	struct entry entry = {0, 0};
 
 	if (argc != 2) {
-		fprintf(stderr, "Usage: latency <size>\n");
-		exit(EXIT_FAILURE);
+		ck_error("Usage: latency <size>\n");
 	}
 
 	size = atoi(argv[1]);
 	if (size <= 4 || (size & (size - 1))) {
-		fprintf(stderr, "ERROR: Size must be a power of 2 greater than 4.\n");
-		exit(EXIT_FAILURE);
+		ck_error("ERROR: Size must be a power of 2 greater than 4.\n");
 	}
 
 	buffer = malloc(sizeof(struct entry) * size);
 	if (buffer == NULL) {
-		fprintf(stderr, "ERROR: Failed to allocate buffer\n");
-		exit(EXIT_FAILURE);
+		ck_error("ERROR: Failed to allocate buffer\n");
 	}
 
 	CK_RING_INIT(entry_ring, &ring, buffer, size);

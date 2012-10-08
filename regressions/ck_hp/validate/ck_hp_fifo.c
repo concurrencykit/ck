@@ -85,15 +85,13 @@ test(void *c)
 
 			fifo_entry = ck_hp_fifo_dequeue_mpmc(&record, &fifo, &entry);
 			if (fifo_entry == NULL) {
-				fprintf(stderr, "ERROR [%u] Queue should never be empty.\n", context->tid);
-				exit(EXIT_FAILURE);
+				ck_error("ERROR [%u] Queue should never be empty.\n", context->tid);
 			}
 
 			ck_pr_barrier();
 
 			if (entry->tid < 0 || entry->tid >= nthr) {
-				fprintf(stderr, "ERROR [%u] Incorrect value in entry.\n", entry->tid);
-				exit(EXIT_FAILURE);
+				ck_error("ERROR [%u] Incorrect value in entry.\n", entry->tid);
 			}
 
 			ck_hp_free(&record, &fifo_entry->hazard, fifo_entry, fifo_entry);
@@ -113,8 +111,7 @@ test(void *c)
 				ck_pr_stall();
 
 			if (entry->tid < 0 || entry->tid >= nthr) {
-				fprintf(stderr, "ERROR [%u] Incorrect value in entry.\n", entry->tid);
-				exit(EXIT_FAILURE);
+				ck_error("ERROR [%u] Incorrect value in entry.\n", entry->tid);
 			}
 
 			ck_hp_free(&record, &fifo_entry->hazard, fifo_entry, fifo_entry);
@@ -144,8 +141,7 @@ main(int argc, char *argv[])
 	int threshold;
 
 	if (argc != 5) {
-		fprintf(stderr, "Usage: validate <threads> <affinity delta> <size> <threshold>\n");
-		exit(EXIT_FAILURE);
+		ck_error("Usage: validate <threads> <affinity delta> <size> <threshold>\n");
 	}
 
 	a.delta = atoi(argv[2]);

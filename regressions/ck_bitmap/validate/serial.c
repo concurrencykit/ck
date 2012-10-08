@@ -31,6 +31,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "../../common.h"
+
 #ifndef STATIC_LENGTH
 #define STATIC_LENGTH 256
 #endif
@@ -57,13 +59,11 @@ check_iteration(ck_bitmap_t *bits, unsigned int len, bool initial)
 		if (i == j)
 			continue;
 
-		fprintf(stderr, "[4] ERROR: Expected bit %u, got bit %u\n", j, i);
-		exit(EXIT_FAILURE);
+		ck_error("[4] ERROR: Expected bit %u, got bit %u\n", j, i);
 	}
 
 	if (j != len) {
-		fprintf(stderr, "[5] ERROR: Expected length %u, got length %u\n", len, j);
-		exit(EXIT_FAILURE);
+		ck_error("[5] ERROR: Expected length %u, got length %u\n", len, j);
 	}
 
 	return;
@@ -76,28 +76,24 @@ test(ck_bitmap_t *bits, unsigned int n_length, bool initial)
 
 	for (i = 0; i < n_length; i++) {
 		if (ck_bitmap_test(bits, i) == !initial) {
-			fprintf(stderr, "[0] ERROR [%u]: Expected %u got %u\n", i,
+			ck_error("[0] ERROR [%u]: Expected %u got %u\n", i,
 				initial, !initial);
-			exit(EXIT_FAILURE);
 		}
 	}
 
 	for (i = 0; i < n_length; i++) {
 		ck_bitmap_set_mpmc(bits, i);
 		if (ck_bitmap_test(bits, i) == false) {
-			fprintf(stderr, "[1] ERROR: Expected bit to be set: %u\n", i);
-			exit(EXIT_FAILURE);
+			ck_error("[1] ERROR: Expected bit to be set: %u\n", i);
 		}
 		ck_bitmap_reset_mpmc(bits, i);
 		if (ck_bitmap_test(bits, i) == true) {
-			fprintf(stderr, "[2] ERROR: Expected bit to be cleared: %u\n", i);
-			exit(EXIT_FAILURE);
+			ck_error("[2] ERROR: Expected bit to be cleared: %u\n", i);
 		}
 
 		ck_bitmap_set_mpmc(bits, i);
 		if (ck_bitmap_test(bits, i) == false) {
-			fprintf(stderr, "[3] ERROR: Expected bit to be set: %u\n", i);
-			exit(EXIT_FAILURE);
+			ck_error("[3] ERROR: Expected bit to be set: %u\n", i);
 		}
 
 		check_iteration(bits, i, initial);
@@ -105,8 +101,7 @@ test(ck_bitmap_t *bits, unsigned int n_length, bool initial)
 
 	for (i = 0; i < n_length; i++) {
 		if (ck_bitmap_test(bits, i) == false) {
-			fprintf(stderr, "[4] ERROR: Expected bit to be set: %u\n", i);
-			exit(EXIT_FAILURE);
+			ck_error("[4] ERROR: Expected bit to be set: %u\n", i);
 		}
 	}
 
@@ -114,8 +109,7 @@ test(ck_bitmap_t *bits, unsigned int n_length, bool initial)
 
 	for (i = 0; i < n_length; i++) {
 		if (ck_bitmap_test(bits, i) == true) {
-			fprintf(stderr, "[4] ERROR: Expected bit to be reset: %u\n", i);
-			exit(EXIT_FAILURE);
+			ck_error("[4] ERROR: Expected bit to be reset: %u\n", i);
 		}
 	}
 
@@ -133,7 +127,7 @@ main(int argc, char *argv[])
 
 	base = ck_bitmap_base(length);
 	bytes = ck_bitmap_size(length);
-	fprintf(stderr, "Configuration: %u bytes\n",
+	ck_error("Configuration: %u bytes\n",
 	    bytes);
 
 	g_bits = malloc(bytes);
@@ -148,7 +142,7 @@ main(int argc, char *argv[])
 	ck_bitmap_test(g_bits, length - 1);
 
 	CK_BITMAP_INSTANCE(STATIC_LENGTH) sb;
-	fprintf(stderr, "Static configuration: %zu bytes\n",
+	ck_error("Static configuration: %zu bytes\n",
 	    sizeof(sb));
 	memset(CK_BITMAP_BUFFER(&sb), 0xFF, ck_bitmap_base(STATIC_LENGTH));
 	CK_BITMAP_INIT(&sb, STATIC_LENGTH, false);
@@ -159,20 +153,17 @@ main(int argc, char *argv[])
 
 	CK_BITMAP_CLEAR(&sb);
 	if (CK_BITMAP_TEST(&sb, 1) == true) {
-		fprintf(stderr, "ERROR: Expected bit to be reset.\n");
-		exit(EXIT_FAILURE);
+		ck_error("ERROR: Expected bit to be reset.\n");
 	}
 
 	CK_BITMAP_SET_MPMC(&sb, 1);
 	if (CK_BITMAP_TEST(&sb, 1) == false) {
-		fprintf(stderr, "ERROR: Expected bit to be set.\n");
-		exit(EXIT_FAILURE);
+		ck_error("ERROR: Expected bit to be set.\n");
 	}
 
 	CK_BITMAP_RESET_MPMC(&sb, 1);
 	if (CK_BITMAP_TEST(&sb, 1) == true) {
-		fprintf(stderr, "ERROR: Expected bit to be reset.\n");
-		exit(EXIT_FAILURE);
+		ck_error("ERROR: Expected bit to be reset.\n");
 	}
 
 	return 0;

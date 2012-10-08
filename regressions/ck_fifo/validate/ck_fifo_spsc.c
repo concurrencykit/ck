@@ -68,7 +68,7 @@ test(void *c)
         }
 
 #ifdef DEBUG
-	fprintf(stderr, "%p %u: %u -> %u\n", fifo+context->tid, context->tid, context->previous, context->tid);
+	ck_error("%p %u: %u -> %u\n", fifo+context->tid, context->tid, context->previous, context->tid);
 #endif
 
 	if (context->tid == 0) {
@@ -93,15 +93,13 @@ test(void *c)
 		for (j = 0; j < size; j++) {
 			while (ck_fifo_spsc_dequeue(fifo + context->previous, &entry) == false);
 			if (context->previous != (unsigned int)entry->tid) {
-				fprintf(stderr, "T [%u:%p] %u != %u\n",
+				ck_error("T [%u:%p] %u != %u\n",
 					context->tid, (void *)entry, entry->tid, context->previous);
-				exit(EXIT_FAILURE);
 			}
 
 			if (entry->value != j) {
-				fprintf(stderr, "V [%u:%p] %u != %u\n",
+				ck_error("V [%u:%p] %u != %u\n",
 					context->tid, (void *)entry, entry->value, j);
-				exit(EXIT_FAILURE);
 			}
 
 			entry->tid = context->tid;
@@ -124,8 +122,7 @@ main(int argc, char *argv[])
 	pthread_t *thread;
 
 	if (argc != 4) {
-		fprintf(stderr, "Usage: validate <threads> <affinity delta> <size>\n");
-		exit(EXIT_FAILURE);
+		ck_error("Usage: validate <threads> <affinity delta> <size>\n");
 	}
 
 	a.request = 0;

@@ -58,8 +58,7 @@ main(void)
 	ck_hp_init(&stack_hp, CK_HP_STACK_SLOTS_COUNT, 1000000, NULL);
 	r = malloc(CK_HP_STACK_SLOTS_SIZE);
 	if (r == NULL) {
-		fprintf(stderr, "ERROR: Failed to allocate slots.\n");
-		exit(EXIT_FAILURE);
+		ck_error("ERROR: Failed to allocate slots.\n");
 	}
 	ck_hp_register(&stack_hp, &record, (void *)r);
 

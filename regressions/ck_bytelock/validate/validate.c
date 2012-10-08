@@ -70,8 +70,7 @@ thread(void *null)
 		{
 			l = ck_pr_load_uint(&locked);
 			if (l != 0) {
-				fprintf(stderr, "ERROR [WR:%d]: %u != 0\n", __LINE__, l);
-				exit(EXIT_FAILURE);
+				ck_error("ERROR [WR:%d]: %u != 0\n", __LINE__, l);
 			}
 
 			ck_pr_inc_uint(&locked);
@@ -85,8 +84,7 @@ thread(void *null)
 
 			l = ck_pr_load_uint(&locked);
 			if (l != 8) {
-				fprintf(stderr, "ERROR [WR:%d]: %u != 2\n", __LINE__, l);
-				exit(EXIT_FAILURE);
+				ck_error("ERROR [WR:%d]: %u != 2\n", __LINE__, l);
 			}
 
 			ck_pr_dec_uint(&locked);
@@ -100,8 +98,7 @@ thread(void *null)
 
 			l = ck_pr_load_uint(&locked);
 			if (l != 0) {
-				fprintf(stderr, "ERROR [WR:%d]: %u != 0\n", __LINE__, l);
-				exit(EXIT_FAILURE);
+				ck_error("ERROR [WR:%d]: %u != 0\n", __LINE__, l);
 			}
 		}
 		ck_bytelock_write_unlock(&lock);
@@ -110,8 +107,7 @@ thread(void *null)
 		{
 			l = ck_pr_load_uint(&locked);
 			if (l != 0) {
-				fprintf(stderr, "ERROR [RD:%d]: %u != 0\n", __LINE__, l);
-				exit(EXIT_FAILURE);
+				ck_error("ERROR [RD:%d]: %u != 0\n", __LINE__, l);
 			}
 		}
 		ck_bytelock_read_unlock(&lock, context->tid);
@@ -128,44 +124,39 @@ main(int argc, char *argv[])
 	int i;
 
 	if (argc != 3) {
-		fprintf(stderr, "Usage: correct <number of threads> <affinity delta>\n");
-		exit(EXIT_FAILURE);
+		ck_error("Usage: correct <number of threads> <affinity delta>\n");
 	}
 
 	nthr = atoi(argv[1]);
 	if (nthr <= 0) {
-		fprintf(stderr, "ERROR: Number of threads must be greater than 0\n");
-		exit(EXIT_FAILURE);
+		ck_error("ERROR: Number of threads must be greater than 0\n");
 	}
 
 	threads = malloc(sizeof(pthread_t) * nthr);
 	if (threads == NULL) {
-		fprintf(stderr, "ERROR: Could not allocate thread structures\n");
-		exit(EXIT_FAILURE);
+		ck_error("ERROR: Could not allocate thread structures\n");
 	}
 
 	context = malloc(sizeof(struct block) * nthr);
 	if (context == NULL) {
-		fprintf(stderr, "ERROR: Could not allocate thread contexts\n");
-		exit(EXIT_FAILURE);
+		ck_error("ERROR: Could not allocate thread contexts\n");
 	}
 
 	a.delta = atoi(argv[2]);
 
-	fprintf(stderr, "Creating threads (mutual exclusion)...");
+	ck_error("Creating threads (mutual exclusion)...");
 	for (i = 0; i < nthr; i++) {
 		context[i].tid = i + 1;
 		if (pthread_create(&threads[i], NULL, thread, context + i)) {
-			fprintf(stderr, "ERROR: Could not create thread %d\n", i);
-			exit(EXIT_FAILURE);
+			ck_error("ERROR: Could not create thread %d\n", i);
 		}
 	}
-	fprintf(stderr, "done\n");
+	ck_error("done\n");
 
-	fprintf(stderr, "Waiting for threads to finish correctness regression...");
+	ck_error("Waiting for threads to finish correctness regression...");
 	for (i = 0; i < nthr; i++)
 		pthread_join(threads[i], NULL);
-	fprintf(stderr, "done (passed)\n");
+	ck_error("done (passed)\n");
 
 	return (0);
 }

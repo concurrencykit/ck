@@ -75,8 +75,7 @@ thread(void *group)
 		ck_barrier_combining(&barrier, group, &state);
 		counter = ck_pr_load_int(&counters[i]);
 		if (counter != nthr * ngroups * (j / ENTRIES + 1)) {
-			fprintf(stderr, "FAILED [%d:%d]: %d != %d\n", i, j - 1, counter, nthr * ngroups);
-			exit(EXIT_FAILURE);
+			ck_error("FAILED [%d:%d]: %d != %d\n", i, j - 1, counter, nthr * ngroups);
 		}
 	}
 
@@ -93,38 +92,32 @@ main(int argc, char *argv[])
 
 	init_root = malloc(sizeof(ck_barrier_combining_group_t));
 	if (init_root == NULL) {
-		fprintf(stderr, "ERROR: Could not allocate initial barrier structure\n");
-		exit(EXIT_FAILURE);
+		ck_error("ERROR: Could not allocate initial barrier structure\n");
 	}
 	ck_barrier_combining_init(&barrier, init_root);
 
 	if (argc < 4) {
-		fprintf(stderr, "Usage: correct <total groups> <threads per group> <affinity delta>\n");
-		exit(EXIT_FAILURE);
+		ck_error("Usage: correct <total groups> <threads per group> <affinity delta>\n");
 	}
 
 	ngroups = atoi(argv[1]);
 	if (ngroups <= 0) {
-		fprintf(stderr, "ERROR: Number of groups must be greater than 0\n");
-		exit(EXIT_FAILURE);
+		ck_error("ERROR: Number of groups must be greater than 0\n");
 	}
 
 	nthr = atoi(argv[2]);
 	if (nthr <= 0) {
-		fprintf(stderr, "ERROR: Number of threads must be greater than 0\n");
-		exit(EXIT_FAILURE);
+		ck_error("ERROR: Number of threads must be greater than 0\n");
 	}
 
 	groupings = malloc(sizeof(ck_barrier_combining_group_t) * ngroups);
 	if (groupings == NULL) {
-		fprintf(stderr, "Could not allocate thread barrier grouping structures\n");
-		exit(EXIT_FAILURE);
+		ck_error("Could not allocate thread barrier grouping structures\n");
 	}
 
 	threads = malloc(sizeof(pthread_t) * nthr * ngroups);
 	if (threads == NULL) {
-		fprintf(stderr, "ERROR: Could not allocate thread structures\n");
-		exit(EXIT_FAILURE);
+		ck_error("ERROR: Could not allocate thread structures\n");
 	}
 
 	a.delta = atoi(argv[3]);
@@ -132,19 +125,18 @@ main(int argc, char *argv[])
 	for (i = 0; i < ngroups; i++)
 		ck_barrier_combining_group_init(&barrier, groupings + i, nthr);
 
-	fprintf(stderr, "Creating threads (barrier)...");
+	ck_error("Creating threads (barrier)...");
 	for (i = 0; i < (nthr * ngroups); i++) {
 		if (pthread_create(&threads[i], NULL, thread, groupings + (i % ngroups))) {
-			fprintf(stderr, "ERROR: Could not create thread %d\n", i);
-			exit(EXIT_FAILURE);
+			ck_error("ERROR: Could not create thread %d\n", i);
 		}
 	}
-	fprintf(stderr, "done\n");
+	ck_error("done\n");
 
-	fprintf(stderr, "Waiting for threads to finish correctness regression...");
+	ck_error("Waiting for threads to finish correctness regression...");
 	for (i = 0; i < (nthr * ngroups); i++)
 		pthread_join(threads[i], NULL);
-	fprintf(stderr, "done (passed)\n");
+	ck_error("done (passed)\n");
 
 	return (0);
 }

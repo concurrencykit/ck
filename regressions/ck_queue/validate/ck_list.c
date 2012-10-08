@@ -57,16 +57,14 @@ test_foreach(void)
 				s = s - 1;
 
 			if (n->value != s) {
-				fprintf(stderr, "\nExpected %d, but got %d.\n",
+				ck_error("\nExpected %d, but got %d.\n",
 				    s, n->value);
-				exit(EXIT_FAILURE);
 			}
 
 			next = CK_LIST_NEXT(n, list_entry);
 			if (next != NULL && next->value != s - 1) {
-				fprintf(stderr, "\nExpected %d, but got %d.\n",
+				ck_error("\nExpected %d, but got %d.\n",
 				    s, next->value);
-				exit(EXIT_FAILURE);
 			}
 
 			i--;
@@ -85,16 +83,14 @@ test_foreach(void)
 				s = s - 1;
 
 			if (n->value != s) {
-				fprintf(stderr, "\nExpected %d, but got %d.\n",
+				ck_error("\nExpected %d, but got %d.\n",
 				    s, n->value);
-				exit(EXIT_FAILURE);
 			}
 
 			next = CK_LIST_NEXT(n, list_entry);
 			if (next != NULL && next->value != s - 1) {
-				fprintf(stderr, "\nExpected %d, but got %d.\n",
+				ck_error("\nExpected %d, but got %d.\n",
 				    s, next->value);
-				exit(EXIT_FAILURE);
 			}
 
 			i--;
@@ -104,7 +100,7 @@ test_foreach(void)
 			break;
 	}
 
-	fprintf(stderr, "(%d, %d) ", j, k);
+	ck_error("(%d, %d) ", j, k);
 	return;
 }
 
@@ -126,14 +122,12 @@ main(int argc, char *argv[])
 	int n_threads, i;
 
 	if (argc != 3) {
-		fprintf(stderr, "Usage: %s <number of threads> <number of list entries>\n", argv[0]);
-		exit(EXIT_FAILURE);
+		ck_error("Usage: %s <number of threads> <number of list entries>\n", argv[0]);
 	}
 
 	n_threads = atoi(argv[1]);
 	if (n_threads < 1) {
-		fprintf(stderr, "ERROR: Number of threads must be >= 1.\n");
-		exit(EXIT_FAILURE);
+		ck_error("ERROR: Number of threads must be >= 1.\n");
 	}
 
 	thread = malloc(sizeof(pthread_t) * n_threads);
@@ -141,11 +135,10 @@ main(int argc, char *argv[])
 
 	goal = atoi(argv[2]);
 	if (goal < 4) {
-		fprintf(stderr, "ERROR: Number of entries must be >= 4.\n");
-		exit(EXIT_FAILURE);
+		ck_error("ERROR: Number of entries must be >= 4.\n");
 	}
 
-	fprintf(stderr, "Beginning serial test...");
+	ck_error("Beginning serial test...");
 	CK_LIST_INIT(&head);
 
 	for (i = 1; i <= goal; i++) {
@@ -164,13 +157,12 @@ main(int argc, char *argv[])
 	}
 
 	if (CK_LIST_EMPTY(&head) == false) {
-		fprintf(stderr, "List is not empty after bulk removal.\n");
-		exit(EXIT_FAILURE);
+		ck_error("List is not empty after bulk removal.\n");
 	}
 
-	fprintf(stderr, "done (success)\n");
+	ck_error("done (success)\n");
 
-	fprintf(stderr, "Beginning parallel traversal...");
+	ck_error("Beginning parallel traversal...");
 
 	n = malloc(sizeof *n);
 	assert(n != NULL);
@@ -216,7 +208,7 @@ main(int argc, char *argv[])
 	for (i = 0; i < n_threads; i++)
 		pthread_join(thread[i], NULL);
 
-	fprintf(stderr, "done (success)\n");
+	ck_error("done (success)\n");
 	return (0);
 }
 

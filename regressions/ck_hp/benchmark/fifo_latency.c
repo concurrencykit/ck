@@ -59,8 +59,7 @@ main(void)
 
 	r = malloc(CK_HP_FIFO_SLOTS_SIZE);
 	if (r == NULL) {
-		fprintf(stderr, "ERROR: Failed to allocate slots.\n");
-		exit(EXIT_FAILURE);
+		ck_error("ERROR: Failed to allocate slots.\n");
 	}
 	ck_hp_register(&fifo_hp, &record, r);
 

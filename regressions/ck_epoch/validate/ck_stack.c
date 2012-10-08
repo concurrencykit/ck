@@ -90,15 +90,13 @@ thread(void *unused CK_CC_UNUSED)
 
 	entry = malloc(sizeof(struct node *) * PAIRS);
 	if (entry == NULL) {
-		fprintf(stderr, "Failed allocation.\n");
-		exit(EXIT_FAILURE);
+		ck_error("Failed allocation.\n");
 	}
 
 	for (i = 0; i < PAIRS; i++) {
 		entry[i] = malloc(sizeof(struct node));
 		if (entry == NULL) {
-			fprintf(stderr, "Failed individual allocation\n");
-			exit(EXIT_FAILURE);
+			ck_error("Failed individual allocation\n");
 		}
 	}
 
@@ -119,8 +117,8 @@ thread(void *unused CK_CC_UNUSED)
 	ck_pr_inc_uint(&e_barrier);
 	while (ck_pr_load_uint(&e_barrier) < n_threads);
 
-	fprintf(stderr, "Deferrals: %lu (%2.2f)\n", smr, (double)smr / PAIRS);
-	fprintf(stderr, "Peak: %u (%2.2f%%), %u pending\nReclamations: %lu\n\n",
+	ck_error("Deferrals: %lu (%2.2f)\n", smr, (double)smr / PAIRS);
+	ck_error("Peak: %u (%2.2f%%), %u pending\nReclamations: %lu\n\n",
 			record.n_peak,
 			(double)record.n_peak / PAIRS * 100,
 			record.n_pending,
@@ -131,9 +129,8 @@ thread(void *unused CK_CC_UNUSED)
 	while (ck_pr_load_uint(&e_barrier) < (n_threads << 1));
 
 	if (record.n_pending != 0) {
-		fprintf(stderr, "ERROR: %u pending, expecting none.\n",
+		ck_error("ERROR: %u pending, expecting none.\n",
 				record.n_pending);
-		exit(EXIT_FAILURE);
 	}
 
 	return (NULL);
@@ -146,8 +143,7 @@ main(int argc, char *argv[])
 	pthread_t *threads;
 
 	if (argc != 3) {
-		fprintf(stderr, "Usage: stack <threads> <affinity delta>\n");
-		exit(EXIT_FAILURE);
+		ck_error("Usage: stack <threads> <affinity delta>\n");
 	}
 
 	n_threads = atoi(argv[1]);

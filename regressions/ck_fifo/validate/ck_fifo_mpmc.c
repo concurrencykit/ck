@@ -82,13 +82,11 @@ test(void *c)
 			entry->tid = context->tid;
 			ck_fifo_mpmc_enqueue(&fifo, fifo_entry, entry);
 			if (ck_fifo_mpmc_dequeue(&fifo, &entry, &garbage) == false) {
-				fprintf(stderr, "ERROR [%u] Queue should never be empty.\n", context->tid);
-				exit(EXIT_FAILURE);
+				ck_error("ERROR [%u] Queue should never be empty.\n", context->tid);
 			}
 
 			if (entry->tid < 0 || entry->tid >= nthr) {
-				fprintf(stderr, "ERROR [%u] Incorrect value in entry.\n", entry->tid);
-				exit(EXIT_FAILURE);
+				ck_error("ERROR [%u] Incorrect value in entry.\n", entry->tid);
 			}
 		}
 	}
@@ -105,8 +103,7 @@ test(void *c)
 				ck_pr_stall();
 
 			if (entry->tid < 0 || entry->tid >= nthr) {
-				fprintf(stderr, "ERROR [%u] Incorrect value in entry when using try interface.\n", entry->tid);
-				exit(EXIT_FAILURE);
+				ck_error("ERROR [%u] Incorrect value in entry when using try interface.\n", entry->tid);
 			}
 		}
 	}
@@ -123,8 +120,7 @@ main(int argc, char *argv[])
 	pthread_t *thread;
 
 	if (argc != 4) {
-		fprintf(stderr, "Usage: validate <threads> <affinity delta> <size>\n");
-		exit(EXIT_FAILURE);
+		ck_error("Usage: validate <threads> <affinity delta> <size>\n");
 	}
 
 	a.request = 0;
@@ -158,7 +154,7 @@ main(int argc, char *argv[])
 int
 main(void)
 {
-	fprintf(stderr, "Unsupported.\n");
+	ck_error("Unsupported.\n");
 	return 0;
 }
 #endif

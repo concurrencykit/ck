@@ -138,7 +138,7 @@ read_thread(void *unused CK_CC_UNUSED)
 	ck_pr_inc_uint(&e_barrier);
 	while (ck_pr_load_uint(&e_barrier) < n_threads);
 
-	fprintf(stderr, "[R] Observed entries: %u\n", j);
+	ck_error("[R] Observed entries: %u\n", j);
 	return (NULL);
 }
 
@@ -163,16 +163,14 @@ write_thread(void *unused CK_CC_UNUSED)
 
 	entry = malloc(sizeof(struct node *) * PAIRS_S);
 	if (entry == NULL) {
-		fprintf(stderr, "Failed allocation.\n");
-		exit(EXIT_FAILURE);
+		ck_error("Failed allocation.\n");
 	}
 
 	for (j = 0; j < ITERATE_S; j++) {
 		for (i = 0; i < PAIRS_S; i++) {
 			entry[i] = malloc(sizeof(struct node));
 			if (entry == NULL) {
-				fprintf(stderr, "Failed individual allocation\n");
-				exit(EXIT_FAILURE);
+				ck_error("Failed individual allocation\n");
 			}
 		}
 
@@ -184,7 +182,7 @@ write_thread(void *unused CK_CC_UNUSED)
 			ck_pr_stall();
 
 		if (tid == 0) {
-			fprintf(stderr, "\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b[W] %2.2f: %c",
+			ck_error("\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b[W] %2.2f: %c",
 			    (double)j / ITERATE_S, animate[i % strlen(animate)]);
 		}
 
@@ -202,7 +200,7 @@ write_thread(void *unused CK_CC_UNUSED)
 	ck_epoch_synchronize(&stack_epoch, &record);
 
 	if (tid == 0) {
-		fprintf(stderr, "\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b[W] Peak: %u (%2.2f%%)\n    Reclamations: %lu\n\n",
+		ck_error("\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b[W] Peak: %u (%2.2f%%)\n    Reclamations: %lu\n\n",
 			record.n_peak,
 			(double)record.n_peak / ((double)PAIRS_S * ITERATE_S) * 100,
 			record.n_dispatch);
@@ -220,8 +218,7 @@ main(int argc, char *argv[])
 	pthread_t *threads;
 
 	if (argc != 4) {
-		fprintf(stderr, "Usage: stack <#readers> <#writers> <affinity delta>\n");
-		exit(EXIT_FAILURE);
+		ck_error("Usage: stack <#readers> <#writers> <affinity delta>\n");
 	}
 
 	n_rd = atoi(argv[1]);

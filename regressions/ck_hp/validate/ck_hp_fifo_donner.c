@@ -34,6 +34,7 @@
 #include <pthread.h>
 #include <sys/time.h>
 #include <assert.h>
+#include "../../common.h"
 
 /* FIFO queue */
 static ck_hp_fifo_t fifo;
@@ -149,8 +150,7 @@ main(int argc, char** argv)
 	pthread_t *thr;
 
         if (argc != 3) {
-        	fprintf(stderr, "Usage: cktest <thread_count> <element_count>\n");
-        	exit(EXIT_FAILURE);
+        	ck_error("Usage: cktest <thread_count> <element_count>\n");
         }
 
         /* Get element count from argument */

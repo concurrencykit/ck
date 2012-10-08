@@ -89,9 +89,8 @@ test_spmc(void *c)
 			    || o->value != o->tid
 			    || o->magic != 0xdead
 			    || (previous != 0 && previous >= o->value_long)) {
-				fprintf(stderr, "[0x%p] (%x) (%d, %d) >< (0, %d)\n",
+				ck_error("[0x%p] (%x) (%d, %d) >< (0, %d)\n",
 					(void *)o, o->magic, o->tid, o->value, size);
-				exit(EXIT_FAILURE);
 			}
 
 			o->magic = 0xbeef;
@@ -100,15 +99,14 @@ test_spmc(void *c)
 			previous = o->value_long;
 
 			if (ck_pr_faa_uint(&o->ref, 1) != 0) {
-				fprintf(stderr, "[%p] We dequeued twice.\n", (void *)o);
-				exit(EXIT_FAILURE);
+				ck_error("[%p] We dequeued twice.\n", (void *)o);
 			}
 
 			free(o);
 		}
 	}
 
-	fprintf(stderr, "[%d] Observed %u\n", tid, observed);
+	ck_error("[%d] Observed %u\n", tid, observed);
 	return NULL;
 }
 
@@ -132,9 +130,8 @@ test(void *c)
 		assert(entries != NULL);
 
 		if (ck_ring_size(ring) != 0) {
-			fprintf(stderr, "More entries than expected: %u > 0\n",
+			ck_error("More entries than expected: %u > 0\n",
 				ck_ring_size(ring));
-			exit(EXIT_FAILURE);
 		}
 
 		for (i = 0; i < size; i++) {
@@ -146,15 +143,13 @@ test(void *c)
 		}
 
 		if (ck_ring_size(ring) != (unsigned int)size) {
-			fprintf(stderr, "Less entries than expected: %u < %d\n",
+			ck_error("Less entries than expected: %u < %d\n",
 				ck_ring_size(ring), size);
-			exit(EXIT_FAILURE);
 		}
 
 		if (ck_ring_capacity(ring) != ck_ring_size(ring) + 1) {
-			fprintf(stderr, "Capacity less than expected: %u < %u\n",
+			ck_error("Capacity less than expected: %u < %u\n",
 				ck_ring_size(ring), ck_ring_capacity(ring));
-			exit(EXIT_FAILURE);
 		}
 
 		barrier = 1;
@@ -167,15 +162,13 @@ test(void *c)
 			while (ck_ring_dequeue_spmc(ring + context->previous, &entry) == false);
 
 			if (context->previous != (unsigned int)entry->tid) {
-				fprintf(stderr, "[%u:%p] %u != %u\n",
+				ck_error("[%u:%p] %u != %u\n",
 					context->tid, (void *)entry, entry->tid, context->previous);
-				exit(EXIT_FAILURE);
 			}
 
 			if (entry->value < 0 || entry->value >= size) {
-				fprintf(stderr, "[%u:%p] %u </> %u\n",
+				ck_error("[%u:%p] %u </> %u\n",
 					context->tid, (void *)entry, entry->tid, context->previous);
-				exit(EXIT_FAILURE);
 			}
 
 			entry->tid = context->tid;
@@ -197,8 +190,7 @@ main(int argc, char *argv[])
 	pthread_t *thread;
 
 	if (argc != 4) {
-		fprintf(stderr, "Usage: validate <threads> <affinity delta> <size>\n");
-		exit(EXIT_FAILURE);
+		ck_error("Usage: validate <threads> <affinity delta> <size>\n");
 	}
 
 	a.request = 0;
@@ -220,7 +212,7 @@ main(int argc, char *argv[])
 	thread = malloc(sizeof(pthread_t) * nthr);
 	assert(thread);
 
-	fprintf(stderr, "SPSC test:");
+	ck_error("SPSC test:");
 	for (i = 0; i < nthr; i++) {
 		context[i].tid = i;
 		if (i == 0) {
@@ -244,9 +236,9 @@ main(int argc, char *argv[])
 
 	for (i = 0; i < nthr; i++)
 		pthread_join(thread[i], NULL);
-	fprintf(stderr, " done\n");
+	ck_error(" done\n");
 
-	fprintf(stderr, "SPMC test:\n");
+	ck_error("SPMC test:\n");
 	buffer = malloc(sizeof(void *) * (size + 1));
 	assert(buffer);
 	memset(buffer, 0, sizeof(void *) * (size + 1));
