@@ -100,7 +100,7 @@ test_foreach(void)
 			break;
 	}
 
-	ck_error("(%d, %d) ", j, k);
+	fprintf(stderr, "(%d, %d) ", j, k);
 	return;
 }
 
@@ -138,7 +138,7 @@ main(int argc, char *argv[])
 		ck_error("ERROR: Number of entries must be >= 4.\n");
 	}
 
-	ck_error("Beginning serial test...");
+	fprintf(stderr, "Beginning serial test...");
 	CK_LIST_INIT(&head);
 
 	for (i = 1; i <= goal; i++) {
@@ -160,9 +160,9 @@ main(int argc, char *argv[])
 		ck_error("List is not empty after bulk removal.\n");
 	}
 
-	ck_error("done (success)\n");
+	fprintf(stderr, "done (success)\n");
 
-	ck_error("Beginning parallel traversal...");
+	fprintf(stderr, "Beginning parallel traversal...");
 
 	n = malloc(sizeof *n);
 	assert(n != NULL);
@@ -208,7 +208,7 @@ main(int argc, char *argv[])
 	for (i = 0; i < n_threads; i++)
 		pthread_join(thread[i], NULL);
 
-	ck_error("done (success)\n");
+	fprintf(stderr, "done (success)\n");
 	return (0);
 }
 

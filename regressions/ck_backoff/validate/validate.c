@@ -37,7 +37,7 @@ main(void)
 	const ck_backoff_t ceiling = CK_BACKOFF_CEILING + 1;
 	unsigned int i = 0;
 
-	ck_error("Ceiling is: %u (%#x)\n", CK_BACKOFF_CEILING, CK_BACKOFF_CEILING);
+	fprintf(stderr, "Ceiling is: %u (%#x)\n", CK_BACKOFF_CEILING, CK_BACKOFF_CEILING);
 
 	for (;;) {
 		ck_backoff_t previous = backoff;

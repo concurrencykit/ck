@@ -117,8 +117,8 @@ thread(void *unused CK_CC_UNUSED)
 	ck_pr_inc_uint(&e_barrier);
 	while (ck_pr_load_uint(&e_barrier) < n_threads);
 
-	ck_error("Deferrals: %lu (%2.2f)\n", smr, (double)smr / PAIRS);
-	ck_error("Peak: %u (%2.2f%%), %u pending\nReclamations: %lu\n\n",
+	fprintf(stderr, "Deferrals: %lu (%2.2f)\n", smr, (double)smr / PAIRS);
+	fprintf(stderr, "Peak: %u (%2.2f%%), %u pending\nReclamations: %lu\n\n",
 			record.n_peak,
 			(double)record.n_peak / PAIRS * 100,
 			record.n_pending,

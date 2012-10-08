@@ -138,21 +138,21 @@ main(int argc, char *argv[])
 	affinity.delta = atoi(argv[1]);
 	affinity.request = 0;
 
-	ck_error("Creating threads (rwlock)...");
+	fprintf(stderr, "Creating threads (rwlock)...");
 	for (t = 0; t < threads; t++) {
 		if (pthread_create(&p[t], NULL, thread_rwlock, latency + t) != 0) {
 			ck_error("ERROR: Could not create thread %d\n", t);
 		}
 	}
-	ck_error("done\n");
+	fprintf(stderr, "done\n");
 
 	sleep(10);
 	ck_pr_store_uint(&flag, 1);
 
-	ck_error("Waiting for threads to finish acquisition regression...");
+	fprintf(stderr, "Waiting for threads to finish acquisition regression...");
 	for (t = 0; t < threads; t++)
 		pthread_join(p[t], NULL);
-	ck_error("done\n\n");
+	fprintf(stderr, "done\n\n");
 
 	for (t = 1; t <= threads; t++)
 		printf("%10u %20" PRIu64 "\n", t, latency[t - 1]);

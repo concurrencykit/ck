@@ -154,7 +154,7 @@ main(int argc, char *argv[])
 int
 main(void)
 {
-	ck_error("Unsupported.\n");
+	fprintf(stderr, "Unsupported.\n");
 	return 0;
 }
 #endif

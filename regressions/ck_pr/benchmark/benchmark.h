@@ -92,7 +92,7 @@ main(int argc, char *argv[])
 	}
 	memset(count, 0, sizeof(uint64_t) * nthr);
 
-	ck_error("Creating threads (fairness)...");
+	fprintf(stderr, "Creating threads (fairness)...");
 	for (i = 0; i < nthr; i++) {
 		context[i].tid = i;
 		if (pthread_create(&threads[i], NULL, fairness, context + i)) {
@@ -100,16 +100,16 @@ main(int argc, char *argv[])
 			exit(EXIT_FAILURE);
 		}
 	}
-	ck_error("done\n");
+	fprintf(stderr, "done\n");
 
 	ck_pr_store_uint(&ready, 1);
 	sleep(10);
 	ck_pr_store_uint(&ready, 0);
 
-	ck_error("Waiting for threads to finish acquisition regression...");
+	fprintf(stderr, "Waiting for threads to finish acquisition regression...");
 	for (i = 0; i < nthr; i++)
 		pthread_join(threads[i], NULL);
-	ck_error("done\n\n");
+	fprintf(stderr, "done\n\n");
 
 	for (i = 0, v = 0; i < nthr; i++) {
 		printf("%d %15" PRIu64 "\n", i, count[i]);

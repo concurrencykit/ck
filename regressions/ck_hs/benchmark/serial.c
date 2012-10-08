@@ -223,10 +223,10 @@ main(int argc, char *argv[])
 		d += set_insert(keys[i]) == false;
 	ck_hs_stat(&hs, &st);
 
-	ck_error("# %zu entries stored, %u duplicates, %u probe.\n",
+	fprintf(stderr, "# %zu entries stored, %u duplicates, %u probe.\n",
 	    set_count(), d, st.probe_maximum);
 
-	ck_error("#    reverse_insertion serial_insertion random_insertion serial_replace reverse_get serial_get random_get serial_remove negative_get\n\n");
+	fprintf(stderr, "#    reverse_insertion serial_insertion random_insertion serial_replace reverse_get serial_get random_get serial_remove negative_get\n\n");
 
 	a = 0;
 	for (j = 0; j < r; j++) {

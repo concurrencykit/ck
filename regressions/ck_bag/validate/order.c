@@ -144,7 +144,7 @@ reader(void *arg)
 			break;
 	}
 
-	ck_error("Read %llu entries in %llu iterations.\n", n_entries, iterations);
+	fprintf(stderr, "Read %llu entries in %llu iterations.\n", n_entries, iterations);
 
 	ck_pr_inc_uint(&barrier);
 	while (ck_pr_load_uint(&barrier) != NUM_READER_THREADS + 1)
@@ -199,7 +199,7 @@ writer_thread(void *unused)
 		ck_epoch_poll(&epoch_bag, &epoch_wr);
 	}
 
-	ck_error("Writer %u iterations, %u writes per iteration.\n", iteration, writer_max);
+	fprintf(stderr, "Writer %u iterations, %u writes per iteration.\n", iteration, writer_max);
 	while (ck_pr_load_uint(&barrier) != NUM_READER_THREADS)
 		ck_pr_stall();
 
@@ -241,7 +241,7 @@ main(int argc, char **argv)
 	if (ck_bag_init(&bag, b, CK_BAG_ALLOCATE_GEOMETRIC) == false) {
 		ck_error("Error: failed ck_bag_init().");
 	}
-	ck_error("Configuration: %u entries, %zu bytes/block, %zu entries/block\n", writer_max, bag.info.bytes, bag.info.max);
+	fprintf(stderr, "Configuration: %u entries, %zu bytes/block, %zu entries/block\n", writer_max, bag.info.bytes, bag.info.max);
 
 	i = 1;
 	/* Basic Test */
@@ -278,16 +278,16 @@ main(int argc, char **argv)
 		pthread_create(&readers[i], NULL, reader, NULL);
 	}
 
-	ck_error("Waiting...");
+	fprintf(stderr, "Waiting...");
 	sleep(30);
-	ck_error("done\n");
+	fprintf(stderr, "done\n");
 
 	ck_pr_store_int(&leave, 1);
 	for (i = 0; i < NUM_READER_THREADS; i++)
 		pthread_join(readers[i], NULL);
 
 	pthread_join(writer, NULL);
-	ck_error("Current entries: %u\n", ck_bag_count(&bag));
+	fprintf(stderr, "Current entries: %u\n", ck_bag_count(&bag));
 	ck_bag_destroy(&bag);
 	return 0;
 }

@@ -68,7 +68,7 @@ test(void *c)
         }
 
 #ifdef DEBUG
-	ck_error("%p %u: %u -> %u\n", fifo+context->tid, context->tid, context->previous, context->tid);
+	fprintf(stderr, "%p %u: %u -> %u\n", fifo+context->tid, context->tid, context->previous, context->tid);
 #endif
 
 	if (context->tid == 0) {

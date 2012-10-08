@@ -219,6 +219,6 @@ main(int argc, char *argv[])
 	for (i = 0; i < n_threads; i++)
 		pthread_join(threads[i], NULL);
 
-	ck_error("Push: %u\nPop: %u\n", pushs, pops);
+	fprintf(stderr, "Push: %u\nPop: %u\n", pushs, pops);
 	return (0);
 }

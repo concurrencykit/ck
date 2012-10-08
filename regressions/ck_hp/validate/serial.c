@@ -49,7 +49,7 @@ static void
 destructor(void *pointer)
 {
 
-	ck_error("Free %p\n", pointer);
+	fprintf(stderr, "Free %p\n", pointer);
 	free(pointer);
 	return;
 }

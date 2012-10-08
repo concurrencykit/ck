@@ -127,7 +127,7 @@ main(int argc, char *argv[])
 
 	base = ck_bitmap_base(length);
 	bytes = ck_bitmap_size(length);
-	ck_error("Configuration: %u bytes\n",
+	fprintf(stderr, "Configuration: %u bytes\n",
 	    bytes);
 
 	g_bits = malloc(bytes);
@@ -142,7 +142,7 @@ main(int argc, char *argv[])
 	ck_bitmap_test(g_bits, length - 1);
 
 	CK_BITMAP_INSTANCE(STATIC_LENGTH) sb;
-	ck_error("Static configuration: %zu bytes\n",
+	fprintf(stderr, "Static configuration: %zu bytes\n",
 	    sizeof(sb));
 	memset(CK_BITMAP_BUFFER(&sb), 0xFF, ck_bitmap_base(STATIC_LENGTH));
 	CK_BITMAP_INIT(&sb, STATIC_LENGTH, false);

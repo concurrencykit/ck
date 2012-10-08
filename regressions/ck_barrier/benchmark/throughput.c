@@ -106,13 +106,13 @@ main(int argc, char *argv[])
 
         a.delta = atoi(argv[2]);
 
-        ck_error("Creating threads (barrier)...");
+        fprintf(stderr, "Creating threads (barrier)...");
         for (i = 0; i < nthr; ++i) {
                 if (pthread_create(&threads[i], NULL, thread, NULL)) {
                         ck_error("ERROR: Could not create thread %d\n", i);
                 }
         }
-        ck_error("done\n");
+        fprintf(stderr, "done\n");
 
 	sleep(10);
 

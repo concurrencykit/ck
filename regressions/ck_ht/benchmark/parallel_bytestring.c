@@ -338,12 +338,12 @@ main(int argc, char *argv[])
 	for (i = 0; i < keys_length; i++)
 		d += table_insert(keys[i]) == false;
 
-	ck_error(" [S] %d readers, 1 writer.\n", n_threads);
-	ck_error(" [S] %zu entries stored and %u duplicates.\n\n",
+	fprintf(stderr, " [S] %d readers, 1 writer.\n", n_threads);
+	fprintf(stderr, " [S] %zu entries stored and %u duplicates.\n\n",
 	    table_count(), d);
 
-	ck_error(" ,- BASIC TEST\n");
-	ck_error(" | Executing SMR test...");
+	fprintf(stderr, " ,- BASIC TEST\n");
+	fprintf(stderr, " | Executing SMR test...");
 	a = 0;
 	for (j = 0; j < r; j++) {
 		if (table_reset() == false) {
@@ -356,9 +356,9 @@ main(int argc, char *argv[])
 		e = rdtsc();
 		a += e - s;
 	}
-	ck_error("done (%" PRIu64 " ticks)\n", a / (r * keys_length));
+	fprintf(stderr, "done (%" PRIu64 " ticks)\n", a / (r * keys_length));
 
-	ck_error(" | Executing replacement test...");
+	fprintf(stderr, " | Executing replacement test...");
 	a = 0;
 	for (j = 0; j < r; j++) {
 		s = rdtsc();
@@ -367,9 +367,9 @@ main(int argc, char *argv[])
 		e = rdtsc();
 		a += e - s;
 	}
-	ck_error("done (%" PRIu64 " ticks)\n", a / (r * keys_length));
+	fprintf(stderr, "done (%" PRIu64 " ticks)\n", a / (r * keys_length));
 
-	ck_error(" | Executing get test...");
+	fprintf(stderr, " | Executing get test...");
 	a = 0;
 	for (j = 0; j < r; j++) {
 		s = rdtsc();
@@ -381,10 +381,10 @@ main(int argc, char *argv[])
 		e = rdtsc();
 		a += e - s;
 	}
-	ck_error("done (%" PRIu64 " ticks)\n", a / (r * keys_length));
+	fprintf(stderr, "done (%" PRIu64 " ticks)\n", a / (r * keys_length));
 
 	a = 0;
-	ck_error(" | Executing removal test...");
+	fprintf(stderr, " | Executing removal test...");
 	for (j = 0; j < r; j++) {
 		s = rdtsc();
 		for (i = 0; i < keys_length; i++)
@@ -395,9 +395,9 @@ main(int argc, char *argv[])
 		for (i = 0; i < keys_length; i++)
 			table_insert(keys[i]);
 	}
-	ck_error("done (%" PRIu64 " ticks)\n", a / (r * keys_length));
+	fprintf(stderr, "done (%" PRIu64 " ticks)\n", a / (r * keys_length));
 
-	ck_error(" | Executing negative look-up test...");
+	fprintf(stderr, " | Executing negative look-up test...");
 	a = 0;
 	for (j = 0; j < r; j++) {
 		s = rdtsc();
@@ -407,18 +407,18 @@ main(int argc, char *argv[])
 		e = rdtsc();
 		a += e - s;
 	}
-	ck_error("done (%" PRIu64 " ticks)\n", a / (r * keys_length));
+	fprintf(stderr, "done (%" PRIu64 " ticks)\n", a / (r * keys_length));
 
 	ck_epoch_record_t epoch_temporary = epoch_wr;
 	ck_epoch_synchronize(&epoch_ht, &epoch_wr);
 
-	ck_error(" '- Summary: %u pending, %u peak, %lu reclamations -> "
+	fprintf(stderr, " '- Summary: %u pending, %u peak, %lu reclamations -> "
 	    "%u pending, %u peak, %lu reclamations\n\n",
 	    epoch_temporary.n_pending, epoch_temporary.n_peak, epoch_temporary.n_dispatch,
 	    epoch_wr.n_pending, epoch_wr.n_peak, epoch_wr.n_dispatch);
 
-	ck_error(" ,- READER CONCURRENCY\n");
-	ck_error(" | Executing reader test...");
+	fprintf(stderr, " ,- READER CONCURRENCY\n");
+	fprintf(stderr, " | Executing reader test...");
 
 	ck_pr_store_int(&state, HT_STATE_GET);
 	while (ck_pr_load_int(&barrier[HT_STATE_STOP]) != n_threads)
@@ -428,10 +428,10 @@ main(int argc, char *argv[])
 	ck_pr_store_int(&state, HT_STATE_STRICT_REPLACEMENT);
 	while (ck_pr_load_int(&barrier[HT_STATE_GET]) != n_threads)
 		ck_pr_stall();
-	ck_error("done (reader = %" PRIu64 " ticks)\n",
+	fprintf(stderr, "done (reader = %" PRIu64 " ticks)\n",
 	    accumulator[HT_STATE_GET] / n_threads);
 
-	ck_error(" | Executing strict replacement test...");
+	fprintf(stderr, " | Executing strict replacement test...");
 
 	a = repeated = 0;
 	signal(SIGALRM, alarm_handler);
@@ -457,13 +457,13 @@ main(int argc, char *argv[])
 		ck_pr_stall();
 	table_reset();
 	ck_epoch_synchronize(&epoch_ht, &epoch_wr);
-	ck_error("done (writer = %" PRIu64 " ticks, reader = %" PRIu64 " ticks)\n",
+	fprintf(stderr, "done (writer = %" PRIu64 " ticks, reader = %" PRIu64 " ticks)\n",
 	    a / (repeated * keys_length), accumulator[HT_STATE_STRICT_REPLACEMENT] / n_threads);
 
 	signal(SIGALRM, alarm_handler);
 	alarm(r);
 
-	ck_error(" | Executing deletion test (%.2f)...", p_d * 100);
+	fprintf(stderr, " | Executing deletion test (%.2f)...", p_d * 100);
 	a = repeated = 0;
 	ck_pr_inc_int(&barrier[HT_STATE_STRICT_REPLACEMENT]);
 	for (;;) {
@@ -493,13 +493,13 @@ main(int argc, char *argv[])
 
 	table_reset();
 	ck_epoch_synchronize(&epoch_ht, &epoch_wr);
-	ck_error("done (writer = %" PRIu64 " ticks, reader = %" PRIu64 " ticks)\n",
+	fprintf(stderr, "done (writer = %" PRIu64 " ticks, reader = %" PRIu64 " ticks)\n",
 	    a / (repeated * keys_length), accumulator[HT_STATE_DELETION] / n_threads);
 
 	signal(SIGALRM, alarm_handler);
 	alarm(r);
 
-	ck_error(" | Executing replacement test (%.2f)...", p_r * 100);
+	fprintf(stderr, " | Executing replacement test (%.2f)...", p_r * 100);
 	a = repeated = 0;
 	ck_pr_inc_int(&barrier[HT_STATE_DELETION]);
 	for (;;) {
@@ -533,14 +533,14 @@ main(int argc, char *argv[])
 		ck_pr_stall();
 	table_reset();
 	ck_epoch_synchronize(&epoch_ht, &epoch_wr);
-	ck_error("done (writer = %" PRIu64 " ticks, reader = %" PRIu64 " ticks)\n",
+	fprintf(stderr, "done (writer = %" PRIu64 " ticks, reader = %" PRIu64 " ticks)\n",
 	    a / (repeated * keys_length), accumulator[HT_STATE_REPLACEMENT] / n_threads);
 
 	ck_pr_inc_int(&barrier[HT_STATE_REPLACEMENT]);
 	epoch_temporary = epoch_wr;
 	ck_epoch_synchronize(&epoch_ht, &epoch_wr);
 
-	ck_error(" '- Summary: %u pending, %u peak, %lu reclamations -> "
+	fprintf(stderr, " '- Summary: %u pending, %u peak, %lu reclamations -> "
 	    "%u pending, %u peak, %lu reclamations\n\n",
 	    epoch_temporary.n_pending, epoch_temporary.n_peak, epoch_temporary.n_dispatch,
 	    epoch_wr.n_pending, epoch_wr.n_peak, epoch_wr.n_dispatch);

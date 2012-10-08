@@ -87,7 +87,7 @@ consumer(void *unused CK_CC_UNUSED)
 		}
         }
 
-        ck_error("%u retries.\n", retries - STEPS);
+        fprintf(stderr, "%u retries.\n", retries - STEPS);
 	ck_pr_dec_uint(&barrier);
         return (NULL);
 }

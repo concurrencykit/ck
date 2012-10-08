@@ -135,19 +135,19 @@ main(int argc, char *argv[])
 	a.delta = atoi(argv[2]);
 	a.request = 0;
 
-	ck_error("Creating threads (mutual exclusion)...");
+	fprintf(stderr, "Creating threads (mutual exclusion)...");
 	for (i = 0; i < nthr; i++) {
 		if (pthread_create(&threads[i], NULL, thread, NULL)) {
 			ck_error("ERROR: Could not create thread %" PRIu64 "\n", i);
 			exit(EXIT_FAILURE);
 		}
 	}
-	ck_error("done\n");
+	fprintf(stderr, "done\n");
 
-	ck_error("Waiting for threads to finish correctness regression...");
+	fprintf(stderr, "Waiting for threads to finish correctness regression...");
 	for (i = 0; i < nthr; i++)
 		pthread_join(threads[i], NULL);
-	ck_error("done (passed)\n");
+	fprintf(stderr, "done (passed)\n");
 
 	return (0);
 }

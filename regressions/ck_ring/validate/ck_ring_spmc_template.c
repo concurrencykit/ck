@@ -105,7 +105,7 @@ test_spmc(void *c)
 		}
 	}
 
-	ck_error("[%d] Observed %u\n", tid, observed);
+	fprintf(stderr, "[%d] Observed %u\n", tid, observed);
 	return NULL;
 }
 
@@ -206,7 +206,7 @@ main(int argc, char *argv[])
 	thread = malloc(sizeof(pthread_t) * nthr);
 	assert(thread);
 
-	ck_error("SPSC test:");
+	fprintf(stderr, "SPSC test:");
 	for (i = 0; i < nthr; i++) {
 		context[i].tid = i;
 		if (i == 0) {
@@ -230,9 +230,9 @@ main(int argc, char *argv[])
 
 	for (i = 0; i < nthr; i++)
 		pthread_join(thread[i], NULL);
-	ck_error(" done\n");
+	fprintf(stderr, " done\n");
 
-	ck_error("SPMC test:\n");
+	fprintf(stderr, "SPMC test:\n");
 	buffer = malloc(sizeof(struct entry) * (size + 1));
 	assert(buffer);
 	memset(buffer, 0, sizeof(struct entry) * (size + 1));

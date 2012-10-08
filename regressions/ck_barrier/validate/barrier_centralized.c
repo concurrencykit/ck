@@ -102,18 +102,18 @@ main(int argc, char *argv[])
 
 	a.delta = atoi(argv[2]);
 
-	ck_error("Creating threads (barrier)...");
+	fprintf(stderr, "Creating threads (barrier)...");
 	for (i = 0; i < nthr; i++) {
 		if (pthread_create(&threads[i], NULL, thread, NULL)) {
 			ck_error("ERROR: Could not create thread %d\n", i);
 		}
 	}
-	ck_error("done\n");
+	fprintf(stderr, "done\n");
 
-	ck_error("Waiting for threads to finish correctness regression...");
+	fprintf(stderr, "Waiting for threads to finish correctness regression...");
 	for (i = 0; i < nthr; i++)
 		pthread_join(threads[i], NULL);
-	ck_error("done (passed)\n");
+	fprintf(stderr, "done (passed)\n");
 
 
 	return (0);
