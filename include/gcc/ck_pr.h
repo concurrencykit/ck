@@ -45,7 +45,7 @@
 
 #define CK_PR_LOAD(S, M, T)		 			\
 	CK_CC_INLINE static T					\
-	ck_pr_load_##S(M *target)				\
+	ck_pr_load_##S(const M *target)				\
 	{							\
 		T r;						\
 		r = CK_PR_ACCESS(*(T *)target);			\
@@ -58,7 +58,21 @@
 		return;						\
 	}
 
-CK_PR_LOAD(ptr, void, void *)
+CK_CC_INLINE static void *
+ck_pr_load_ptr(const void *target)
+{
+
+	void *r = CK_PR_ACCESS(*(void **)target);
+	return r;
+}
+
+CK_CC_INLINE static void
+ck_pr_store_ptr(void *target, const void *v)
+{
+
+	CK_PR_ACCESS(*(void **)target) = (void *)v;
+	return;
+}
 
 #define CK_PR_LOAD_S(S, T) CK_PR_LOAD(S, T, T)
 
