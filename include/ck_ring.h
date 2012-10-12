@@ -295,7 +295,7 @@ ck_ring_dequeue_spmc(struct ck_ring *ring, void *data)
 			return false;
 
 		ck_pr_fence_load();
-		r = ck_pr_load_ptr(&ring->ring[consumer & ring->mask]);
+		r = ring->ring[consumer & ring->mask];
 
 		/* Serialize load with respect to head update. */
 		ck_pr_fence_memory();
