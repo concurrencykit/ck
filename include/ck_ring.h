@@ -257,6 +257,25 @@ ck_ring_enqueue_spmc(struct ck_ring *ring, void *entry)
 }
 
 CK_CC_INLINE static bool
+ck_ring_trydequeue_spmc(struct ck_ring *ring, void *data)
+{
+	unsigned int consumer, producer;
+
+	consumer = ck_pr_load_uint(&ring->c_head);
+	ck_pr_fence_load();
+	producer = ck_pr_load_uint(&ring->p_tail);
+
+	if (consumer == producer)
+		return false;
+
+	ck_pr_fence_load();
+	ck_pr_store_ptr(data, ring->ring[consumer & ring->mask]);
+	ck_pr_fence_memory();
+
+	return ck_pr_cas_uint(&ring->c_head, consumer, consumer + 1);
+}
+
+CK_CC_INLINE static bool
 ck_ring_dequeue_spmc(struct ck_ring *ring, void *data)
 {
 	unsigned int consumer, producer;
