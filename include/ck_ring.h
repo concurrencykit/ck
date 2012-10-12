@@ -119,6 +119,26 @@
 		return ck_ring_enqueue_spsc_##name(ring, entry);		\
 	}									\
 	CK_CC_INLINE static bool						\
+	ck_ring_trydequeue_spmc_##name(struct ck_ring_##name *ring,		\
+				       struct type *data)			\
+	{									\
+		unsigned int consumer, producer;				\
+										\
+		consumer = ck_pr_load_uint(&ring->c_head);			\
+		ck_pr_fence_load();						\
+		producer = ck_pr_load_uint(&ring->p_tail);			\
+										\
+		if (consumer == producer)					\
+			return false;						\
+										\
+		ck_pr_fence_load();						\
+		*data = ring->ring[consumer & ring->mask];			\
+		ck_pr_fence_memory();						\
+		return ck_pr_cas_uint(&ring->c_head,				\
+				      consumer,					\
+				      consumer + 1);				\
+	}									\
+	CK_CC_INLINE static bool						\
 	ck_ring_dequeue_spmc_##name(struct ck_ring_##name *ring,		\
 				    struct type *data)				\
 	{									\
@@ -158,6 +178,8 @@
 	ck_ring_dequeue_spsc_##name(object, value)
 #define CK_RING_DEQUEUE_SPMC(name, object, value)	\
 	ck_ring_dequeue_spmc_##name(object, value)
+#define CK_RING_TRYDEQUEUE_SPMC(name, object, value)	\
+	ck_ring_trydequeue_spmc_##name(object, value)
 #define CK_RING_ENQUEUE_SPMC(name, object, value)	\
 	ck_ring_enqueue_spmc_##name(object, value)
 
