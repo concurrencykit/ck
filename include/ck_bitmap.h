@@ -122,6 +122,10 @@ ck_bitmap_base(unsigned int n_bits)
 	return CK_BITMAP_BLOCKS(n_bits) * sizeof(CK_BITMAP_WORD);
 }
 
+/*
+ * Returns the required number of bytes for a ck_bitmap_t object supporting the
+ * specified number of bits.
+ */
 CK_CC_INLINE static unsigned int
 ck_bitmap_size(unsigned int n_bits)
 {
