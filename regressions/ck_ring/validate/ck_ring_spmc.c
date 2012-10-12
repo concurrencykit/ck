@@ -82,7 +82,11 @@ test_spmc(void *c)
 			struct entry *o;
 
 			/* Keep trying until we encounter at least one node. */
-			while (ck_ring_dequeue_spmc(&ring_spmc, &o) == false);
+			if (j & 1) {
+				while (ck_ring_dequeue_spmc(&ring_spmc, &o) == false);
+			} else {
+				while (ck_ring_trydequeue_spmc(&ring_spmc, &o) == false);
+			}
 
 			observed++;
 			if (o->value < 0
