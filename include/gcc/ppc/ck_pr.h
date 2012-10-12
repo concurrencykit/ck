@@ -86,7 +86,7 @@ CK_PR_FENCE(memory, "sync")
 
 #undef CK_PR_FENCE
 
-static inline void
+CK_CC_INLINE static void
 ck_pr_barrier(void)
 {
 
