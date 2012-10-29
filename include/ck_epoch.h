@@ -147,7 +147,7 @@ ck_epoch_call(ck_epoch_t *epoch,
 void ck_epoch_init(ck_epoch_t *);
 ck_epoch_record_t *ck_epoch_recycle(ck_epoch_t *);
 void ck_epoch_register(ck_epoch_t *, ck_epoch_record_t *);
-void ck_epoch_unregister(ck_epoch_record_t *);
+void ck_epoch_unregister(ck_epoch_t *, ck_epoch_record_t *);
 bool ck_epoch_poll(ck_epoch_t *, ck_epoch_record_t *);
 void ck_epoch_synchronize(ck_epoch_t *, ck_epoch_record_t *);
 void ck_epoch_barrier(ck_epoch_t *, ck_epoch_record_t *);

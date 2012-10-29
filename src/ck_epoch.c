@@ -195,7 +195,7 @@ ck_epoch_register(struct ck_epoch *global, struct ck_epoch_record *record)
 }
 
 void
-ck_epoch_unregister(struct ck_epoch_record *record)
+ck_epoch_unregister(struct ck_epoch *global, struct ck_epoch_record *record)
 {
 	size_t i;
 
@@ -210,6 +210,7 @@ ck_epoch_unregister(struct ck_epoch_record *record)
 
 	ck_pr_fence_store();
 	ck_pr_store_uint(&record->state, CK_EPOCH_STATE_FREE);
+	ck_pr_inc_uint(&global->n_free);
 	return;
 }
 
