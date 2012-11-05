@@ -3,7 +3,7 @@ Version: @VERSION@
 Release: 1%{?dist}
 Group: Development/Libraries
 Summary: Concurrency Kit
-License: Revised BSD License
+License: Simplified BSD License
 URL: http://concurrencykit.org
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
