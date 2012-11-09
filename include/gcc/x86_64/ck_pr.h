@@ -211,7 +211,7 @@ CK_PR_LOAD_2(8, 16, uint8_t)
 /*
  * Atomic store-to-memory operations.
  */
-#define CK_PR_STORE(S, M, T, C, I)				\
+#define CK_PR_STORE_IMM(S, M, T, C, I)				\
 	CK_CC_INLINE static void				\
 	ck_pr_store_##S(M *target, T v)				\
 	{							\
@@ -222,20 +222,32 @@ CK_PR_LOAD_2(8, 16, uint8_t)
 		return;						\
 	}
 
-CK_PR_STORE(ptr, void, const void *, char, "movq")
+#define CK_PR_STORE(S, M, T, C, I)				\
+	CK_CC_INLINE static void				\
+	ck_pr_store_##S(M *target, T v)				\
+	{							\
+		__asm__ __volatile__(I " %1, %0"		\
+					: "=m" (*(C *)target)	\
+					: "q" (v)		\
+					: "memory");		\
+		return;						\
+	}
 
-#define CK_PR_STORE_S(S, T, I) CK_PR_STORE(S, T, T, T, I)
+CK_PR_STORE_IMM(ptr, void, const void *, char, "movq")
+CK_PR_STORE(double, double, double, double, "movq")
+
+#define CK_PR_STORE_S(S, T, I) CK_PR_STORE_IMM(S, T, T, T, I)
 
 CK_PR_STORE_S(char, char, "movb")
 CK_PR_STORE_S(uint, unsigned int, "movl")
 CK_PR_STORE_S(int, int, "movl")
-CK_PR_STORE_S(double, double, "movq")
 CK_PR_STORE_S(64, uint64_t, "movq")
 CK_PR_STORE_S(32, uint32_t, "movl")
 CK_PR_STORE_S(16, uint16_t, "movw")
 CK_PR_STORE_S(8,  uint8_t, "movb")
 
 #undef CK_PR_STORE_S
+#undef CK_PR_STORE_IMM
 #undef CK_PR_STORE
 
 /*
