@@ -32,6 +32,7 @@
 #include <unistd.h>
 
 #include <ck_pr.h>
+#include "../../common.h"
 
 #ifndef R_REPEAT
 #define R_REPEAT 200000
@@ -117,8 +118,14 @@ rg_width(int m)
 int
 main(void)
 {
+	double d;
 
 	srandom((unsigned int)getpid());
+
+	ck_pr_store_double(&d, 0.0);
+	if (ck_pr_load_double(&d) != 0.0) {
+		ck_error("Stored 0 in double, did not find 0.\n");
+	}
 
 #ifdef CK_F_PR_STORE_64
 	CK_PR_STORE_B(64);
