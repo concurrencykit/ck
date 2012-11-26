@@ -30,6 +30,7 @@
 #include <string.h>
 #include <pthread.h>
 
+#include <ck_barrier.h>
 #include <ck_ring.h>
 #include <ck_spinlock.h>
 #include "../../common.h"
@@ -57,15 +58,15 @@ static ck_ring_t *ring;
 static ck_ring_t ring_spmc CK_CC_CACHELINE;
 static struct affinity a;
 static int size;
-static volatile int barrier;
 static int eb;
+static ck_barrier_centralized_t barrier = CK_BARRIER_CENTRALIZED_INITIALIZER;
 
 static void *
 test_spmc(void *c)
 {
 	unsigned int observed = 0;
-	int i, j, tid;
 	unsigned long previous = 0;
+	int i, j, tid;
 
 	(void)c;
         if (aff_iterate(&a)) {
@@ -121,6 +122,8 @@ test(void *c)
 	struct entry *entry;
 	int i, j;
 	bool r;
+	ck_barrier_centralized_state_t sense =
+	    CK_BARRIER_CENTRALIZED_STATE_INITIALIZER;
 
         if (aff_iterate(&a)) {
                 perror("ERROR: Could not affine thread");
@@ -155,11 +158,12 @@ test(void *c)
 			ck_error("Capacity less than expected: %u < %u\n",
 				ck_ring_size(ring), ck_ring_capacity(ring));
 		}
-
-		barrier = 1;
 	}
 
-	while (barrier == 0);
+	/*
+	 * Wait for all threads. The idea here is to maximize the contention.
+	 */
+	ck_barrier_centralized(&barrier, &sense, nthr);
 
 	for (i = 0; i < ITERATIONS; i++) {
 		for (j = 0; j < size; j++) {
@@ -240,6 +244,7 @@ main(int argc, char *argv[])
 
 	for (i = 0; i < nthr; i++)
 		pthread_join(thread[i], NULL);
+
 	fprintf(stderr, " done\n");
 
 	fprintf(stderr, "SPMC test:\n");

@@ -29,6 +29,7 @@
 #include <stdio.h>
 #include <pthread.h>
 
+#include <ck_barrier.h>
 #include <ck_ring.h>
 #include "../../common.h"
 
@@ -52,7 +53,7 @@ static int nthr;
 static CK_RING_INSTANCE(entry_ring) *ring;
 static struct affinity a;
 static int size;
-static volatile int barrier;
+static ck_barrier_centralized_t barrier = CK_BARRIER_CENTRALIZED_INITIALIZER;
 
 static void *
 test(void *c)
@@ -61,6 +62,8 @@ test(void *c)
 	struct entry entry;
 	int i, j;
 	bool r;
+	ck_barrier_centralized_state_t sense =
+	    CK_BARRIER_CENTRALIZED_STATE_INITIALIZER;
 
         if (aff_iterate(&a)) {
                 perror("ERROR: Could not affine thread");
@@ -91,11 +94,9 @@ test(void *c)
 				CK_RING_SIZE(entry_ring, ring),
 				CK_RING_CAPACITY(entry_ring, ring));
 		}
-
-		barrier = 1;
 	}
 
-	while (barrier == 0);
+	ck_barrier_centralized(&barrier, &sense, nthr);
 
 	for (i = 0; i < ITERATIONS; i++) {
 		for (j = 0; j < size; j++) {
