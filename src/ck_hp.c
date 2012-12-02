@@ -316,7 +316,7 @@ ck_hp_purge(struct ck_hp_record *thread)
 	while (thread->n_pending > 0) {
 		ck_hp_reclaim(thread);
 		if (thread->n_pending > 0)
-			ck_backoff_gb(&backoff);
+			ck_backoff_eb(&backoff);
 	}
 
 	return;

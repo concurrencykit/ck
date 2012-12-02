@@ -41,8 +41,9 @@ main(void)
 
 	for (;;) {
 		ck_backoff_t previous = backoff;
-		ck_backoff_gb(&backoff);
+		ck_backoff_eb(&backoff);
 
+		printf("EB %u\n", backoff);
 		if (previous == ceiling) {
 			if (backoff != ceiling)
 				ck_error("[C] GB: expected %u, got %u\n", ceiling, backoff);
@@ -51,19 +52,6 @@ main(void)
 				break;
 		} else if (previous != backoff >> 1) {
 			ck_error("[N] GB: expected %u (%u), got %u\n", previous << 1, previous, backoff);
-		}
-	}
-
-	backoff = CK_BACKOFF_INITIALIZER;
-	for (;;) {
-		ck_backoff_t previous = backoff;
-		ck_backoff_eb(&backoff);
-
-		if (backoff = previous) {
-			if (i++ >= 3)
-				break;
-		} else if (previous * previous >= backoff) {
-			ck_error("[N] EB: expected %u (%u), got %u\n", previous * previous, previous, backoff);
 		}
 	}
 

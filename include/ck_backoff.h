@@ -38,31 +38,10 @@
 typedef volatile unsigned int ck_backoff_t;
 
 /*
- * This is an exponential back-off implementation.
+ * This is a exponential back-off implementation.
  */
 CK_CC_INLINE static void
 ck_backoff_eb(volatile unsigned int *c)
-{
-	volatile unsigned int i;
-	unsigned int ceiling;
-
-	ceiling = *c;
-
-	for (i = 0; i < ceiling; i++);
-
-	ceiling *= ceiling;
-	ceiling &= CK_BACKOFF_CEILING;
-	ceiling += CK_BACKOFF_INITIALIZER;
-
-	*c = ceiling;
-	return;
-}
-
-/*
- * This is a geometric back-off implementation.
- */
-CK_CC_INLINE static void
-ck_backoff_gb(volatile unsigned int *c)
 {
 	volatile unsigned int i;
 	unsigned int ceiling;
