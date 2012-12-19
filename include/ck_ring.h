@@ -317,7 +317,15 @@ ck_ring_dequeue_spmc(struct ck_ring *ring, void *data)
 			return false;
 
 		ck_pr_fence_load();
-		r = ring->ring[consumer & ring->mask];
+		
+		/*
+		 * Both LLVM and GCC have generated code which completely
+		 * ignores the semantics of the r load, despite it being
+		 * sandwiched between compiler barriers. We use an atomic
+		 * volatile load to force volatile semantics while allowing
+		 * for r itself to remain aliased across the loop.
+		 */
+		r = ck_pr_load_ptr(&ring->ring[consumer & ring->mask]);
 
 		/* Serialize load with respect to head update. */
 		ck_pr_fence_memory();
@@ -326,6 +334,10 @@ ck_ring_dequeue_spmc(struct ck_ring *ring, void *data)
 				      consumer + 1,
 				      &consumer) == false);
 
+	/*
+	 * Force spillage while avoiding aliasing issues that aren't
+	 * a problem on POSIX.
+	 */
 	ck_pr_store_ptr(data, r);
 	return true;
 }
