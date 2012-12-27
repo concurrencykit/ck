@@ -1,14 +1,15 @@
 .PHONY: check clean distribution
 
 OBJECTS=ck_ring_spsc ck_ring_spsc_template ck_ring_spmc ck_ring_spmc_template
+SIZE=65536
 
 all: $(OBJECTS)
 
 check: all
-	./ck_ring_spsc $(CORES) 1 65536
-	./ck_ring_spsc_template $(CORES) 1 65536
-	./ck_ring_spmc $(CORES) 1 65536
-	./ck_ring_spmc_template $(CORES) 1 65536
+	./ck_ring_spsc $(CORES) 1 $(SIZE)
+	./ck_ring_spsc_template $(CORES) 1 $(SIZE)
+	./ck_ring_spmc $(CORES) 1 $(SIZE)
+	./ck_ring_spmc_template $(CORES) 1 $(SIZE)
 
 ck_ring_spsc_template: ck_ring_spsc_template.c ../../../include/ck_ring.h
 	$(CC) $(CFLAGS) -o ck_ring_spsc_template ck_ring_spsc_template.c \
