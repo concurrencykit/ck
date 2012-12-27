@@ -143,6 +143,7 @@
 				    struct type *data)				\
 	{									\
 		unsigned int consumer, producer;				\
+		unsigned int mask = ring->mask;					\
 										\
 		consumer = ck_pr_load_uint(&ring->c_head);			\
 		do {								\
@@ -153,7 +154,7 @@
 				return false;					\
 										\
 			ck_pr_fence_load();					\
-			*data = ring->ring[consumer & ring->mask];		\
+			*data = ring->ring[consumer & mask];			\
 			ck_pr_fence_memory();					\
 		} while (ck_pr_cas_uint_value(&ring->c_head,			\
 					      consumer,				\
@@ -245,6 +246,7 @@ CK_CC_INLINE static bool
 ck_ring_dequeue_spsc(struct ck_ring *ring, void *data)
 {
 	unsigned int consumer, producer;
+	unsigned int mask = ring->mask;
 
 	consumer = ring->c_head;
 	producer = ck_pr_load_uint(&ring->p_tail);
@@ -265,7 +267,7 @@ ck_ring_dequeue_spsc(struct ck_ring *ring, void *data)
 	 * troublesome on platforms where sizeof(void *)
 	 * is not guaranteed to be sizeof(T *).
 	 */
-	ck_pr_store_ptr(data, ring->ring[consumer & ring->mask]);
+	ck_pr_store_ptr(data, ring->ring[consumer & mask]);
 	ck_pr_fence_store();
 	ck_pr_store_uint(&ring->c_head, consumer + 1);
 	return true;
