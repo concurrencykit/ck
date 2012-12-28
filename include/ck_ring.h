@@ -52,11 +52,11 @@
 			    unsigned int size)					\
 	{									\
 										\
-		ck_pr_store_uint(&ring->size, size);				\
-		ck_pr_store_uint(&ring->mask, size - 1);			\
-		ck_pr_store_uint(&ring->p_tail, 0);				\
-		ck_pr_store_uint(&ring->c_head, 0);				\
-		ck_pr_store_ptr(&ring->ring, buffer);				\
+		ring->size = size;						\
+		ring->mask = size - 1;						\
+		ring->p_tail = 0;						\
+		ring->c_head = 0;						\
+		ring->ring = buffer;						\
 		return;								\
 	}									\
 	CK_CC_INLINE static unsigned int					\
