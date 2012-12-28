@@ -64,6 +64,31 @@ main(int argc, char *argv[])
 		d_a += (e - s) / 4;
 	}
 
-	printf("%10d %16" PRIu64 " %16" PRIu64 "\n", size, e_a / ITERATIONS, d_a / ITERATIONS);
+	printf("spsc %10d %16" PRIu64 " %16" PRIu64 "\n", size, e_a / ITERATIONS, d_a / ITERATIONS);
+
+	e_a = d_a = s = e = 0;
+	for (r = 0; r < ITERATIONS; r++) {
+		for (i = 0; i < size / 4; i += 4) {
+			s = rdtsc();
+			CK_RING_ENQUEUE_SPMC(entry_ring, &ring, &entry);
+			CK_RING_ENQUEUE_SPMC(entry_ring, &ring, &entry);
+			CK_RING_ENQUEUE_SPMC(entry_ring, &ring, &entry);
+			CK_RING_ENQUEUE_SPMC(entry_ring, &ring, &entry);
+			e = rdtsc();
+		}
+		e_a += (e - s) / 4;
+
+		for (i = 0; i < size / 4; i += 4) {
+			s = rdtsc();
+			CK_RING_DEQUEUE_SPMC(entry_ring, &ring, &entry);
+			CK_RING_DEQUEUE_SPMC(entry_ring, &ring, &entry);
+			CK_RING_DEQUEUE_SPMC(entry_ring, &ring, &entry);
+			CK_RING_DEQUEUE_SPMC(entry_ring, &ring, &entry);
+			e = rdtsc();
+		}
+		d_a += (e - s) / 4;
+	}
+
+	printf("spmc %10d %16" PRIu64 " %16" PRIu64 "\n", size, e_a / ITERATIONS, d_a / ITERATIONS);
 	return (0);
 }
