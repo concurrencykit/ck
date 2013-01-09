@@ -93,7 +93,8 @@ queue_50_50(void *elements)
 
 	/* start barrier */
 	ck_pr_inc_uint(&start_barrier);
-	while (ck_pr_load_uint(&start_barrier) < thread_count + 1);
+	while (ck_pr_load_uint(&start_barrier) < thread_count + 1)
+		ck_pr_stall();
 
 	/* 50/50 enqueue-dequeue */
 	for(j = 0; j < element_count; j++) {
@@ -137,7 +138,8 @@ queue_50_50(void *elements)
 
 	/* end barrier */
 	ck_pr_inc_uint(&end_barrier);
-	while (ck_pr_load_uint(&end_barrier) < thread_count + 1);
+	while (ck_pr_load_uint(&end_barrier) < thread_count + 1)
+		ck_pr_stall();
 
        	return NULL;
 }

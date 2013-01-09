@@ -95,7 +95,8 @@ thread(void *unused CK_CC_UNUSED)
 	}
 
 	ck_pr_inc_uint(&barrier);
-	while (ck_pr_load_uint(&barrier) < n_threads);
+	while (ck_pr_load_uint(&barrier) < n_threads)
+		ck_pr_stall();
 
 	for (i = 0; i < PAIRS; i++) {
 		ck_hp_stack_push_mpmc(&stack, &entry[i]->stack_entry);
@@ -105,7 +106,8 @@ thread(void *unused CK_CC_UNUSED)
 	}
 
 	ck_pr_inc_uint(&e_barrier);
-	while (ck_pr_load_uint(&e_barrier) < n_threads);
+	while (ck_pr_load_uint(&e_barrier) < n_threads)
+		ck_pr_stall();
 
         fprintf(stderr, "Peak: %u (%2.2f%%)\nReclamations: %" PRIu64 "\n\n",
                 record.n_peak,
