@@ -81,3 +81,4 @@ clean:
 	rm -rf *~ *.o $(OBJECTS) *.dSYM
 
 include ../../../build/regressions.build
+CFLAGS+=-D_GNU_SOURCE
