@@ -27,6 +27,7 @@
 #include <ck_cc.h>
 #include <ck_pr.h>
 #include <stdarg.h>
+#include <stdio.h>
 #include <stdlib.h>
 
 #ifdef __linux__
