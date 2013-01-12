@@ -124,7 +124,7 @@ ck_bytelock_read_lock(struct ck_bytelock *bytelock, unsigned int slot)
 {
 
 	if (ck_pr_load_uint(&bytelock->owner) == slot) {
-		ck_pr_store_8(&bytelock->readers[slot], true);
+		ck_pr_store_8(&bytelock->readers[slot - 1], true);
 		ck_pr_fence_strict_store();
 		ck_pr_store_uint(&bytelock->owner, 0);
 		return;
