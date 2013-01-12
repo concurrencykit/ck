@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2012 Samy Al Bahra.
+ * Copyright 2009-2013 Samy Al Bahra.
  * Copyright 2011 David Joseph.
  * All rights reserved.
  *

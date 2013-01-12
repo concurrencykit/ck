@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2011 Samy Al Bahra.
+ * Copyright 2009-2013 Samy Al Bahra.
  * Copyright 2012 João Fernandes.
  * All rights reserved.
  *
