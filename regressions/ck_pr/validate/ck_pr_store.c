@@ -24,15 +24,15 @@
  * SUCH DAMAGE.
  */
 
+#include "../../common.h"
+#include <ck_pr.h>
+
 #include <inttypes.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <unistd.h>
-
-#include <ck_pr.h>
-#include "../../common.h"
 
 #ifndef R_REPEAT
 #define R_REPEAT 200000
