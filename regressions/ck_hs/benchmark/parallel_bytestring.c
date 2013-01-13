@@ -24,12 +24,15 @@
  * SUCH DAMAGE.
  */
 
+#include "../../common.h"
 #include <ck_hs.h>
 #include "../../../src/ck_ht_hash.h"
 #include <assert.h>
 #include <ck_epoch.h>
 #include <ck_malloc.h>
 #include <ck_pr.h>
+#include <ck_spinlock.h>
+
 #include <errno.h>
 #include <inttypes.h>
 #include <pthread.h>
@@ -39,8 +42,6 @@
 #include <string.h>
 #include <time.h>
 #include <unistd.h>
-
-#include "../../common.h"
 
 static ck_hs_t hs CK_CC_CACHELINE;
 static char **keys;
@@ -60,6 +61,7 @@ enum state {
 	HS_STATE_COUNT
 };
 
+static ck_spinlock_t mtx = CK_SPINLOCK_INITIALIZER;
 static struct affinity affinerator = AFFINITY_INITIALIZER;
 static uint64_t accumulator[HS_STATE_COUNT];
 static int barrier[HS_STATE_COUNT];
@@ -243,7 +245,10 @@ reader(void *unused)
 
 		n_state = ck_pr_load_int(&state);
 		if (n_state != state_previous) {
-			ck_pr_add_64(&accumulator[state_previous], a / (j * keys_length));
+			ck_spinlock_lock(&mtx);
+			accumulator[state_previous] += a / (j * keys_length);
+			ck_spinlock_unlock(&mtx);
+
 			ck_pr_inc_int(&barrier[state_previous]);
 			while (ck_pr_load_int(&barrier[state_previous]) != n_threads + 1)
 				ck_pr_stall();
@@ -254,6 +259,18 @@ reader(void *unused)
 	}
 
 	return NULL;
+}
+
+static uint64_t
+acc(size_t i)
+{
+	uint64_t r;
+
+	ck_spinlock_lock(&mtx);
+	r = accumulator[i];
+	ck_spinlock_unlock(&mtx);
+
+	return r;
 }
 
 int
@@ -433,8 +450,9 @@ main(int argc, char *argv[])
 	ck_pr_store_int(&state, HS_STATE_STRICT_REPLACEMENT);
 	while (ck_pr_load_int(&barrier[HS_STATE_GET]) != n_threads)
 		ck_pr_stall();
+
 	fprintf(stderr, "done (reader = %" PRIu64 " ticks)\n",
-	    accumulator[HS_STATE_GET] / n_threads);
+	    acc(HS_STATE_GET) / n_threads);
 
 	fprintf(stderr, " | Executing strict replacement test...");
 
@@ -463,7 +481,7 @@ main(int argc, char *argv[])
 	set_reset();
 	ck_epoch_synchronize(&epoch_hs, &epoch_wr);
 	fprintf(stderr, "done (writer = %" PRIu64 " ticks, reader = %" PRIu64 " ticks)\n",
-	    a / (repeated * keys_length), accumulator[HS_STATE_STRICT_REPLACEMENT] / n_threads);
+	    a / (repeated * keys_length), acc(HS_STATE_STRICT_REPLACEMENT) / n_threads);
 
 	signal(SIGALRM, alarm_handler);
 	alarm(r);
@@ -499,7 +517,7 @@ main(int argc, char *argv[])
 	set_reset();
 	ck_epoch_synchronize(&epoch_hs, &epoch_wr);
 	fprintf(stderr, "done (writer = %" PRIu64 " ticks, reader = %" PRIu64 " ticks)\n",
-	    a / (repeated * keys_length), accumulator[HS_STATE_DELETION] / n_threads);
+	    a / (repeated * keys_length), acc(HS_STATE_DELETION) / n_threads);
 
 	signal(SIGALRM, alarm_handler);
 	alarm(r);
@@ -539,7 +557,7 @@ main(int argc, char *argv[])
 	set_reset();
 	ck_epoch_synchronize(&epoch_hs, &epoch_wr);
 	fprintf(stderr, "done (writer = %" PRIu64 " ticks, reader = %" PRIu64 " ticks)\n",
-	    a / (repeated * keys_length), accumulator[HS_STATE_REPLACEMENT] / n_threads);
+	    a / (repeated * keys_length), acc(HS_STATE_REPLACEMENT) / n_threads);
 
 	ck_pr_inc_int(&barrier[HS_STATE_REPLACEMENT]);
 	epoch_temporary = epoch_wr;
