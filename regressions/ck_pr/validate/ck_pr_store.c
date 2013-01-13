@@ -118,14 +118,16 @@ rg_width(int m)
 int
 main(void)
 {
+#if defined(CK_F_PR_STORE_DOUBLE) && defined(CK_F_PR_LOAD_DOUBLE)
 	double d;
-
-	srandom((unsigned int)getpid());
 
 	ck_pr_store_double(&d, 0.0);
 	if (ck_pr_load_double(&d) != 0.0) {
 		ck_error("Stored 0 in double, did not find 0.\n");
 	}
+#endif
+
+	srandom((unsigned int)getpid());
 
 #ifdef CK_F_PR_STORE_64
 	CK_PR_STORE_B(64);
