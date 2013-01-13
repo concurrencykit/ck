@@ -98,7 +98,7 @@ aff_iterate(struct affinity *acb CK_CC_UNUSED)
 CK_CC_INLINE static uint64_t
 rdtsc(void)
 {
-#if defined(__x86_64__)
+#if defined(__x86_64__) || defined(__x86__)
 	uint32_t eax = 0, edx;
 #if defined(CK_MD_RDTSCP)
 	__asm__ __volatile__("rdtscp"
