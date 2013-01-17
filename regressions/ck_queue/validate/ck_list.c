@@ -117,7 +117,7 @@ int
 main(int argc, char *argv[])
 {
 	pthread_t *thread;
-	struct test *n;
+	struct test *n, a, b;
 	struct test_list target;
 	int n_threads, i;
 
@@ -155,6 +155,13 @@ main(int argc, char *argv[])
 		CK_LIST_REMOVE(n, list_entry);
 		free(n);
 	}
+
+	CK_LIST_INSERT_HEAD(&head, &a, list_entry);
+	CK_LIST_INSERT_HEAD(&head, &b, list_entry);
+	CK_LIST_REMOVE(&a, list_entry);
+	if (CK_LIST_FIRST(&head) != &b)
+		ck_error("List is in invalid state.\n");
+	CK_LIST_REMOVE(&b, list_entry);
 
 	if (CK_LIST_EMPTY(&head) == false) {
 		ck_error("List is not empty after bulk removal.\n");
