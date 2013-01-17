@@ -258,9 +258,9 @@ struct {									\
 #define	CK_LIST_INSERT_HEAD(head, elm, field) do {				\
 	(elm)->field.le_next = (head)->lh_first;				\
 	ck_pr_fence_store();							\
-	ck_pr_store_ptr(&(head)->lh_first, elm);				\
 	if ((elm)->field.le_next != NULL)					\
 		(head)->lh_first->field.le_prev =  &(elm)->field.le_next;	\
+	ck_pr_store_ptr(&(head)->lh_first, elm);				\
 	(elm)->field.le_prev = &(head)->lh_first;				\
 } while (0)
 
