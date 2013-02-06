@@ -124,11 +124,11 @@ generate_stdout()
 }
 
 for option in $*; do
-	value=`echo "$option" | sed -e 's/^[^=]*=\(.*\)/\1/'`
+	value=`expr "$option" : '[^=]*=\(.*\)'`
 
 	case "$option" in
 	--help)
-		echo "Usage: ./configure [OPTIONS]"
+		echo "Usage: $0 [OPTIONS]"
 		echo
 		echo "The following options may be used for cross-building."
 		echo "  --profile=N              Use custom build profile (use in conjunction with \$CC)"
@@ -195,20 +195,14 @@ for option in $*; do
 	--mandir=*)
 		MANDIR=$value
 		;;
-	CC=*)
-		CC=$value
-		;;
-	LDFLAGS=*)
-		LDFLAGS=$value
-		;;
-	CFLAGS=*)
-		CFLAGS=$value
-		;;
-	GZIP=*)
-		GZIP=$value
+	*=*)
+		NAME=`expr "$option" : '\([^=]*\)='`
+		VALUE=`echo "$value" | sed "s/'/'\\\\\\\\''/g"`
+		eval "$NAME='$VALUE'"
+		export $NAME
 		;;
 	*)
-		echo "./configure [--help]"
+		echo "$0 [--help]"
 		exit $EXIT_FAILURE
 		;;
 	esac
