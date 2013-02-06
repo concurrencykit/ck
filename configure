@@ -31,6 +31,7 @@ REQUIRE_HEADER="stdbool.h stddef.h stdint.h string.h"
 EXIT_SUCCESS=0
 EXIT_FAILURE=1
 
+P_PWD=`pwd`
 MAINTAINER='sbahra@repnop.org'
 VERSION=${VERSION:-'0.2.13'}
 VERSION_MAJOR='0'
@@ -193,6 +194,18 @@ for option in $*; do
 		;;
 	--mandir=*)
 		MANDIR=$value
+		;;
+	CC=*)
+		CC=$value
+		;;
+	LDFLAGS=*)
+		LDFLAGS=$value
+		;;
+	CFLAGS=*)
+		CFLAGS=$value
+		;;
+	GZIP=*)
+		GZIP=$value
 		;;
 	*)
 		echo "./configure [--help]"
@@ -422,6 +435,27 @@ pathsearch()
 	IFS="$oldFS"
 }
 
+printf "Finding dirname command.........."
+DIRNAME=`pathsearch "${DIRNAME:-dirname}"`
+if test -z "$DIRNAME" -o ! -x "$DIRNAME"; then
+	DIRNAME=`pathsearch "${DIRNAME:-dirname}"`
+	DIRNAME="$DIRNAME"
+else
+	echo "success [$DIRNAME]"
+fi
+
+if test -z "$DIRNAME"; then
+	echo "not found (out of source build unsupported)"
+else
+	printf "Determining build directory......"
+
+	BUILD_DIR=`$DIRNAME $0`
+	cd `$DIRNAME $0`
+	BUILD_DIR=`pwd`
+
+	echo "success [$BUILD_DIR]"
+fi
+
 printf "Finding gzip tool................"
 GZIP=`pathsearch "${GZIP:-gzip}"`
 if test -z "$GZIP" -o ! -x "$GZIP"; then
@@ -449,11 +483,14 @@ assert "$CC" "not found"
 cat << EOF > .1.c
 #include <stdio.h>
 int main(void) {
-#if defined(__GNUC__) && (__GNUC__ >= 4)
-	puts("gcc");
+#if defined(__clang__) && (__clang_major__ >= 4)
+	puts("clang");
 	return (0);
 #elif defined(__SUNPRO_C) && (__SUNPRO_C >= 0x5110)
 	puts("suncc");
+	return (0);
+#elif defined(__GNUC__) && (__GNUC__ >= 4)
+	puts("gcc");
 	return (0);
 #else
 	return (1);
@@ -477,7 +514,7 @@ if test "$COMPILER" = "suncc"; then
 	LDFLAGS="-G -z text -h libck.so.$VERSION_MAJOR $LDFLAGS"
 	CFLAGS="-xO5 $CFLAGS"
 	PTHREAD_CFLAGS="-mt -lpthread"
-elif test "$COMPILER" = "gcc"; then
+elif test "$COMPILER" = "gcc" || test "$COMPILER" = "clang"; then
 	LD=$CC
 	if test "$SYSTEM" = "darwin"; then
 		CC_WL_OPT="-install_name"
