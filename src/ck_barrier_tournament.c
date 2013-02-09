@@ -113,7 +113,7 @@ ck_barrier_tournament(struct ck_barrier_tournament *barrier,
 	int round = 1;
 
 	for (;; ++round) {
-		switch (rounds[state->vpid][round].role) { // MIGHT NEED TO USE CK_PR_LOAD***
+		switch (rounds[state->vpid][round].role) {
 		case CK_BARRIER_TOURNAMENT_BYE:
 			break;
 		case CK_BARRIER_TOURNAMENT_CHAMPION:
@@ -152,7 +152,7 @@ ck_barrier_tournament(struct ck_barrier_tournament *barrier,
 
 wakeup:
 	for (round -= 1 ;; --round) {
-		switch (rounds[state->vpid][round].role) { // MIGHT NEED TO USE CK_PR_LOAD***
+		switch (rounds[state->vpid][round].role) {
 		case CK_BARRIER_TOURNAMENT_BYE:
 			break;
 		case CK_BARRIER_TOURNAMENT_CHAMPION:
