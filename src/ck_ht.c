@@ -731,7 +731,8 @@ ck_ht_set_spmc(ck_ht_t *table,
 		 * deletion counter update would have been published with
 		 * respect to any concurrent probes.
 		 */
-		bool replace = candidate->key != CK_HT_KEY_EMPTY;
+		bool replace = candidate->key != CK_HT_KEY_EMPTY &&
+		    candidate->key != CK_HT_KEY_TOMBSTONE;
 
 		if (priority != NULL)
 			candidate = priority;
