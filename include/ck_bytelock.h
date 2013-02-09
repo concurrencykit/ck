@@ -143,6 +143,7 @@ ck_bytelock_read_lock(struct ck_bytelock *bytelock, unsigned int slot)
 				ck_pr_stall();
 		}
 
+		ck_pr_fence_load();
 		return;
 	}
 
@@ -164,6 +165,7 @@ ck_bytelock_read_lock(struct ck_bytelock *bytelock, unsigned int slot)
 			ck_pr_stall();
 	}
 
+	ck_pr_fence_load();
 	return;
 }
 
