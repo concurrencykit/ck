@@ -555,8 +555,12 @@ mkdir -p $P_PWD/doc
 mkdir -p $P_PWD/build
 mkdir -p $P_PWD/include
 mkdir -p $P_PWD/src
-mkdir -p $P_PWD/regressions
-cp $BUILD_DIR/regressions/Makefile.unsupported $P_PWD/regressions/Makefile &> /dev/null
+
+if test "$P_PWD" '!=' "$BUILD_DIR"; then
+	mkdir -p $P_PWD/regressions
+	cp $BUILD_DIR/regressions/Makefile.unsupported $P_PWD/regressions/Makefile &> /dev/null
+fi
+
 cp $BUILD_DIR/build/ck.build.$PROFILE $P_PWD/build/ck.build.$PROFILE &> /dev/null
 cp $BUILD_DIR/include/ck_md.h $P_PWD/include/ck_md.h &> /dev/null
 
