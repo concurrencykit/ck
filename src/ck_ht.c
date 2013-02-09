@@ -304,7 +304,10 @@ retry:
 leave:
 	*probe_limit = probes;
 	*available = first;
-	*snapshot = *cursor;
+
+	if (cursor != NULL) {
+		*snapshot = *cursor;
+	}
 
 	return cursor;
 }
