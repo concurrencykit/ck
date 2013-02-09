@@ -315,10 +315,11 @@ ck_hs_map_probe(struct ck_hs *hs,
 				goto leave;
 
 			if (k == CK_HS_TOMBSTONE) {
-				if (pr == NULL)
+				if (pr == NULL) {
 					pr = cursor;
+					*n_probes = probes;
+				}
 
-				*n_probes = probes;
 				continue;
 			}
 
@@ -344,10 +345,12 @@ ck_hs_map_probe(struct ck_hs *hs,
 		offset = ck_hs_map_probe_next(map, offset, h, i, probes);
 	}
 
-	return NULL;
-
 leave:
-	*object = k;
+	if (i != probe_limit) {
+		*object = k;
+	} else {
+		cursor = NULL;
+	}
 
 	if (pr == NULL)
 		*n_probes = probes;
@@ -370,8 +373,9 @@ ck_hs_set(struct ck_hs *hs,
 
 restart:
 	map = hs->map;
+
 	slot = ck_hs_map_probe(hs, map, &n_probes, &first, h, key, &object, map->probe_limit);
-	if (slot == NULL) {
+	if (slot == NULL && first == NULL) {
 		if (ck_hs_grow(hs, map->capacity << 1) == false)
 			return false;
 
@@ -399,7 +403,7 @@ restart:
 		 * If a duplicate was found, then we must guarantee that new entry
 		 * is visible with respect to concurrent probe sequences.
 		 */
-		if (*slot != CK_HS_EMPTY) {
+		if (slot != NULL && *slot != CK_HS_EMPTY) {
 			ck_pr_inc_uint(&map->generation[h & CK_HS_G_MASK]);
 			ck_pr_fence_store();
 			ck_pr_store_ptr(slot, CK_HS_TOMBSTONE);
@@ -433,16 +437,17 @@ ck_hs_put(struct ck_hs *hs,
 
 restart:
 	map = hs->map;
+
 	slot = ck_hs_map_probe(hs, map, &n_probes, &first, h, key, &object, map->probe_limit);
-	if (slot == NULL) {
+	if (slot == NULL && first == NULL) {
 		if (ck_hs_grow(hs, map->capacity << 1) == false)
 			return false;
 
 		goto restart;
 	}
 
-	/* If a match was found, then fail. */
-	if (*slot != CK_HS_EMPTY)
+	/* Fail operation if a match was found. */
+	if (slot != NULL && *slot != CK_HS_EMPTY)
 		return false;
 
 #ifdef CK_HS_PP
@@ -459,13 +464,21 @@ restart:
 		ck_pr_store_uint(&map->probe_maximum, n_probes);
 
 	if (first != NULL) {
-		/* If an earlier bucket was found, then go ahead and replace it. */
+		/* Insert key into first bucket in probe sequence. */
 		ck_pr_store_ptr(first, insert);
-		ck_pr_inc_uint(&map->generation[h & CK_HS_G_MASK]);
 
-		/* Guarantee that new object is visible with respect to generation increment. */
-		ck_pr_fence_store();
-		ck_pr_store_ptr(slot, CK_HS_TOMBSTONE);
+		if (slot != NULL && *slot != CK_HS_EMPTY) {
+			/*
+			 * If a duplicate key was found, then delete it after
+			 * signaling concurrent probes to restart. Optionally,
+			 * it is possible to install tombstone after grace
+			 * period if we can guarantee earlier position of
+			 * duplicate key.
+			 */
+			ck_pr_inc_uint(&map->generation[h & CK_HS_G_MASK]);
+			ck_pr_fence_store();
+			ck_pr_store_ptr(slot, CK_HS_TOMBSTONE);
+		}
 	} else {
 		/* An empty slot was found. */
 		ck_pr_store_ptr(slot, insert);
