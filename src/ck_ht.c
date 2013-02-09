@@ -299,6 +299,8 @@ retry:
 		offset = ck_ht_map_probe_next(map, offset, h, probes);
 	}
 
+	cursor = NULL;
+
 leave:
 	*probe_limit = probes;
 	*available = first;
