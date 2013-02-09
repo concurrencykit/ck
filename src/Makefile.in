@@ -21,7 +21,6 @@ OBJECTS=ck_barrier_centralized.o	\
 all: libck.so libck.a
 
 libck.so: $(OBJECTS)
-	echo $(TARGET_DIR)
 	$(LD) $(LDFLAGS) -o $(TARGET_DIR)/libck.so $(OBJECTS)
 
 libck.a: $(OBJECTS)
