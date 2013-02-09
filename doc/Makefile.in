@@ -3,6 +3,9 @@
 MANDIR=@MANDIR@
 GZIP=@GZIP@
 GZIP_SUFFIX=.3@GZIP_SUFFIX@
+BUILD_DIR=@BUILD_DIR@
+SRC_DIR=@SRC_DIR@
+
 OBJECTS=ck_ht_count 	  		\
 	ck_ht_destroy	  		\
 	ck_ht_get_spmc	  		\
@@ -76,7 +79,7 @@ OBJECTS=ck_ht_count 	  		\
 
 all: 
 	for target in $(OBJECTS); do 			   \
-		$(GZIP) $$target > $$target$(GZIP_SUFFIX); \
+		$(GZIP) $(SRC_DIR)/doc/$$target > $(BUILD_DIR)/doc/$$target$(GZIP_SUFFIX); \
 	done
 
 install:
@@ -85,9 +88,9 @@ install:
 
 uninstall:
 	for target in $(OBJECTS); do 			  \
-		rm -f $(DESTDIR)/$(MANDIR)/man3/$$target; \
+		rm -f $(DESTDIR)/$(MANDIR)/man3/$$target$(GZIP_SUFFIX); \
 	done
 
 clean:
-	rm -f *~ *.o *.3.gz
+	rm -f $(BUILD_DIR)/doc/*~ $(BUILD_DIR)/doc/*.3.gz
 

@@ -97,6 +97,8 @@ generate()
 	    -e "s#@VMA_BITS@#$VMA_BITS_R#g"			\
 	    -e "s#@VMA_BITS_VALUE@#$VMA_BITS_VALUE_R#g"		\
 	    -e "s#@MM@#$MM#g"					\
+	    -e "s#@BUILD_DIR@#$P_PWD#g"				\
+	    -e "s#@SRC_DIR@#$BUILD_DIR#g"			\
 		$1 > $2
 }
 
@@ -117,6 +119,8 @@ generate_stdout()
 	echo "      POINTER_PACK = $POINTER_PACK_ENABLE"
 	echo "          VMA_BITS = $VMA_BITS"
 	echo "      MEMORY_MODEL = $MM"
+	echo "         BUILD_DIR = $P_PWD"
+	echo "           SRC_DIR = $BUILD_DIR"
 	echo
 	echo "Headers will be installed in $HEADERS"
 	echo "Libraries will be installed in $LIBRARY"
@@ -547,12 +551,21 @@ echo "success"
 
 printf "Generating build files..........."
 
-generate doc/Makefile.in doc/Makefile
-generate build/ck.build.in build/ck.build
-generate build/regressions.build.in build/regressions.build
-generate build/ck.pc.in build/ck.pc
-generate build/ck.spec.in build/ck.spec
-generate Makefile.in Makefile
+mkdir -p $P_PWD/doc
+mkdir -p $P_PWD/build
+mkdir -p $P_PWD/include
+mkdir -p $P_PWD/src
+cp $BUILD_DIR/build/ck.build.$PROFILE $P_PWD/build/ck.build.$PROFILE &> /dev/null
+cp $BUILD_DIR/include/ck_md.h $P_PWD/include/ck_md.h &> /dev/null
+
+generate src/Makefile.in $P_PWD/src/Makefile
+generate doc/Makefile.in $P_PWD/doc/Makefile
+generate build/ck.build.in $P_PWD/build/ck.build
+generate build/regressions.build.in $P_PWD/build/regressions.build
+generate build/ck.pc.in $P_PWD/build/ck.pc
+generate build/ck.spec.in $P_PWD/build/ck.spec
+generate Makefile.in $P_PWD/Makefile
 
 echo "success"
 generate_stdout
+

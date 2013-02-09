@@ -5,5 +5,6 @@ CFLAGS=@CFLAGS@ -I../../../include -DCORES=@CORES@
 LD=@LD@
 LDFLAGS=@LDFLAGS@
 PTHREAD_CFLAGS=@PTHREAD_CFLAGS@
+BUILD_DIR=@BUILD_DIR@
 
-include ../../../build/ck.build.@PROFILE@
+include $(BUILD_DIR)/build/ck.build.@PROFILE@
