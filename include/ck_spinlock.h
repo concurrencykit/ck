@@ -73,8 +73,8 @@ typedef struct ck_spinlock_anderson ck_spinlock_anderson_t;
 
 CK_CC_INLINE static void
 ck_spinlock_anderson_init(struct ck_spinlock_anderson *lock,
-			  struct ck_spinlock_anderson_thread *slots,
-			  unsigned int count)
+    struct ck_spinlock_anderson_thread *slots,
+    unsigned int count)
 {
 	unsigned int i;
 
@@ -106,7 +106,7 @@ ck_spinlock_anderson_init(struct ck_spinlock_anderson *lock,
 
 CK_CC_INLINE static void
 ck_spinlock_anderson_lock(struct ck_spinlock_anderson *lock,
-			  struct ck_spinlock_anderson_thread **slot)
+    struct ck_spinlock_anderson_thread **slot)
 {
 	unsigned int position, next;
 	unsigned int count = lock->count;
@@ -150,7 +150,7 @@ ck_spinlock_anderson_lock(struct ck_spinlock_anderson *lock,
 
 CK_CC_INLINE static void
 ck_spinlock_anderson_unlock(struct ck_spinlock_anderson *lock,
-			    struct ck_spinlock_anderson_thread *slot)
+    struct ck_spinlock_anderson_thread *slot)
 {
 	unsigned int position;
 
@@ -681,3 +681,4 @@ ck_spinlock_clh_unlock(struct ck_spinlock_clh **thread)
 #endif /* CK_F_SPINLOCK_CLH */
 
 #endif /* _CK_SPINLOCK_H */
+

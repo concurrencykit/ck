@@ -45,8 +45,7 @@ typedef struct ck_barrier_centralized_state ck_barrier_centralized_state_t;
 #define CK_BARRIER_CENTRALIZED_STATE_INITIALIZER {0}
 
 void ck_barrier_centralized(ck_barrier_centralized_t *,
-			    ck_barrier_centralized_state_t *,
-			    unsigned int);
+    ck_barrier_centralized_state_t *, unsigned int);
 
 struct ck_barrier_combining_group {
 	unsigned int k;
@@ -75,12 +74,11 @@ typedef struct ck_barrier_combining ck_barrier_combining_t;
 void ck_barrier_combining_init(ck_barrier_combining_t *, ck_barrier_combining_group_t *);
 
 void ck_barrier_combining_group_init(ck_barrier_combining_t *,
-				     ck_barrier_combining_group_t *,
-				     unsigned int);
+    ck_barrier_combining_group_t *, unsigned int);
 
 void ck_barrier_combining(ck_barrier_combining_t *,
-			  ck_barrier_combining_group_t *,
-			  ck_barrier_combining_state_t *);
+    ck_barrier_combining_group_t *,
+    ck_barrier_combining_state_t *);
 
 struct ck_barrier_dissemination_flag {
 	unsigned int tflag;
@@ -95,6 +93,7 @@ struct ck_barrier_dissemination {
 	struct ck_barrier_dissemination_flag *flags[2];
 };
 typedef struct ck_barrier_dissemination ck_barrier_dissemination_t;
+
 struct ck_barrier_dissemination_state {
 	int 		parity;
 	unsigned int 	sense;
@@ -103,16 +102,15 @@ struct ck_barrier_dissemination_state {
 typedef struct ck_barrier_dissemination_state ck_barrier_dissemination_state_t;
 
 void ck_barrier_dissemination_init(ck_barrier_dissemination_t *,
-				   ck_barrier_dissemination_flag_t **,
-				   unsigned int);
+    ck_barrier_dissemination_flag_t **, unsigned int);
 
 void ck_barrier_dissemination_subscribe(ck_barrier_dissemination_t *,
-					ck_barrier_dissemination_state_t *);
+    ck_barrier_dissemination_state_t *);
 
 unsigned int ck_barrier_dissemination_size(unsigned int);
 
 void ck_barrier_dissemination(ck_barrier_dissemination_t *,
-			      ck_barrier_dissemination_state_t *);
+    ck_barrier_dissemination_state_t *);
 
 struct ck_barrier_tournament_round {
 	int role;

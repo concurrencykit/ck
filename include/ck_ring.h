@@ -104,14 +104,14 @@
 		producer = ck_pr_load_uint(&ring->p_tail);			\
 										\
 		if (consumer == producer)					\
-			return (false);						\
+			return false;						\
 										\
 		ck_pr_fence_load();						\
 		*data = ring->ring[consumer & mask];				\
 		ck_pr_fence_store();						\
 		ck_pr_store_uint(&ring->c_head, consumer + 1);			\
 										\
-		return (true);							\
+		return true;							\
 	}									\
 	CK_CC_INLINE static bool						\
 	ck_ring_enqueue_spmc_##name(struct ck_ring_##name *ring, void *entry)	\
