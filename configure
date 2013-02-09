@@ -107,6 +107,8 @@ generate_stdout()
 
 	echo
 	echo "           VERSION = $VERSION"
+	echo "         BUILD_DIR = $P_PWD"
+	echo "           SRC_DIR = $BUILD_DIR"
 	echo "           PROFILE = $PROFILE"
 	echo "                CC = $CC"
 	echo "          COMPILER = $COMPILER"
@@ -119,8 +121,6 @@ generate_stdout()
 	echo "      POINTER_PACK = $POINTER_PACK_ENABLE"
 	echo "          VMA_BITS = $VMA_BITS"
 	echo "      MEMORY_MODEL = $MM"
-	echo "         BUILD_DIR = $P_PWD"
-	echo "           SRC_DIR = $BUILD_DIR"
 	echo
 	echo "Headers will be installed in $HEADERS"
 	echo "Libraries will be installed in $LIBRARY"
