@@ -71,7 +71,7 @@ clean:
 	rm -f $(BUILD_DIR)/*~ $(BUILD_DIR)/*.o $(BUILD_DIR)/*.tar.gz
 
 dist:
-	git archive --format=tar --prefix=ck-$(VERSION)/ HEAD \
+	git archive --remote=$(SRC_DIR) --format=tar --prefix=ck-$(VERSION)/ HEAD \
 		| gzip > $(BUILD_DIR)/ck-$(VERSION).tar.gz
 
 distclean: clean
