@@ -54,7 +54,7 @@ ck_rwlock_write_unlock(ck_rwlock_t *rw)
 {
 
 	ck_pr_fence_memory();
-	ck_pr_store_uint(&rw->writer, false);
+	ck_pr_store_uint(&rw->writer, 0);
 	return;
 }
 
