@@ -128,7 +128,7 @@ generate_stdout()
 }
 
 for option in $*; do
-	value=`echo "$option" : sed -e 's/^[^=]*=\(.*\)/\1/'`
+	value=`echo "$option" | sed -e 's/^[^=]*=\(.*\)/\1/'`
 
 	case "$option" in
 	--help)
