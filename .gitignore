@@ -1,8 +1,13 @@
+/Makefile
 build/ck.build
 build/ck.pc
 build/regressions.build
 build/ck.spec
 include/ck_md.h
+src/Makefile
+doc/Makefile
+build/Makefile
+.DS_Store
 *.gz
 *.o
 *.a
