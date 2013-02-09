@@ -106,6 +106,11 @@ ck_rwlock_read_trylock(ck_rwlock_t *rw)
 		return false;
 
 	ck_pr_inc_uint(&rw->n_readers);
+
+	/*
+	 * Serialize with respect to concurrent write
+	 * lock operation.
+	 */
 	ck_pr_fence_memory();
 	if (ck_pr_load_uint(&rw->writer) == 0)
 		goto leave;
@@ -113,6 +118,7 @@ ck_rwlock_read_trylock(ck_rwlock_t *rw)
 	return false;
 
 leave:
+	/* Acquire semantics are necessary. */
 	ck_pr_fence_load();
 	return true;
 }
@@ -126,12 +132,18 @@ ck_rwlock_read_lock(ck_rwlock_t *rw)
 			ck_pr_stall();
 
 		ck_pr_inc_uint(&rw->n_readers);
+
+		/*
+		 * Serialize with respect to concurrent write
+		 * lock operation.
+		 */
 		ck_pr_fence_memory();
 		if (ck_pr_load_uint(&rw->writer) == 0)
 			break;
 		ck_pr_dec_uint(&rw->n_readers);
 	}
 
+	/* Acquire semantics are necessary. */
 	ck_pr_fence_load();
 	return;
 }
