@@ -31,8 +31,7 @@
 #include <stdbool.h>
 
 void
-ck_barrier_mcs_init(struct ck_barrier_mcs *barrier,
-                    unsigned int nthr)
+ck_barrier_mcs_init(struct ck_barrier_mcs *barrier, unsigned int nthr)
 {
 	unsigned int i, j;
 
@@ -111,7 +110,7 @@ ck_barrier_mcs_reinitialize_children(struct ck_barrier_mcs *node)
 
 void
 ck_barrier_mcs(struct ck_barrier_mcs *barrier,
-               struct ck_barrier_mcs_state *state)
+    struct ck_barrier_mcs_state *state)
 {
 
 	/*

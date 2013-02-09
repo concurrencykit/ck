@@ -45,8 +45,8 @@ static size_t allocator_overhead;
 
 bool
 ck_bag_init(struct ck_bag *bag,
-	    size_t n_cachelines,
-	    enum ck_bag_allocation_strategy as)
+    size_t n_cachelines,
+    enum ck_bag_allocation_strategy as)
 {
 	size_t block_overhead, block_size;
 

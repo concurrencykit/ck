@@ -30,8 +30,8 @@
 
 void
 ck_barrier_centralized(struct ck_barrier_centralized *barrier,
-		       struct ck_barrier_centralized_state *state,
-		       unsigned int n_threads)
+    struct ck_barrier_centralized_state *state,
+    unsigned int n_threads)
 {
 	unsigned int sense, value;
 
@@ -57,3 +57,4 @@ ck_barrier_centralized(struct ck_barrier_centralized *barrier,
 	ck_pr_fence_memory();
 	return;
 }
+

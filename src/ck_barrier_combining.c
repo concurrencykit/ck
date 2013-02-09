@@ -45,13 +45,13 @@ ck_barrier_combining_queue_dequeue(struct ck_barrier_combining_queue *queue)
 		queue->head = queue->head->next;
 	}
 
-	return (front);
+	return front;
 }
 
 CK_CC_INLINE static void
 ck_barrier_combining_insert(struct ck_barrier_combining_group *parent,
-			    struct ck_barrier_combining_group *tnode,
-			    struct ck_barrier_combining_group **child)
+    struct ck_barrier_combining_group *tnode,
+    struct ck_barrier_combining_group **child)
 {
 
 	*child = tnode;
@@ -74,7 +74,7 @@ ck_barrier_combining_insert(struct ck_barrier_combining_group *parent,
  */
 CK_CC_INLINE static void
 ck_barrier_combining_queue_enqueue(struct ck_barrier_combining_queue *queue,
-				   struct ck_barrier_combining_group *node_value)
+    struct ck_barrier_combining_group *node_value)
 {
 
 	node_value->next = NULL;
@@ -92,8 +92,8 @@ ck_barrier_combining_queue_enqueue(struct ck_barrier_combining_queue *queue,
 
 void
 ck_barrier_combining_group_init(struct ck_barrier_combining *root,
-				struct ck_barrier_combining_group *tnode,
-				unsigned int nthr)
+    struct ck_barrier_combining_group *tnode,
+    unsigned int nthr)
 {
 	struct ck_barrier_combining_group *node;
 	struct ck_barrier_combining_queue queue;
@@ -142,7 +142,7 @@ leave:
 
 void
 ck_barrier_combining_init(struct ck_barrier_combining *root,
-			  struct ck_barrier_combining_group *init_root)
+    struct ck_barrier_combining_group *init_root)
 {
 
 	init_root->k = 0;
@@ -156,8 +156,8 @@ ck_barrier_combining_init(struct ck_barrier_combining *root,
 
 static void
 ck_barrier_combining_aux(struct ck_barrier_combining *barrier,
-			 struct ck_barrier_combining_group *tnode,
-			 unsigned int sense)
+    struct ck_barrier_combining_group *tnode,
+    unsigned int sense)
 {
 
 	/*
@@ -195,8 +195,8 @@ ck_barrier_combining_aux(struct ck_barrier_combining *barrier,
 
 void
 ck_barrier_combining(struct ck_barrier_combining *barrier,
-		     struct ck_barrier_combining_group *tnode,
-		     struct ck_barrier_combining_state *state)
+    struct ck_barrier_combining_group *tnode,
+    struct ck_barrier_combining_state *state)
 {
 
 	ck_barrier_combining_aux(barrier, tnode, state->sense);

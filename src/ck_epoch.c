@@ -156,7 +156,7 @@ ck_epoch_recycle(struct ck_epoch *global)
 	unsigned int state;
 
 	if (ck_pr_load_uint(&global->n_free) == 0)
-		return (NULL);
+		return NULL;
 
 	CK_STACK_FOREACH(&global->records, cursor) {
 		record = ck_epoch_record_container(cursor);
@@ -216,9 +216,9 @@ ck_epoch_unregister(struct ck_epoch *global, struct ck_epoch_record *record)
 
 static struct ck_epoch_record *
 ck_epoch_scan(struct ck_epoch *global,
-	      struct ck_epoch_record *cr,
-	      unsigned int epoch,
-	      bool *af)
+    struct ck_epoch_record *cr,
+    unsigned int epoch,
+    bool *af)
 {
 	ck_stack_entry_t *cursor;
 

@@ -98,7 +98,7 @@ ck_hp_recycle(struct ck_hp *global)
 	int state;
 
 	if (ck_pr_load_uint(&global->n_free) == 0)
-		return (NULL);
+		return NULL;
 
 	CK_STACK_FOREACH(&global->subscribers, entry) {
 		record = ck_hp_record_container(entry);
@@ -113,7 +113,7 @@ ck_hp_recycle(struct ck_hp *global)
 		}
 	}
 
-	return (NULL);
+	return NULL;
 }
 
 void
@@ -132,8 +132,8 @@ ck_hp_unregister(struct ck_hp_record *entry)
 
 void
 ck_hp_register(struct ck_hp *state,
-	       struct ck_hp_record *entry,
-	       void **pointers)
+    struct ck_hp_record *entry,
+    void **pointers)
 {
 
 	entry->state = CK_HP_USED;
@@ -269,9 +269,9 @@ ck_hp_reclaim(struct ck_hp_record *thread)
 
 void
 ck_hp_retire(struct ck_hp_record *thread,
-	     struct ck_hp_hazard *hazard,
-	     void *data,
-	     void *pointer)
+    struct ck_hp_hazard *hazard,
+    void *data,
+    void *pointer)
 {
 
 	ck_pr_store_ptr(&hazard->pointer, pointer);
@@ -287,9 +287,9 @@ ck_hp_retire(struct ck_hp_record *thread,
 
 void
 ck_hp_free(struct ck_hp_record *thread,
-	   struct ck_hp_hazard *hazard,
-	   void *data,
-	   void *pointer)
+    struct ck_hp_hazard *hazard,
+    void *data,
+    void *pointer)
 {
 	struct ck_hp *global;
 

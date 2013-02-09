@@ -182,7 +182,11 @@ ck_hs_reset(struct ck_hs *hs)
 }
 
 static inline unsigned long
-ck_hs_map_probe_next(struct ck_hs_map *map, unsigned long offset, unsigned long h, unsigned long level, unsigned long probes)
+ck_hs_map_probe_next(struct ck_hs_map *map,
+    unsigned long offset,
+    unsigned long h,
+    unsigned long level,
+    unsigned long probes)
 {
 	unsigned long r;
 	unsigned long stride;
@@ -198,7 +202,7 @@ ck_hs_map_probe_next(struct ck_hs_map *map, unsigned long offset, unsigned long 
 
 bool
 ck_hs_grow(struct ck_hs *hs,
-	   unsigned long capacity)
+    unsigned long capacity)
 {
 	struct ck_hs_map *map, *update;
 	void **bucket, *previous;
@@ -272,13 +276,13 @@ restart:
 
 static void **
 ck_hs_map_probe(struct ck_hs *hs,
-		struct ck_hs_map *map,
-		unsigned long *n_probes,
-		void ***priority,
-		unsigned long h,
-		const void *key,
-		void **object,
-		unsigned long probe_limit)
+    struct ck_hs_map *map,
+    unsigned long *n_probes,
+    void ***priority,
+    unsigned long h,
+    const void *key,
+    void **object,
+    unsigned long probe_limit)
 {
 	void **bucket, **cursor, *k;
 	const void *compare;
@@ -361,9 +365,9 @@ leave:
 
 bool
 ck_hs_set(struct ck_hs *hs,
-          unsigned long h,
-	  const void *key,
-	  void **previous)
+    unsigned long h,
+    const void *key,
+    void **previous)
 {
 	void **slot, **first, *object, *insert;
 	unsigned long n_probes;
@@ -428,8 +432,8 @@ restart:
 
 bool
 ck_hs_put(struct ck_hs *hs,
-          unsigned long h,
-	  const void *key)
+    unsigned long h,
+    const void *key)
 {
 	void **slot, **first, *object, *insert;
 	unsigned long n_probes;
@@ -493,8 +497,8 @@ restart:
 
 void *
 ck_hs_get(struct ck_hs *hs,
-	  unsigned long h,
-	  const void *key)
+    unsigned long h,
+    const void *key)
 {
 	void **slot, **first, *object;
 	struct ck_hs_map *map;
@@ -522,8 +526,8 @@ ck_hs_get(struct ck_hs *hs,
 
 void *
 ck_hs_remove(struct ck_hs *hs,
-	     unsigned long h,
-	     const void *key)
+    unsigned long h,
+    const void *key)
 {
 	void **slot, **first, *object;
 	struct ck_hs_map *map = hs->map;
@@ -541,12 +545,12 @@ ck_hs_remove(struct ck_hs *hs,
 
 bool
 ck_hs_init(struct ck_hs *hs,
-	   unsigned int mode,
-	   ck_hs_hash_cb_t *hf,
-	   ck_hs_compare_cb_t *compare,
-	   struct ck_malloc *m,
-	   unsigned long n_entries,
-	   unsigned long seed)
+    unsigned int mode,
+    ck_hs_hash_cb_t *hf,
+    ck_hs_compare_cb_t *compare,
+    struct ck_malloc *m,
+    unsigned long n_entries,
+    unsigned long seed)
 {
 
 	if (m == NULL || m->malloc == NULL || m->free == NULL || hf == NULL)

@@ -34,8 +34,8 @@
 
 void
 ck_barrier_dissemination_init(struct ck_barrier_dissemination *barrier,
-			      struct ck_barrier_dissemination_flag **barrier_internal,
-			      unsigned int nthr)
+    struct ck_barrier_dissemination_flag **barrier_internal,
+    unsigned int nthr)
 {
 	unsigned int i, j, k, size, offset;
 	bool p = nthr & (nthr - 1);
@@ -77,7 +77,7 @@ ck_barrier_dissemination_init(struct ck_barrier_dissemination *barrier,
 
 void
 ck_barrier_dissemination_subscribe(struct ck_barrier_dissemination *barrier,
-				   struct ck_barrier_dissemination_state *state)
+    struct ck_barrier_dissemination_state *state)
 {
 
 	state->parity = 0;
@@ -95,7 +95,7 @@ ck_barrier_dissemination_size(unsigned int nthr)
 
 void
 ck_barrier_dissemination(struct ck_barrier_dissemination *barrier,
-			 struct ck_barrier_dissemination_state *state)
+    struct ck_barrier_dissemination_state *state)
 {
 	unsigned int i;
 	unsigned int size = barrier->size;

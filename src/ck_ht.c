@@ -76,7 +76,7 @@ struct ck_ht_map {
 
 void
 ck_ht_stat(struct ck_ht *table,
-	   struct ck_ht_stat *st)
+    struct ck_ht_stat *st)
 {
 	struct ck_ht_map *map = table->map;
 
@@ -87,9 +87,9 @@ ck_ht_stat(struct ck_ht *table,
 
 void
 ck_ht_hash(struct ck_ht_hash *h,
-	   struct ck_ht *table,
-	   const void *key,
-	   uint16_t key_length)
+    struct ck_ht *table,
+    const void *key,
+    uint16_t key_length)
 {
 
 	h->value = MurmurHash64A(key, key_length, table->seed);
@@ -98,8 +98,8 @@ ck_ht_hash(struct ck_ht_hash *h,
 
 void
 ck_ht_hash_direct(struct ck_ht_hash *h,
-		  struct ck_ht *table,
-		  uintptr_t key)
+    struct ck_ht *table,
+    uintptr_t key)
 {
 
 	ck_ht_hash(h, table, &key, sizeof(key));
@@ -108,9 +108,9 @@ ck_ht_hash_direct(struct ck_ht_hash *h,
 
 static void
 ck_ht_hash_wrapper(struct ck_ht_hash *h,
-		   const void *key,
-		   size_t length,
-		   uint64_t seed)
+    const void *key,
+    size_t length,
+    uint64_t seed)
 {
 
 	h->value = MurmurHash64A(key, length, seed);
@@ -178,11 +178,11 @@ ck_ht_map_probe_next(struct ck_ht_map *map, size_t offset, ck_ht_hash_t h, size_
 
 bool
 ck_ht_init(ck_ht_t *table,
-	   enum ck_ht_mode mode,
-	   ck_ht_hash_cb_t *h,
-	   struct ck_malloc *m,
-	   uint64_t entries,
-	   uint64_t seed)
+    enum ck_ht_mode mode,
+    ck_ht_hash_cb_t *h,
+    struct ck_malloc *m,
+    uint64_t entries,
+    uint64_t seed)
 {
 
 	if (m == NULL || m->malloc == NULL || m->free == NULL)
@@ -204,13 +204,13 @@ ck_ht_init(ck_ht_t *table,
 
 static struct ck_ht_entry *
 ck_ht_map_probe_wr(struct ck_ht_map *map,
-		   ck_ht_hash_t h,
-		   ck_ht_entry_t *snapshot,
-		   ck_ht_entry_t **available,
-		   const void *key,
-		   uint16_t key_length,
-		   uint64_t *probe_limit,
-		   uint64_t *probe_wr)
+    ck_ht_hash_t h,
+    ck_ht_entry_t *snapshot,
+    ck_ht_entry_t **available,
+    const void *key,
+    uint16_t key_length,
+    uint64_t *probe_limit,
+    uint64_t *probe_wr)
 {
 	struct ck_ht_entry *bucket, *cursor;
 	struct ck_ht_entry *first = NULL;
@@ -314,10 +314,10 @@ leave:
 
 static struct ck_ht_entry *
 ck_ht_map_probe_rd(struct ck_ht_map *map,
-		   ck_ht_hash_t h,
-		   ck_ht_entry_t *snapshot,
-		   const void *key,
-		   uint16_t key_length)
+    ck_ht_hash_t h,
+    ck_ht_entry_t *snapshot,
+    const void *key,
+    uint16_t key_length)
 {
 	struct ck_ht_entry *bucket, *cursor;
 	size_t offset, i, j;
@@ -430,8 +430,8 @@ ck_ht_count(ck_ht_t *table)
 
 bool
 ck_ht_next(struct ck_ht *table,
-	   struct ck_ht_iterator *i,
-	   struct ck_ht_entry **entry)
+    struct ck_ht_iterator *i,
+    struct ck_ht_entry **entry)
 {
 	struct ck_ht_map *map = table->map;
 	uintptr_t key;
@@ -560,8 +560,8 @@ restart:
 
 bool
 ck_ht_remove_spmc(ck_ht_t *table,
-		  ck_ht_hash_t h,
-		  ck_ht_entry_t *entry)
+    ck_ht_hash_t h,
+    ck_ht_entry_t *entry)
 {
 	struct ck_ht_map *map;
 	struct ck_ht_entry *candidate, *priority, snapshot;
@@ -615,8 +615,8 @@ ck_ht_remove_spmc(ck_ht_t *table,
 
 bool
 ck_ht_get_spmc(ck_ht_t *table,
-	       ck_ht_hash_t h,
-	       ck_ht_entry_t *entry)
+    ck_ht_hash_t h,
+    ck_ht_entry_t *entry)
 {
 	struct ck_ht_entry *candidate, snapshot;
 	struct ck_ht_map *map;
@@ -658,8 +658,8 @@ restart:
 
 bool
 ck_ht_set_spmc(ck_ht_t *table,
-	       ck_ht_hash_t h,
-	       ck_ht_entry_t *entry)
+    ck_ht_hash_t h,
+    ck_ht_entry_t *entry)
 {
 	struct ck_ht_entry snapshot, *candidate, *priority;
 	struct ck_ht_map *map;
@@ -772,8 +772,8 @@ ck_ht_set_spmc(ck_ht_t *table,
 
 bool
 ck_ht_put_spmc(ck_ht_t *table,
-	       ck_ht_hash_t h,
-	       ck_ht_entry_t *entry)
+    ck_ht_hash_t h,
+    ck_ht_entry_t *entry)
 {
 	struct ck_ht_entry snapshot, *candidate, *priority;
 	struct ck_ht_map *map;

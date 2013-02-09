@@ -48,7 +48,7 @@ enum {
 
 void
 ck_barrier_tournament_subscribe(struct ck_barrier_tournament *barrier,
-				struct ck_barrier_tournament_state *state)
+    struct ck_barrier_tournament_state *state)
 {
 
 	state->sense = ~0;
@@ -58,8 +58,8 @@ ck_barrier_tournament_subscribe(struct ck_barrier_tournament *barrier,
 
 void
 ck_barrier_tournament_init(struct ck_barrier_tournament *barrier,
-			   struct ck_barrier_tournament_round **rounds,
-			   unsigned int nthr)
+    struct ck_barrier_tournament_round **rounds,
+    unsigned int nthr)
 {
 	unsigned int i, k, size, twok, twokm1, imod2k;
 
@@ -107,7 +107,7 @@ ck_barrier_tournament_size(unsigned int nthr)
 
 void
 ck_barrier_tournament(struct ck_barrier_tournament *barrier,
-                      struct ck_barrier_tournament_state *state)
+    struct ck_barrier_tournament_state *state)
 {
 	struct ck_barrier_tournament_round **rounds = ck_pr_load_ptr(&barrier->rounds);
 	int round = 1;
