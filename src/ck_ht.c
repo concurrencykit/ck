@@ -664,6 +664,7 @@ ck_ht_set_spmc(ck_ht_t *table,
 	struct ck_ht_entry snapshot, *candidate, *priority;
 	struct ck_ht_map *map;
 	uint64_t probes, probes_wr;
+	bool empty = false;
 
 	for (;;) {
 		map = table->map;
@@ -697,6 +698,7 @@ ck_ht_set_spmc(ck_ht_t *table,
 
 	if (candidate == NULL) {
 		candidate = priority;
+		empty = true;
 	}
 
 	if (candidate->key != CK_HT_KEY_EMPTY &&
@@ -758,7 +760,12 @@ ck_ht_set_spmc(ck_ht_t *table,
 	if (map->n_entries * 2 > map->capacity)
 		ck_ht_grow_spmc(table, map->capacity << 1);
 
-	*entry = snapshot;
+	if (empty == true) {
+		entry->key = CK_HT_KEY_EMPTY;
+	} else {
+		*entry = snapshot;
+	}
+
 	return true;
 }
 
