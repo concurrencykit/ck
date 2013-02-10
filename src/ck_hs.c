@@ -470,19 +470,6 @@ restart:
 	if (first != NULL) {
 		/* Insert key into first bucket in probe sequence. */
 		ck_pr_store_ptr(first, insert);
-
-		if (slot != NULL && *slot != CK_HS_EMPTY) {
-			/*
-			 * If a duplicate key was found, then delete it after
-			 * signaling concurrent probes to restart. Optionally,
-			 * it is possible to install tombstone after grace
-			 * period if we can guarantee earlier position of
-			 * duplicate key.
-			 */
-			ck_pr_inc_uint(&map->generation[h & CK_HS_G_MASK]);
-			ck_pr_fence_store();
-			ck_pr_store_ptr(slot, CK_HS_TOMBSTONE);
-		}
 	} else {
 		/* An empty slot was found. */
 		ck_pr_store_ptr(slot, insert);
