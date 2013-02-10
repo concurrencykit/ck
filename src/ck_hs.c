@@ -404,8 +404,11 @@ restart:
 		ck_pr_store_ptr(first, insert);
 
 		/*
-		 * If a duplicate was found, then we must guarantee that new entry
-		 * is visible with respect to concurrent probe sequences.
+		 * If a duplicate key was found, then delete it after
+		 * signaling concurrent probes to restart. Optionally,
+		 * it is possible to install tombstone after grace
+		 * period if we can guarantee earlier position of
+		 * duplicate key.
 		 */
 		if (slot != NULL && *slot != CK_HS_EMPTY) {
 			ck_pr_inc_uint(&map->generation[h & CK_HS_G_MASK]);
