@@ -314,4 +314,3 @@ ck_error(const char *message, ...)
 	exit(EXIT_FAILURE);
 }
 
-
