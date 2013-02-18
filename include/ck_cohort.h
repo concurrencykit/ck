@@ -41,6 +41,13 @@
 	{																		\
 		unsigned int release_state;											\
 																			\
+		/*																	\
+		* Fence memory right after this increment to maximize the chance	\
+		* that another releasing thread will hold onto the global lock		\
+		* if possible.  If the timing works out such that it relinquishes	\
+		* the global lock when it doesn't have to, that's a potential		\
+		* performance hit but it doesn't violate correctness.				\
+		*/																	\
 		ck_pr_inc_uint(&cohort->waiting_threads);							\
 		ck_pr_fence_memory();												\
 																			\
@@ -53,6 +60,13 @@
 			TG##_lock((TG *) ck_pr_load_ptr(&cohort->global_lock));			\
 			ck_pr_store_uint(&cohort->release_state, RELEASE_STATE_LOCAL);	\
 		}																	\
+																			\
+		/*																	\
+		* We can increment this count any time between now and when			\
+		* we release the lock, but we may as well do it now because we're	\
+		* about to fence memory anyway.										\
+		*/																	\
+		ck_pr_inc_uint(&cohort->acquire_count);								\
 																			\
 		ck_pr_fence_memory();												\
 		return;																\
@@ -74,6 +88,7 @@
 		} else {															\
 			TG##_unlock((TG *) ck_pr_load_ptr(&cohort->global_lock));		\
 			ck_pr_store_uint(&cohort->release_state, RELEASE_STATE_GLOBAL);	\
+			ck_pr_store_uint(&cohort->acquire_count, 0);					\
 		}																	\
 																			\
 		TL##_unlock((TL *) ck_pr_load_ptr(&cohort->local_lock));			\
