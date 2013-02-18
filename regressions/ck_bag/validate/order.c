@@ -279,7 +279,7 @@ main(int argc, char **argv)
 	}
 
 	fprintf(stderr, "Waiting...");
-	sleep(30);
+	common_sleep(30);
 	fprintf(stderr, "done\n");
 
 	ck_pr_store_int(&leave, 1);

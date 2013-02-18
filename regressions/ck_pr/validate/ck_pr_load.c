@@ -33,6 +33,7 @@
 
 #include <ck_pr.h>
 
+#include "../../common.h"
 #ifndef R_REPEAT
 #define R_REPEAT 200000
 #endif
@@ -50,7 +51,7 @@
 			exit(EXIT_FAILURE);						\
 		}									\
 		for (i = 0; i < R_REPEAT; i++) {					\
-			t = (uint##w##_t)random();					\
+			t = (uint##w##_t)common_rand();					\
 			a = ck_pr_load_##w(&t);						\
 			if (a != t) {							\
 				printf("FAIL [%#" PRIx##w " != %#" PRIx##w "]\n", a, t);\
@@ -118,7 +119,7 @@ int
 main(void)
 {
 
-	srandom((unsigned int)getpid());
+	common_srand((unsigned int)getpid());
 
 #ifdef CK_F_PR_LOAD_64
 	CK_PR_LOAD_B(64);
@@ -145,3 +146,4 @@ main(void)
 
 	return (0);
 }
+

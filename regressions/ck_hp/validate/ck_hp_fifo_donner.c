@@ -99,7 +99,7 @@ queue_50_50(void *elements)
 	/* 50/50 enqueue-dequeue */
 	for(j = 0; j < element_count; j++) {
 		/* rand_r with thread local state should be thread safe */
-		if( 50 < (1+(int) (100.0*rand_r(&seed)/(RAND_MAX+1.0)))) {
+		if( 50 < (1+(int) (100.0*common_rand_r(&seed)/(RAND_MAX+1.0)))) {
 			/* This is the container for the enqueued data. */
         		fifo_entry = malloc(sizeof(ck_hp_fifo_entry_t));
 

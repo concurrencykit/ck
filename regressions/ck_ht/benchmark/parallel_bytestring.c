@@ -71,6 +71,8 @@ struct ht_epoch {
 	ck_epoch_entry_t epoch_entry;
 };
 
+COMMON_ALARM_DECLARE_GLOBAL(alarm_event, next_stage)
+
 static void
 alarm_handler(int s)
 {
@@ -125,8 +127,8 @@ table_init(void)
 
 	ck_epoch_init(&epoch_ht);
 	ck_epoch_register(&epoch_ht, &epoch_wr);
-	srand48((long int)time(NULL));
-	if (ck_ht_init(&ht, CK_HT_MODE_BYTESTRING, NULL, &my_allocator, 8, lrand48()) == false) {
+	common_srand48((long int)time(NULL));
+	if (ck_ht_init(&ht, CK_HT_MODE_BYTESTRING, NULL, &my_allocator, 8, common_lrand48()) == false) {
 		perror("ck_ht_init");
 		exit(EXIT_FAILURE);
 	}
@@ -263,6 +265,8 @@ main(int argc, char *argv[])
 	pthread_t *readers;
 	double p_r, p_d;
 
+	COMMON_ALARM_DECLARE_LOCAL(alarm_event)
+
 	r = 20;
 	s = 8;
 	p_d = 0.5;
@@ -300,6 +304,8 @@ main(int argc, char *argv[])
 			ck_error("ERROR: Probability of deletion must be >= 0 and <= 100.\n");
 		}
 	}
+
+	COMMON_ALARM_INIT(alarm_event, r)
 
 	affinerator.delta = 1;
 	readers = malloc(sizeof(pthread_t) * n_threads);
@@ -424,7 +430,7 @@ main(int argc, char *argv[])
 	while (ck_pr_load_int(&barrier[HT_STATE_STOP]) != n_threads)
 		ck_pr_stall();
 	ck_pr_inc_int(&barrier[HT_STATE_STOP]);
-	sleep(r);
+	common_sleep(r);
 	ck_pr_store_int(&state, HT_STATE_STRICT_REPLACEMENT);
 	while (ck_pr_load_int(&barrier[HT_STATE_GET]) != n_threads)
 		ck_pr_stall();
@@ -434,8 +440,7 @@ main(int argc, char *argv[])
 	fprintf(stderr, " | Executing strict replacement test...");
 
 	a = repeated = 0;
-	signal(SIGALRM, alarm_handler);
-	alarm(r);
+	common_alarm(alarm_handler, &alarm_event, r);
 
 	ck_pr_inc_int(&barrier[HT_STATE_GET]);
 	for (;;) {
@@ -460,8 +465,7 @@ main(int argc, char *argv[])
 	fprintf(stderr, "done (writer = %" PRIu64 " ticks, reader = %" PRIu64 " ticks)\n",
 	    a / (repeated * keys_length), accumulator[HT_STATE_STRICT_REPLACEMENT] / n_threads);
 
-	signal(SIGALRM, alarm_handler);
-	alarm(r);
+	common_alarm(alarm_handler, &alarm_event, r);
 
 	fprintf(stderr, " | Executing deletion test (%.2f)...", p_d * 100);
 	a = repeated = 0;
@@ -474,7 +478,7 @@ main(int argc, char *argv[])
 		for (i = 0; i < keys_length; i++) {
 			table_insert(keys[i]);
 			if (p_d != 0.0) {
-				delete = drand48();
+				delete = common_drand48();
 				if (delete <= p_d)
 					table_remove(keys[i]);
 			}
@@ -496,8 +500,7 @@ main(int argc, char *argv[])
 	fprintf(stderr, "done (writer = %" PRIu64 " ticks, reader = %" PRIu64 " ticks)\n",
 	    a / (repeated * keys_length), accumulator[HT_STATE_DELETION] / n_threads);
 
-	signal(SIGALRM, alarm_handler);
-	alarm(r);
+	common_alarm(alarm_handler, &alarm_event, r);
 
 	fprintf(stderr, " | Executing replacement test (%.2f)...", p_r * 100);
 	a = repeated = 0;
@@ -510,12 +513,12 @@ main(int argc, char *argv[])
 		for (i = 0; i < keys_length; i++) {
 			table_insert(keys[i]);
 			if (p_d != 0.0) {
-				delete = drand48();
+				delete = common_drand48();
 				if (delete <= p_d)
 					table_remove(keys[i]);
 			}
 			if (p_r != 0.0) {
-				replace = drand48();
+				replace = common_drand48();
 				if (replace <= p_r)
 					table_replace(keys[i]);
 			}

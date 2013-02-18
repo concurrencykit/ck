@@ -117,7 +117,7 @@ fairness(void *null)
 
 		count[i].value++;
 		if (critical) {
-			base = lrand48() % critical;
+			base = common_lrand48() % critical;
 			for (j = 0; j < base; j++);
 		}
 
@@ -189,7 +189,7 @@ main(int argc, char *argv[])
 	fprintf(stderr, "done\n");
 
 	ck_pr_store_uint(&ready, 1);
-	sleep(10);
+	common_sleep(10);
 	ck_pr_store_uint(&ready, 0);
 
 	fprintf(stderr, "Waiting for threads to finish acquisition regression...");

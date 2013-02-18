@@ -33,6 +33,7 @@
 
 #include <ck_pr.h>
 
+#include "../../common.h"
 #ifndef R_REPEAT
 #define R_REPEAT 200000
 #endif
@@ -63,7 +64,7 @@
 		unsigned int i;				\
 		printf("ck_pr_bts_" #w ": ");		\
 		for (i = 0; i < R_REPEAT; i++) {	\
-			o = (uint##w##_t)random();	\
+			o = (uint##w##_t)common_rand();	\
 			CK_PR_BTS_T(w, o);		\
 		}					\
 		printf("  SUCCESS\n");			\
@@ -73,7 +74,7 @@ int
 main(void)
 {
 
-	srandom((unsigned int)getpid());
+	common_srand((unsigned int)getpid());
 
 #ifdef CK_F_PR_BTS_64
 	CK_PR_BTS_B(64);
@@ -93,3 +94,4 @@ main(void)
 
 	return (0);
 }
+

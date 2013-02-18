@@ -29,6 +29,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 
+#include "../../common.h"
 #define REPEAT 2000000
 
 #define TEST_BINARY(K, S, T, P, D)					\
@@ -40,9 +41,9 @@
 		T ck_result = 65535;					\
 									\
 		puts("***TESTING ck_pr_" #K "_" #S "***");		\
-		srandom((unsigned int)getpid());			\
+		common_srand((unsigned int)getpid());			\
 		for (i = 0; i < REPEAT; ++i) {				\
-			r = random();					\
+			r = common_rand();					\
 			serial_result = serial_result P r;		\
 			ck_pr_##K##_##S(&ck_result, r);			\
 		}							\
@@ -89,4 +90,5 @@ main(void)
 
 	return (0);
 }
+
 

@@ -88,8 +88,8 @@ static void
 set_init(void)
 {
 
-	srand48((long int)time(NULL));
-	if (ck_hs_init(&hs, CK_HS_MODE_OBJECT | CK_HS_MODE_SPMC, hs_hash, hs_compare, &my_allocator, 8, lrand48()) == false) {
+	common_srand48((long int)time(NULL));
+	if (ck_hs_init(&hs, CK_HS_MODE_OBJECT | CK_HS_MODE_SPMC, hs_hash, hs_compare, &my_allocator, 8, common_lrand48()) == false) {
 		perror("ck_hs_init");
 		exit(EXIT_FAILURE);
 	}

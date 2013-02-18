@@ -114,7 +114,7 @@ main(int argc, char *argv[])
         }
         fprintf(stderr, "done\n");
 
-	sleep(10);
+	common_sleep(10);
 
 	count = 0;
 	ck_pr_store_int(&done, 1);

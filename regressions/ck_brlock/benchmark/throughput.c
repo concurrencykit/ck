@@ -148,7 +148,7 @@ main(int argc, char *argv[])
 	}
 	fprintf(stderr, "done\n");
 
-	sleep(10);
+	common_sleep(10);
 	ck_pr_store_uint(&flag, 1);
 
 	fprintf(stderr, "Waiting for threads to finish acquisition regression...");

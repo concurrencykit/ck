@@ -29,6 +29,7 @@
 #include <unistd.h>
 #include <ck_pr.h>
 
+#include "../../common.h"
 #define REPEAT 2000000
 
 #define TEST_FAX_FN(S, T, M)								\
@@ -65,9 +66,9 @@ TEST_FAX_FN_S(uint, unsigned int)
 		T x = 0, y = 0, x_b, y_b;						\
 											\
 		puts("***TESTING ck_pr_"#K"_"#S"***");					\
-		srandom((unsigned int)getpid());					\
+		common_srand((unsigned int)getpid());					\
 		for (i = 0; i < REPEAT; ++i) {						\
-			r = random();							\
+			r = common_rand();							\
 			x_b = test_##K##_##S(&x, r);					\
 			y_b = ck_pr_##K##_##S(&y, r);					\
 											\
@@ -116,4 +117,5 @@ main(void)
 
 	return (0);
 }
+
 

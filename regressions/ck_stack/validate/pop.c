@@ -127,7 +127,7 @@ stack_thread(void *unused CK_CC_UNUSED)
 #endif
 
 		if (critical) {
-			j = rand_r(&seed) % critical;
+			j = common_rand_r(&seed) % critical;
 			while (j--)
 				__asm__ __volatile__("" ::: "memory");
 		}

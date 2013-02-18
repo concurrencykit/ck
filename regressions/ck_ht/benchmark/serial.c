@@ -72,8 +72,8 @@ static void
 table_init(void)
 {
 
-	srand48((long int)time(NULL));
-	if (ck_ht_init(&ht, CK_HT_MODE_BYTESTRING, NULL, &my_allocator, 8, lrand48()) == false) {
+	common_srand48((long int)time(NULL));
+	if (ck_ht_init(&ht, CK_HT_MODE_BYTESTRING, NULL, &my_allocator, 8, common_lrand48()) == false) {
 		perror("ck_ht_init");
 		exit(EXIT_FAILURE);
 	}

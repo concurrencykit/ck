@@ -33,6 +33,7 @@
 
 #include <ck_pr.h>
 
+#include "../../common.h"
 #ifndef R_REPEAT
 #define R_REPEAT 200000
 #endif
@@ -57,8 +58,8 @@
 		if (w < 10)							\
 			printf(" ");						\
 		for (__ck_i = 0; __ck_i < R_REPEAT; __ck_i++) {			\
-			uint##w##_t a = random() % ((uint##w##_t)-1 / 2);	\
-			uint##w##_t b = random() % ((uint##w##_t)-1 / 2);	\
+			uint##w##_t a = common_rand() % ((uint##w##_t)-1 / 2);	\
+			uint##w##_t b = common_rand() % ((uint##w##_t)-1 / 2);	\
 			CK_PR_FAA_T(w, a, b);					\
 		}								\
 		rg_width(w);							\
@@ -128,7 +129,7 @@ int
 main(void)
 {
 
-	srandom((unsigned int)getpid());
+	common_srand((unsigned int)getpid());
 
 #ifdef CK_F_PR_FAA_64
 	CK_PR_FAA_B(64);
@@ -148,3 +149,4 @@ main(void)
 
 	return (0);
 }
+

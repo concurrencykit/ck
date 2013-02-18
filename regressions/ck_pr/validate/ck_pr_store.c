@@ -51,7 +51,7 @@
 			exit(EXIT_FAILURE);						\
 		}									\
 		for (i = 0; i < R_REPEAT; i++) {					\
-			t = (uint##w##_t)random();					\
+			t = (uint##w##_t)common_rand();					\
 			ck_pr_store_##w(&a, t);						\
 			if (a != t) {							\
 				printf("FAIL [%#" PRIx##w " != %#" PRIx##w "]\n", a, t);\
@@ -127,7 +127,7 @@ main(void)
 	}
 #endif
 
-	srandom((unsigned int)getpid());
+	common_srand((unsigned int)getpid());
 
 #ifdef CK_F_PR_STORE_64
 	CK_PR_STORE_B(64);

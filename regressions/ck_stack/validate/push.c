@@ -122,7 +122,7 @@ stack_thread(void *buffer)
 #endif
 
 		if (critical) {
-			j = rand_r(&seed) % critical;
+			j = common_rand_r(&seed) % critical;
 			while (j--)
 				__asm__ __volatile__("" ::: "memory");
 		}

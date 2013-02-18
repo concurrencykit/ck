@@ -249,7 +249,7 @@ fi
 
 DCORES=2
 printf "Detecting operating system......."
-SYSTEM=`uname -s 2> /dev/null`
+SYSTEM=`uname -s 2> /dev/null | grep "^[A-Za-z0-9]*" -o`
 case "$SYSTEM" in
 	"SunOS")
 		SYSTEM=solaris
@@ -277,6 +277,11 @@ case "$SYSTEM" in
 	"Darwin")
 		DCORES=`sysctl -n hw.ncpu`
 		SYSTEM=darwin
+		;;
+	"MINGW32")
+		DCORES=2
+		SYSTEM=mingw32
+		LDFLAGS="-mthreads $LDFLAGS"
 		;;
 	*)
 		SYSTEM=
@@ -481,7 +486,14 @@ assert "$CC" "not found"
 cat << EOF > .1.c
 #include <stdio.h>
 int main(void) {
-#if defined(__clang__) && (__clang_major__ >= 4)
+#if defined(_WIN32)
+#if defined(__MINGW32__) && (__MINGW32_MAJOR_VERSION >= 3)
+	puts("mingw32");
+	return (0);
+#else
+	return (1);
+#endif
+#elif defined(__clang__) && (__clang_major__ >= 4)
 	puts("clang");
 	return (0);
 #elif defined(__SUNPRO_C) && (__SUNPRO_C >= 0x5110)
@@ -512,7 +524,7 @@ if test "$COMPILER" = "suncc"; then
 	LDFLAGS="-G -z text -h libck.so.$VERSION_MAJOR $LDFLAGS"
 	CFLAGS="-xO5 $CFLAGS"
 	PTHREAD_CFLAGS="-mt -lpthread"
-elif test "$COMPILER" = "gcc" || test "$COMPILER" = "clang"; then
+elif test "$COMPILER" = "gcc" || test "$COMPILER" = "clang" || test "$COMPILER" = "mingw32"; then
 	LD=$CC
 	if test "$SYSTEM" = "darwin"; then
 		CC_WL_OPT="-install_name"
