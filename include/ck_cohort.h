@@ -53,7 +53,6 @@
 																			\
 		TL##_lock((TL *) ck_pr_load_ptr(&cohort->local_lock));				\
 		ck_pr_dec_uint(&cohort->waiting_threads);							\
-		ck_pr_fence_memory();												\
 																			\
 		release_state = ck_pr_load_uint(&cohort->release_state);			\
 		if (release_state == RELEASE_STATE_GLOBAL) {						\
