@@ -146,53 +146,53 @@ common_alarm(void (*sig_handler)(int), void *alarm_event, unsigned int duration)
 #ifndef SECOND_TIMER
 #define	SECOND_TIMER 10000000
 #endif
-#define	COMMON_ALARM_DECLARE_GLOBAL(alarm_event_name, flag_name)									\
-static HANDLE common_win_alarm_timer;													\
-static HANDLE alarm_event_name;														\
-static LARGE_INTEGER timer_length;													\
-																	\
-static void CALLBACK															\
-common_win_alarm_handler(LPVOID arg, DWORD timer_low_value, DWORD timer_high_value)							\
-{																	\
-	(void)arg;															\
-	(void)timer_low_value;														\
-	(void)timer_high_value;														\
-	flag_name = true;														\
-	return;																\
-}																	\
-																	\
-static void *																\
-common_win_alarm(void *unused)														\
-{																	\
-	(void)unused;															\
-	bool timer_success = false;													\
-	for (;;) {															\
-		WaitForSingleObjectEx(alarm_event_name, INFINITE, true);								\
-		timer_success = SetWaitableTimer(common_win_alarm_timer, &timer_length, 0, common_win_alarm_handler, NULL, false);	\
-		assert(timer_success != false);												\
-		WaitForSingleObjectEx(common_win_alarm_timer, INFINITE, true);								\
-	}																\
-																	\
-	return NULL;															\
+#define	COMMON_ALARM_DECLARE_GLOBAL(alarm_event_name, flag_name)			\
+static HANDLE common_win_alarm_timer;							\
+static HANDLE alarm_event_name;								\
+static LARGE_INTEGER common_alarm_timer_length;						\
+											\
+static void CALLBACK									\
+common_win_alarm_handler(LPVOID arg, DWORD timer_low_value, DWORD timer_high_value)	\
+{											\
+	(void)arg;									\
+	(void)timer_low_value;								\
+	(void)timer_high_value;								\
+	flag_name = true;								\
+	return;										\
+}											\
+											\
+static void *										\
+common_win_alarm(void *unused)								\
+{											\
+	(void)unused;									\
+	bool timer_success = false;							\
+	for (;;) {									\
+		WaitForSingleObjectEx(alarm_event_name, INFINITE, true);		\
+		timer_success = SetWaitableTimer(common_win_alarm_timer, &common_alarm_timer_length, 0, common_win_alarm_handler, NULL, false);	\
+		assert(timer_success != false);						\
+		WaitForSingleObjectEx(common_win_alarm_timer, INFINITE, true);		\
+	}										\
+											\
+	return NULL;									\
 }
 
-#define	COMMON_ALARM_DECLARE_LOCAL(alarm_event_name)	\
-	__int64 tl;					\
-	pthread_t common_win_alarm_thread;
+#define	COMMON_ALARM_DECLARE_LOCAL(alarm_event_name, local_name)	\
+	int64_t common_alarm_tl_#local_name;				\
+	pthread_t common_win_alarm_thread_#local_name;
 
-#define	COMMON_ALARM_INIT(alarm_event_name, duration) 						\
-	tl = -1 * duration * SECOND_TIMER;							\
-	timer_length.LowPart = (DWORD) (tl & 0xFFFFFFFF);					\
-	timer_length.HighPart = (LONG) (tl >> 32);						\
-	alarm_event_name = CreateEvent(NULL, false, false, NULL);				\
-	assert(alarm_event_name != NULL);							\
-	common_win_alarm_timer = CreateWaitableTimer(NULL, true, NULL);				\
-	assert(common_win_alarm_timer != NULL);							\
-	if (pthread_create(&common_win_alarm_thread, NULL, common_win_alarm, NULL) != 0)	\
+#define	COMMON_ALARM_INIT(alarm_event_name, duration, local_name) 			\
+	common_alarm_tl_#local_name = -1 * (duration) * SECOND_TIMER;			\
+	common_alarm_timer_length.LowPart = (DWORD) (tl & 0xFFFFFFFF);			\
+	common_alarm_timer_length.HighPart = (LONG) (tl >> 32);				\
+	alarm_event_name = CreateEvent(NULL, false, false, NULL);			\
+	assert(alarm_event_name != NULL);						\
+	common_win_alarm_timer = CreateWaitableTimer(NULL, true, NULL);			\
+	assert(common_win_alarm_timer != NULL);						\
+	if (pthread_create(&common_win_alarm_thread_#local_name, NULL, common_win_alarm, NULL) != 0)	\
 		ck_error("ERROR: Failed to create common_win_alarm thread.\n");
 #else
 #define	COMMON_ALARM_DECLARE_GLOBAL(alarm_event_name, flag_name)
-#define	COMMON_ALARM_DECLARE_LOCAL(alarm_event_name)	\
+#define	COMMON_ALARM_DECLARE_LOCAL(alarm_event_name, local_name)	\
 	int alarm_event_name = 0;
 #define	COMMON_ALARM_INIT(alarm_event_name, duration)
 #endif
