@@ -31,7 +31,6 @@
 #include <stdlib.h>
 
 #ifdef __linux__
-#include <signal.h>
 #include <sched.h>
 #include <sys/types.h>
 #include <sys/syscall.h>
