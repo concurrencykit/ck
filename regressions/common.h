@@ -229,6 +229,18 @@ aff_iterate(struct affinity *acb)
 
 	return sched_setaffinity(gettid(), sizeof(s), &s);
 }
+
+CK_CC_UNUSED static int
+aff_iterate_core(struct affinity *acb, unsigned int *core)
+{
+	cpu_set_t s;
+	
+	*core = ck_pr_faa_uint(&acb->request, acb->delta);
+	CPU_ZERO(&s);
+	CPU_SET((*core) % CORES, &s);
+
+	return sched_setaffinity(gettid(), sizeof(s), &s);
+}
 #elif defined(__MACH__)
 CK_CC_UNUSED static int
 aff_iterate(struct affinity *acb)
@@ -243,11 +255,31 @@ aff_iterate(struct affinity *acb)
 				 (thread_policy_t)&policy,
 				 THREAD_AFFINITY_POLICY_COUNT);
 }
+
+CK_CC_UNUSED static int
+aff_iterate_core(struct affinity *acb, unsigned int *core)
+{
+	thread_affinity_policy_data_t policy;
+
+	*core = ck_pr_faa_uint(&acb->request, acb->delta) % CORES;
+	policy.affinity_tag = *core;
+	return thread_policy_set(mach_thread_self(),
+				 THREAD_AFFINITY_POLICY,
+				 (thread_policy_t)&policy,
+				 THREAD_AFFINITY_POLICY_COUNT);
+}
 #else
 CK_CC_UNUSED static int
 aff_iterate(struct affinity *acb CK_CC_UNUSED)
 {
 
+	return (0);
+}
+
+CK_CC_UNUSED static int
+aff_iterate_core(struct affinity *acb CK_CC_UNUSED, unsigned int *core)
+{
+	*core = 0;
 	return (0);
 }
 #endif
