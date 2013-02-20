@@ -26,15 +26,9 @@
  */
 
 #include <errno.h>
-#include <inttypes.h>
 #include <pthread.h>
-#include <math.h>
-#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <strings.h>
-#include <unistd.h>
-#include <sys/time.h>
 
 #include <ck_pr.h>
 #include <ck_cohort.h>
@@ -49,7 +43,7 @@
 static struct affinity a;
 static unsigned int locked;
 static int nthr;
-static ck_spinlock_fas_t global_lock = CK_SPINLOCK_FAS_INITIALIZER;
+static ck_spinlock_fas_t global_fas_lock = CK_SPINLOCK_FAS_INITIALIZER;
 typedef ck_spinlock_fas_t ck_spinlock_fas;
 CK_CREATE_COHORT(fas_fas, ck_spinlock_fas, ck_spinlock_fas)
 static struct ck_cohort_fas_fas *cohorts;
@@ -63,12 +57,12 @@ thread(void *null CK_CC_UNUSED)
 	unsigned int core;
 	struct ck_cohort_fas_fas *cohort;
 
-    if (aff_iterate_core(&a, &core)) {
-            perror("ERROR: Could not affine thread");
-            exit(EXIT_FAILURE);
-    }
+	if (aff_iterate_core(&a, &core)) {
+			perror("ERROR: Could not affine thread");
+			exit(EXIT_FAILURE);
+	}
 
-    cohort = cohorts + core % n_cohorts;
+	cohort = cohorts + core % n_cohorts;
 
 	while (i--) {
 		ck_cohort_fas_fas_lock(cohort);
@@ -147,7 +141,7 @@ main(int argc, char *argv[])
 	cohorts = malloc(sizeof(struct ck_cohort_fas_fas) * n_cohorts);
 	for (i = 0 ; i < n_cohorts ; i++) {
 		local_lock = malloc(sizeof(ck_spinlock_fas_t));
-		ck_cohort_fas_fas_init(cohorts + i, &global_lock, local_lock);
+		ck_cohort_fas_fas_init(cohorts + i, &global_fas_lock, local_lock);
 	}
 	fprintf(stderr, "done\n");
 
