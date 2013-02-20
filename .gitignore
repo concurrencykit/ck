@@ -134,3 +134,4 @@ regressions/ck_brlock/benchmark/throughput
 regressions/ck_rwlock/benchmark/throughput
 regressions/ck_queue/validate/ck_list
 regressions/ck_queue/validate/ck_slist
+regressions/ck_cohort/validate/validate
