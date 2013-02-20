@@ -32,16 +32,20 @@
 
 #ifdef __linux__
 #include <sched.h>
-#include <unistd.h>
 #include <sys/types.h>
 #include <sys/syscall.h>
 #elif defined(__MACH__)
 #include <mach/mach.h>
 #include <mach/thread_policy.h>
 #include <unistd.h>
-#elif defined(_WIN32)
+#endif
+
+#if defined(_WIN32)
 #include <assert.h>
 #include <windows.h>
+#else
+#include <signal.h>
+#include <unistd.h>
 #endif
 
 #ifndef CORES
