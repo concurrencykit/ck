@@ -62,7 +62,7 @@ thread(void *null CK_CC_UNUSED)
 			exit(EXIT_FAILURE);
 	}
 
-	cohort = cohorts + core % n_cohorts;
+	cohort = cohorts + (core / (int)ck_pr_load_uint(&a.delta)) % n_cohorts;
 
 	while (i--) {
 		ck_cohort_fas_fas_lock(cohort);
