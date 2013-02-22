@@ -410,7 +410,7 @@ ck_spinlock_dec_unlock(struct ck_spinlock_dec *lock)
  * trylock functionality on availability of 32-bit or 64-bit fetch-and-add
  * and compare-and-swap.
  */
-#ifndef CK_SPINLOCK_TICKET_TRYLOCK_DISABLE
+#if defined(CK_MD_TSO)
 #if defined(CK_F_PR_FAA_32) && defined(CK_F_PR_INC_16) && defined(CK_F_PR_CAS_32)
 #define CK_SPINLOCK_TICKET_TYPE         uint32_t
 #define CK_SPINLOCK_TICKET_TYPE_BASE    uint16_t
@@ -432,7 +432,7 @@ ck_spinlock_dec_unlock(struct ck_spinlock_dec *lock)
 #define CK_SPINLOCK_TICKET_MASK         (0xFFFFFFFFULL)
 #define CK_SPINLOCK_TICKET_SHIFT        (32)
 #endif
-#endif /* CK_SPINLOCK_TICKET_TRYLOCK_DISABLE */
+#endif /* CK_MD_TSO */
 
 #if defined(CK_SPINLOCK_TICKET_TYPE)
 #define CK_F_SPINLOCK_TICKET_TRYLOCK
