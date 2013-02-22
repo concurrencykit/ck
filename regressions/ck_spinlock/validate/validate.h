@@ -70,8 +70,22 @@ thread(void *null CK_CC_UNUSED)
         }
 
 	while (i--) {
+#ifdef TRYLOCK
+		if (i & 1) {
+			LOCK;
+		} else {
+			while (TRYLOCK == false)
+				ck_pr_stall();
+		}
+#else
 		LOCK;
+#endif
 
+		ck_pr_inc_uint(&locked);
+		ck_pr_inc_uint(&locked);
+		ck_pr_inc_uint(&locked);
+		ck_pr_inc_uint(&locked);
+		ck_pr_inc_uint(&locked);
 		ck_pr_inc_uint(&locked);
 		ck_pr_inc_uint(&locked);
 		ck_pr_inc_uint(&locked);
@@ -80,7 +94,7 @@ thread(void *null CK_CC_UNUSED)
 
 		j = ck_pr_load_uint(&locked);
 
-		if (j != 5) {
+		if (j != 10) {
 			ck_error("ERROR (WR): Race condition (%u)\n", j);
 			exit(EXIT_FAILURE);
 		}
@@ -90,8 +104,14 @@ thread(void *null CK_CC_UNUSED)
 		ck_pr_dec_uint(&locked);
 		ck_pr_dec_uint(&locked);
 		ck_pr_dec_uint(&locked);
+		ck_pr_dec_uint(&locked);
+		ck_pr_dec_uint(&locked);
+		ck_pr_dec_uint(&locked);
+		ck_pr_dec_uint(&locked);
+		ck_pr_dec_uint(&locked);
 
 		UNLOCK;
+
 		LOCK;
 
 		j = ck_pr_load_uint(&locked);
@@ -99,6 +119,7 @@ thread(void *null CK_CC_UNUSED)
 			ck_error("ERROR (RD): Race condition (%u)\n", j);
 			exit(EXIT_FAILURE);
 		}
+
 		UNLOCK;
 	}
 

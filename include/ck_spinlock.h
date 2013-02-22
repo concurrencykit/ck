@@ -406,6 +406,141 @@ ck_spinlock_dec_unlock(struct ck_spinlock_dec *lock)
 #ifndef CK_F_SPINLOCK_TICKET
 #define CK_F_SPINLOCK_TICKET
 /*
+ * If 16-bit or 32-bit increment is supported, implement support for
+ * trylock functionality on availability of 32-bit or 64-bit fetch-and-add
+ * and compare-and-swap.
+ */
+#ifndef CK_SPINLOCK_TICKET_TRYLOCK_DISABLE
+#if defined(CK_F_PR_FAA_32) && defined(CK_F_PR_INC_16) && defined(CK_F_PR_CAS_32)
+#define CK_SPINLOCK_TICKET_TYPE         uint32_t
+#define CK_SPINLOCK_TICKET_TYPE_BASE    uint16_t
+#define CK_SPINLOCK_TICKET_INC(x)       ck_pr_inc_16(x)
+#define CK_SPINLOCK_TICKET_CAS(x, y, z) ck_pr_cas_32(x, y, z)
+#define CK_SPINLOCK_TICKET_FAA(x, y)    ck_pr_faa_32(x, y)
+#define CK_SPINLOCK_TICKET_LOAD(x)      ck_pr_load_32(x)
+#define CK_SPINLOCK_TICKET_INCREMENT    (0x00010000UL)
+#define CK_SPINLOCK_TICKET_MASK         (0xFFFFUL)
+#define CK_SPINLOCK_TICKET_SHIFT        (16)
+#elif defined(CK_F_PR_FAA_64) && defined(CK_F_PR_INC_32) && defined(CK_F_PR_CAS_64)
+#define CK_SPINLOCK_TICKET_TYPE         uint64_t
+#define CK_SPINLOCK_TICKET_TYPE_BASE    uint32_t
+#define CK_SPINLOCK_TICKET_INC(x)       ck_pr_inc_32(x)
+#define CK_SPINLOCK_TICKET_CAS(x, y, z) ck_pr_cas_64(x, y, z)
+#define CK_SPINLOCK_TICKET_FAA(x, y)    ck_pr_faa_64(x, y)
+#define CK_SPINLOCK_TICKET_LOAD(x)      ck_pr_load_64(x)
+#define CK_SPINLOCK_TICKET_INCREMENT    (0x0000000100000000ULL)
+#define CK_SPINLOCK_TICKET_MASK         (0xFFFFFFFFULL)
+#define CK_SPINLOCK_TICKET_SHIFT        (32)
+#endif
+#endif /* CK_SPINLOCK_TICKET_TRYLOCK_DISABLE */
+
+#if defined(CK_SPINLOCK_TICKET_TYPE)
+#define CK_F_SPINLOCK_TICKET_TRYLOCK
+
+struct ck_spinlock_ticket {
+	CK_SPINLOCK_TICKET_TYPE value;
+};
+typedef struct ck_spinlock_ticket ck_spinlock_ticket_t;
+#define CK_SPINLOCK_TICKET_INITIALIZER { .value = 0 }
+
+CK_CC_INLINE static void
+ck_spinlock_ticket_init(struct ck_spinlock_ticket *ticket)
+{
+
+	ticket->value = 0;
+	ck_pr_fence_store();
+	return;
+}
+
+CK_CC_INLINE static void
+ck_spinlock_ticket_lock(struct ck_spinlock_ticket *ticket)
+{
+	CK_SPINLOCK_TICKET_TYPE request, position;
+
+	/* Get our ticket number and set next ticket number. */
+	request = CK_SPINLOCK_TICKET_FAA(&ticket->value,
+	    CK_SPINLOCK_TICKET_INCREMENT);
+
+	position = request & CK_SPINLOCK_TICKET_MASK;
+	request >>= CK_SPINLOCK_TICKET_SHIFT;
+
+	while (request != position) {
+		ck_pr_stall();
+		position = CK_SPINLOCK_TICKET_LOAD(&ticket->value) &
+		    CK_SPINLOCK_TICKET_MASK;
+	}
+
+	ck_pr_fence_memory();
+	return;
+}
+
+CK_CC_INLINE static void
+ck_spinlock_ticket_lock_pb(struct ck_spinlock_ticket *ticket, unsigned int c)
+{
+	CK_SPINLOCK_TICKET_TYPE request, position;
+	ck_backoff_t backoff;
+
+	/* Get our ticket number and set next ticket number. */
+	request = CK_SPINLOCK_TICKET_FAA(&ticket->value,
+	    CK_SPINLOCK_TICKET_INCREMENT);
+
+	position = request & CK_SPINLOCK_TICKET_MASK;
+	request >>= CK_SPINLOCK_TICKET_SHIFT;
+
+	while (request != position) {
+		ck_pr_stall();
+		position = CK_SPINLOCK_TICKET_LOAD(&ticket->value) &
+		    CK_SPINLOCK_TICKET_MASK;
+
+		backoff = request - position;
+		backoff <<= c;
+		ck_backoff_eb(&backoff);
+	}
+
+	ck_pr_fence_memory();
+	return;
+}
+
+CK_CC_INLINE static bool
+ck_spinlock_ticket_trylock(struct ck_spinlock_ticket *ticket)
+{
+	CK_SPINLOCK_TICKET_TYPE snapshot, request, position;
+
+	snapshot = CK_SPINLOCK_TICKET_LOAD(&ticket->value);
+	position = snapshot & CK_SPINLOCK_TICKET_MASK;
+	request = snapshot >> CK_SPINLOCK_TICKET_SHIFT;
+
+	if (position != request)
+		return false;
+
+	if (CK_SPINLOCK_TICKET_CAS(&ticket->value,
+	    snapshot, snapshot + CK_SPINLOCK_TICKET_INCREMENT) == false) {
+		return false;
+	}
+
+	ck_pr_fence_memory();
+	return true;
+}
+
+CK_CC_INLINE static void
+ck_spinlock_ticket_unlock(struct ck_spinlock_ticket *ticket)
+{
+
+	ck_pr_fence_memory();
+	CK_SPINLOCK_TICKET_INC((CK_SPINLOCK_TICKET_TYPE_BASE *)&ticket->value);
+	return;
+}
+
+#undef CK_SPINLOCK_TICKET_TYPE
+#undef CK_SPINLOCK_TICKET_TYPE_BASE
+#undef CK_SPINLOCK_TICKET_INC
+#undef CK_SPINLOCK_TICKET_FAA
+#undef CK_SPINLOCK_TICKET_LOAD
+#undef CK_SPINLOCK_TICKET_INCREMENT
+#undef CK_SPINLOCK_TICKET_MASK
+#undef CK_SPINLOCK_TICKET_SHIFT
+#else
+/*
  * MESI benefits from cacheline padding between next and current. This avoids
  * invalidation of current from the cache due to incoming lock requests.
  */
@@ -449,7 +584,7 @@ ck_spinlock_ticket_lock(struct ck_spinlock_ticket *ticket)
 }
 
 CK_CC_INLINE static void
-ck_spinlock_ticket_lock_pb(struct ck_spinlock_ticket *ticket)
+ck_spinlock_ticket_lock_pb(struct ck_spinlock_ticket *ticket, unsigned int c)
 {
 	ck_backoff_t backoff;
 	unsigned int request, position;
@@ -463,7 +598,7 @@ ck_spinlock_ticket_lock_pb(struct ck_spinlock_ticket *ticket)
 
 		/* Overflow is handled fine, assuming 2s complement. */
 		backoff = (request - position);
-		backoff *= 64;
+		backoff <<= c;
 
 		/*
 		 * Ideally, back-off from generating cache traffic for at least
@@ -494,6 +629,7 @@ ck_spinlock_ticket_unlock(struct ck_spinlock_ticket *ticket)
 	ck_pr_store_uint(&ticket->position, update + 1);
 	return;
 }
+#endif /* !CK_F_SPINLOCK_TICKET_TRYLOCK */
 #endif /* CK_F_SPINLOCK_TICKET */
 
 #ifndef CK_F_SPINLOCK_MCS
