@@ -5,7 +5,7 @@ OBJECTS=ck_cohort.THROUGHPUT ck_cohort.LATENCY
 all: $(OBJECTS)
 
 ck_cohort.THROUGHPUT: ck_cohort.c
-	$(CC) -DTHROUGHPUT $(CFLAGS) -o ck_cohort.THROUGHPUT ck_cohort.c
+	$(CC) $(CFLAGS) -o ck_cohort.THROUGHPUT throughput.c -lm
 
 ck_cohort.LATENCY: ck_cohort.c
 	$(CC) -DLATENCY $(CFLAGS) -o ck_cohort.LATENCY ck_cohort.c
