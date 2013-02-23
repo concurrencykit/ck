@@ -118,7 +118,7 @@ main(int argc, char *argv[])
 	ck_spinlock_fas_t *local_fas_locks;
 
 	if (argc != 5) {
-		ck_error("Usage: ck_cohort <number of cohorts> <threads per cohort>"
+		ck_error("Usage: ck_cohort <number of cohorts> <threads per cohort> "
 			"<affinity delta> <critical section>\n");
 		exit(EXIT_FAILURE);
 	}
