@@ -43,13 +43,6 @@
 
 #include "../../common.h"
 
-/* 8! = 40320, evenly divide 1 .. 8 processor workload. */
-#define WORKLOAD (40320 * 2056)
-
-#ifndef ITERATE
-#define ITERATE 65536
-#endif
-
 static struct affinity a;
 static unsigned int ready;
 
@@ -134,10 +127,6 @@ main(int argc, char *argv[])
 		ck_error("ERROR: Number of threads must be greater than 0\n");
 		exit(EXIT_FAILURE);
 	}
-
-#ifdef LOCK_INIT
-	LOCK_INIT;
-#endif
 
 	critical = atoi(argv[4]);
 	if (critical < 0) {
