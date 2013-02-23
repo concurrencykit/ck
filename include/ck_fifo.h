@@ -142,7 +142,6 @@ ck_fifo_spsc_dequeue(struct ck_fifo_spsc *fifo, void *value)
 		return (false);
 
 	/* If entry is visible, guarantee store to value is visible. */
-	ck_pr_fence_load_depends();
 	ck_pr_store_ptr(value, entry->value);
 	ck_pr_fence_store();
 	ck_pr_store_ptr(&fifo->head, entry);
@@ -244,7 +243,6 @@ ck_fifo_mpmc_enqueue(struct ck_fifo_mpmc *fifo,
 		tail.generation = ck_pr_load_ptr(&fifo->tail.generation);
 		ck_pr_fence_load();
 		tail.pointer = ck_pr_load_ptr(&fifo->tail.pointer);
-		ck_pr_fence_load_depends();
 		next.generation = ck_pr_load_ptr(&tail.pointer->next.generation);
 		next.pointer = ck_pr_load_ptr(&tail.pointer->next.pointer);
 
@@ -296,7 +294,6 @@ ck_fifo_mpmc_tryenqueue(struct ck_fifo_mpmc *fifo,
 	tail.generation = ck_pr_load_ptr(&fifo->tail.generation);
 	ck_pr_fence_load();
 	tail.pointer = ck_pr_load_ptr(&fifo->tail.pointer);
-	ck_pr_fence_load_depends();
 	next.generation = ck_pr_load_ptr(&tail.pointer->next.generation);
 	next.pointer = ck_pr_load_ptr(&tail.pointer->next.pointer);
 
