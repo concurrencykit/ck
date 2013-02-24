@@ -58,13 +58,14 @@ static unsigned int barrier;
 int critical __attribute__((aligned(64)));
 
 typedef ck_spinlock_fas_t ck_spinlock_fas;
-CK_CREATE_COHORT(fas_fas, ck_spinlock_fas, ck_spinlock_fas)
+typedef ck_spinlock_ticket_t ck_spinlock_ticket;
+CK_COHORT_PROTOTYPE(fas_fas, ck_spinlock_ticket, ck_spinlock_ticket)
 static struct ck_cohort_fas_fas *cohorts;
 static ck_spinlock_fas_t global_fas_lock = CK_SPINLOCK_FAS_INITIALIZER;
+static ck_spinlock_ticket_t global_ticket_lock = CK_SPINLOCK_TICKET_INITIALIZER;
 
 struct block {
 	unsigned int tid;
-	struct ck_cohort_fas_fas *cohort;
 };
 
 static void *
@@ -74,12 +75,15 @@ fairness(void *null)
 	unsigned int i = context->tid;
 	volatile int j;
 	long int base;
-	struct ck_cohort_fas_fas *cohort = context->cohort;
+	unsigned int core;
+	struct ck_cohort_fas_fas *cohort;
 
-		if (aff_iterate(&a)) {
+		if (aff_iterate_core(&a, &core)) {
 				perror("ERROR: Could not affine thread");
 				exit(EXIT_FAILURE);
 		}
+
+	cohort = cohorts + (core / (int)(a.delta)) % n_cohorts;
 
 	while (ck_pr_load_uint(&ready) == 0);
 
@@ -89,6 +93,7 @@ fairness(void *null)
 	while (ready) {
 		ck_cohort_fas_fas_lock(cohort);
 
+		fprintf(stderr, "lock acquired by thread %i\n", i);
 		count[i].value++;
 		if (critical) {
 			base = common_lrand48() % critical;
@@ -108,7 +113,7 @@ main(int argc, char *argv[])
 	unsigned int i;
 	pthread_t *threads;
 	struct block *context;
-	ck_spinlock_fas_t *local_fas_locks;
+	ck_spinlock_ticket_t *local_fas_locks;
 
 	if (argc != 5) {
 		ck_error("Usage: ck_cohort <number of cohorts> <threads per cohort> "
@@ -146,7 +151,7 @@ main(int argc, char *argv[])
 		exit(EXIT_FAILURE);
 	}
 
-	local_fas_locks = calloc(n_cohorts, sizeof(ck_spinlock_fas_t));
+	local_fas_locks = calloc(n_cohorts, sizeof(ck_spinlock_ticket_t));
 	if (local_fas_locks == NULL) {
 		ck_error("ERROR: Could not allocate local lock structures\n");
 		exit(EXIT_FAILURE);
@@ -170,14 +175,13 @@ main(int argc, char *argv[])
 
 	fprintf(stderr, "Creating cohorts...");
 	for (i = 0 ; i < n_cohorts ; i++) {
-		ck_cohort_fas_fas_init(cohorts + i, &global_fas_lock, local_fas_locks + i);
+		ck_cohort_fas_fas_init(cohorts + i, &global_ticket_lock, local_fas_locks + i);
 	}
 	fprintf(stderr, "done\n");
 
 	fprintf(stderr, "Creating threads (fairness)...");
 	for (i = 0; i < nthr; i++) {
 		context[i].tid = i;
-		context[i].cohort = cohorts + (i % n_cohorts);
 		if (pthread_create(&threads[i], NULL, fairness, context + i)) {
 			ck_error("ERROR: Could not create thread %d\n", i);
 			exit(EXIT_FAILURE);

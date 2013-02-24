@@ -45,7 +45,7 @@ static unsigned int locked;
 static int nthr;
 static ck_spinlock_fas_t global_fas_lock = CK_SPINLOCK_FAS_INITIALIZER;
 typedef ck_spinlock_fas_t ck_spinlock_fas;
-CK_CREATE_COHORT(fas_fas, ck_spinlock_fas, ck_spinlock_fas)
+CK_COHORT_PROTOTYPE(fas_fas, ck_spinlock_fas, ck_spinlock_fas)
 static struct ck_cohort_fas_fas *cohorts;
 static int n_cohorts;
 
@@ -62,7 +62,7 @@ thread(void *null CK_CC_UNUSED)
 			exit(EXIT_FAILURE);
 	}
 
-	cohort = cohorts + (core / (int)ck_pr_load_uint(&a.delta)) % n_cohorts;
+	cohort = cohorts + (core / (int)(a.delta)) % n_cohorts;
 
 	while (i--) {
 		ck_cohort_fas_fas_lock(cohort);
