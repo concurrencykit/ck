@@ -9,6 +9,7 @@ DIR=backoff	\
     hp		\
     hs		\
     ht		\
+    pflock	\
     pr		\
     queue	\
     ring	\
