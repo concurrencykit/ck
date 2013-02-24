@@ -47,6 +47,8 @@ all:
 	$(MAKE) -C ./ck_ring/benchmark all
 	$(MAKE) -C ./ck_rwlock/validate all
 	$(MAKE) -C ./ck_rwlock/benchmark all
+	$(MAKE) -C ./ck_pflock/validate all
+	$(MAKE) -C ./ck_pflock/benchmark all
 	$(MAKE) -C ./ck_hp/validate all
 	$(MAKE) -C ./ck_hp/benchmark all
 	$(MAKE) -C ./ck_bag/validate all
@@ -79,6 +81,8 @@ clean:
 	$(MAKE) -C ./ck_ring/benchmark clean
 	$(MAKE) -C ./ck_rwlock/validate clean
 	$(MAKE) -C ./ck_rwlock/benchmark clean
+	$(MAKE) -C ./ck_pflock/validate clean
+	$(MAKE) -C ./ck_pflock/benchmark clean
 	$(MAKE) -C ./ck_hp/validate clean
 	$(MAKE) -C ./ck_hp/benchmark clean
 	$(MAKE) -C ./ck_bag/validate clean
