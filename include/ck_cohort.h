@@ -37,12 +37,17 @@
 
 #define CK_COHORT_DEFAULT_LOCAL_PASS_LIMIT	10
 
-#define CK_COHORT_INSTANCE(N) ck_cohort_##N
+#define CK_COHORT_NAME(N) ck_cohort_##N
+#define CK_COHORT_INSTANCE(N) struct CK_COHORT_NAME(N)
+#define CK_COHORT_INIT(N, C, GL, LL) ck_cohort_##N##_init(C, GL, LL)
+#define CK_COHORT_LOCK(N, C, GC, LC) ck_cohort_##N##_lock(C, GC, LC)
+#define CK_COHORT_UNLOCK(N, C, GC, LC) ck_cohort_##N##_unlock(C, GC, LC)
 
-#define CK_COHORT_PROTOTYPE(N, TG, TL)										\
-	struct CK_COHORT_INSTANCE(N) {											\
-		TG *global_lock;													\
-		TL *local_lock;														\
+#define CK_COHORT_PROTOTYPE(N, GT, GL, GU, LT, LL, LU)						\
+ 																			\
+	struct CK_COHORT_NAME(N) {												\
+		GT *global_lock;													\
+		LT *local_lock;														\
 		unsigned int release_state;											\
 		unsigned int waiting_threads;										\
 		unsigned int acquire_count;											\
@@ -51,7 +56,7 @@
 																			\
 	CK_CC_INLINE static void												\
 	ck_cohort_##N##_init(struct ck_cohort_##N *cohort,						\
-			TG *global_lock, TL *local_lock)								\
+	    GT *global_lock, LT *local_lock)									\
 	{																		\
 		ck_pr_store_ptr(&cohort->global_lock, global_lock);					\
 		ck_pr_store_ptr(&cohort->local_lock, local_lock);					\
@@ -65,14 +70,15 @@
 	}																		\
 																			\
 	CK_CC_INLINE static void												\
-	ck_cohort_##N##_lock(struct ck_cohort_##N *cohort)						\
+	ck_cohort_##N##_lock(CK_COHORT_INSTANCE(N) *cohort,						\
+	    void *global_context, void *local_context)							\
 	{																		\
 		ck_pr_inc_uint(&cohort->waiting_threads);							\
-		TL##_lock(cohort->local_lock);										\
+		LL(cohort->local_lock, local_context);								\
 		ck_pr_dec_uint(&cohort->waiting_threads);							\
 																			\
 		if (cohort->release_state == CK_COHORT_RELEASE_STATE_GLOBAL) {		\
-			TG##_lock(cohort->global_lock);									\
+			GL(cohort->global_lock, global_context);						\
 			cohort->release_state = CK_COHORT_RELEASE_STATE_LOCAL;			\
 		}																	\
 																			\
@@ -82,19 +88,20 @@
 	}																		\
 																			\
 	CK_CC_INLINE static void												\
-	ck_cohort_##N##_unlock(struct ck_cohort_##N *cohort)					\
+	ck_cohort_##N##_unlock(CK_COHORT_INSTANCE(N) *cohort,					\
+	    void *global_context, void *local_context)							\
 	{																		\
 		if (ck_pr_load_uint(&cohort->waiting_threads) > 0					\
 			    && cohort->acquire_count < cohort->local_pass_limit) {		\
 			cohort->release_state = CK_COHORT_RELEASE_STATE_LOCAL;			\
 		} else {															\
-			TG##_unlock(cohort->global_lock);								\
+			GU(cohort->global_lock, global_context);						\
 			cohort->release_state = CK_COHORT_RELEASE_STATE_GLOBAL;			\
 			cohort->acquire_count = 0;										\
 		}																	\
 																			\
 		ck_pr_fence_memory();												\
-		TL##_unlock(cohort->local_lock);									\
+		LU(cohort->local_lock, local_context);								\
 																			\
 		return;																\
 	}

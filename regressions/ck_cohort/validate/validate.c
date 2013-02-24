@@ -44,9 +44,25 @@ static struct affinity a;
 static unsigned int locked;
 static int nthr;
 static ck_spinlock_fas_t global_fas_lock = CK_SPINLOCK_FAS_INITIALIZER;
-typedef ck_spinlock_fas_t ck_spinlock_fas;
-CK_COHORT_PROTOTYPE(fas_fas, ck_spinlock_fas, ck_spinlock_fas)
-static struct ck_cohort_fas_fas *cohorts;
+
+static void
+ck_spinlock_fas_lock_with_context(ck_spinlock_fas_t *lock, void *context)
+{
+	(void)context;
+	ck_spinlock_fas_lock(lock);
+}
+
+static void
+ck_spinlock_fas_unlock_with_context(ck_spinlock_fas_t *lock, void *context)
+{
+	(void)context;
+	ck_spinlock_fas_unlock(lock);
+}
+
+CK_COHORT_PROTOTYPE(fas_fas,
+	ck_spinlock_fas_t, ck_spinlock_fas_lock_with_context, ck_spinlock_fas_unlock_with_context,
+	ck_spinlock_fas_t, ck_spinlock_fas_lock_with_context, ck_spinlock_fas_unlock_with_context)
+static CK_COHORT_INSTANCE(fas_fas) *cohorts;
 static int n_cohorts;
 
 static void *
@@ -55,7 +71,7 @@ thread(void *null CK_CC_UNUSED)
 	int i = ITERATE;
 	unsigned int l;
 	unsigned int core;
-	struct ck_cohort_fas_fas *cohort;
+	CK_COHORT_INSTANCE(fas_fas) *cohort;
 
 	if (aff_iterate_core(&a, &core)) {
 			perror("ERROR: Could not affine thread");
@@ -65,7 +81,7 @@ thread(void *null CK_CC_UNUSED)
 	cohort = cohorts + (core / (int)(a.delta)) % n_cohorts;
 
 	while (i--) {
-		ck_cohort_fas_fas_lock(cohort);
+		CK_COHORT_LOCK(fas_fas, cohort, NULL, NULL);
 		{
 			l = ck_pr_load_uint(&locked);
 			if (l != 0) {
@@ -100,7 +116,7 @@ thread(void *null CK_CC_UNUSED)
 				ck_error("ERROR [WR:%d]: %u != 0\n", __LINE__, l);
 			}
 		}
-		ck_cohort_fas_fas_unlock(cohort);
+		CK_COHORT_UNLOCK(fas_fas, cohort, NULL, NULL);
 	}
 
 	return (NULL);
@@ -138,10 +154,10 @@ main(int argc, char *argv[])
 	a.delta = atoi(argv[3]);
 
 	fprintf(stderr, "Creating cohorts...");
-	cohorts = malloc(sizeof(struct ck_cohort_fas_fas) * n_cohorts);
+	cohorts = malloc(sizeof(CK_COHORT_INSTANCE(fas_fas)) * n_cohorts);
 	for (i = 0 ; i < n_cohorts ; i++) {
 		local_lock = malloc(sizeof(ck_spinlock_fas_t));
-		ck_cohort_fas_fas_init(cohorts + i, &global_fas_lock, local_lock);
+		CK_COHORT_INIT(fas_fas, cohorts + i, &global_fas_lock, local_lock);
 	}
 	fprintf(stderr, "done\n");
 

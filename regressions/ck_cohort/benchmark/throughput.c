@@ -57,11 +57,24 @@ static unsigned int barrier;
 
 int critical __attribute__((aligned(64)));
 
-typedef ck_spinlock_fas_t ck_spinlock_fas;
-typedef ck_spinlock_ticket_t ck_spinlock_ticket;
-CK_COHORT_PROTOTYPE(fas_fas, ck_spinlock_ticket, ck_spinlock_ticket)
-static struct ck_cohort_fas_fas *cohorts;
-static ck_spinlock_fas_t global_fas_lock = CK_SPINLOCK_FAS_INITIALIZER;
+static void
+ck_spinlock_ticket_lock_with_context(ck_spinlock_ticket_t *lock, void *context)
+{
+	(void)context;
+	ck_spinlock_ticket_lock(lock);
+}
+
+static void
+ck_spinlock_ticket_unlock_with_context(ck_spinlock_ticket_t *lock, void *context)
+{
+	(void)context;
+	ck_spinlock_ticket_unlock(lock);
+}
+
+CK_COHORT_PROTOTYPE(ticket_ticket,
+	ck_spinlock_ticket_t, ck_spinlock_ticket_lock_with_context, ck_spinlock_ticket_unlock_with_context,
+	ck_spinlock_ticket_t, ck_spinlock_ticket_lock_with_context, ck_spinlock_ticket_unlock_with_context)
+static CK_COHORT_INSTANCE(ticket_ticket) *cohorts;
 static ck_spinlock_ticket_t global_ticket_lock = CK_SPINLOCK_TICKET_INITIALIZER;
 
 struct block {
@@ -76,7 +89,7 @@ fairness(void *null)
 	volatile int j;
 	long int base;
 	unsigned int core;
-	struct ck_cohort_fas_fas *cohort;
+	CK_COHORT_INSTANCE(ticket_ticket) *cohort;
 
 		if (aff_iterate_core(&a, &core)) {
 				perror("ERROR: Could not affine thread");
@@ -91,16 +104,15 @@ fairness(void *null)
 	while (ck_pr_load_uint(&barrier) != nthr);
 
 	while (ready) {
-		ck_cohort_fas_fas_lock(cohort);
+		CK_COHORT_LOCK(ticket_ticket, cohort, NULL, NULL);
 
-		fprintf(stderr, "lock acquired by thread %i\n", i);
 		count[i].value++;
 		if (critical) {
 			base = common_lrand48() % critical;
 			for (j = 0; j < base; j++);
 		}
 
-		ck_cohort_fas_fas_unlock(cohort);
+		CK_COHORT_UNLOCK(ticket_ticket, cohort, NULL, NULL);
 	}
 
 	return (NULL);
@@ -145,7 +157,7 @@ main(int argc, char *argv[])
 		exit(EXIT_FAILURE);
 	}
 
-	cohorts = malloc(sizeof(struct ck_cohort_fas_fas) * n_cohorts);
+	cohorts = malloc(sizeof(CK_COHORT_INSTANCE(ticket_ticket)) * n_cohorts);
 	if (cohorts == NULL) {
 		ck_error("ERROR: Could not allocate cohort structures\n");
 		exit(EXIT_FAILURE);
@@ -175,7 +187,7 @@ main(int argc, char *argv[])
 
 	fprintf(stderr, "Creating cohorts...");
 	for (i = 0 ; i < n_cohorts ; i++) {
-		ck_cohort_fas_fas_init(cohorts + i, &global_ticket_lock, local_fas_locks + i);
+		CK_COHORT_INIT(ticket_ticket, cohorts + i, &global_ticket_lock, local_fas_locks + i);
 	}
 	fprintf(stderr, "done\n");
 
