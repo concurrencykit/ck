@@ -132,8 +132,8 @@ ck_pflock_read_lock(ck_pflock_t *pf)
 	while ((ck_pr_load_32(&pf->rin) & CK_PFLOCK_WBITS) == w)
 		ck_pr_stall();
 
-	/* Acquire semantics. */
 leave:
+	/* Acquire semantics. */
 	ck_pr_fence_load();
 	return;
 }
