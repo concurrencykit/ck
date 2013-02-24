@@ -28,6 +28,11 @@
 #ifndef _CK_COHORT_H
 #define _CK_COHORT_H
 
+/* This is an implementation of lock cohorts as described in:
+ *     Dice, D.; Marathe, V.; and Shavit, N. 2012.
+ *     Lock Cohorting: A General Technique for Designing NUMA Locks
+ */
+
 #include <ck_cc.h>
 #include <ck_pr.h>
 #include <stddef.h>
@@ -39,13 +44,13 @@
 
 #define CK_COHORT_NAME(N) ck_cohort_##N
 #define CK_COHORT_INSTANCE(N) struct CK_COHORT_NAME(N)
-#define CK_COHORT_INIT(N, C, GL, LL) ck_cohort_##N##_init(C, GL, LL)
+#define CK_COHORT_INIT(N, C, GL, LL, P) ck_cohort_##N##_init(C, GL, LL, P)
 #define CK_COHORT_LOCK(N, C, GC, LC) ck_cohort_##N##_lock(C, GC, LC)
 #define CK_COHORT_UNLOCK(N, C, GC, LC) ck_cohort_##N##_unlock(C, GC, LC)
 
 #define CK_COHORT_PROTOTYPE(N, GT, GL, GU, LT, LL, LU)				\
  										\
-	struct CK_COHORT_NAME(N) {						\
+	CK_COHORT_INSTANCE(N) {							\
 		GT *global_lock;						\
 		LT *local_lock;							\
 		unsigned int release_state;					\
@@ -56,16 +61,15 @@
 										\
 	CK_CC_INLINE static void						\
 	ck_cohort_##N##_init(struct ck_cohort_##N *cohort,			\
-	    GT *global_lock, LT *local_lock)					\
+	    GT *global_lock, LT *local_lock, unsigned int pass_limit)		\
 	{									\
 		ck_pr_store_ptr(&cohort->global_lock, global_lock);		\
 		ck_pr_store_ptr(&cohort->local_lock, local_lock);		\
 		ck_pr_store_uint(&cohort->release_state,			\
-			CK_COHORT_RELEASE_STATE_GLOBAL);			\
+		    CK_COHORT_RELEASE_STATE_GLOBAL);				\
 		ck_pr_store_uint(&cohort->waiting_threads, 0);			\
 		ck_pr_store_uint(&cohort->acquire_count, 0);			\
-		ck_pr_store_uint(&cohort->local_pass_limit,			\
-			CK_COHORT_DEFAULT_LOCAL_PASS_LIMIT);			\
+		ck_pr_store_uint(&cohort->local_pass_limit, pass_limit);	\
 		return;								\
 	}									\
 										\

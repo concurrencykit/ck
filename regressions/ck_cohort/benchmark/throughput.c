@@ -187,7 +187,8 @@ main(int argc, char *argv[])
 
 	fprintf(stderr, "Creating cohorts...");
 	for (i = 0 ; i < n_cohorts ; i++) {
-		CK_COHORT_INIT(ticket_ticket, cohorts + i, &global_ticket_lock, local_fas_locks + i);
+		CK_COHORT_INIT(ticket_ticket, cohorts + i, &global_ticket_lock, local_fas_locks + i,
+		    CK_COHORT_DEFAULT_LOCAL_PASS_LIMIT);
 	}
 	fprintf(stderr, "done\n");
 

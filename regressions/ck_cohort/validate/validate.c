@@ -157,7 +157,8 @@ main(int argc, char *argv[])
 	cohorts = malloc(sizeof(CK_COHORT_INSTANCE(fas_fas)) * n_cohorts);
 	for (i = 0 ; i < n_cohorts ; i++) {
 		local_lock = malloc(sizeof(ck_spinlock_fas_t));
-		CK_COHORT_INIT(fas_fas, cohorts + i, &global_fas_lock, local_lock);
+		CK_COHORT_INIT(fas_fas, cohorts + i, &global_fas_lock, local_lock,
+		    CK_COHORT_DEFAULT_LOCAL_PASS_LIMIT);
 	}
 	fprintf(stderr, "done\n");
 
