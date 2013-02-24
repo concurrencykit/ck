@@ -39,9 +39,12 @@
 
 #include <ck_pr.h>
 #include <ck_cohort.h>
+#include <ck_md.h>
 #include <ck_spinlock.h>
 
 #include "../../common.h"
+
+#define max(x, y) (((x) > (y)) ? (x) : (y))
 
 static struct affinity a;
 static unsigned int ready;
@@ -58,24 +61,24 @@ static unsigned int barrier;
 int critical __attribute__((aligned(64)));
 
 static void
-ck_spinlock_ticket_lock_with_context(ck_spinlock_ticket_t *lock, void *context)
+ck_spinlock_lock_with_context(ck_spinlock_t *lock, void *context)
 {
 	(void)context;
-	ck_spinlock_ticket_lock(lock);
+	ck_spinlock_lock(lock);
 }
 
 static void
-ck_spinlock_ticket_unlock_with_context(ck_spinlock_ticket_t *lock, void *context)
+ck_spinlock_unlock_with_context(ck_spinlock_t *lock, void *context)
 {
 	(void)context;
-	ck_spinlock_ticket_unlock(lock);
+	ck_spinlock_unlock(lock);
 }
 
-CK_COHORT_PROTOTYPE(ticket_ticket,
-	ck_spinlock_ticket_t, ck_spinlock_ticket_lock_with_context, ck_spinlock_ticket_unlock_with_context,
-	ck_spinlock_ticket_t, ck_spinlock_ticket_lock_with_context, ck_spinlock_ticket_unlock_with_context)
-static CK_COHORT_INSTANCE(ticket_ticket) *cohorts;
-static ck_spinlock_ticket_t global_ticket_lock = CK_SPINLOCK_TICKET_INITIALIZER;
+CK_COHORT_PROTOTYPE(basic,
+	ck_spinlock_t, ck_spinlock_lock_with_context, ck_spinlock_unlock_with_context,
+	ck_spinlock_t, ck_spinlock_lock_with_context, ck_spinlock_unlock_with_context)
+static CK_COHORT_INSTANCE(basic) *cohorts;
+static ck_spinlock_t global_lock = CK_SPINLOCK_INITIALIZER;
 
 struct block {
 	unsigned int tid;
@@ -89,7 +92,7 @@ fairness(void *null)
 	volatile int j;
 	long int base;
 	unsigned int core;
-	CK_COHORT_INSTANCE(ticket_ticket) *cohort;
+	CK_COHORT_INSTANCE(basic) *cohort;
 
 		if (aff_iterate_core(&a, &core)) {
 				perror("ERROR: Could not affine thread");
@@ -104,7 +107,7 @@ fairness(void *null)
 	while (ck_pr_load_uint(&barrier) != nthr);
 
 	while (ready) {
-		CK_COHORT_LOCK(ticket_ticket, cohort, NULL, NULL);
+		CK_COHORT_LOCK(basic, cohort, NULL, NULL);
 
 		count[i].value++;
 		if (critical) {
@@ -112,7 +115,7 @@ fairness(void *null)
 			for (j = 0; j < base; j++);
 		}
 
-		CK_COHORT_UNLOCK(ticket_ticket, cohort, NULL, NULL);
+		CK_COHORT_UNLOCK(basic, cohort, NULL, NULL);
 	}
 
 	return (NULL);
@@ -125,7 +128,7 @@ main(int argc, char *argv[])
 	unsigned int i;
 	pthread_t *threads;
 	struct block *context;
-	ck_spinlock_ticket_t *local_fas_locks;
+	ck_spinlock_t *local_lock;
 
 	if (argc != 5) {
 		ck_error("Usage: ck_cohort <number of cohorts> <threads per cohort> "
@@ -157,15 +160,9 @@ main(int argc, char *argv[])
 		exit(EXIT_FAILURE);
 	}
 
-	cohorts = malloc(sizeof(CK_COHORT_INSTANCE(ticket_ticket)) * n_cohorts);
+	cohorts = malloc(sizeof(CK_COHORT_INSTANCE(basic)) * n_cohorts);
 	if (cohorts == NULL) {
 		ck_error("ERROR: Could not allocate cohort structures\n");
-		exit(EXIT_FAILURE);
-	}
-
-	local_fas_locks = calloc(n_cohorts, sizeof(ck_spinlock_ticket_t));
-	if (local_fas_locks == NULL) {
-		ck_error("ERROR: Could not allocate local lock structures\n");
 		exit(EXIT_FAILURE);
 	}
 
@@ -187,8 +184,14 @@ main(int argc, char *argv[])
 
 	fprintf(stderr, "Creating cohorts...");
 	for (i = 0 ; i < n_cohorts ; i++) {
-		CK_COHORT_INIT(ticket_ticket, cohorts + i, &global_ticket_lock, local_fas_locks + i,
+		local_lock = malloc(max(CK_MD_CACHELINE, sizeof(ck_spinlock_t)));
+		if (local_lock == NULL) {
+			ck_error("ERROR: Could not allocate local lock\n");
+			exit(EXIT_FAILURE);
+		}
+		CK_COHORT_INIT(basic, cohorts + i, &global_lock, local_lock,
 		    CK_COHORT_DEFAULT_LOCAL_PASS_LIMIT);
+		local_lock = NULL;
 	}
 	fprintf(stderr, "done\n");
 
