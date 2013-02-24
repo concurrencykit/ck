@@ -110,7 +110,7 @@ CK_CC_INLINE static void
 ck_pflock_read_unlock(ck_pflock_t *pf)
 {
 
-	ck_pr_fence_memory();
+	ck_pr_fence_load();
 	ck_pr_faa_32(&pf->rout, CK_PFLOCK_RINC);
 	return;
 }
@@ -126,13 +126,14 @@ ck_pflock_read_lock(ck_pflock_t *pf)
 	 */
 	w = ck_pr_faa_32(&pf->rin, CK_PFLOCK_RINC) & CK_PFLOCK_WBITS;
 	if (w == 0)
-		return;
+		goto leave;
 
 	/* Wait for current write phase to complete. */
 	while ((ck_pr_load_32(&pf->rin) & CK_PFLOCK_WBITS) == w)
 		ck_pr_stall();
 
 	/* Acquire semantics. */
+leave:
 	ck_pr_fence_load();
 	return;
 }
