@@ -99,6 +99,8 @@ ck_pr_stall(void)
 CK_CC_INLINE static void
 ck_pr_fence_load_depends(void)
 {
+
+	__sync_synchronize();
 	return;
 }
 

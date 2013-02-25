@@ -4,11 +4,13 @@ DIR=backoff	\
     bitmap	\
     brlock	\
     bytelock	\
+    cohort	\
     epoch	\
     fifo	\
     hp		\
     hs		\
     ht		\
+    pflock	\
     pr		\
     queue	\
     ring	\
@@ -20,6 +22,8 @@ DIR=backoff	\
 .PHONY: all clean check
 
 all:
+	$(MAKE) -C ./ck_cohort/validate all
+	$(MAKE) -C ./ck_cohort/benchmark all
 	$(MAKE) -C ./ck_bitmap/validate all
 	$(MAKE) -C ./ck_backoff/validate all
 	$(MAKE) -C ./ck_queue/validate all
@@ -47,14 +51,20 @@ all:
 	$(MAKE) -C ./ck_ring/benchmark all
 	$(MAKE) -C ./ck_rwlock/validate all
 	$(MAKE) -C ./ck_rwlock/benchmark all
+	$(MAKE) -C ./ck_pflock/validate all
+	$(MAKE) -C ./ck_pflock/benchmark all
 	$(MAKE) -C ./ck_hp/validate all
 	$(MAKE) -C ./ck_hp/benchmark all
 	$(MAKE) -C ./ck_bag/validate all
 
 clean:
+	$(MAKE) -C ./ck_pflock/validate clean
+	$(MAKE) -C ./ck_pflock/benchmark clean
 	$(MAKE) -C ./ck_backoff/validate clean
 	$(MAKE) -C ./ck_bitmap/validate clean
 	$(MAKE) -C ./ck_queue/validate clean
+	$(MAKE) -C ./ck_cohort/validate clean
+	$(MAKE) -C ./ck_cohort/benchmark clean
 	$(MAKE) -C ./ck_brlock/validate clean
 	$(MAKE) -C ./ck_ht/validate clean
 	$(MAKE) -C ./ck_ht/benchmark clean
@@ -79,6 +89,8 @@ clean:
 	$(MAKE) -C ./ck_ring/benchmark clean
 	$(MAKE) -C ./ck_rwlock/validate clean
 	$(MAKE) -C ./ck_rwlock/benchmark clean
+	$(MAKE) -C ./ck_pflock/validate clean
+	$(MAKE) -C ./ck_pflock/benchmark clean
 	$(MAKE) -C ./ck_hp/validate clean
 	$(MAKE) -C ./ck_hp/benchmark clean
 	$(MAKE) -C ./ck_bag/validate clean

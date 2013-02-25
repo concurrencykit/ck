@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2013 Samy Al Bahra.
+ * Copyright 2011-2013 Samy Al Bahra, John Wittrock.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,9 +35,8 @@
 #include <unistd.h>
 #include <sys/time.h>
 
-#include <ck_cc.h>
 #include <ck_pr.h>
-#include <ck_spinlock.h>
+#include <ck_pflock.h>
 
 #include "../../common.h"
 
@@ -45,24 +44,16 @@
 #define ITERATE 1000000
 #endif
 
-struct block {
-	unsigned int tid;
-};
-
 static struct affinity a;
-static unsigned int locked = 0;
-static uint64_t nthr;
-
-LOCK_DEFINE;
+static unsigned int locked;
+static int nthr;
+static ck_pflock_t lock = CK_PFLOCK_INITIALIZER;
 
 static void *
 thread(void *null CK_CC_UNUSED)
 {
-#ifdef LOCK_STATE
-	LOCK_STATE;
-#endif
-	unsigned int i = ITERATE;
-	unsigned int j;
+	int i = ITERATE;
+	unsigned int l;
 
         if (aff_iterate(&a)) {
                 perror("ERROR: Could not affine thread");
@@ -70,97 +61,82 @@ thread(void *null CK_CC_UNUSED)
         }
 
 	while (i--) {
-#ifdef TRYLOCK
-		if (i & 1) {
-			LOCK;
-		} else {
-			while (TRYLOCK == false)
-				ck_pr_stall();
+		ck_pflock_write_lock(&lock);
+		{
+			l = ck_pr_load_uint(&locked);
+			if (l != 0) {
+				ck_error("ERROR [WR:%d]: %u != 0\n", __LINE__, l);
+			}
+
+			ck_pr_inc_uint(&locked);
+			ck_pr_inc_uint(&locked);
+			ck_pr_inc_uint(&locked);
+			ck_pr_inc_uint(&locked);
+			ck_pr_inc_uint(&locked);
+			ck_pr_inc_uint(&locked);
+			ck_pr_inc_uint(&locked);
+			ck_pr_inc_uint(&locked);
+
+			l = ck_pr_load_uint(&locked);
+			if (l != 8) {
+				ck_error("ERROR [WR:%d]: %u != 2\n", __LINE__, l);
+			}
+
+			ck_pr_dec_uint(&locked);
+			ck_pr_dec_uint(&locked);
+			ck_pr_dec_uint(&locked);
+			ck_pr_dec_uint(&locked);
+			ck_pr_dec_uint(&locked);
+			ck_pr_dec_uint(&locked);
+			ck_pr_dec_uint(&locked);
+			ck_pr_dec_uint(&locked);
+
+			l = ck_pr_load_uint(&locked);
+			if (l != 0) {
+				ck_error("ERROR [WR:%d]: %u != 0\n", __LINE__, l);
+			}
 		}
-#else
-		LOCK;
-#endif
+		ck_pflock_write_unlock(&lock);
 
-		ck_pr_inc_uint(&locked);
-		ck_pr_inc_uint(&locked);
-		ck_pr_inc_uint(&locked);
-		ck_pr_inc_uint(&locked);
-		ck_pr_inc_uint(&locked);
-		ck_pr_inc_uint(&locked);
-		ck_pr_inc_uint(&locked);
-		ck_pr_inc_uint(&locked);
-		ck_pr_inc_uint(&locked);
-		ck_pr_inc_uint(&locked);
-
-		j = ck_pr_load_uint(&locked);
-
-		if (j != 10) {
-			ck_error("ERROR (WR): Race condition (%u)\n", j);
-			exit(EXIT_FAILURE);
+		ck_pflock_read_lock(&lock);
+		{
+			l = ck_pr_load_uint(&locked);
+			if (l != 0) {
+				ck_error("ERROR [RD:%d]: %u != 0\n", __LINE__, l);
+			}
 		}
-
-		ck_pr_dec_uint(&locked);
-		ck_pr_dec_uint(&locked);
-		ck_pr_dec_uint(&locked);
-		ck_pr_dec_uint(&locked);
-		ck_pr_dec_uint(&locked);
-		ck_pr_dec_uint(&locked);
-		ck_pr_dec_uint(&locked);
-		ck_pr_dec_uint(&locked);
-		ck_pr_dec_uint(&locked);
-		ck_pr_dec_uint(&locked);
-
-		UNLOCK;
-
-		LOCK;
-
-		j = ck_pr_load_uint(&locked);
-		if (j != 0) {
-			ck_error("ERROR (RD): Race condition (%u)\n", j);
-			exit(EXIT_FAILURE);
-		}
-
-		UNLOCK;
+		ck_pflock_read_unlock(&lock);
 	}
 
-	return (NULL);
+	return NULL;
 }
 
 int
 main(int argc, char *argv[])
 {
-	uint64_t i;
 	pthread_t *threads;
+	int i;
 
 	if (argc != 3) {
-		ck_error("Usage: " LOCK_NAME " <number of threads> <affinity delta>\n");
-		exit(EXIT_FAILURE);
+		ck_error("Usage: validate <number of threads> <affinity delta>\n");
 	}
 
 	nthr = atoi(argv[1]);
 	if (nthr <= 0) {
 		ck_error("ERROR: Number of threads must be greater than 0\n");
-		exit(EXIT_FAILURE);
 	}
-
-#ifdef LOCK_INIT
-	LOCK_INIT;
-#endif
 
 	threads = malloc(sizeof(pthread_t) * nthr);
 	if (threads == NULL) {
 		ck_error("ERROR: Could not allocate thread structures\n");
-		exit(EXIT_FAILURE);
 	}
 
 	a.delta = atoi(argv[2]);
-	a.request = 0;
 
 	fprintf(stderr, "Creating threads (mutual exclusion)...");
 	for (i = 0; i < nthr; i++) {
 		if (pthread_create(&threads[i], NULL, thread, NULL)) {
-			ck_error("ERROR: Could not create thread %" PRIu64 "\n", i);
-			exit(EXIT_FAILURE);
+			ck_error("ERROR: Could not create thread %d\n", i);
 		}
 	}
 	fprintf(stderr, "done\n");
@@ -170,6 +146,6 @@ main(int argc, char *argv[])
 		pthread_join(threads[i], NULL);
 	fprintf(stderr, "done (passed)\n");
 
-	return (0);
+	return 0;
 }
 
