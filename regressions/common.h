@@ -188,8 +188,10 @@ prefix##_common_win_alarm(void *unused)									\
 
 #define	COMMON_ALARM_INIT(prefix, alarm_event_name, duration) 				\
 	prefix##_common_alarm_tl = -1 * (duration) * SECOND_TIMER;			\
-	prefix##_common_alarm_timer_length.LowPart = (DWORD) (tl & 0xFFFFFFFF);		\
-	prefix##_common_alarm_timer_length.HighPart = (LONG) (tl >> 32);		\
+	prefix##_common_alarm_timer_length.LowPart =					\
+		(DWORD) (prefix##_common_alarm_tl & 0xFFFFFFFF);			\
+	prefix##_common_alarm_timer_length.HighPart = 					\
+		(LONG) (prefix##_common_alarm_tl >> 32);				\
 	alarm_event_name = CreateEvent(NULL, false, false, NULL);			\
 	assert(alarm_event_name != NULL);						\
 	prefix##_common_win_alarm_timer = CreateWaitableTimer(NULL, true, NULL);	\
