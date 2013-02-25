@@ -151,7 +151,7 @@ common_alarm(void (*sig_handler)(int), void *alarm_event, unsigned int duration)
 #endif
 #define	COMMON_ALARM_DECLARE_GLOBAL(prefix, alarm_event_name, flag_name)			\
 static HANDLE prefix##_common_win_alarm_timer;							\
-static HANDLE prefix##_alarm_event_name;							\
+static HANDLE alarm_event_name;									\
 static LARGE_INTEGER prefix##_common_alarm_timer_length;					\
 												\
 static void CALLBACK										\
@@ -190,8 +190,8 @@ prefix##_common_win_alarm(void *unused)								\
 	prefix##_common_alarm_tl = -1 * (duration) * SECOND_TIMER;			\
 	prefix##_common_alarm_timer_length.LowPart = (DWORD) (tl & 0xFFFFFFFF);		\
 	prefix##_common_alarm_timer_length.HighPart = (LONG) (tl >> 32);		\
-	prefix##_alarm_event_name = CreateEvent(NULL, false, false, NULL);		\
-	assert(prefix##_alarm_event_name != NULL);					\
+	alarm_event_name = CreateEvent(NULL, false, false, NULL);			\
+	assert(alarm_event_name != NULL);						\
 	prefix##_common_win_alarm_timer = CreateWaitableTimer(NULL, true, NULL);	\
 	assert(prefix##_common_win_alarm_timer != NULL);				\
 	if (pthread_create(&prefix##_common_win_alarm_thread,				\
@@ -202,7 +202,7 @@ prefix##_common_win_alarm(void *unused)								\
 #else
 #define	COMMON_ALARM_DECLARE_GLOBAL(prefix, alarm_event_name, flag_name)
 #define	COMMON_ALARM_DECLARE_LOCAL(prefix, alarm_event_name)	\
-	int prefix##_alarm_event_name = 0;
+	int alarm_event_name = 0;
 #define	COMMON_ALARM_INIT(prefix, alarm_event_name, duration)
 #endif
 
