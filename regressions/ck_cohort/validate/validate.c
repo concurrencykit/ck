@@ -60,8 +60,8 @@ ck_spinlock_fas_unlock_with_context(ck_spinlock_fas_t *lock, void *context)
 }
 
 CK_COHORT_PROTOTYPE(fas_fas,
-	ck_spinlock_fas_t, ck_spinlock_fas_lock_with_context, ck_spinlock_fas_unlock_with_context,
-	ck_spinlock_fas_t, ck_spinlock_fas_lock_with_context, ck_spinlock_fas_unlock_with_context)
+	ck_spinlock_fas_lock_with_context, ck_spinlock_fas_unlock_with_context,
+	ck_spinlock_fas_lock_with_context, ck_spinlock_fas_unlock_with_context)
 static CK_COHORT_INSTANCE(fas_fas) *cohorts;
 static int n_cohorts;
 

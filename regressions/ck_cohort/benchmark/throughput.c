@@ -78,8 +78,8 @@ ck_spinlock_unlock_with_context(ck_spinlock_t *lock, void *context)
 }
 
 CK_COHORT_PROTOTYPE(basic,
-    ck_spinlock_t, ck_spinlock_lock_with_context, ck_spinlock_unlock_with_context,
-    ck_spinlock_t, ck_spinlock_lock_with_context, ck_spinlock_unlock_with_context)
+    ck_spinlock_lock_with_context, ck_spinlock_unlock_with_context,
+    ck_spinlock_lock_with_context, ck_spinlock_unlock_with_context)
 
 struct cohort_record {
 	CK_COHORT_INSTANCE(basic) cohort;
@@ -162,6 +162,7 @@ main(int argc, char *argv[])
 	threads = malloc(sizeof(pthread_t) * nthr);
 	if (threads == NULL) {
 		ck_error("ERROR: Could not allocate thread structures\n");
+	}
 
 	cohorts = malloc(sizeof(struct cohort_record) * n_cohorts);
 	if (cohorts == NULL) {
@@ -228,4 +229,3 @@ main(int argc, char *argv[])
 
 	return 0;
 }
-
