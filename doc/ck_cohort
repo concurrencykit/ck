@@ -52,8 +52,6 @@ macro.  This macro allows the user to specify the lock types that
 they would like the cohort to use.  See the
 .Xr CK_COHORT_PROTOTYPE 3
 man page for more details.
-Cohort instances do not allocate any new memory, so they
-can be freed after use without using an explicit dispose method.
 .Pp
 .Sh EXAMPLE
 .Bd -literal -offset indent
