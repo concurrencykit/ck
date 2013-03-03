@@ -53,8 +53,6 @@ consecutive acquisitions of its local lock, even if there are other threads wait
 If you are unsure of a value to use for the 
 .Fa pass_limit
 argument, you should use CK_COHORT_DEFAULT_LOCAL_PASS_LIMIT.
-Cohort instances do not allocate any new memory during initialization, so they
-can be freed later without using an explicit dispose method.
 .Sh SEE ALSO
 .Xr ck_cohort 3 ,
 .Xr CK_COHORT_PROTOTYPE 3 ,

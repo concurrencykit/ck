@@ -8,7 +8,7 @@ validate: validate.c ../../../include/ck_cohort.h
 	$(CC) $(CFLAGS) -o validate validate.c
 
 check: all
-	./validate $(CORES) 1
+	./validate `expr $(CORES) / 2` 2 1
 
 clean:
 	rm -rf *.dSYM *~ *.o $(OBJECTS)

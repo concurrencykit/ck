@@ -13,6 +13,11 @@ build/Makefile
 *.a
 *.so
 *.dSYM
+regressions/ck_cohort/benchmark/ck_cohort.LATENCY
+regressions/ck_cohort/benchmark/ck_cohort.THROUGHPUT
+regressions/ck_pflock/benchmark/latency
+regressions/ck_pflock/benchmark/throughput
+regressions/ck_pflock/validate/validate
 regressions/ck_barrier/benchmark/throughput
 regressions/ck_barrier/validate/barrier_centralized
 regressions/ck_barrier/validate/barrier_combining

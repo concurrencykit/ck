@@ -57,27 +57,35 @@ static struct counters *count;
 static uint64_t nthr;
 static unsigned int n_cohorts;
 static unsigned int barrier;
-
-int critical __attribute__((aligned(64)));
+static int critical CK_CC_CACHELINE;
 
 static void
 ck_spinlock_lock_with_context(ck_spinlock_t *lock, void *context)
 {
+
 	(void)context;
 	ck_spinlock_lock(lock);
+	return;
 }
 
 static void
 ck_spinlock_unlock_with_context(ck_spinlock_t *lock, void *context)
 {
+
 	(void)context;
 	ck_spinlock_unlock(lock);
+	return;
 }
 
 CK_COHORT_PROTOTYPE(basic,
-	ck_spinlock_t, ck_spinlock_lock_with_context, ck_spinlock_unlock_with_context,
-	ck_spinlock_t, ck_spinlock_lock_with_context, ck_spinlock_unlock_with_context)
-static CK_COHORT_INSTANCE(basic) *cohorts;
+    ck_spinlock_t, ck_spinlock_lock_with_context, ck_spinlock_unlock_with_context,
+    ck_spinlock_t, ck_spinlock_lock_with_context, ck_spinlock_unlock_with_context)
+
+struct cohort_record {
+	CK_COHORT_INSTANCE(basic) cohort;
+} CK_CC_CACHELINE;
+static struct cohort_record *cohorts;
+
 static ck_spinlock_t global_lock = CK_SPINLOCK_INITIALIZER;
 
 struct block {
@@ -94,12 +102,13 @@ fairness(void *null)
 	unsigned int core;
 	CK_COHORT_INSTANCE(basic) *cohort;
 
-		if (aff_iterate_core(&a, &core)) {
-				perror("ERROR: Could not affine thread");
-				exit(EXIT_FAILURE);
-		}
 
-	cohort = cohorts + (core / (int)(a.delta)) % n_cohorts;
+	if (aff_iterate_core(&a, &core)) {
+		perror("ERROR: Could not affine thread");
+		exit(EXIT_FAILURE);
+	}
+
+	cohort = &((cohorts + (core / (int)(a.delta)) % n_cohorts)->cohort);
 
 	while (ck_pr_load_uint(&ready) == 0);
 
@@ -118,7 +127,7 @@ fairness(void *null)
 		CK_COHORT_UNLOCK(basic, cohort, NULL, NULL);
 	}
 
-	return (NULL);
+	return NULL;
 }
 
 int
@@ -133,43 +142,35 @@ main(int argc, char *argv[])
 	if (argc != 5) {
 		ck_error("Usage: ck_cohort <number of cohorts> <threads per cohort> "
 			"<affinity delta> <critical section>\n");
-		exit(EXIT_FAILURE);
 	}
 
 	n_cohorts = atoi(argv[1]);
 	if (n_cohorts <= 0) {
 		ck_error("ERROR: Number of cohorts must be greater than 0\n");
-		exit(EXIT_FAILURE);
 	}
 
 	nthr = n_cohorts * atoi(argv[2]);
 	if (nthr <= 0) {
 		ck_error("ERROR: Number of threads must be greater than 0\n");
-		exit(EXIT_FAILURE);
 	}
 
 	critical = atoi(argv[4]);
 	if (critical < 0) {
 		ck_error("ERROR: critical section cannot be negative\n");
-		exit(EXIT_FAILURE);
 	}
 
 	threads = malloc(sizeof(pthread_t) * nthr);
 	if (threads == NULL) {
 		ck_error("ERROR: Could not allocate thread structures\n");
-		exit(EXIT_FAILURE);
-	}
 
-	cohorts = malloc(sizeof(CK_COHORT_INSTANCE(basic)) * n_cohorts);
+	cohorts = malloc(sizeof(struct cohort_record) * n_cohorts);
 	if (cohorts == NULL) {
 		ck_error("ERROR: Could not allocate cohort structures\n");
-		exit(EXIT_FAILURE);
 	}
 
 	context = malloc(sizeof(struct block) * nthr);
 	if (context == NULL) {
 		ck_error("ERROR: Could not allocate thread contexts\n");
-		exit(EXIT_FAILURE);
 	}
 
 	a.delta = atoi(argv[2]);
@@ -178,7 +179,6 @@ main(int argc, char *argv[])
 	count = malloc(sizeof(*count) * nthr);
 	if (count == NULL) {
 		ck_error("ERROR: Could not create acquisition buffer\n");
-		exit(EXIT_FAILURE);
 	}
 	memset(count, 0, sizeof(*count) * nthr);
 
@@ -187,9 +187,8 @@ main(int argc, char *argv[])
 		local_lock = malloc(max(CK_MD_CACHELINE, sizeof(ck_spinlock_t)));
 		if (local_lock == NULL) {
 			ck_error("ERROR: Could not allocate local lock\n");
-			exit(EXIT_FAILURE);
 		}
-		CK_COHORT_INIT(basic, cohorts + i, &global_lock, local_lock,
+		CK_COHORT_INIT(basic, &((cohorts + i)->cohort), &global_lock, local_lock,
 		    CK_COHORT_DEFAULT_LOCAL_PASS_LIMIT);
 		local_lock = NULL;
 	}
@@ -200,7 +199,6 @@ main(int argc, char *argv[])
 		context[i].tid = i;
 		if (pthread_create(&threads[i], NULL, fairness, context + i)) {
 			ck_error("ERROR: Could not create thread %d\n", i);
-			exit(EXIT_FAILURE);
 		}
 	}
 	fprintf(stderr, "done\n");
@@ -228,6 +226,6 @@ main(int argc, char *argv[])
 	printf("# average     : %15" PRIu64 "\n", v);
 	printf("# deviation   : %.2f (%.2f%%)\n\n", sqrt(d / nthr), (sqrt(d / nthr) / v) * 100.00);
 
-	return (0);
+	return 0;
 }
 

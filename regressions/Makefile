@@ -4,6 +4,7 @@ DIR=backoff	\
     bitmap	\
     brlock	\
     bytelock	\
+    cohort	\
     epoch	\
     fifo	\
     hp		\
@@ -21,6 +22,8 @@ DIR=backoff	\
 .PHONY: all clean check
 
 all:
+	$(MAKE) -C ./ck_cohort/validate all
+	$(MAKE) -C ./ck_cohort/benchmark all
 	$(MAKE) -C ./ck_bitmap/validate all
 	$(MAKE) -C ./ck_backoff/validate all
 	$(MAKE) -C ./ck_queue/validate all
@@ -55,9 +58,13 @@ all:
 	$(MAKE) -C ./ck_bag/validate all
 
 clean:
+	$(MAKE) -C ./ck_pflock/validate clean
+	$(MAKE) -C ./ck_pflock/benchmark clean
 	$(MAKE) -C ./ck_backoff/validate clean
 	$(MAKE) -C ./ck_bitmap/validate clean
 	$(MAKE) -C ./ck_queue/validate clean
+	$(MAKE) -C ./ck_cohort/validate clean
+	$(MAKE) -C ./ck_cohort/benchmark clean
 	$(MAKE) -C ./ck_brlock/validate clean
 	$(MAKE) -C ./ck_ht/validate clean
 	$(MAKE) -C ./ck_ht/benchmark clean
