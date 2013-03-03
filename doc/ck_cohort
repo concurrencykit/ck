@@ -1,5 +1,4 @@
 .\"
-.\" Copyright 2013 Samy Al Bahra.
 .\" Copyright 2013 Brendon Scheinman.
 .\" All rights reserved.
 .\"
@@ -56,6 +55,112 @@ man page for more details.
 Cohort instances do not allocate any new memory, so they
 can be freed after use without using an explicit dispose method.
 .Pp
+.Sh EXAMPLE
+.Bd -literal -offset indent
+
+#include <stdlib.h>
+#include <pthread.h>
+
+#include <ck_pr.h>
+#include <ck_cohort.h>
+#include <ck_spinlock.h>
+
+/* 
+ * Create lock/unlock methods with signatures that match
+ * the required signature
+ */
+static void
+ck_spinlock_lock_with_context(ck_spinlock_t *lock, void *context)
+{
+	(void)context;
+	ck_spinlock_lock(lock);
+	return;
+}
+
+static void
+ck_spinlock_unlock_with_context(ck_spinlock_t *lock, void *context)
+{
+	(void)context;
+	ck_spinlock_unlock(lock);
+	return;
+}
+
+/*
+ * define a cohort type named "test_cohort" that will use
+ * the above methods for both its global and local locks
+ */
+CK_COHORT_PROTOTYPE(test_cohort,
+	ck_spinlock_lock_with_context, ck_spinlock_unlock_with_context,
+	ck_spinlock_lock_with_context, ck_spinlock_unlock_with_context)
+
+static ck_spinlock_t global_lock = CK_SPINLOCK_INITIALIZER;
+static unsigned int ready;
+
+static void*
+function(void *context)
+{
+	CK_COHORT_INSTANCE(test_cohort) *cohort = context;
+
+	while (ready == 0);
+
+	while (ready > 0) {
+		/*
+		 * acquire the cohort lock before performing critical section.
+		 * note that we pass NULL for both the global and local context
+		 * arguments because neither the lock nor unlock functions
+		 * will use them.
+		 */
+		CK_COHORT_LOCK(test_cohort, cohort, NULL, NULL);
+
+		/* perform critical section */
+
+		/* relinquish cohort lock */
+		CK_COHORT_UNLOCK(test_cohort, cohort, NULL, NULL);
+	}
+
+	return NULL;
+}
+
+int
+main(void)
+{
+	unsigned int nthr = 4;
+	unsigned int n_cohorts = 2;
+	unsigned int i;
+
+	/* allocate 2 cohorts of the defined type */
+	CK_COHORT_INSTANCE(test_cohort) *cohorts =
+	    calloc(n_cohorts, sizeof(CK_COHORT_INSTANCE(test_cohort)));
+
+	/* create local locks to use with each cohort */
+	ck_spinlock_t *local_locks = 
+		calloc(n_cohorts, sizeof(ck_spinlock_t));
+
+	pthread_t *threads =
+		calloc(nthr, sizeof(pthread_t));
+
+	/* initialize each of the cohorts before using them */
+	for (i = 0 ; i < n_cohorts ; ++i) {
+		CK_COHORT_INIT(test_cohort, cohorts + i, &global_lock, local_locks + i,
+			CK_COHORT_DEFAULT_LOCAL_PASS_LIMIT);
+	}
+
+	/* start each thread and assign cohorts equally */
+	for (i = 0 ; i < nthr ; ++i) {
+		pthread_create(threads + i, NULL, function, cohorts + (i % n_cohorts));
+	}
+
+	ck_pr_store_uint(&ready, 1);
+	sleep(10);
+	ck_pr_store_uint(&ready, 0);
+
+	for (i = 0 ; i < nthr ; ++i) {
+		pthread_join(threads[i], NULL);
+	}
+
+	return 0;
+}
+
 .Sh SEE ALSO
 .Xr CK_COHORT_PROTOTYPE 3 ,
 .Xr CK_COHORT_INSTANCE 3 ,

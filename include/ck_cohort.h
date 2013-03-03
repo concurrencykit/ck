@@ -51,10 +51,10 @@ enum ck_cohort_state {
 #define CK_COHORT_LOCK(N, C, GC, LC) ck_cohort_##N##_lock(C, GC, LC)
 #define CK_COHORT_UNLOCK(N, C, GC, LC) ck_cohort_##N##_unlock(C, GC, LC)
 
-#define CK_COHORT_PROTOTYPE(N, GT, GL, GU, LT, LL, LU)				\
+#define CK_COHORT_PROTOTYPE(N, GL, GU, LL, LU)					\
 	CK_COHORT_INSTANCE(N) {							\
-		GT *global_lock;						\
-		LT *local_lock;							\
+		void *global_lock;						\
+		void *local_lock;						\
 		enum ck_cohort_state release_state;				\
 		unsigned int waiting_threads;					\
 		unsigned int acquire_count;					\
@@ -63,7 +63,7 @@ enum ck_cohort_state {
 										\
 	CK_CC_INLINE static void						\
 	ck_cohort_##N##_init(struct ck_cohort_##N *cohort,			\
-	    GT *global_lock, LT *local_lock, unsigned int pass_limit)		\
+	    void *global_lock, void *local_lock, unsigned int pass_limit)	\
 	{									\
 		cohort->global_lock = global_lock;				\
 		cohort->local_lock = local_lock;				\
