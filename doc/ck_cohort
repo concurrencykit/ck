@@ -55,7 +55,7 @@ and TRYLOCK_FXN refers to a method with the signature
 bool(void *lock, void *context)
 .Pp
 The
-.Fa context
+.Fa context 
 argument in each signature is used to pass along any additional information that
 the lock might need for its lock, unlock and trylock methods.  The values for this
 argument are provided to each call to

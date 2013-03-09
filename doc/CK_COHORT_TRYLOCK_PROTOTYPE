@@ -39,30 +39,31 @@ Concurrency Kit (libck, \-lck)
 .Sh DESCRIPTION
 The ck_cohort.h header file does not define any cohort types.  Instead, the user must use
 the CK_COHORT_PROTOTYPE or CK_COHORT_TRYLOCK_PROTOTYPE macros to define any types
-they want to use.  The CK_COHORT_TRYLOCK_PROTOTYPE macro takes the
-following arguments:
+they want to use.  
+They must use CK_COHORT_TRYLOCK_PROTOTYPE if they want their cohort type to have support
+for trylock operations.  The CK_COHORT_TRYLOCK_PROTOTYPE macro takes the following arguments:
 .Pp
-.Fa COHORT_NAME cohort_name
+.Fa cohort_name
 : An identifier used for this cohort type.  This will have to be passed to each
 of the other CK_COHORT macros.
 .br
-.Fa LOCK_FXN global_lock_method
+.Fa global_lock_method
 : The method that should be called to acquire the global lock
 .br
-.Fa LOCK_FXN global_unlock_method
+.Fa global_unlock_method
 : The method that should be called to relinquish the global lock
 .br
-.Fa TRYLOCK_FXN global_trylock_method
+.Fa global_trylock_method
 : The method that should be called to try to acquire the global lock.  
 It should not block and return true iff the lock was successfully acquired.
 .br
-.Fa LOCK_FXN local_lock_method
+.Fa local_lock_method
 : The method that should be called to acquire the local lock
 .br
-.Fa LOCK_FXN local_unlock_method
+.Fa local_unlock_method
 : The method that should be called to relinquish the local lock
 .br
-.Fa TRYLOCK_FXN local_trylock_method
+.Fa local_trylock_method
 : The method that should be called to try to acquire the local lock.  
 It should not block and return true iff the lock was successfully acquired.
 .Pp
