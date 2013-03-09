@@ -24,42 +24,58 @@
 .\" SUCH DAMAGE.
 .\"
 .\"
-.Dd February 24, 2013.
-.Dt CK_COHORT_INIT 3
+.Dd March 9, 2013.
+.Dt CK_COHORT_TRYLOCK_PROTOTYPE 3
 .Sh NAME
-.Nm CK_COHORT_INIT
-.Nd Initialize an instance of a cohort type
+.Nm CK_COHORT_TRYLOCK_PROTOTYPE
+.Nd Define a cohort type with the given lock types
 .Sh LIBRARY
 Concurrency Kit (libck, \-lck)
 .Sh SYNOPSIS
 .In ck_cohort.h
-.Fn CK_COHORT_INIT "COHORT_NAME cohort_name" "COHORT *cohort" "void *global_lock" \
-"void *local_lock" "unsigned int pass_limit"
+.Fn CK_COHORT_TRYLOCK_PROTOTYPE "COHORT_NAME cohort_name" "LOCK_FXN global_lock_method" \
+"LOCK_FXN global_unlock_method" "TRYLOCK_FXN global_trylock_method" \
+"LOCK_FXN local_lock_method" "LOCK_FXN local_unlock_method" "TRYLOCK_FXN local_trylock_method"
 .Sh DESCRIPTION
-Until a cohort instance is initialized using the CK_COHORT_INIT macro, any operations
-involving it will have undefined behavior.  After this macro has been called, the cohort
-pointed to by the 
-.Fa cohort
-argument will use the lock pointed to by
-.Fa global_lock
-as its global lock and the lock pointed to by
-.Fa local_lock
-as its local lock.
+The ck_cohort.h header file does not define any cohort types.  Instead, the user must use
+the CK_COHORT_PROTOTYPE or CK_COHORT_TRYLOCK_PROTOTYPE macros to define any types
+they want to use.  The CK_COHORT_TRYLOCK_PROTOTYPE macro takes the
+following arguments:
 .Pp
-The cohort will relinquish its global lock after
-.Fa pass_limit
-consecutive acquisitions of its local lock, even if there are other threads waiting.  
-If you are unsure of a value to use for the 
-.Fa pass_limit
-argument, you should use CK_COHORT_DEFAULT_LOCAL_PASS_LIMIT.
+.Fa COHORT_NAME cohort_name
+: An identifier used for this cohort type.  This will have to be passed to each
+of the other CK_COHORT macros.
+.br
+.Fa LOCK_FXN global_lock_method
+: The method that should be called to acquire the global lock
+.br
+.Fa LOCK_FXN global_unlock_method
+: The method that should be called to relinquish the global lock
+.br
+.Fa TRYLOCK_FXN global_trylock_method
+: The method that should be called to try to acquire the global lock.  
+It should not block and return true iff the lock was successfully acquired.
+.br
+.Fa LOCK_FXN local_lock_method
+: The method that should be called to acquire the local lock
+.br
+.Fa LOCK_FXN local_unlock_method
+: The method that should be called to relinquish the local lock
+.br
+.Fa TRYLOCK_FXN local_trylock_method
+: The method that should be called to try to acquire the local lock.  
+It should not block and return true iff the lock was successfully acquired.
+.Pp
+Instances of the defined cohort type can be declared as:
+.br
+    CK_COHORT_INSTANCE(cohort_name) cohort;
 .Sh SEE ALSO
 .Xr ck_cohort 3 ,
 .Xr CK_COHORT_PROTOTYPE 3 ,
-.Xr CK_COHORT_TRYLOCK_PROTOTYPE 3 ,
 .Xr CK_COHORT_INSTANCE 3 ,
 .Xr CK_COHORT_INITIALIZER 3 ,
+.Xr CK_COHORT_INIT 3 ,
 .Xr CK_COHORT_LOCK 3 ,
 .Xr CK_COHORT_UNLOCK 3 ,
-.Xr CK_COHORT_TRYLOCK 3 ,
 .Pp
 Additional information available at http://concurrencykit.org/

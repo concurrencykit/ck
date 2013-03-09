@@ -1,5 +1,4 @@
 .\"
-.\" Copyright 2013 Samy Al Bahra.
 .\" Copyright 2013 Brendon Scheinman.
 .\" All rights reserved.
 .\"
@@ -36,24 +35,11 @@ Concurrency Kit (libck, \-lck)
 .In ck_cohort.h
 .Fn CK_COHORT_PROTOTYPE "COHORT_NAME cohort_name" "TYPE global_lock_method" \
 "LOCK_FXN global_unlock_method" "LOCK_FXN local_lock_method" "LOCK_FXN local_unlock_method"
-.Pp
-where LOCK_FXN refers to a method with the signature
-.br
-void(void *lock, void *context)
-.Pp
-The
-.Fa context
-argument is used to pass along any additional information that
-the lock might need for its lock and unlock methods.  The values for this
-argument are provided to each call to
-.Xr CK_COHORT_LOCK 3
-and
-.Xr CK_COHORT_UNLOCK 3
-.
-.br
 .Sh DESCRIPTION
 The ck_cohort.h header file does not define any cohort types.  Instead, the user must use
-the CK_COHORT_PROTOTYPE macro to define any types they want to use.  This macro takes the
+the CK_COHORT_PROTOTYPE or 
+.Xr CK_COHORT_TRYLOCK_PROTOTYPE 3
+macros to define any types they want to use.  The CK_COHORT_PROTOTYPE macro takes the
 following arguments:
 .Pp
 .Fa COHORT_NAME cohort_name
@@ -77,6 +63,7 @@ Instances of the defined cohort type can be declared as:
     CK_COHORT_INSTANCE(cohort_name) cohort;
 .Sh SEE ALSO
 .Xr ck_cohort 3 ,
+.Xr CK_COHORT_TRYLOCK_PROTOTYPE 3 ,
 .Xr CK_COHORT_INSTANCE 3 ,
 .Xr CK_COHORT_INITIALIZER 3 ,
 .Xr CK_COHORT_INIT 3 ,

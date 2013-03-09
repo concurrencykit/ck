@@ -78,10 +78,12 @@ OBJECTS=ck_ht_count 	  		\
 	ck_hs_stat			\
 	ck_cohort			\
 	CK_COHORT_PROTOTYPE		\
+	CK_COHORT_TRYLOCK_PROTOTYPE	\
 	CK_COHORT_INSTANCE		\
 	CK_COHORT_INIT			\
 	CK_COHORT_LOCK			\
-	CK_COHORT_UNLOCK
+	CK_COHORT_UNLOCK		\
+	CK_COHORT_TRYLOCK
 
 all: 
 	for target in $(OBJECTS); do 			   \

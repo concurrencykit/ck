@@ -24,42 +24,43 @@
 .\" SUCH DAMAGE.
 .\"
 .\"
-.Dd February 24, 2013.
-.Dt CK_COHORT_INIT 3
+.Dd March 9, 2013.
+.Dt CK_COHORT_TRYLOCK 3
 .Sh NAME
-.Nm CK_COHORT_INIT
-.Nd Initialize an instance of a cohort type
+.Nm CK_COHORT_TRYLOCK
+.Nd Try to acquire a cohort's locks
 .Sh LIBRARY
 Concurrency Kit (libck, \-lck)
 .Sh SYNOPSIS
 .In ck_cohort.h
-.Fn CK_COHORT_INIT "COHORT_NAME cohort_name" "COHORT *cohort" "void *global_lock" \
-"void *local_lock" "unsigned int pass_limit"
+.Fn CK_COHORT_TRYLOCK "COHORT_NAME cohort_name" "COHORT *cohort" "void *global_trylock_context" \
+"void *local_trylock_context" "void *lock_unlock_context"
 .Sh DESCRIPTION
-Until a cohort instance is initialized using the CK_COHORT_INIT macro, any operations
-involving it will have undefined behavior.  After this macro has been called, the cohort
-pointed to by the 
-.Fa cohort
-argument will use the lock pointed to by
-.Fa global_lock
-as its global lock and the lock pointed to by
-.Fa local_lock
-as its local lock.
-.Pp
-The cohort will relinquish its global lock after
-.Fa pass_limit
-consecutive acquisitions of its local lock, even if there are other threads waiting.  
-If you are unsure of a value to use for the 
-.Fa pass_limit
-argument, you should use CK_COHORT_DEFAULT_LOCAL_PASS_LIMIT.
+This call attempts to acquire both the local and global (if necessary) locks from
+.Fa cohort .  It can only be used with cohort types that were defined using the 
+.Xr CK_COHORT_TRYLOCK_PROTOTYPE 3
+macro.  The call will not block and will return a bool that will evaluate to true iff
+the cohort was successfully acquired.  
+.Fa global_trylock_context
+will be passed as the second argument to the function that was provided as the 
+.Fa global_trylock_method
+argument to CK_COHORT_TRYLOCK_PROTOTYPE if that method is called, and 
+.Fa local_trylock_context
+will be passed to the function specified by
+.Fa local_trylock_method
+.  If the global lock acquisition fails, then the cohort will immediately release its 
+local lock as well, and
+.Fa local_unlock_context
+will be passed to the function specified by
+.Fa local_unlock_method
+when this call is made.
 .Sh SEE ALSO
 .Xr ck_cohort 3 ,
 .Xr CK_COHORT_PROTOTYPE 3 ,
 .Xr CK_COHORT_TRYLOCK_PROTOTYPE 3 ,
 .Xr CK_COHORT_INSTANCE 3 ,
 .Xr CK_COHORT_INITIALIZER 3 ,
-.Xr CK_COHORT_LOCK 3 ,
+.Xr CK_COHORT_INIT 3 ,
 .Xr CK_COHORT_UNLOCK 3 ,
-.Xr CK_COHORT_TRYLOCK 3 ,
 .Pp
 Additional information available at http://concurrencykit.org/
