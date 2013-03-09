@@ -149,6 +149,5 @@ enum ck_cohort_state {
 	.local_pass_limit = CK_COHORT_DEFAULT_LOCAL_PASS_LIMIT			\
 }
 
-
 #endif /* _CK_COHORT_H */
 
