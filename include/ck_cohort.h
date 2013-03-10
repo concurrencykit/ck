@@ -51,8 +51,9 @@ enum ck_cohort_state {
 #define CK_COHORT_LOCK(N, C, GC, LC) ck_cohort_##N##_lock(C, GC, LC)
 #define CK_COHORT_UNLOCK(N, C, GC, LC) ck_cohort_##N##_unlock(C, GC, LC)
 #define CK_COHORT_TRYLOCK(N, C, GLC, LLC, LUC) ck_cohort_##N##_trylock(C, GLC, LLC, LUC)
+#define CK_COHORT_LOCKED(N, C, GC, LC) ck_cohort_##N##_locked(C, GC, LC)
 
-#define CK_COHORT_PROTOTYPE(N, GL, GU, LL, LU)					\
+#define CK_COHORT_PROTOTYPE(N, GL, GU, GI, LL, LU, LI)				\
 	CK_COHORT_INSTANCE(N) {							\
 		void *global_lock;						\
 		void *local_lock;						\
@@ -111,10 +112,18 @@ enum ck_cohort_state {
 		LU(cohort->local_lock, local_context);				\
 										\
 		return;								\
+	}									\
+										\
+	CK_CC_INLINE static bool						\
+	ck_cohort_##N##_locked(CK_COHORT_INSTANCE(N) *cohort,			\
+	    void *global_context, void *local_context)				\
+	{									\
+		return GI(cohort->local_lock, local_context) ||			\
+		    LI(cohort->global_lock, global_context);			\
 	}
 
-#define CK_COHORT_TRYLOCK_PROTOTYPE(N, GL, GU, GTL, LL, LU, LTL)		\
-	CK_COHORT_PROTOTYPE(N, GL, GU, LL, LU)					\
+#define CK_COHORT_TRYLOCK_PROTOTYPE(N, GL, GU, GI, GTL, LL, LU, LI, LTL)	\
+	CK_COHORT_PROTOTYPE(N, GL, GU, GI, LL, LU, LI)				\
 	CK_CC_INLINE static bool						\
 	ck_cohort_##N##_trylock(CK_COHORT_INSTANCE(N) *cohort,			\
 	    void *global_context, void *local_context,				\
@@ -132,7 +141,7 @@ enum ck_cohort_state {
 										\
 		if (cohort->release_state == CK_COHORT_STATE_GLOBAL &&		\
 		    GTL(cohort->global_lock, global_context) == false) {	\
-		    	LU(cohort->local_lock, local_unlock_context);			\
+		    	LU(cohort->local_lock, local_unlock_context);		\
 			return false;						\
 		}								\
 										\
