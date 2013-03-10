@@ -36,8 +36,10 @@ Concurrency Kit (libck, \-lck)
 .Fn CK_COHORT_PROTOTYPE "COHORT_NAME cohort_name" "LOCK_FXN global_lock_method" \
 "LOCK_FXN global_unlock_method" "LOCK_FXN local_lock_method" "LOCK_FXN local_unlock_method"
 .Fn CK_COHORT_TRYLOCK_PROTOTYPE "COHORT_NAME cohort_name" \
-"LOCK_FXN global_lock_method" "LOCK_FXN global_unlock_method" "TRYLOCK_FXN global_trylock_method" \
-"LOCK_FXN local_lock_method" "LOCK_FXN local_unlock_method" "TRYLOCK_FXN local_trylock_method"
+"LOCK_FXN global_lock_method" "LOCK_FXN global_unlock_method" \
+"BOOL_LOCK_FXN global_locked_method" BOOL_LOCK_FXN global_trylock_method" \
+"LOCK_FXN local_lock_method" "LOCK_FXN local_unlock_method" \
+"BOOL_LOCK_FXN local_locked_method" BOOL_LOCK_FXN local_trylock_method"
 .Fn CK_COHORT_INSTANCE "COHORT_NAME cohort_name"
 .Fn CK_COHORT_INIT "COHORT_NAME cohort_name" "ck_cohort *cohort" \
 "void *global_lock" "void *local_lock" "unsigned int pass_limit"
@@ -50,7 +52,7 @@ Where LOCK_FXN refers to a method with the signature
 .br
 void(void *lock, void *context)
 .br
-and TRYLOCK_FXN refers to a method with the signature
+BOOL_LOCK_FXN refers to a method with the signature
 .br
 bool(void *lock, void *context)
 .Pp
@@ -59,9 +61,9 @@ The
 argument in each signature is used to pass along any additional information that
 the lock might need for its lock, unlock and trylock methods.  The values for this
 argument are provided to each call to
-.Xr CK_COHORT_LOCK 3
-,
-.Xr CK_COHORT_UNLOCK 3
+.Xr CK_COHORT_LOCK 3 ,
+.Xr CK_COHORT_UNLOCK 3 ,
+.Xr CK_COHORT_LOCKED 3 ,
 and
 .Xr CK_COHORT_TRYLOCK 3
 .
@@ -94,7 +96,7 @@ man pages for more details.
 #include <ck_spinlock.h>
 
 /* 
- * Create lock/unlock methods with signatures that match
+ * Create cohort methods with signatures that match
  * the required signature
  */
 static void
@@ -113,13 +115,20 @@ ck_spinlock_unlock_with_context(ck_spinlock_t *lock, void *context)
 	return;
 }
 
+static bool
+ck_spinlock_locked_with_context(ck_spinlock_t *lock, void *context)
+{
+	(void)context;
+	return ck_spinlock_locked(lock);
+}
+
 /*
  * define a cohort type named "test_cohort" that will use
  * the above methods for both its global and local locks
  */
 CK_COHORT_PROTOTYPE(test_cohort,
-	ck_spinlock_lock_with_context, ck_spinlock_unlock_with_context,
-	ck_spinlock_lock_with_context, ck_spinlock_unlock_with_context)
+	ck_spinlock_lock_with_context, ck_spinlock_unlock_with_context, ck_spinlock_locked_with_context
+	ck_spinlock_lock_with_context, ck_spinlock_unlock_with_context, ck_spinlock_locked_with_context)
 
 static ck_spinlock_t global_lock = CK_SPINLOCK_INITIALIZER;
 static unsigned int ready;
@@ -197,6 +206,7 @@ main(void)
 .Xr CK_COHORT_INIT 3 ,
 .Xr CK_COHORT_LOCK 3 ,
 .Xr CK_COHORT_UNLOCK 3 ,
+.Xr CK_COHORT_LOCKED 3 ,
 .Xr CK_COHORT_TRYLOCK 3 ,
 .Pp
 Additional information available at http://concurrencykit.org/
