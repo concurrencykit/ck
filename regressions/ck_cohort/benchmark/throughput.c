@@ -60,26 +60,34 @@ static unsigned int barrier;
 static int critical CK_CC_CACHELINE;
 
 static void
-ck_spinlock_lock_with_context(ck_spinlock_t *lock, void *context)
+ck_spinlock_fas_lock_with_context(ck_spinlock_fas_t *lock, void *context)
 {
 
 	(void)context;
-	ck_spinlock_lock(lock);
+	ck_spinlock_fas_lock(lock);
 	return;
 }
 
 static void
-ck_spinlock_unlock_with_context(ck_spinlock_t *lock, void *context)
+ck_spinlock_fas_unlock_with_context(ck_spinlock_fas_t *lock, void *context)
 {
 
 	(void)context;
-	ck_spinlock_unlock(lock);
+	ck_spinlock_fas_unlock(lock);
 	return;
 }
 
+static bool
+ck_spinlock_fas_locked_with_context(ck_spinlock_fas_t *lock, void *context)
+{
+
+	(void)context;
+	return ck_spinlock_fas_locked(lock);
+}
+
 CK_COHORT_PROTOTYPE(basic,
-    ck_spinlock_lock_with_context, ck_spinlock_unlock_with_context,
-    ck_spinlock_lock_with_context, ck_spinlock_unlock_with_context)
+    ck_spinlock_fas_lock_with_context, ck_spinlock_fas_unlock_with_context, ck_spinlock_fas_locked_with_context,
+    ck_spinlock_fas_lock_with_context, ck_spinlock_fas_unlock_with_context, ck_spinlock_fas_locked_with_context)
 
 struct cohort_record {
 	CK_COHORT_INSTANCE(basic) cohort;
