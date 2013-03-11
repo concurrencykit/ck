@@ -361,6 +361,14 @@ ck_fifo_mpmc_dequeue(struct ck_fifo_mpmc *fifo,
 			update.generation = tail.generation + 1;
 			ck_pr_cas_ptr_2(&fifo->tail, &tail, &update);
 		} else {
+			/*
+			 * It is possible for head snapshot to have been
+			 * re-used. Avoid deferencing during enqueue
+			 * re-use.
+			 */
+			if (next.pointer == NULL)
+				continue;
+
 			/* Save value before commit. */
 			*(void **)value = ck_pr_load_ptr(&next.pointer->value);
 
@@ -408,6 +416,13 @@ ck_fifo_mpmc_trydequeue(struct ck_fifo_mpmc *fifo,
 		ck_pr_cas_ptr_2(&fifo->tail, &tail, &update);
 		return false;
 	} else {
+		/*
+		 * It is possible for head snapshot to have been
+		 * re-used. Avoid deferencing during enqueue.
+		 */
+		if (next.pointer == NULL)
+			return false;
+
 		/* Save value before commit. */
 		*(void **)value = ck_pr_load_ptr(&next.pointer->value);
 
