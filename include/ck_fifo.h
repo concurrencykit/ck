@@ -139,13 +139,13 @@ ck_fifo_spsc_dequeue(struct ck_fifo_spsc *fifo, void *value)
 	 */
 	entry = ck_pr_load_ptr(&fifo->head->next);
 	if (entry == NULL)
-		return (false);
+		return false;
 
 	/* If entry is visible, guarantee store to value is visible. */
 	ck_pr_store_ptr(value, entry->value);
 	ck_pr_fence_store();
 	ck_pr_store_ptr(&fifo->head, entry);
-	return (true);
+	return true;
 }
 
 /*
@@ -165,14 +165,14 @@ ck_fifo_spsc_recycle(struct ck_fifo_spsc *fifo)
 
 	garbage = fifo->garbage;
 	fifo->garbage = garbage->next;
-	return (garbage);
+	return garbage;
 }
 
 CK_CC_INLINE static bool
 ck_fifo_spsc_isempty(struct ck_fifo_spsc *fifo)
 {
 	struct ck_fifo_spsc_entry *head = ck_pr_load_ptr(&fifo->head);
-	return (ck_pr_load_ptr(&head->next) == NULL);
+	return ck_pr_load_ptr(&head->next) == NULL;
 }
 
 #define CK_FIFO_SPSC_ISEMPTY(f)	((f)->head->next == NULL)
@@ -355,7 +355,7 @@ ck_fifo_mpmc_dequeue(struct ck_fifo_mpmc *fifo,
 			 * queue is empty.
 			 */
 			if (next.pointer == NULL)
-				return (false);
+				return false;
 
 			/* Forward the tail pointer if necessary. */
 			update.generation = tail.generation + 1;
@@ -372,7 +372,7 @@ ck_fifo_mpmc_dequeue(struct ck_fifo_mpmc *fifo,
 	}
 
 	*garbage = head.pointer;
-	return (true);
+	return true;
 }
 
 CK_CC_INLINE static bool
