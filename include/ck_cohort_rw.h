@@ -50,7 +50,6 @@
 
 #define CK_COHORT_RW_PROTOTYPE(N)								\
 	CK_COHORT_RW_INSTANCE(N) {								\
-		CK_COHORT_INSTANCE(N) *cohort;							\
 		unsigned int read_counter;							\
 		unsigned int write_barrier;							\
 		unsigned int wait_limit;							\
@@ -129,7 +128,6 @@
 	}
 
 #define CK_COHORT_RW_INITIALIZER {								\
-	.cohort = NULL,										\
 	.read_counter = 0,									\
 	.write_barrier = 0,									\
 	.wait_limit = 0										\
