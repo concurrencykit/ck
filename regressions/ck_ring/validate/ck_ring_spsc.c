@@ -59,6 +59,7 @@ test(void *c)
 {
 	struct context *context = c;
 	struct entry *entry;
+	unsigned int s;
 	int i, j;
 	bool r;
 	ck_barrier_centralized_state_t sense =
@@ -84,7 +85,18 @@ test(void *c)
 			entries[i].value = i;
 			entries[i].tid = 0;
 
-			r = ck_ring_enqueue_spsc(ring, entries + i);
+			if (i & 1) {
+				r = ck_ring_enqueue_spsc(ring, entries + i);
+			} else {
+				r = ck_ring_enqueue_spsc_size(ring,
+					entries + i, &s);
+
+				if ((int)s != i) {
+					ck_error("Size is %u, expected %d\n",
+					    s, i + 1);
+				}
+			}
+
 			assert(r != false);
 		}
 
@@ -116,7 +128,18 @@ test(void *c)
 			}
 
 			entry->tid = context->tid;
-			r = ck_ring_enqueue_spsc(ring + context->tid, entry);
+			if (i & 1) {
+				r = ck_ring_enqueue_spsc(ring + context->tid,
+					entry);
+			} else {
+				r = ck_ring_enqueue_spsc_size(ring +
+					context->tid, entry, &s);
+
+				if ((int)s >= size) {
+					ck_error("Size %u is out of range %d\n",
+					    s, size);
+				}
+			}
 			assert(r == true);
 		}
 	}

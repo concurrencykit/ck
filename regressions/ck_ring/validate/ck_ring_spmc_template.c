@@ -121,6 +121,7 @@ test(void *c)
 {
 	struct context *context = c;
 	struct entry entry;
+	unsigned int s;
 	int i, j;
 	bool r;
 	ck_barrier_centralized_state_t sense =
@@ -141,7 +142,19 @@ test(void *c)
 			memset(&entry, 0, sizeof(entry));
 			entry.value = i;
 
-			r = CK_RING_ENQUEUE_SPMC(spmc_ring, ring, &entry);
+			if (i & 1) {
+				r = CK_RING_ENQUEUE_SPMC(spmc_ring, ring,
+					&entry);
+			} else {
+				r = CK_RING_ENQUEUE_SPMC_SIZE(spmc_ring, ring,
+					&entry, &s);
+
+				if ((int)s != i) {
+					ck_error("Size %u, expected %d.\n",
+					    s, i);
+				}
+			}
+
 			assert(r != false);
 		}
 

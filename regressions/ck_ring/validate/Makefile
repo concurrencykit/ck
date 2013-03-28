@@ -1,7 +1,7 @@
 .PHONY: check clean distribution
 
 OBJECTS=ck_ring_spsc ck_ring_spsc_template ck_ring_spmc ck_ring_spmc_template
-SIZE=65536
+SIZE=16384
 
 all: $(OBJECTS)
 
