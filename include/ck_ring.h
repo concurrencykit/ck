@@ -214,7 +214,7 @@
 #define CK_RING_TRYDEQUEUE_SPMC(name, object, value)		\
 	ck_ring_trydequeue_spmc_##name(object, value)
 #define CK_RING_ENQUEUE_SPMC_SIZE(name, object, value, s)	\
-	ck_ring_enqueue_spmc_##name(object, value, s)
+	ck_ring_enqueue_spmc_size_##name(object, value, s)
 #define CK_RING_ENQUEUE_SPMC(name, object, value)		\
 	ck_ring_enqueue_spmc_##name(object, value)
 
