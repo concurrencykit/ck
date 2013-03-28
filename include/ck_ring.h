@@ -195,23 +195,27 @@
 	}
 
 
-#define CK_RING_INSTANCE(name)				\
+#define CK_RING_INSTANCE(name)					\
 	struct ck_ring_##name
-#define CK_RING_INIT(name, object, buffer, size)	\
+#define CK_RING_INIT(name, object, buffer, size)		\
 	ck_ring_init_##name(object, buffer, size)
-#define CK_RING_SIZE(name, object)			\
+#define CK_RING_SIZE(name, object)				\
 	ck_ring_size_##name(object)
-#define CK_RING_CAPACITY(name, object)			\
+#define CK_RING_CAPACITY(name, object)				\
 	ck_ring_capacity_##name(object)
-#define CK_RING_ENQUEUE_SPSC(name, object, value)	\
+#define CK_RING_ENQUEUE_SPSC_SIZE(name, object, value, s)	\
+	ck_ring_enqueue_spsc_size_##name(object, value, s)
+#define CK_RING_ENQUEUE_SPSC(name, object, value)		\
 	ck_ring_enqueue_spsc_##name(object, value)
-#define CK_RING_DEQUEUE_SPSC(name, object, value)	\
+#define CK_RING_DEQUEUE_SPSC(name, object, value)		\
 	ck_ring_dequeue_spsc_##name(object, value)
-#define CK_RING_DEQUEUE_SPMC(name, object, value)	\
+#define CK_RING_DEQUEUE_SPMC(name, object, value)		\
 	ck_ring_dequeue_spmc_##name(object, value)
-#define CK_RING_TRYDEQUEUE_SPMC(name, object, value)	\
+#define CK_RING_TRYDEQUEUE_SPMC(name, object, value)		\
 	ck_ring_trydequeue_spmc_##name(object, value)
-#define CK_RING_ENQUEUE_SPMC(name, object, value)	\
+#define CK_RING_ENQUEUE_SPMC_SIZE(name, object, value, s)	\
+	ck_ring_enqueue_spmc_##name(object, value, s)
+#define CK_RING_ENQUEUE_SPMC(name, object, value)		\
 	ck_ring_enqueue_spmc_##name(object, value)
 
 struct ck_ring {
