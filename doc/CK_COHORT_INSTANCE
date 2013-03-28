@@ -48,9 +48,11 @@ CK_COHORT_INSTANCE(foo) *cohorts = malloc(4 * sizeof(CK_COHORT_INSTANCE(foo)));
 .Sh SEE ALSO
 .Xr ck_cohort 3 ,
 .Xr CK_COHORT_PROTOTYPE 3 ,
+.Xr CK_COHORT_TRYLOCK_PROTOTYPE 3 ,
 .Xr CK_COHORT_INSTANCE 3 ,
 .Xr CK_COHORT_INITIALIZER 3 ,
 .Xr CK_COHORT_LOCK 3 ,
 .Xr CK_COHORT_UNLOCK 3 ,
+.Xr CK_COHORT_TRYLOCK 3 ,
 .Pp
 Additional information available at http://concurrencykit.org/

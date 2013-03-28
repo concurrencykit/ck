@@ -33,12 +33,38 @@
 Concurrency Kit (libck, \-lck)
 .Sh SYNOPSIS
 .In ck_cohort.h
-.Fn CK_COHORT_PROTOTYPE "cohort_name" "global_lock_type" "global_lock_method" \
-"global_unlock_method" "local_lock_type" "local_lock_method" "local_unlock_method"
-.Fn CK_COHORT_INSTANCE "cohort_name"
-.Fn CK_COHORT_INIT "name" "ck_cohort *cohort" "global_lock" "local_lock" "unsigned int pass_limit"
-.Fn CK_COHORT_LOCK "name" "ck_cohort *cohort" "void *global_context" "void *local_context"
-.Fn CK_COHORT_UNLOCK "name" "ck_cohort *cohort" "void *global_context" "void *local_context"
+.Fn CK_COHORT_PROTOTYPE "COHORT_NAME cohort_name" "LOCK_FXN global_lock_method" \
+"LOCK_FXN global_unlock_method" "LOCK_FXN local_lock_method" "LOCK_FXN local_unlock_method"
+.Fn CK_COHORT_TRYLOCK_PROTOTYPE "COHORT_NAME cohort_name" \
+"LOCK_FXN global_lock_method" "LOCK_FXN global_unlock_method" "TRYLOCK_FXN global_trylock_method" \
+"LOCK_FXN local_lock_method" "LOCK_FXN local_unlock_method" "TRYLOCK_FXN local_trylock_method"
+.Fn CK_COHORT_INSTANCE "COHORT_NAME cohort_name"
+.Fn CK_COHORT_INIT "COHORT_NAME cohort_name" "ck_cohort *cohort" \
+"void *global_lock" "void *local_lock" "unsigned int pass_limit"
+.Fn CK_COHORT_LOCK "COHORT_NAME cohort_name" "ck_cohort *cohort" \
+"void *global_context" "void *local_context"
+.Fn CK_COHORT_UNLOCK "COHORT_NAME cohort_name" "ck_cohort *cohort" \
+"void *global_context" "void *local_context"
+.Pp
+Where LOCK_FXN refers to a method with the signature
+.br
+void(void *lock, void *context)
+.br
+and TRYLOCK_FXN refers to a method with the signature
+.br
+bool(void *lock, void *context)
+.Pp
+The
+.Fa context 
+argument in each signature is used to pass along any additional information that
+the lock might need for its lock, unlock and trylock methods.  The values for this
+argument are provided to each call to
+.Xr CK_COHORT_LOCK 3
+,
+.Xr CK_COHORT_UNLOCK 3
+and
+.Xr CK_COHORT_TRYLOCK 3
+.
 .Sh DESCRIPTION
 ck_cohort.h provides an interface for defining lock cohorts with
 arbitrary lock types.  Cohorts are a mechanism for coordinating
@@ -46,12 +72,16 @@ threads on NUMA architectures in order to reduce the frequency
 with which a lock is passed between threads on different clusters.
 .Pp
 Before using a cohort, the user must define a cohort type using
-the
+either the
 .Fn CK_COHORT_PROTOTYPE
-macro.  This macro allows the user to specify the lock types that
+or the
+.Fn CK_COHORT_TRYLOCK_PROTOTYPE
+macros.  These macros allow the user to specify the lock methods that
 they would like the cohort to use.  See the
 .Xr CK_COHORT_PROTOTYPE 3
-man page for more details.
+and
+.Xr CK_COHORT_TRYLOCK_PROTOTYPE 3
+man pages for more details.
 .Pp
 .Sh EXAMPLE
 .Bd -literal -offset indent
@@ -161,10 +191,12 @@ main(void)
 
 .Sh SEE ALSO
 .Xr CK_COHORT_PROTOTYPE 3 ,
+.Xr CK_COHORT_TRYLOCK_PROTOTYPE 3 ,
 .Xr CK_COHORT_INSTANCE 3 ,
 .Xr CK_COHORT_INITIALIZER 3 ,
 .Xr CK_COHORT_INIT 3 ,
 .Xr CK_COHORT_LOCK 3 ,
 .Xr CK_COHORT_UNLOCK 3 ,
+.Xr CK_COHORT_TRYLOCK 3 ,
 .Pp
 Additional information available at http://concurrencykit.org/
