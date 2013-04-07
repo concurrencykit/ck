@@ -47,6 +47,7 @@ struct ck_ht_stat {
 	uint64_t probe_maximum; /* Longest read-side probe sequence. */
 	uint64_t n_entries;     /* Current number of keys in hash set. */
 };
+.Ed
 .Sh RETURN VALUES
 .Fn ck_ht_stat 3
 has no return value.
