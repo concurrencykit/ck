@@ -95,6 +95,7 @@ function(void)
 	free(s);
 	return;
 }
+.Ed
 .Sh RETURN VALUES
 This function has no return value.
 .Sh ERRORS

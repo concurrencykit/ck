@@ -48,6 +48,7 @@ struct ck_hs_stat {
 	unsigned long n_entries;    /* Current number of keys in hash set. */
 	unsigned int probe_maximum; /* Longest read-side probe sequence. */
 };
+.Ed
 .Sh RETURN VALUES
 .Fn ck_hs_stat 3
 has no return value.

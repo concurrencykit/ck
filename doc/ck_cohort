@@ -188,7 +188,7 @@ main(void)
 
 	return 0;
 }
-
+.Ed
 .Sh SEE ALSO
 .Xr CK_COHORT_PROTOTYPE 3 ,
 .Xr CK_COHORT_TRYLOCK_PROTOTYPE 3 ,
