@@ -28,7 +28,7 @@
 .Dt CK_COHORT_INIT 3
 .Sh NAME
 .Nm CK_COHORT_INIT
-.Nd Initialize an instance of a cohort type
+.Nd initialize instance of a cohort type
 .Sh LIBRARY
 Concurrency Kit (libck, \-lck)
 .Sh SYNOPSIS

@@ -28,7 +28,7 @@
 .Dt CK_COHORT_PROTOTYPE 3
 .Sh NAME
 .Nm CK_COHORT_PROTOTYPE
-.Nd Define a cohort type with the given lock types
+.Nd define cohort type with specified lock types
 .Sh LIBRARY
 Concurrency Kit (libck, \-lck)
 .Sh SYNOPSIS
