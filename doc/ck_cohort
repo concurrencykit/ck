@@ -28,7 +28,7 @@
 .Dt ck_cohort 3
 .Sh NAME
 .Nm ck_cohort
-.Nd Generalized interface for lock cohorts
+.Nd generalized interface for lock cohorts
 .Sh LIBRARY
 Concurrency Kit (libck, \-lck)
 .Sh SYNOPSIS
