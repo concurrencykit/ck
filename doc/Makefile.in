@@ -5,6 +5,7 @@ GZIP=@GZIP@
 GZIP_SUFFIX=.3@GZIP_SUFFIX@
 BUILD_DIR=@BUILD_DIR@
 SRC_DIR=@SRC_DIR@
+HTML_SUFFIX=.html
 
 OBJECTS=ck_ht_count 	  		\
 	ck_ht_destroy	  		\
@@ -90,6 +91,12 @@ all:
 		$(GZIP) $(SRC_DIR)/doc/$$target > $(BUILD_DIR)/doc/$$target$(GZIP_SUFFIX); \
 	done
 
+html:
+	for target in $(OBJECTS); do 			   \
+		echo $$target;				   \
+		groff -man -Tascii $(SRC_DIR)/doc/$$target | man2html -bare -compress -cgiurl='$$title.html' > $(BUILD_DIR)/doc/$$target$(HTML_SUFFIX); \
+	done
+
 install:
 	mkdir -p $(DESTDIR)/$(MANDIR)/man3 || exit
 	cp *$(GZIP_SUFFIX) $(DESTDIR)/$(MANDIR)/man3 || exit
@@ -100,5 +107,5 @@ uninstall:
 	done
 
 clean:
-	rm -f $(BUILD_DIR)/doc/*~ $(BUILD_DIR)/doc/*.3.gz
+	rm -f $(BUILD_DIR)/doc/*~ $(BUILD_DIR)/doc/*.3.gz $(BUILD_DIR)/doc/*.html
 
