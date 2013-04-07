@@ -94,7 +94,7 @@ all:
 html:
 	for target in $(OBJECTS); do 			   \
 		echo $$target;				   \
-		groff -man -Tascii $(SRC_DIR)/doc/$$target | man2html -bare -compress -cgiurl='$$title.html' > $(BUILD_DIR)/doc/$$target$(HTML_SUFFIX); \
+		groff -man -Tascii $(SRC_DIR)/doc/$$target | man2html -noheads -bare -compress -cgiurl='$$title.html' > $(BUILD_DIR)/doc/$$target$(HTML_SUFFIX); \
 	done
 
 install:
