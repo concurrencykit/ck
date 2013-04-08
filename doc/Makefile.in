@@ -5,6 +5,7 @@ GZIP=@GZIP@
 GZIP_SUFFIX=.3@GZIP_SUFFIX@
 BUILD_DIR=@BUILD_DIR@
 SRC_DIR=@SRC_DIR@
+HTML_SUFFIX=.html
 
 OBJECTS=ck_ht_count 	  		\
 	ck_ht_destroy	  		\
@@ -75,11 +76,33 @@ OBJECTS=ck_ht_count 	  		\
 	ck_hs_grow			\
 	ck_hs_count			\
 	ck_hs_reset			\
-	ck_hs_stat
+	ck_hs_stat			\
+	ck_cohort			\
+	CK_COHORT_PROTOTYPE		\
+	CK_COHORT_TRYLOCK_PROTOTYPE	\
+	CK_COHORT_INSTANCE		\
+	CK_COHORT_INIT			\
+	CK_COHORT_LOCK			\
+	CK_COHORT_UNLOCK		\
+	CK_COHORT_TRYLOCK		\
+	ck_pr				\
+	ck_pr_barrier			\
+	ck_pr_fas			\
+	ck_pr_fence_load		\
+	ck_pr_fence_load_depends	\
+	ck_pr_fence_memory		\
+	ck_pr_fence_store		\
+	ck_pr_stall
 
 all: 
 	for target in $(OBJECTS); do 			   \
 		$(GZIP) $(SRC_DIR)/doc/$$target > $(BUILD_DIR)/doc/$$target$(GZIP_SUFFIX); \
+	done
+
+html:
+	for target in $(OBJECTS); do 			   \
+		echo $$target;				   \
+		groff -man -Tascii $(SRC_DIR)/doc/$$target | man2html -noheads -bare -compress -cgiurl='$$title.html' > $(BUILD_DIR)/doc/$$target$(HTML_SUFFIX); \
 	done
 
 install:
@@ -92,5 +115,5 @@ uninstall:
 	done
 
 clean:
-	rm -f $(BUILD_DIR)/doc/*~ $(BUILD_DIR)/doc/*.3.gz
+	rm -f $(BUILD_DIR)/doc/*~ $(BUILD_DIR)/doc/*.3.gz $(BUILD_DIR)/doc/*.html
 

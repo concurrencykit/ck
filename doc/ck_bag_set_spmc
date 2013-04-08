@@ -29,7 +29,7 @@
 .Dt CK_BAG_SET_SPMC 3
 .Sh NAME
 .Nm ck_bag_set_spmc
-.Nd Replace the first occurence of a value in a bag. Insert value into the bag if value didn't previously exist.
+.Nd replace the first occurence of a value in a bag
 .Sh LIBRARY
 Concurrency Kit (libck, \-lck)
 .Sh SYNOPSIS

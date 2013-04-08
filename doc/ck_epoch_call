@@ -33,9 +33,7 @@
 Concurrency Kit (libck, \-lck)
 .Sh SYNOPSIS
 .In ck_epoch.h
-
 typedef struct ck_epoch_entry ck_epoch_entry_t;
-
 typedef void ck_epoch_cb_t(ck_epoch_entry_t *);
 .Ft void
 .Fn ck_epoch_call "ck_epoch_t *epoch" "ck_epoch_record_t *record" "ck_epoch_entry_t *entry" "ck_epoch_cb_t *function"
@@ -114,6 +112,7 @@ function(void)
 	ck_epoch_poll(&epoch, record);
 	return;
 }
+.Ed
 .Sh RETURN VALUES
 This function has no return value.
 .Sh ERRORS

@@ -1,5 +1,5 @@
 .\"
-.\" Copyright 2012-2013 Samy Al Bahra.
+.\" Copyright 2013 Brendon Scheinman.
 .\" All rights reserved.
 .\"
 .\" Redistribution and use in source and binary forms, with or without
@@ -24,60 +24,51 @@
 .\" SUCH DAMAGE.
 .\"
 .\"
-.Dd September 17, 2012
-.Dt CK_HT_STAT 3
+.Dd February 24, 2013.
+.Dt CK_COHORT_PROTOTYPE 3
 .Sh NAME
-.Nm ck_ht_stat
-.Nd get hash table status
+.Nm CK_COHORT_PROTOTYPE
+.Nd define cohort type with specified lock types
 .Sh LIBRARY
 Concurrency Kit (libck, \-lck)
 .Sh SYNOPSIS
-.In ck_ht.h
-.Ft void
-.Fn ck_ht_stat "ck_ht_t *ht" "struct ck_ht_stat *st"
+.In ck_cohort.h
+.Fn CK_COHORT_PROTOTYPE "COHORT_NAME cohort_name" "TYPE global_lock_method" \
+"LOCK_FXN global_unlock_method" "LOCK_FXN local_lock_method" "LOCK_FXN local_unlock_method"
 .Sh DESCRIPTION
-The
-.Fn ck_ht_stat 3
-function will store various hash set statistics in the object
-pointed to by
-.Fa st .
-The ck_ht_stat structure is defined as follows:
-.Bd -literal -offset indent
-struct ck_ht_stat {
-	uint64_t probe_maximum; /* Longest read-side probe sequence. */
-	uint64_t n_entries;     /* Current number of keys in hash set. */
-};
-.Ed
-.Sh RETURN VALUES
-.Fn ck_ht_stat 3
-has no return value.
-.Sh ERRORS
-Behavior is undefined if
-.Fa ht
-has not been initialized.
+The ck_cohort.h header file does not define any cohort types.  Instead, the user must use
+the CK_COHORT_PROTOTYPE or 
+.Xr CK_COHORT_TRYLOCK_PROTOTYPE 3
+macros to define any types they want to use.  They must use CK_COHORT_TRYLOCK_PROTOTYPE
+if they want their cohort type to support trylock operations.
+The CK_COHORT_PROTOTYPE macro takes the following arguments:
+.Pp
+.Fa cohort_name
+: An identifier used for this cohort type.  This will have to be passed to each
+of the other CK_COHORT macros.
+.br
+.Fa global_lock_method
+: The method that should be called to acquire the global lock
+.br
+.Fa global_unlock_method
+: The method that should be called to relinquish the global lock
+.br
+.Fa local_lock_method
+: The method that should be called to acquire the local lock
+.br
+.Fa local_unlock_method
+: The method that should be called to relinquish the local lock
+.Pp
+Instances of the defined cohort type can be declared as:
+.br
+    CK_COHORT_INSTANCE(cohort_name) cohort;
 .Sh SEE ALSO
-.Xr ck_ht_count 3 ,
-.Xr ck_ht_init 3 ,
-.Xr ck_ht_destroy 3 ,
-.Xr ck_ht_hash 3 ,
-.Xr ck_ht_hash_direct 3 ,
-.Xr ck_ht_set_spmc 3 ,
-.Xr ck_ht_put_spmc 3 ,
-.Xr ck_ht_get_spmc 3 ,
-.Xr ck_ht_grow_spmc 3 ,
-.Xr ck_ht_remove_spmc 3 ,
-.Xr ck_ht_reset 3 ,
-.Xr ck_ht_entry_empty 3 ,
-.Xr ck_ht_entry_key_set 3 ,
-.Xr ck_ht_entry_key_set_direct 3 ,
-.Xr ck_ht_entry_key 3 ,
-.Xr ck_ht_entry_key_length 3 ,
-.Xr ck_ht_entry_value 3 ,
-.Xr ck_ht_entry_set 3 ,
-.Xr ck_ht_entry_set_direct 3 ,
-.Xr ck_ht_entry_key_direct 3 ,
-.Xr ck_ht_entry_value_direct 3 ,
-.Xr ck_ht_iterator_init 3 ,
-.Xr ck_ht_next 3
+.Xr ck_cohort 3 ,
+.Xr CK_COHORT_TRYLOCK_PROTOTYPE 3 ,
+.Xr CK_COHORT_INSTANCE 3 ,
+.Xr CK_COHORT_INITIALIZER 3 ,
+.Xr CK_COHORT_INIT 3 ,
+.Xr CK_COHORT_LOCK 3 ,
+.Xr CK_COHORT_UNLOCK 3 ,
 .Pp
 Additional information available at http://concurrencykit.org/

@@ -66,7 +66,8 @@ test_spmc(void *c)
 {
 	unsigned int observed = 0;
 	unsigned long previous = 0;
-	int i, j, tid;
+	unsigned int seed;
+	int i, k, j, tid;
 
 	(void)c;
         if (aff_iterate(&a)) {
@@ -81,6 +82,7 @@ test_spmc(void *c)
 	for (i = 0; i < ITERATIONS; i++) {
 		for (j = 0; j < size; j++) {
 			struct entry *o;
+			int spin;
 
 			/* Keep trying until we encounter at least one node. */
 			if (j & 1) {
@@ -107,6 +109,13 @@ test_spmc(void *c)
 				ck_error("[%p] We dequeued twice.\n", (void *)o);
 			}
 
+			if ((i % 4) == 0) {
+				spin = common_rand_r(&seed) % 16384;
+				for (k = 0; k < spin; k++) {
+					ck_pr_stall();
+				}
+			}
+
 			free(o);
 		}
 	}
@@ -120,6 +129,7 @@ test(void *c)
 {
 	struct context *context = c;
 	struct entry *entry;
+	unsigned int s;
 	int i, j;
 	bool r;
 	ck_barrier_centralized_state_t sense =
@@ -145,7 +155,18 @@ test(void *c)
 			entries[i].value = i;
 			entries[i].tid = 0;
 
-			r = ck_ring_enqueue_spmc(ring, entries + i);
+			if (i & 1) {
+				r = ck_ring_enqueue_spmc(ring, entries + i);
+			} else {
+				r = ck_ring_enqueue_spmc_size(ring,
+					entries + i, &s);
+
+				if ((int)s != i) {
+					ck_error("Size is %u, expected %d.\n",
+					    s, size);
+				}
+			}
+
 			assert(r != false);
 		}
 
@@ -180,7 +201,19 @@ test(void *c)
 			}
 
 			entry->tid = context->tid;
-			r = ck_ring_enqueue_spmc(ring + context->tid, entry);
+
+			if (i & 1) {
+				r = ck_ring_enqueue_spmc(ring + context->tid,
+					entry);
+			} else {
+				r = ck_ring_enqueue_spmc_size(ring + context->tid,
+					entry, &s);
+
+				if ((int)s >= size) {
+					ck_error("Size %u out of range of %d\n",
+					    s, size);
+				}
+			}
 			assert(r == true);
 		}
 	}
@@ -268,8 +301,21 @@ main(int argc, char *argv[])
 		entry->ref = 0;
 
 		/* Wait until queue is not full. */
-		while (ck_ring_enqueue_spmc(&ring_spmc, entry) == false)
-			ck_pr_stall();
+		if (l & 1) {
+			while (ck_ring_enqueue_spmc(&ring_spmc, entry) == false)
+				ck_pr_stall();
+		} else {
+			unsigned int s;
+
+			while (ck_ring_enqueue_spmc_size(&ring_spmc,
+				    entry, &s) == false) {
+				ck_pr_stall();
+			}
+
+			if ((int)s >= (size * ITERATIONS * (nthr - 1))) {
+				ck_error("MPMC: Unexpected size of %u\n", s);
+			}
+		}
 	}
 
 	for (i = 0; i < nthr - 1; i++)

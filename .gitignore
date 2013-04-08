@@ -139,3 +139,6 @@ regressions/ck_brlock/benchmark/throughput
 regressions/ck_rwlock/benchmark/throughput
 regressions/ck_queue/validate/ck_list
 regressions/ck_queue/validate/ck_slist
+regressions/ck_cohort/validate/validate
+regressions/ck_cohort/benchmark/ck_cohort.LATENCY
+regressions/ck_cohort/benchmark/ck_cohort.THROUGHPUT

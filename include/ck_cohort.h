@@ -50,11 +50,12 @@ enum ck_cohort_state {
 #define CK_COHORT_INIT(N, C, GL, LL, P) ck_cohort_##N##_init(C, GL, LL, P)
 #define CK_COHORT_LOCK(N, C, GC, LC) ck_cohort_##N##_lock(C, GC, LC)
 #define CK_COHORT_UNLOCK(N, C, GC, LC) ck_cohort_##N##_unlock(C, GC, LC)
+#define CK_COHORT_TRYLOCK(N, C, GLC, LLC, LUC) ck_cohort_##N##_trylock(C, GLC, LLC, LUC)
 
-#define CK_COHORT_PROTOTYPE(N, GT, GL, GU, LT, LL, LU)				\
+#define CK_COHORT_PROTOTYPE(N, GL, GU, LL, LU)					\
 	CK_COHORT_INSTANCE(N) {							\
-		GT *global_lock;						\
-		LT *local_lock;							\
+		void *global_lock;						\
+		void *local_lock;						\
 		enum ck_cohort_state release_state;				\
 		unsigned int waiting_threads;					\
 		unsigned int acquire_count;					\
@@ -63,7 +64,7 @@ enum ck_cohort_state {
 										\
 	CK_CC_INLINE static void						\
 	ck_cohort_##N##_init(struct ck_cohort_##N *cohort,			\
-	    GT *global_lock, LT *local_lock, unsigned int pass_limit)		\
+	    void *global_lock, void *local_lock, unsigned int pass_limit)	\
 	{									\
 		cohort->global_lock = global_lock;				\
 		cohort->local_lock = local_lock;				\
@@ -112,6 +113,33 @@ enum ck_cohort_state {
 		return;								\
 	}
 
+#define CK_COHORT_TRYLOCK_PROTOTYPE(N, GL, GU, GTL, LL, LU, LTL)		\
+	CK_COHORT_PROTOTYPE(N, GL, GU, LL, LU)					\
+	CK_CC_INLINE static bool						\
+	ck_cohort_##N##_trylock(CK_COHORT_INSTANCE(N) *cohort,			\
+	    void *global_context, void *local_context,				\
+	    void *local_unlock_context)						\
+	{									\
+										\
+		bool trylock_result;						\
+										\
+		ck_pr_inc_uint(&cohort->waiting_threads);			\
+		trylock_result = LTL(cohort->local_lock, local_context);	\
+		ck_pr_dec_uint(&cohort->waiting_threads);			\
+		if (trylock_result == false) {					\
+			return false;						\
+		}								\
+										\
+		if (cohort->release_state == CK_COHORT_STATE_GLOBAL &&		\
+		    GTL(cohort->global_lock, global_context) == false) {	\
+		    	LU(cohort->local_lock, local_unlock_context);			\
+			return false;						\
+		}								\
+										\
+		++cohort->acquire_count;					\
+		return true;							\
+	}
+
 #define CK_COHORT_INITIALIZER {							\
 	.global_lock = NULL,							\
 	.local_lock = NULL,							\
@@ -120,7 +148,6 @@ enum ck_cohort_state {
 	.acquire_count = 0,							\
 	.local_pass_limit = CK_COHORT_DEFAULT_LOCAL_PASS_LIMIT			\
 }
-
 
 #endif /* _CK_COHORT_H */
 

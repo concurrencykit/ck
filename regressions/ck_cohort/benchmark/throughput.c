@@ -78,8 +78,8 @@ ck_spinlock_unlock_with_context(ck_spinlock_t *lock, void *context)
 }
 
 CK_COHORT_PROTOTYPE(basic,
-    ck_spinlock_t, ck_spinlock_lock_with_context, ck_spinlock_unlock_with_context,
-    ck_spinlock_t, ck_spinlock_lock_with_context, ck_spinlock_unlock_with_context)
+    ck_spinlock_lock_with_context, ck_spinlock_unlock_with_context,
+    ck_spinlock_lock_with_context, ck_spinlock_unlock_with_context)
 
 struct cohort_record {
 	CK_COHORT_INSTANCE(basic) cohort;
@@ -101,6 +101,7 @@ fairness(void *null)
 	long int base;
 	unsigned int core;
 	CK_COHORT_INSTANCE(basic) *cohort;
+
 
 	if (aff_iterate_core(&a, &core)) {
 		perror("ERROR: Could not affine thread");
@@ -228,4 +229,3 @@ main(int argc, char *argv[])
 
 	return 0;
 }
-

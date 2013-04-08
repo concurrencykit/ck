@@ -59,9 +59,16 @@ ck_spinlock_fas_unlock_with_context(ck_spinlock_fas_t *lock, void *context)
 	ck_spinlock_fas_unlock(lock);
 }
 
-CK_COHORT_PROTOTYPE(fas_fas,
-	ck_spinlock_fas_t, ck_spinlock_fas_lock_with_context, ck_spinlock_fas_unlock_with_context,
-	ck_spinlock_fas_t, ck_spinlock_fas_lock_with_context, ck_spinlock_fas_unlock_with_context)
+static bool
+ck_spinlock_fas_trylock_with_context(ck_spinlock_fas_t *lock, void *context)
+{
+	(void)context;
+	return ck_spinlock_fas_trylock(lock);
+}
+
+CK_COHORT_TRYLOCK_PROTOTYPE(fas_fas,
+	ck_spinlock_fas_lock_with_context, ck_spinlock_fas_unlock_with_context, ck_spinlock_fas_trylock_with_context,
+	ck_spinlock_fas_lock_with_context, ck_spinlock_fas_unlock_with_context, ck_spinlock_fas_trylock_with_context)
 static CK_COHORT_INSTANCE(fas_fas) *cohorts;
 static int n_cohorts;
 
@@ -81,7 +88,15 @@ thread(void *null CK_CC_UNUSED)
 	cohort = cohorts + (core / (int)(a.delta)) % n_cohorts;
 
 	while (i--) {
-		CK_COHORT_LOCK(fas_fas, cohort, NULL, NULL);
+
+		if (i & 1) {
+			CK_COHORT_LOCK(fas_fas, cohort, NULL, NULL);
+		} else {
+			while (CK_COHORT_TRYLOCK(fas_fas, cohort, NULL, NULL, NULL) == false) {
+				ck_pr_stall();
+			}
+		}
+
 		{
 			l = ck_pr_load_uint(&locked);
 			if (l != 0) {

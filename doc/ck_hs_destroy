@@ -28,7 +28,7 @@
 .Dt CK_HS_DESTROY 3
 .Sh NAME
 .Nm ck_hs_destroy
-.Nd initialize a hash set
+.Nd destroy hash set
 .Sh LIBRARY
 Concurrency Kit (libck, \-lck)
 .Sh SYNOPSIS
@@ -43,7 +43,6 @@ function will request that the underlying allocator, as specified by the
 function, immediately destroy the object pointed to by the
 .Fa hs
 argument.
-
 The user must guarantee that no threads are accessing the object pointed to
 by
 .Fa hs
