@@ -84,7 +84,15 @@ OBJECTS=ck_ht_count 	  		\
 	CK_COHORT_INIT			\
 	CK_COHORT_LOCK			\
 	CK_COHORT_UNLOCK		\
-	CK_COHORT_TRYLOCK
+	CK_COHORT_TRYLOCK		\
+	ck_pr				\
+	ck_pr_barrier			\
+	ck_pr_fas			\
+	ck_pr_fence_load		\
+	ck_pr_fence_load_depends	\
+	ck_pr_fence_memory		\
+	ck_pr_fence_store		\
+	ck_pr_stall
 
 all: 
 	for target in $(OBJECTS); do 			   \
