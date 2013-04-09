@@ -41,9 +41,12 @@
 
 #if defined(_WIN32)
 #include <assert.h>
+#include <time.h>
 #include <windows.h>
+#define DELTA_EPOCH  11644473600000000ULL
 #else
 #include <signal.h>
+#include <sys/time.h>
 #include <unistd.h>
 #endif
 
@@ -124,6 +127,48 @@ common_sleep(unsigned int n)
 	Sleep(n * 1000);
 #else
 	sleep(n);
+#endif
+}
+
+CK_CC_INLINE static int
+common_gettimeofday(struct timeval *tv, void *tz)
+{
+#ifdef _WIN32
+	FILETIME ft;
+	uint64_t tmp_time = 0;
+	static bool tzflag = false;
+
+	if (tv != NULL) {
+		GetSystemTimeAsFileTime(&ft);
+		tmp_time |= ft.dwHighDateTime;
+		tmp_time <<= 32;
+		tmp_time |= ft.dwLowDateTime;
+
+		/* GetSystemTimeAsFileTime returns 100 nanosecond intervals. */
+		tmp_time /= 10;
+
+		/* Windows' epoch starts on 01/01/1601, while Unix' starts on 01/01/1970. */
+		tmp_time -= DELTA_EPOCH;
+	}
+
+	tv->tv_sec = (long)(tmp_time / 1000000UL);
+	tv->tv_usec = (long)(tmp_time % 1000000UL);
+
+	if (tz != NULL) {
+		if (tzflag == false) {
+			_tzset();
+			tzflag = true;
+		}
+
+		struct timezone *tzp = (struct timezone *)tz;
+
+		tzp->tz_minuteswest = _timezone / 60;
+		tzp->tz_dsttime = _daylight;
+	}
+
+	return 0;
+#else
+	return gettimeofday(tv, tz);
 #endif
 }
 
