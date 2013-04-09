@@ -239,6 +239,10 @@ main(int argc, char *argv[])
 	common_gettimeofday(&etv, NULL);
 
 	stack_assert();
+#ifdef _WIN32
+	printf("%3llu %.6f\n", nthr, TVTOD(etv) - TVTOD(stv));
+#else
 	printf("%3llu %.6lf\n", nthr, TVTOD(etv) - TVTOD(stv));
+#endif
 	return 0;
 }
