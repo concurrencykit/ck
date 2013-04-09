@@ -149,10 +149,11 @@ common_gettimeofday(struct timeval *tv, void *tz)
 
 		/* Windows' epoch starts on 01/01/1601, while Unix' starts on 01/01/1970. */
 		tmp_time -= DELTA_EPOCH;
+
+		tv->tv_sec = (long)(tmp_time / 1000000UL);
+		tv->tv_usec = (long)(tmp_time % 1000000UL);
 	}
 
-	tv->tv_sec = (long)(tmp_time / 1000000UL);
-	tv->tv_usec = (long)(tmp_time % 1000000UL);
 
 	if (tz != NULL) {
 		if (tzflag == false) {
