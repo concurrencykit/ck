@@ -35,7 +35,7 @@ Concurrency Kit (libck, \-lck)
 .Sh SYNOPSIS
 .In ck_bag.h
 .Ft bool
-.Fn ck_bag_init "struct ck_bag *bag, size_t n_cachelines, enum ck_bag_allocation_strategy as"
+.Fn ck_bag_init "struct ck_bag *bag" "size_t n_cachelines" "enum ck_bag_allocation_strategy as"
 .Sh DESCRIPTION
 The 
 .Fn ck_bag_init
