@@ -72,7 +72,7 @@ Concurrency Kit (libck, \-lck)
 .Sh DESCRIPTION
 The 
 .Fn ck_pr_neg 3
-family of functions will atomically negation the value pointed to
+family of functions will atomically negate the value pointed to
 by
 .Fa target .
 .Sh RETURN VALUES
