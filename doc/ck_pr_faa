@@ -25,48 +25,47 @@
 .\"
 .\"
 .Dd April 7, 2013
-.Dt ck_pr_fas 3
+.Dt ck_pr_faa 3
 .Sh NAME
-.Nm ck_pr_fas
-.Nd atomic swap operation
+.Nm ck_pr_faa
+.Nd atomic fetch-and-add operation
 .Sh LIBRARY
 Concurrency Kit (libck, \-lck)
 .Sh SYNOPSIS
 .In ck_pr.h
-.Ft void *
-.Fn ck_pr_fas_ptr "void *target" "void *new_value"
+.Ft uintptr_t
+.Fn ck_pr_faa_ptr "void *target" "uintptr_t delta"
 .Ft double
-.Fn ck_pr_fas_double "double *target" "double new_value"
+.Fn ck_pr_faa_double "double *target" "double delta"
 .Ft char
-.Fn ck_pr_fas_char "char *target" "char new_value"
+.Fn ck_pr_faa_char "char *target" "char delta"
 .Ft unsigned int
-.Fn ck_pr_fas_uint "unsigned int *target" "unsigned int new_value"
+.Fn ck_pr_faa_uint "unsigned int *target" "unsigned int delta"
 .Ft int
-.Fn ck_pr_fas_int "int *target" "int new_value"
+.Fn ck_pr_faa_int "int *target" "int delta"
 .Ft uint64_t
-.Fn ck_pr_fas_64 "uint64_t *target" "uint64_t new_value"
+.Fn ck_pr_faa_64 "uint64_t *target" "uint64_t delta"
 .Ft uint32_t
-.Fn ck_pr_fas_32 "uint32_t *target" "uint32_t new_value"
+.Fn ck_pr_faa_32 "uint32_t *target" "uint32_t delta"
 .Ft uint16_t
-.Fn ck_pr_fas_16 "uint16_t *target" "uint16_t new_value"
+.Fn ck_pr_faa_16 "uint16_t *target" "uint16_t delta"
 .Ft uint8_t
-.Fn ck_pr_fas_8 "uint8_t *target" "uint8_t new_value"
+.Fn ck_pr_faa_8 "uint8_t *target" "uint8_t delta"
 .Sh DESCRIPTION
 The 
-.Fn ck_pr_fas 3
+.Fn ck_pr_faa 3
 family of functions will atomically fetch the value pointed to
 by
 .Fa target
-and replace the value pointed to by
-.Fa target
-with the value specified by
-.Fa new_value .
+and add the value specified by
+.Fa delta
+to the value pointed to by
+.Fa target .
 .Sh RETURN VALUES
 This function will return the value pointed to by
 .Fa target
-at the time of operation invocation before it was
-atomically replaced with
-.Fa new_value .
+at the time of operation invocation before the
+addition operation is applied.
 .Sh SEE ALSO
 .Xr ck_pr_fence_load 3 ,
 .Xr ck_pr_fence_load_depends 3 ,
@@ -74,7 +73,7 @@ atomically replaced with
 .Xr ck_pr_fence_memory 3 ,
 .Xr ck_pr_load 3 ,
 .Xr ck_pr_store 3 ,
-.Xr ck_pr_faa 3 ,
+.Xr ck_pr_fas 3 ,
 .Xr ck_pr_inc 3 ,
 .Xr ck_pr_dec 3 ,
 .Xr ck_pr_neg 3 , 
