@@ -103,7 +103,10 @@ OBJECTS=ck_ht_count 	  		\
 	ck_pr_and			\
 	ck_pr_xor			\
 	ck_pr_or			\
-	ck_pr_cas
+	ck_pr_cas			\
+	ck_pr_bts			\
+	ck_pr_btc			\
+	ck_pr_btr
 
 all: 
 	for target in $(OBJECTS); do 			   \
