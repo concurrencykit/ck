@@ -59,7 +59,7 @@ ck_hp_stack_pop_mpmc(ck_hp_record_t *record, struct ck_stack *target)
 	do {
 		entry = ck_pr_load_ptr(&target->head);
 		if (entry == NULL)
-			return (NULL);
+			return NULL;
 
 		ck_hp_set(record, 0, entry);
 		ck_pr_fence_strict_memory();
@@ -67,7 +67,7 @@ ck_hp_stack_pop_mpmc(ck_hp_record_t *record, struct ck_stack *target)
 
 	while (ck_pr_cas_ptr_value(&target->head, entry, entry->next, &entry) == false) {
 		if (entry == NULL)
-			return (NULL);
+			return NULL;
 
 		ck_hp_set(record, 0, entry);
 		ck_pr_fence_strict_memory();
@@ -78,11 +78,11 @@ ck_hp_stack_pop_mpmc(ck_hp_record_t *record, struct ck_stack *target)
 			entry = update;
 			update = ck_pr_load_ptr(&target->head);
 			if (update == NULL)
-				return (NULL);
+				return NULL;
 		}
 	}
 
-	return (entry);
+	return entry;
 }
 
 CK_CC_INLINE static bool
