@@ -88,24 +88,25 @@
  * This facility is currently unsupported on architectures such as the Alpha
  * which require load-depend memory fences.
  *
- *				CK_SLIST	CK_LIST
- * _HEAD			+		+
- * _HEAD_INITIALIZER		+		+
- * _ENTRY			+		+
- * _INIT			+		+
- * _EMPTY			+		+
- * _FIRST			+		+
- * _NEXT			+		+
- * _FOREACH			+		+
- * _FOREACH_SAFE		+		+
- * _INSERT_HEAD			+		+
- * _INSERT_BEFORE		-		+
- * _INSERT_AFTER		+		+
- * _REMOVE_AFTER		+		-
- * _REMOVE_HEAD			+		-
- * _REMOVE			+		+
- * _SWAP			+		+
- * _MOVE			+		+
+ *				CK_SLIST	CK_LIST	CK_STAILQ
+ * _HEAD			+		+	+
+ * _HEAD_INITIALIZER		+		+	+
+ * _ENTRY			+		+	+
+ * _INIT			+		+	+
+ * _EMPTY			+		+	+
+ * _FIRST			+		+	+
+ * _NEXT			+		+	+
+ * _FOREACH			+		+	+
+ * _FOREACH_SAFE		+		+	+
+ * _INSERT_HEAD			+		+	+
+ * _INSERT_BEFORE		-		+	-
+ * _INSERT_AFTER		+		+	+
+ * _INSERT_TAIL			-		-	+
+ * _REMOVE_AFTER		+		-	+
+ * _REMOVE_HEAD			+		-	+
+ * _REMOVE			+		+	+
+ * _SWAP			+		+	+
+ * _MOVE			+		+	+
  */
 
 /*
@@ -200,6 +201,130 @@ struct {									\
 	struct type *swap_first = (a)->slh_first;				\
 	(a)->slh_first = (b)->slh_first;					\
 	(b)->slh_first = swap_first;						\
+} while (0)
+
+/*
+ * Singly-linked Tail queue declarations.
+ */
+#define	CK_STAILQ_HEAD(name, type)					\
+struct name {								\
+	struct type *stqh_first;/* first element */			\
+	struct type **stqh_last;/* addr of last next element */		\
+}
+
+#define	CK_STAILQ_HEAD_INITIALIZER(head)				\
+	{ NULL, &(head).stqh_first }
+
+#define	CK_STAILQ_ENTRY(type)						\
+struct {								\
+	struct type *stqe_next;	/* next element */			\
+}
+
+/*
+ * Singly-linked Tail queue functions.
+ */
+#define	CK_STAILQ_CONCAT(head1, head2) do {					\
+	if ((head2)->stqh_first == NULL) {					\
+		ck_pr_store_ptr((head1)->stqh_last, (head2)->stqh_first);	\
+		ck_pr_fence_store();						\
+		(head1)->stqh_last = (head2)->stqh_last;			\
+		CK_STAILQ_INIT((head2));					\
+	}									\
+} while (0)
+
+#define	CK_STAILQ_EMPTY(head)	(ck_pr_load_ptr(&(head)->stqh_first) == NULL)
+
+#define	CK_STAILQ_FIRST(head)	(ck_pr_load_ptr(&(head)->stqh_first))
+
+#define	CK_STAILQ_FOREACH(var, head, field)				\
+	for((var) = CK_STAILQ_FIRST((head));				\
+	   (var) && (ck_pr_fence_load(), 1);				\
+	   (var) = CK_STAILQ_NEXT((var), field))
+
+#define	CK_STAILQ_FOREACH_SAFE(var, head, field, tvar)			\
+	for ((var) = CK_STAILQ_FIRST((head));				\
+	    (var) && (ck_pr_fence_load(), (tvar) =			\
+		CK_STAILQ_NEXT((var), field), 1);			\
+	    (var) = (tvar))
+
+#define	CK_STAILQ_INIT(head) do {					\
+	ck_pr_store_ptr(&(head)->stqh_first, NULL);			\
+	ck_pr_fence_store();						\
+	(head)->stqh_last = &(head)->stqh_first;			\
+} while (0)
+
+#define	CK_STAILQ_INSERT_AFTER(head, tqelm, elm, field) do {			\
+	(elm)->field.stqe_next = (tqelm)->field.stqe_next;			\
+	ck_pr_fence_store();							\
+	ck_pr_store_ptr(&(tqelm)->field.stqe_next, elm);			\
+	if ((elm)->field.stqe_next == NULL)					\
+		(head)->stqh_last = &(elm)->field.stqe_next;			\
+} while (0)
+
+#define	CK_STAILQ_INSERT_HEAD(head, elm, field) do {				\
+	(elm)->field.stqe_next = (head)->stqh_first;				\
+	ck_pr_fence_store();							\
+	ck_pr_store_ptr(&(head)->stqh_first, elm);				\
+	if ((elm)->field.stqe_next == NULL)					\
+		(head)->stqh_last = &(elm)->field.stqe_next;			\
+} while (0)
+
+#define	CK_STAILQ_INSERT_TAIL(head, elm, field) do {				\
+	(elm)->field.stqe_next = NULL;						\
+	ck_pr_fence_store();							\
+	ck_pr_store_ptr((head)->stqh_last, (elm));				\
+	(head)->stqh_last = &(elm)->field.stqe_next;				\
+} while (0)
+
+#define	CK_STAILQ_NEXT(elm, field)						\
+	(ck_pr_load_ptr(&(elm)->field.stqe_next))
+
+#define	CK_STAILQ_REMOVE(head, elm, type, field) do {				\
+	if ((head)->stqh_first == (elm)) {					\
+		CK_STAILQ_REMOVE_HEAD((head), field);				\
+	} else {								\
+		struct type *curelm = (head)->stqh_first;			\
+		while (curelm->field.stqe_next != (elm))			\
+			curelm = curelm->field.stqe_next;			\
+		CK_STAILQ_REMOVE_AFTER(head, curelm, field);			\
+	}									\
+} while (0)
+
+#define CK_STAILQ_REMOVE_AFTER(head, elm, field) do {				\
+	ck_pr_store_ptr(&(elm)->field.stqe_next,				\
+	    (elm)->field.stqe_next->field.stqe_next);				\
+	if ((elm)->field.stqe_next == NULL)					\
+		(head)->stqh_last = &(elm)->field.stqe_next;			\
+} while (0)
+
+#define	CK_STAILQ_REMOVE_HEAD(head, field) do {					\
+	ck_pr_store_ptr(&(head)->stqh_first,					\
+	    (head)->stqh_first->field.stqe_next);				\
+	if ((head)->stqh_first == NULL)						\
+		(head)->stqh_last = &(head)->stqh_first;			\
+} while (0)
+
+#define CK_STAILQ_MOVE(head1, head2, field) do {				\
+	ck_pr_store_ptr(&(head1)->stqh_first, (head2)->stqh_first);		\
+	(head1)->stqh_last = (head2)->stqh_last;				\
+	if ((head2)->stqh_last == &(head2)->stqh_first)				\
+		(head1)->stqh_last = &(head1)->stqh_first;			\
+} while (0)
+
+/*
+ * This operation is not applied atomically.
+ */
+#define CK_STAILQ_SWAP(head1, head2, type) do {				\
+	struct type *swap_first = CK_STAILQ_FIRST(head1);		\
+	struct type **swap_last = (head1)->stqh_last;			\
+	CK_STAILQ_FIRST(head1) = CK_STAILQ_FIRST(head2);		\
+	(head1)->stqh_last = (head2)->stqh_last;			\
+	CK_STAILQ_FIRST(head2) = swap_first;				\
+	(head2)->stqh_last = swap_last;					\
+	if (CK_STAILQ_EMPTY(head1))					\
+		(head1)->stqh_last = &(head1)->stqh_first;		\
+	if (CK_STAILQ_EMPTY(head2))					\
+		(head2)->stqh_last = &(head2)->stqh_first;		\
 } while (0)
 
 /*
