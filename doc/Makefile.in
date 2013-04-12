@@ -97,7 +97,12 @@ OBJECTS=ck_ht_count 	  		\
 	ck_pr_inc			\
 	ck_pr_dec			\
 	ck_pr_not			\
-	ck_pr_neg
+	ck_pr_neg			\
+	ck_pr_add			\
+	ck_pr_sub			\
+	ck_pr_and			\
+	ck_pr_xor			\
+	ck_pr_or
 
 all: 
 	for target in $(OBJECTS); do 			   \
