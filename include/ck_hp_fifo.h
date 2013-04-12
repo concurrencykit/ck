@@ -152,7 +152,7 @@ ck_hp_fifo_dequeue_mpmc(ck_hp_record_t *record,
 
 		if (head == tail) {
 			if (next == NULL)
-				return (NULL);
+				return NULL;
 
 			ck_pr_cas_ptr(&fifo->tail, tail, next);
 			continue;
@@ -161,7 +161,7 @@ ck_hp_fifo_dequeue_mpmc(ck_hp_record_t *record,
 	}
 
 	ck_pr_store_ptr(value, next->value);
-	return (head);
+	return head;
 }
 
 CK_CC_INLINE static struct ck_hp_fifo_entry *
