@@ -85,7 +85,6 @@ man pages for more details.
 .Pp
 .Sh EXAMPLE
 .Bd -literal -offset indent
-
 #include <stdlib.h>
 #include <pthread.h>
 
@@ -124,7 +123,7 @@ CK_COHORT_PROTOTYPE(test_cohort,
 static ck_spinlock_t global_lock = CK_SPINLOCK_INITIALIZER;
 static unsigned int ready;
 
-static void*
+static void *
 function(void *context)
 {
 	CK_COHORT_INSTANCE(test_cohort) *cohort = context;
