@@ -106,7 +106,8 @@ OBJECTS=ck_ht_count 	  		\
 	ck_pr_cas			\
 	ck_pr_bts			\
 	ck_pr_btc			\
-	ck_pr_btr
+	ck_pr_btr			\
+	ck_pr_load
 
 all: 
 	for target in $(OBJECTS); do 			   \
