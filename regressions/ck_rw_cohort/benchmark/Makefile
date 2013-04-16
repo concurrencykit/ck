@@ -4,10 +4,10 @@ OBJECTS=latency throughput
 
 all: $(OBJECTS)
 
-latency: latency.c ../../../include/ck_cohort_rw.h
+latency: latency.c ../../../include/ck_rw_cohort.h
 	$(CC) $(CFLAGS) -o latency latency.c
 
-throughput: throughput.c ../../../include/ck_cohort_rw.h
+throughput: throughput.c ../../../include/ck_rw_cohort.h
 	$(CC) $(CFLAGS) -o throughput throughput.c
 
 clean:

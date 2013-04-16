@@ -142,6 +142,6 @@ regressions/ck_queue/validate/ck_slist
 regressions/ck_cohort/validate/validate
 regressions/ck_cohort/benchmark/ck_cohort.LATENCY
 regressions/ck_cohort/benchmark/ck_cohort.THROUGHPUT
-regressions/ck_cohort_rw/validate/validate
-regressions/ck_cohort_rw/benchmark/latency
-regressions/ck_cohort_rw/benchmark/throughput
+regressions/ck_rw_cohort/validate/validate
+regressions/ck_rw_cohort/benchmark/latency
+regressions/ck_rw_cohort/benchmark/throughput

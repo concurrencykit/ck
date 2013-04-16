@@ -25,8 +25,8 @@
  * SUCH DAMAGE.
  */
 
-#ifndef _CK_COHORT_RW_H
-#define _CK_COHORT_RW_H
+#ifndef _CK_RW_COHORT_H
+#define _CK_RW_COHORT_H
 
 /*
  * This is an implementation of NUMA-aware reader-writer locks as described in:
@@ -39,24 +39,24 @@
 #include <stddef.h>
 #include <ck_cohort.h>
 
-#define CK_COHORT_RW_NAME(N) ck_cohort_rw_##N
-#define CK_COHORT_RW_INSTANCE(N) struct CK_COHORT_RW_NAME(N)
-#define CK_COHORT_RW_INIT(N, RW, WL) ck_cohort_rw_##N##_init(RW, WL)
-#define CK_COHORT_RW_READ_LOCK(N, RW, C, GC, LC) ck_cohort_rw_##N##_read_lock(RW, C, GC, LC)
-#define CK_COHORT_RW_READ_UNLOCK(N, RW) ck_cohort_rw_##N##_read_unlock(RW)
-#define CK_COHORT_RW_WRITE_LOCK(N, RW, C, GC, LC) ck_cohort_rw_##N##_write_lock(RW, C, GC, LC)
-#define CK_COHORT_RW_WRITE_UNLOCK(N, RW, C, GC, LC) ck_cohort_rw_##N##_write_unlock(RW, C, GC, LC)
-#define CK_COHORT_RW_DEFAULT_WAIT_LIMIT 1000
+#define CK_RW_COHORT_NAME(N) ck_rw_cohort_##N
+#define CK_RW_COHORT_INSTANCE(N) struct CK_RW_COHORT_NAME(N)
+#define CK_RW_COHORT_INIT(N, RW, WL) ck_rw_cohort_##N##_init(RW, WL)
+#define CK_RW_COHORT_READ_LOCK(N, RW, C, GC, LC) ck_rw_cohort_##N##_read_lock(RW, C, GC, LC)
+#define CK_RW_COHORT_READ_UNLOCK(N, RW) ck_rw_cohort_##N##_read_unlock(RW)
+#define CK_RW_COHORT_WRITE_LOCK(N, RW, C, GC, LC) ck_rw_cohort_##N##_write_lock(RW, C, GC, LC)
+#define CK_RW_COHORT_WRITE_UNLOCK(N, RW, C, GC, LC) ck_rw_cohort_##N##_write_unlock(RW, C, GC, LC)
+#define CK_RW_COHORT_DEFAULT_WAIT_LIMIT 1000
 
-#define CK_COHORT_RW_PROTOTYPE(N)								\
-	CK_COHORT_RW_INSTANCE(N) {								\
+#define CK_RW_COHORT_PROTOTYPE(N)								\
+	CK_RW_COHORT_INSTANCE(N) {								\
 		unsigned int read_counter;							\
 		unsigned int write_barrier;							\
 		unsigned int wait_limit;							\
 	};											\
 												\
 	CK_CC_INLINE static void								\
-	ck_cohort_rw_##N##_init(CK_COHORT_RW_INSTANCE(N) *rw_cohort,				\
+	ck_rw_cohort_##N##_init(CK_RW_COHORT_INSTANCE(N) *rw_cohort,				\
 	    unsigned int wait_limit)								\
 	{											\
 		rw_cohort->read_counter = 0;							\
@@ -67,7 +67,7 @@
 	}											\
 												\
 	CK_CC_INLINE static void								\
-	ck_cohort_rw_##N##_write_lock(CK_COHORT_RW_INSTANCE(N) *rw_cohort,			\
+	ck_rw_cohort_##N##_write_lock(CK_RW_COHORT_INSTANCE(N) *rw_cohort,			\
 	    CK_COHORT_INSTANCE(N) *cohort, void *global_context,				\
 	    void *local_context)								\
 	{											\
@@ -85,7 +85,7 @@
 	}											\
 												\
 	CK_CC_INLINE static void								\
-	ck_cohort_rw_##N##_write_unlock(CK_COHORT_RW_INSTANCE(N) *rw_cohort,			\
+	ck_rw_cohort_##N##_write_unlock(CK_RW_COHORT_INSTANCE(N) *rw_cohort,			\
 	    CK_COHORT_INSTANCE(N) *cohort, void *global_context,				\
 	    void *local_context)								\
 	{											\
@@ -94,7 +94,7 @@
 	}											\
 												\
 	CK_CC_INLINE static void								\
-	ck_cohort_rw_##N##_read_lock(CK_COHORT_RW_INSTANCE(N) *rw_cohort,			\
+	ck_rw_cohort_##N##_read_lock(CK_RW_COHORT_INSTANCE(N) *rw_cohort,			\
 	    CK_COHORT_INSTANCE(N) *cohort, void *global_context,				\
 	    void *local_context)								\
 	{											\
@@ -122,15 +122,15 @@
 	}											\
 												\
 	CK_CC_INLINE static void								\
-	ck_cohort_rw_##N##_read_unlock(CK_COHORT_RW_INSTANCE(N) *cohort)			\
+	ck_rw_cohort_##N##_read_unlock(CK_RW_COHORT_INSTANCE(N) *cohort)			\
 	{											\
 		ck_pr_dec_uint(&cohort->read_counter);						\
 	}
 
-#define CK_COHORT_RW_INITIALIZER {								\
+#define CK_RW_COHORT_INITIALIZER {								\
 	.read_counter = 0,									\
 	.write_barrier = 0,									\
 	.wait_limit = 0										\
 }
 
-#endif /* _CK_COHORT_RW_H */
+#endif /* _CK_RW_COHORT_H */

@@ -26,7 +26,7 @@
  */
 
 #include <ck_cohort.h>
-#include <ck_cohort_rw.h>
+#include <ck_rw_cohort.h>
 #include <ck_spinlock.h>
 #include <inttypes.h>
 #include <pthread.h>
@@ -78,7 +78,7 @@ ck_spinlock_fas_locked_with_context(ck_spinlock_fas_t *lock, void *context)
 CK_COHORT_PROTOTYPE(fas_fas,
     ck_spinlock_fas_lock_with_context, ck_spinlock_fas_unlock_with_context, ck_spinlock_fas_locked_with_context,
     ck_spinlock_fas_lock_with_context, ck_spinlock_fas_unlock_with_context, ck_spinlock_fas_locked_with_context)
-CK_COHORT_RW_PROTOTYPE(fas_fas)
+CK_RW_COHORT_PROTOTYPE(fas_fas)
 
 struct cohort_record {
 	CK_COHORT_INSTANCE(fas_fas) cohort;
@@ -86,7 +86,7 @@ struct cohort_record {
 static struct cohort_record *cohorts;
 
 static ck_spinlock_t global_lock = CK_SPINLOCK_INITIALIZER;
-static CK_COHORT_RW_INSTANCE(fas_fas) rw_cohort = CK_COHORT_RW_INITIALIZER;
+static CK_RW_COHORT_INSTANCE(fas_fas) rw_cohort = CK_RW_COHORT_INITIALIZER;
 static unsigned int n_cohorts;
 
 struct block {
@@ -114,38 +114,38 @@ thread_rwlock(void *pun)
 
 	for (i = 1, a = 0;; i++) {
 		s_b = rdtsc();
-		CK_COHORT_RW_READ_LOCK(fas_fas, &rw_cohort, cohort, NULL, NULL);
-		CK_COHORT_RW_READ_UNLOCK(fas_fas, &rw_cohort);
-		CK_COHORT_RW_READ_LOCK(fas_fas, &rw_cohort, cohort, NULL, NULL);
-		CK_COHORT_RW_READ_UNLOCK(fas_fas, &rw_cohort);
-		CK_COHORT_RW_READ_LOCK(fas_fas, &rw_cohort, cohort, NULL, NULL);
-		CK_COHORT_RW_READ_UNLOCK(fas_fas, &rw_cohort);
-		CK_COHORT_RW_READ_LOCK(fas_fas, &rw_cohort, cohort, NULL, NULL);
-		CK_COHORT_RW_READ_UNLOCK(fas_fas, &rw_cohort);
-		CK_COHORT_RW_READ_LOCK(fas_fas, &rw_cohort, cohort, NULL, NULL);
-		CK_COHORT_RW_READ_UNLOCK(fas_fas, &rw_cohort);
-		CK_COHORT_RW_READ_LOCK(fas_fas, &rw_cohort, cohort, NULL, NULL);
-		CK_COHORT_RW_READ_UNLOCK(fas_fas, &rw_cohort);
-		CK_COHORT_RW_READ_LOCK(fas_fas, &rw_cohort, cohort, NULL, NULL);
-		CK_COHORT_RW_READ_UNLOCK(fas_fas, &rw_cohort);
-		CK_COHORT_RW_READ_LOCK(fas_fas, &rw_cohort, cohort, NULL, NULL);
-		CK_COHORT_RW_READ_UNLOCK(fas_fas, &rw_cohort);
-		CK_COHORT_RW_READ_LOCK(fas_fas, &rw_cohort, cohort, NULL, NULL);
-		CK_COHORT_RW_READ_UNLOCK(fas_fas, &rw_cohort);
-		CK_COHORT_RW_READ_LOCK(fas_fas, &rw_cohort, cohort, NULL, NULL);
-		CK_COHORT_RW_READ_UNLOCK(fas_fas, &rw_cohort);
-		CK_COHORT_RW_READ_LOCK(fas_fas, &rw_cohort, cohort, NULL, NULL);
-		CK_COHORT_RW_READ_UNLOCK(fas_fas, &rw_cohort);
-		CK_COHORT_RW_READ_LOCK(fas_fas, &rw_cohort, cohort, NULL, NULL);
-		CK_COHORT_RW_READ_UNLOCK(fas_fas, &rw_cohort);
-		CK_COHORT_RW_READ_LOCK(fas_fas, &rw_cohort, cohort, NULL, NULL);
-		CK_COHORT_RW_READ_UNLOCK(fas_fas, &rw_cohort);
-		CK_COHORT_RW_READ_LOCK(fas_fas, &rw_cohort, cohort, NULL, NULL);
-		CK_COHORT_RW_READ_UNLOCK(fas_fas, &rw_cohort);
-		CK_COHORT_RW_READ_LOCK(fas_fas, &rw_cohort, cohort, NULL, NULL);
-		CK_COHORT_RW_READ_UNLOCK(fas_fas, &rw_cohort);
-		CK_COHORT_RW_READ_LOCK(fas_fas, &rw_cohort, cohort, NULL, NULL);
-		CK_COHORT_RW_READ_UNLOCK(fas_fas, &rw_cohort);
+		CK_RW_COHORT_READ_LOCK(fas_fas, &rw_cohort, cohort, NULL, NULL);
+		CK_RW_COHORT_READ_UNLOCK(fas_fas, &rw_cohort);
+		CK_RW_COHORT_READ_LOCK(fas_fas, &rw_cohort, cohort, NULL, NULL);
+		CK_RW_COHORT_READ_UNLOCK(fas_fas, &rw_cohort);
+		CK_RW_COHORT_READ_LOCK(fas_fas, &rw_cohort, cohort, NULL, NULL);
+		CK_RW_COHORT_READ_UNLOCK(fas_fas, &rw_cohort);
+		CK_RW_COHORT_READ_LOCK(fas_fas, &rw_cohort, cohort, NULL, NULL);
+		CK_RW_COHORT_READ_UNLOCK(fas_fas, &rw_cohort);
+		CK_RW_COHORT_READ_LOCK(fas_fas, &rw_cohort, cohort, NULL, NULL);
+		CK_RW_COHORT_READ_UNLOCK(fas_fas, &rw_cohort);
+		CK_RW_COHORT_READ_LOCK(fas_fas, &rw_cohort, cohort, NULL, NULL);
+		CK_RW_COHORT_READ_UNLOCK(fas_fas, &rw_cohort);
+		CK_RW_COHORT_READ_LOCK(fas_fas, &rw_cohort, cohort, NULL, NULL);
+		CK_RW_COHORT_READ_UNLOCK(fas_fas, &rw_cohort);
+		CK_RW_COHORT_READ_LOCK(fas_fas, &rw_cohort, cohort, NULL, NULL);
+		CK_RW_COHORT_READ_UNLOCK(fas_fas, &rw_cohort);
+		CK_RW_COHORT_READ_LOCK(fas_fas, &rw_cohort, cohort, NULL, NULL);
+		CK_RW_COHORT_READ_UNLOCK(fas_fas, &rw_cohort);
+		CK_RW_COHORT_READ_LOCK(fas_fas, &rw_cohort, cohort, NULL, NULL);
+		CK_RW_COHORT_READ_UNLOCK(fas_fas, &rw_cohort);
+		CK_RW_COHORT_READ_LOCK(fas_fas, &rw_cohort, cohort, NULL, NULL);
+		CK_RW_COHORT_READ_UNLOCK(fas_fas, &rw_cohort);
+		CK_RW_COHORT_READ_LOCK(fas_fas, &rw_cohort, cohort, NULL, NULL);
+		CK_RW_COHORT_READ_UNLOCK(fas_fas, &rw_cohort);
+		CK_RW_COHORT_READ_LOCK(fas_fas, &rw_cohort, cohort, NULL, NULL);
+		CK_RW_COHORT_READ_UNLOCK(fas_fas, &rw_cohort);
+		CK_RW_COHORT_READ_LOCK(fas_fas, &rw_cohort, cohort, NULL, NULL);
+		CK_RW_COHORT_READ_UNLOCK(fas_fas, &rw_cohort);
+		CK_RW_COHORT_READ_LOCK(fas_fas, &rw_cohort, cohort, NULL, NULL);
+		CK_RW_COHORT_READ_UNLOCK(fas_fas, &rw_cohort);
+		CK_RW_COHORT_READ_LOCK(fas_fas, &rw_cohort, cohort, NULL, NULL);
+		CK_RW_COHORT_READ_UNLOCK(fas_fas, &rw_cohort);
 		e_b = rdtsc();
 
 		a += (e_b - s_b) >> 4;
