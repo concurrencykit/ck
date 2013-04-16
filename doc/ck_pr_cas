@@ -84,7 +84,7 @@ Concurrency Kit (libck, \-lck)
 .Sh DESCRIPTION
 The 
 .Fn ck_pr_cas 3
-family of functions will atomically compare the value in 
+family of functions atomically compare the value in 
 .Fa target
 for equality with
 .Fa old_value
@@ -98,13 +98,13 @@ was not equal to the value specified by
 .Fa old_value
 then no modifications occur to the value in
 .Fa target .
-The *_value form of these functions will unconditionally update
+The *_value form of these functions unconditionally update
 .Fa original_value .
 .Sh RETURN VALUES
-This family of functions will return true if the value in
+This family of functions return true if the value in
 .Fa target
 was modified as a result of the operation. Otherwise, they
-will return false.
+return false.
 .Sh SEE ALSO
 .Xr ck_pr_fence_load 3 ,
 .Xr ck_pr_fence_load_depends 3 ,

@@ -48,14 +48,14 @@ Concurrency Kit (libck, \-lck)
 .Sh DESCRIPTION
 The 
 .Fn ck_pr_btc 3
-family of functions will atomically fetch the value
+family of functions atomically fetch the value
 of the bit in
 .Fa target
 at index
 .Fa bit_index 
 and set that bit to its complement.
 .Sh RETURN VALUES
-These family of functions will return the original value of
+These family of functions return the original value of
 the bit at offset
 .Fa bit_index
 that is in the value pointed to by

@@ -72,12 +72,12 @@ Concurrency Kit (libck, \-lck)
 .Sh DESCRIPTION
 The 
 .Fn ck_pr_inc 3
-family of functions will atomically increment the value pointed to
+family of functions atomically increment the value pointed to
 by
 .Fa target .
 .Sh RETURN VALUES
-The ck_pr_inc_zero family of functions will return true
-if the result of the increment operation was 0. They will return
+The ck_pr_inc_zero family of functions return true
+if the result of the increment operation was 0. The functions return
 false otherwise.
 .Sh SEE ALSO
 .Xr ck_pr_fence_load 3 ,

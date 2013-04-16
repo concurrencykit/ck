@@ -40,13 +40,12 @@ Concurrency Kit (libck, \-lck)
 .Sh DESCRIPTION
 The 
 .Fn ck_pr_fence_memory 3
-function will enforce the ordering of any memory operations
+function enforces the ordering of any memory operations
 with respect to the invocation of the function. This function
-will always serve as an implicit compiler barrier.
-Achitectures implementing CK_MD_TSO will
-only have this function serve as a compiler barrier and
-no fence instructions will be emitted. Architectures
-implementing CK_MD_PSO and CK_MD_RMO will always emit
+always serves as an implicit compiler barrier.
+Achitectures implementing CK_MD_TSO do not emit
+a barrier, but compiler barrier semantics remain.
+Architectures implementing CK_MD_PSO and CK_MD_RMO always emit
 an instructions which provides the specified ordering
 guarantees. To force the unconditional emission of a memory
 fence, use
