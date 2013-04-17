@@ -419,10 +419,6 @@ else
 	VMA_BITS_VALUE_R="${VMA_BITS}ULL"
 fi
 
-# Platform will be used as a macro.
-PROFILE="${PROFILE:-$PLATFORM}"
-PLATFORM="__${PLATFORM}__"
-
 # `which` on Solaris sucks
 pathsearch()
 {
@@ -488,7 +484,10 @@ cat << EOF > .1.c
 #include <stdio.h>
 int main(void) {
 #if defined(_WIN32)
-#if defined(__MINGW32__) && (__MINGW32_MAJOR_VERSION >= 3)
+#if defined(__MINGW64__)
+	puts("mingw64");
+	return (0);
+#elif defined(__MINGW32__) && (__MINGW32_MAJOR_VERSION >= 3)
 	puts("mingw32");
 	return (0);
 #else
@@ -525,7 +524,7 @@ if test "$COMPILER" = "suncc"; then
 	LDFLAGS="-G -z text -h libck.so.$VERSION_MAJOR $LDFLAGS"
 	CFLAGS="-xO5 $CFLAGS"
 	PTHREAD_CFLAGS="-mt -lpthread"
-elif test "$COMPILER" = "gcc" || test "$COMPILER" = "clang" || test "$COMPILER" = "mingw32"; then
+elif test "$COMPILER" = "gcc" || test "$COMPILER" = "clang" || test "$COMPILER" = "mingw32" || test "$COMPILER" = "mingw64"; then
 	LD=$CC
 	if test "$SYSTEM" = "darwin"; then
 		CC_WL_OPT="-install_name"
@@ -535,6 +534,10 @@ elif test "$COMPILER" = "gcc" || test "$COMPILER" = "clang" || test "$COMPILER" 
 	LDFLAGS="-shared -fPIC -Wl,$CC_WL_OPT,libck.so.$VERSION_MAJOR $LDFLAGS"
 	CFLAGS="-D_XOPEN_SOURCE=600 -D_BSD_SOURCE -std=gnu99 -pedantic -Wall -W -Wundef -Wendif-labels -Wshadow -Wpointer-arith -Wcast-align -Wwrite-strings -Wstrict-prototypes -Wmissing-prototypes -Wnested-externs -Winline -Wdisabled-optimization -fstrict-aliasing -O2 -pipe -Wno-parentheses $CFLAGS"
 	PTHREAD_CFLAGS="-pthread"
+	if test "$COMPILER" = "mingw64"; then
+		ENVIRONMENT=64
+		PLATFORM=x86_64
+	fi
 else
 	assert "" "unknown compiler"
 fi
@@ -557,6 +560,10 @@ EOF
 		exit $EXIT_FAILURE
 	fi
 done
+
+# Platform will be used as a macro.
+PROFILE="${PROFILE:-$PLATFORM}"
+PLATFORM="__${PLATFORM}__"
 
 printf "Generating header files.........."
 generate include/ck_md.h.in include/ck_md.h
