@@ -8,7 +8,7 @@ latency: latency.c
 	$(CC) $(CFLAGS) -o latency latency.c
 
 clean:
-	rm -rf *.dSYM *~ *.o $(OBJECTS)
+	rm -rf *.dSYM *~ *.o *.exe $(OBJECTS)
 
 include ../../../build/regressions.build
 CFLAGS+=$(PTHREAD_CFLAGS) -D_GNU_SOURCE

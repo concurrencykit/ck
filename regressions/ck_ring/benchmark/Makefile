@@ -8,7 +8,7 @@ latency: latency.c ../../../include/ck_ring.h
 	$(CC) $(CFLAGS) -o latency latency.c
 
 clean:
-	rm -rf *~ *.o $(OBJECTS) *.dSYM
+	rm -rf *~ *.o *.exe $(OBJECTS) *.dSYM
 
 include ../../../build/regressions.build
 CFLAGS+=-D_GNU_SOURCE
