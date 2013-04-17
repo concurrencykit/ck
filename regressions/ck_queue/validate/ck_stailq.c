@@ -29,7 +29,6 @@
 #include <stdio.h>
 #include <pthread.h>
 #include <ck_queue.h>
-#include <sys/queue.h>
 #include "../../common.h"
 
 struct test {
