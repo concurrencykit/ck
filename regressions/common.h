@@ -137,7 +137,7 @@ common_gettimeofday(struct timeval *tv, void *tz)
 	FILETIME ft;
 	uint64_t tmp_time = 0;
 	static bool tzflag = false;
-	struct timezone *tzp = NULL;
+	struct timezone *tzp = tz;
 
 	if (tv != NULL) {
 		GetSystemTimeAsFileTime(&ft);
@@ -162,7 +162,6 @@ common_gettimeofday(struct timeval *tv, void *tz)
 			tzflag = true;
 		}
 
-		tzp = (struct timezone *)tz;
 		tzp->tz_minuteswest = _timezone / 60;
 		tzp->tz_dsttime = _daylight;
 	}
@@ -180,7 +179,7 @@ common_alarm(void (*sig_handler)(int), void *alarm_event, unsigned int duration)
 	(void)sig_handler;
 	(void)duration;
 	bool success;
-	HANDLE *alarm_handle = (HANDLE *)alarm_event;
+	HANDLE *alarm_handle = alarm_event;
 	success = SetEvent(*alarm_handle);
 	assert(success != false);
 	return 0;
