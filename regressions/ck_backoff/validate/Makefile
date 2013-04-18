@@ -9,7 +9,7 @@ check: all
 	./validate
 
 clean:
-	rm -rf validate *.dSYM
+	rm -rf validate *.dSYM *.exe
 
 include ../../../build/regressions.build
 CFLAGS+=-D_GNU_SOURCE

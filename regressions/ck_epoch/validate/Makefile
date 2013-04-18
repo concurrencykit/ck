@@ -20,7 +20,7 @@ ck_stack: ck_stack.c ../../../include/ck_stack.h ../../../include/ck_epoch.h ../
 	$(CC) $(CFLAGS) -o ck_stack ck_stack.c ../../../src/ck_epoch.c
 
 clean:
-	rm -rf *~ *.o $(OBJECTS) *.dSYM
+	rm -rf *~ *.o $(OBJECTS) *.dSYM *.exe
 
 include ../../../build/regressions.build
 CFLAGS+=$(PTHREAD_CFLAGS) -D_GNU_SOURCE

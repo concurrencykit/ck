@@ -29,6 +29,7 @@
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <sys/time.h>
 
 #ifdef __linux__
 #include <sched.h>
@@ -46,7 +47,6 @@
 #define DELTA_EPOCH  11644473600000000ULL
 #else
 #include <signal.h>
-#include <sys/time.h>
 #include <unistd.h>
 #endif
 
@@ -137,6 +137,7 @@ common_gettimeofday(struct timeval *tv, void *tz)
 	FILETIME ft;
 	uint64_t tmp_time = 0;
 	static bool tzflag = false;
+	struct timezone *tzp = NULL;
 
 	if (tv != NULL) {
 		GetSystemTimeAsFileTime(&ft);
@@ -161,8 +162,7 @@ common_gettimeofday(struct timeval *tv, void *tz)
 			tzflag = true;
 		}
 
-		struct timezone *tzp = (struct timezone *)tz;
-
+		tzp = (struct timezone *)tz;
 		tzp->tz_minuteswest = _timezone / 60;
 		tzp->tz_dsttime = _daylight;
 	}

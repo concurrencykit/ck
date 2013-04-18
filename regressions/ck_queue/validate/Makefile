@@ -20,7 +20,7 @@ ck_stailq: $(HEADER) ck_stailq.c
 	$(CC) $(CFLAGS) -o ck_stailq ck_stailq.c
 
 clean:
-	rm -rf *~ *.o $(OBJECTS) *.dSYM
+	rm -rf *~ *.o $(OBJECTS) *.dSYM *.exe
 
 include ../../../build/regressions.build
 CFLAGS+=$(PTHREAD_CFLAGS) -D_GNU_SOURCE
