@@ -11,7 +11,7 @@ check: all
 	./ck_sequence $(CORES) 1
 
 clean:
-	rm -rf *~ *.o *.exe $(OBJECTS) *.dSYM
+	rm -rf *~ *.o $(OBJECTS) *.dSYM
 
 include ../../../build/regressions.build
 CFLAGS+=$(PTHREAD_CFLAGS) -D_GNU_SOURCE

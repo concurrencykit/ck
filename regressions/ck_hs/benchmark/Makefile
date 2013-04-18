@@ -11,7 +11,7 @@ parallel_bytestring: parallel_bytestring.c ../../../include/ck_hs.h ../../../src
 	$(CC) $(PTHREAD_CFLAGS) $(CFLAGS) -o parallel_bytestring parallel_bytestring.c ../../../src/ck_hs.c ../../../src/ck_epoch.c
 
 clean:
-	rm -rf *~ *.o *.exe $(OBJECTS) *.dSYM
+	rm -rf *~ *.o $(OBJECTS) *.dSYM
 
 include ../../../build/regressions.build
 CFLAGS+=-D_GNU_SOURCE
