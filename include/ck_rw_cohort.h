@@ -100,19 +100,22 @@
 	{											\
 		unsigned int wait_count = 0;							\
 		bool raised = false;								\
-	start:											\
-		ck_pr_inc_uint(&rw_cohort->read_counter);					\
-		if (CK_COHORT_LOCKED(N, cohort, global_context, local_context) == true) {	\
-			ck_pr_dec_uint(&rw_cohort->read_counter);				\
-			while (CK_COHORT_LOCKED(N, cohort, global_context, local_context) == true) {\
-				ck_pr_stall();							\
-				if (++wait_count > rw_cohort->wait_limit && raised == false) {	\
-					ck_pr_inc_uint(&rw_cohort->write_barrier);		\
-					raised = true;						\
-				}								\
-			}									\
-			goto start;								\
-		}										\
+	                                                                                        \
+                while (true) {                                                                  \
+                        ck_pr_inc_uint(&rw_cohort->read_counter);				\
+                        if (CK_COHORT_LOCKED(N, cohort, global_context, local_context) == false) {\
+                                break;                                                          \
+                        }                                                                       \
+                                                                                                \
+                        ck_pr_dec_uint(&rw_cohort->read_counter);			        \
+                        while (CK_COHORT_LOCKED(N, cohort, global_context, local_context) == true) {\
+                                ck_pr_stall();						        \
+                                if (++wait_count > rw_cohort->wait_limit && raised == false) {  \
+                                        ck_pr_inc_uint(&rw_cohort->write_barrier);	        \
+                                        raised = true;					        \
+                                }							        \
+                        }								        \
+                }                                                                               \
 												\
 		if (raised == true) {								\
 			ck_pr_dec_uint(&rw_cohort->write_barrier);				\
