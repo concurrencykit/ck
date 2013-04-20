@@ -229,9 +229,6 @@ struct ck_ring {
 };
 typedef struct ck_ring ck_ring_t;
 
-/*
- * Single consumer and single producer ring buffer enqueue (producer).
- */
 CK_CC_INLINE static unsigned int
 ck_ring_size(struct ck_ring *ring)
 {
