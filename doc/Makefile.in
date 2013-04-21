@@ -108,7 +108,15 @@ OBJECTS=ck_ht_count 	  		\
 	ck_pr_btc			\
 	ck_pr_btr			\
 	ck_pr_store			\
-	ck_pr_load
+	ck_pr_load			\
+	ck_ring_init			\
+	ck_ring_dequeue_spmc		\
+	ck_ring_enqueue_spmc		\
+	ck_ring_enqueue_spmc_size	\
+	ck_ring_trydequeue_spmc		\
+	ck_ring_dequeue_spsc		\
+	ck_ring_enqueue_spsc		\
+	ck_ring_enqueue_spsc_size
 
 all: 
 	for target in $(OBJECTS); do 			   \
@@ -116,9 +124,11 @@ all:
 	done
 
 html:
-	for target in $(OBJECTS); do 			   \
-		echo $$target;				   \
-		groff -man -Tascii $(SRC_DIR)/doc/$$target | man2html -noheads -bare -cgiurl='$$title.html' > $(BUILD_DIR)/doc/$$target$(HTML_SUFFIX); \
+	for target in $(OBJECTS); do 			   		\
+		echo $$target;				   		\
+		groff -man -Tascii $(SRC_DIR)/doc/$$target |		\
+		    man2html -noheads -bare -cgiurl='$$title.html' >	\
+		   $(BUILD_DIR)/doc/$$target$(HTML_SUFFIX); 		\
 	done
 
 install:
