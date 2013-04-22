@@ -1,11 +1,18 @@
 .PHONY: check clean distribution
 
-OBJECTS=validate
+#OBJECTS=ck_neutral ck_rp ck_wp
+OBJECTS=ck_rp ck_wp
 
 all: $(OBJECTS)
 
-validate: validate.c ../../../include/ck_rw_cohort.h
-	$(CC) $(CFLAGS) -o validate validate.c -g
+ck_neutral: ck_neutral.c ../../../include/ck_rw_cohort.h
+	$(CC) $(CFLAGS) -o ck_neutral ck_neutral.c -g
+
+ck_rp: ck_rp.c ../../../include/ck_rw_cohort.h
+	$(CC) $(CFLAGS) -o ck_rp ck_rp.c -g
+
+ck_wp: ck_wp.c ../../../include/ck_rw_cohort.h
+	$(CC) $(CFLAGS) -o ck_wp ck_wp.c -g
 
 check: all
 	./validate $(CORES) 1

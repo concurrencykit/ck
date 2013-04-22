@@ -46,6 +46,7 @@
 #define ITERATE 1000000
 #endif
 
+
 static struct affinity a;
 static unsigned int locked;
 static int nthr;
@@ -75,10 +76,10 @@ ck_spinlock_fas_locked_with_context(ck_spinlock_fas_t *lock, void *context)
 CK_COHORT_PROTOTYPE(fas_fas,
 	ck_spinlock_fas_lock_with_context, ck_spinlock_fas_unlock_with_context, ck_spinlock_fas_locked_with_context,
 	ck_spinlock_fas_lock_with_context, ck_spinlock_fas_unlock_with_context, ck_spinlock_fas_locked_with_context)
-CK_RW_COHORT_PROTOTYPE(fas_fas)
+LOCK_PROTOTYPE(fas_fas)
 
 static CK_COHORT_INSTANCE(fas_fas) *cohorts;
-static CK_RW_COHORT_INSTANCE(fas_fas) rw_cohort = CK_RW_COHORT_INITIALIZER;
+static LOCK_INSTANCE(fas_fas) rw_cohort = LOCK_INITIALIZER;
 static int n_cohorts;
 
 static void *
@@ -97,7 +98,7 @@ thread(void *null CK_CC_UNUSED)
 	cohort = cohorts + (core / (int)(a.delta)) % n_cohorts;
 
 	while (i--) {
-		CK_RW_COHORT_WRITE_LOCK(fas_fas, &rw_cohort, cohort, NULL, NULL);
+                WRITE_LOCK(fas_fas, &rw_cohort, cohort, NULL, NULL);
 		{
 			l = ck_pr_load_uint(&locked);
 			if (l != 0) {
@@ -132,16 +133,16 @@ thread(void *null CK_CC_UNUSED)
 				ck_error("ERROR [WR:%d]: %u != 0\n", __LINE__, l);
 			}
 		}
-		CK_RW_COHORT_WRITE_UNLOCK(fas_fas, &rw_cohort, cohort, NULL, NULL);
+		WRITE_UNLOCK(fas_fas, &rw_cohort, cohort, NULL, NULL);
 
-		CK_RW_COHORT_READ_LOCK(fas_fas, &rw_cohort, cohort, NULL, NULL);
+		READ_LOCK(fas_fas, &rw_cohort, cohort, NULL, NULL);
 		{
 			l = ck_pr_load_uint(&locked);
 			if (l != 0) {
 				ck_error("ERROR [RD:%d]: %u != 0\n", __LINE__, l);
 			}
 		}
-		CK_RW_COHORT_READ_UNLOCK(fas_fas, &rw_cohort);
+		READ_UNLOCK(fas_fas, &rw_cohort, cohort, NULL, NULL);
 	}
 
 	return (NULL);

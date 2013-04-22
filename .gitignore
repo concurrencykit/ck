@@ -13,6 +13,7 @@ build/Makefile
 *.a
 *.so
 *.dSYM
+.*.sw[op]
 regressions/ck_cohort/benchmark/ck_cohort.LATENCY
 regressions/ck_cohort/benchmark/ck_cohort.THROUGHPUT
 regressions/ck_pflock/benchmark/latency
@@ -142,6 +143,8 @@ regressions/ck_queue/validate/ck_slist
 regressions/ck_cohort/validate/validate
 regressions/ck_cohort/benchmark/ck_cohort.LATENCY
 regressions/ck_cohort/benchmark/ck_cohort.THROUGHPUT
-regressions/ck_rw_cohort/validate/validate
+regressions/ck_rw_cohort/validate/ck_neutral
+regressions/ck_rw_cohort/validate/ck_rp
+regressions/ck_rw_cohort/validate/ck_wp
 regressions/ck_rw_cohort/benchmark/latency
 regressions/ck_rw_cohort/benchmark/throughput
