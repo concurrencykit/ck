@@ -1,7 +1,6 @@
 .PHONY: check clean distribution
 
-#OBJECTS=ck_neutral ck_rp ck_wp
-OBJECTS=ck_rp ck_wp
+OBJECTS=ck_neutral ck_rp ck_wp
 
 all: $(OBJECTS)
 

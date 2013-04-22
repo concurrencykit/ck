@@ -56,7 +56,7 @@
 	};											\
 												\
 	CK_CC_INLINE static void								\
-	ck_rw_cohort_wp_##N##_init(CK_RW_COHORT_WP_INSTANCE(N) *rw_cohort,				\
+	ck_rw_cohort_wp_##N##_init(CK_RW_COHORT_WP_INSTANCE(N) *rw_cohort,			\
 	    unsigned int wait_limit)								\
 	{											\
 		rw_cohort->read_counter = 0;							\
@@ -67,7 +67,7 @@
 	}											\
 												\
 	CK_CC_INLINE static void								\
-	ck_rw_cohort_wp_##N##_write_lock(CK_RW_COHORT_WP_INSTANCE(N) *rw_cohort,			\
+	ck_rw_cohort_wp_##N##_write_lock(CK_RW_COHORT_WP_INSTANCE(N) *rw_cohort,		\
 	    CK_COHORT_INSTANCE(N) *cohort, void *global_context,				\
 	    void *local_context)								\
 	{											\
@@ -85,7 +85,7 @@
 	}											\
 												\
 	CK_CC_INLINE static void								\
-	ck_rw_cohort_wp_##N##_write_unlock(CK_RW_COHORT_WP_INSTANCE(N) *rw_cohort,			\
+	ck_rw_cohort_wp_##N##_write_unlock(CK_RW_COHORT_WP_INSTANCE(N) *rw_cohort,		\
 	    CK_COHORT_INSTANCE(N) *cohort, void *global_context,				\
 	    void *local_context)								\
 	{											\
@@ -232,5 +232,72 @@
 	.read_barrier = 0,									\
 	.wait_limit = 0										\
 }
+
+
+#define CK_RW_COHORT_NEUTRAL_NAME(N) ck_rw_cohort_neutral_##N
+#define CK_RW_COHORT_NEUTRAL_INSTANCE(N) struct CK_RW_COHORT_NEUTRAL_NAME(N)
+#define CK_RW_COHORT_NEUTRAL_INIT(N, RW, WL) ck_rw_cohort_neutral_##N##_init(RW, WL)
+#define CK_RW_COHORT_NEUTRAL_READ_LOCK(N, RW, C, GC, LC) ck_rw_cohort_neutral_##N##_read_lock(RW, C, GC, LC)
+#define CK_RW_COHORT_NEUTRAL_READ_UNLOCK(N, RW, C, GC, LC) ck_rw_cohort_neutral_##N##_read_unlock(RW)
+#define CK_RW_COHORT_NEUTRAL_WRITE_LOCK(N, RW, C, GC, LC) ck_rw_cohort_neutral_##N##_write_lock(RW, C, GC, LC)
+#define CK_RW_COHORT_NEUTRAL_WRITE_UNLOCK(N, RW, C, GC, LC) ck_rw_cohort_neutral_##N##_write_unlock(RW, C, GC, LC)
+#define CK_RW_COHORT_NEUTRAL_DEFAULT_WAIT_LIMIT 1000
+
+#define CK_RW_COHORT_NEUTRAL_PROTOTYPE(N)							\
+	CK_RW_COHORT_NEUTRAL_INSTANCE(N) {							\
+		unsigned int read_counter;							\
+	};											\
+												\
+	CK_CC_INLINE static void								\
+	ck_rw_cohort_neutral_##N##_init(CK_RW_COHORT_NEUTRAL_INSTANCE(N) *rw_cohort)		\
+	{											\
+		rw_cohort->read_counter = 0;							\
+		ck_pr_barrier();								\
+		return;										\
+	}											\
+												\
+	CK_CC_INLINE static void								\
+	ck_rw_cohort_neutral_##N##_write_lock(CK_RW_COHORT_NEUTRAL_INSTANCE(N) *rw_cohort,	\
+	    CK_COHORT_INSTANCE(N) *cohort, void *global_context,				\
+	    void *local_context)								\
+	{											\
+		CK_COHORT_LOCK(N, cohort, global_context, local_context);			\
+		while (ck_pr_load_uint(&rw_cohort->read_counter) > 0) {				\
+			ck_pr_stall();								\
+		}										\
+		return;										\
+	}											\
+												\
+	CK_CC_INLINE static void								\
+	ck_rw_cohort_neutral_##N##_write_unlock(CK_RW_COHORT_NEUTRAL_INSTANCE(N) *rw_cohort,	\
+	    CK_COHORT_INSTANCE(N) *cohort, void *global_context, void *local_context)		\
+	{											\
+		(void)rw_cohort;								\
+		CK_COHORT_UNLOCK(N, cohort, global_context, local_context);			\
+	}											\
+												\
+	CK_CC_INLINE static void								\
+	ck_rw_cohort_neutral_##N##_read_lock(CK_RW_COHORT_NEUTRAL_INSTANCE(N) *rw_cohort,	\
+	    CK_COHORT_INSTANCE(N) *cohort, void *global_context,				\
+	    void *local_context)								\
+	{											\
+		CK_COHORT_LOCK(N, cohort, global_context, local_context);			\
+		ck_pr_inc_uint(&rw_cohort->read_counter);					\
+		CK_COHORT_UNLOCK(N, cohort, global_context, local_context);			\
+												\
+		return;										\
+	}											\
+												\
+												\
+	CK_CC_INLINE static void								\
+	ck_rw_cohort_neutral_##N##_read_unlock(CK_RW_COHORT_NEUTRAL_INSTANCE(N) *cohort)	\
+	{											\
+		ck_pr_dec_uint(&cohort->read_counter);						\
+	}
+
+#define CK_RW_COHORT_NEUTRAL_INITIALIZER {							\
+	.read_counter = 0,									\
+}
+
 
 #endif /* _CK_RW_COHORT_H */
