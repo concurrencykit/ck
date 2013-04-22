@@ -236,7 +236,7 @@
 
 #define CK_RW_COHORT_NEUTRAL_NAME(N) ck_rw_cohort_neutral_##N
 #define CK_RW_COHORT_NEUTRAL_INSTANCE(N) struct CK_RW_COHORT_NEUTRAL_NAME(N)
-#define CK_RW_COHORT_NEUTRAL_INIT(N, RW, WL) ck_rw_cohort_neutral_##N##_init(RW, WL)
+#define CK_RW_COHORT_NEUTRAL_INIT(N, RW) ck_rw_cohort_neutral_##N##_init(RW)
 #define CK_RW_COHORT_NEUTRAL_READ_LOCK(N, RW, C, GC, LC) ck_rw_cohort_neutral_##N##_read_lock(RW, C, GC, LC)
 #define CK_RW_COHORT_NEUTRAL_READ_UNLOCK(N, RW, C, GC, LC) ck_rw_cohort_neutral_##N##_read_unlock(RW)
 #define CK_RW_COHORT_NEUTRAL_WRITE_LOCK(N, RW, C, GC, LC) ck_rw_cohort_neutral_##N##_write_lock(RW, C, GC, LC)

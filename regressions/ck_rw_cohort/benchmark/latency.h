@@ -60,7 +60,7 @@ ck_spinlock_fas_locked_with_context(ck_spinlock_fas_t *lock, void *context)
 CK_COHORT_PROTOTYPE(fas_fas,
 	ck_spinlock_fas_lock_with_context, ck_spinlock_fas_unlock_with_context, ck_spinlock_fas_locked_with_context,
 	ck_spinlock_fas_lock_with_context, ck_spinlock_fas_unlock_with_context, ck_spinlock_fas_locked_with_context)
-CK_RW_COHORT_WP_PROTOTYPE(fas_fas)
+LOCK_PROTOTYPE(fas_fas)
 
 int
 main(void)
@@ -69,34 +69,34 @@ main(void)
 	ck_spinlock_fas_t global_lock = CK_SPINLOCK_FAS_INITIALIZER;
 	ck_spinlock_fas_t local_lock = CK_SPINLOCK_FAS_INITIALIZER;
 	CK_COHORT_INSTANCE(fas_fas) cohort = CK_COHORT_INITIALIZER;
-	CK_RW_COHORT_WP_INSTANCE(fas_fas) rw_cohort = CK_RW_COHORT_WP_INITIALIZER;
+	LOCK_INSTANCE(fas_fas) rw_cohort = LOCK_INITIALIZER;
 
 	CK_COHORT_INIT(fas_fas, &cohort, &global_lock, &local_lock,
 	    CK_COHORT_DEFAULT_LOCAL_PASS_LIMIT);
-	CK_RW_COHORT_WP_INIT(fas_fas, &rw_cohort, CK_RW_COHORT_WP_DEFAULT_WAIT_LIMIT);
+	LOCK_INIT(fas_fas, &rw_cohort, CK_RW_COHORT_WP_DEFAULT_WAIT_LIMIT);
 
 	for (i = 0; i < STEPS; i++) {
-		CK_RW_COHORT_WP_WRITE_LOCK(fas_fas, &rw_cohort, &cohort, NULL, NULL);
-		CK_RW_COHORT_WP_WRITE_UNLOCK(fas_fas, &rw_cohort, &cohort, NULL, NULL);
+		WRITE_LOCK(fas_fas, &rw_cohort, &cohort, NULL, NULL);
+		WRITE_UNLOCK(fas_fas, &rw_cohort, &cohort, NULL, NULL);
 	}
 
 	s_b = rdtsc();
 	for (i = 0; i < STEPS; i++) {
-		CK_RW_COHORT_WP_WRITE_LOCK(fas_fas, &rw_cohort, &cohort, NULL, NULL);
-		CK_RW_COHORT_WP_WRITE_UNLOCK(fas_fas, &rw_cohort, &cohort, NULL, NULL);
+		WRITE_LOCK(fas_fas, &rw_cohort, &cohort, NULL, NULL);
+		WRITE_UNLOCK(fas_fas, &rw_cohort, &cohort, NULL, NULL);
 	}
 	e_b = rdtsc();
 	printf("WRITE: rwlock   %15" PRIu64 "\n", (e_b - s_b) / STEPS);
 
 	for (i = 0; i < STEPS; i++) {
-		CK_RW_COHORT_WP_READ_LOCK(fas_fas, &rw_cohort, &cohort, NULL, NULL);
-		CK_RW_COHORT_WP_READ_UNLOCK(fas_fas, &rw_cohort);
+		READ_LOCK(fas_fas, &rw_cohort, &cohort, NULL, NULL);
+		READ_UNLOCK(fas_fas, &rw_cohort, &cohort, NULL, NULL);
 	}
 
 	s_b = rdtsc();
 	for (i = 0; i < STEPS; i++) {
-		CK_RW_COHORT_WP_READ_LOCK(fas_fas, &rw_cohort, &cohort, NULL, NULL);
-		CK_RW_COHORT_WP_READ_UNLOCK(fas_fas, &rw_cohort);
+		READ_LOCK(fas_fas, &rw_cohort, &cohort, NULL, NULL);
+		READ_UNLOCK(fas_fas, &rw_cohort, &cohort, NULL, NULL);
 	}
 	e_b = rdtsc();
 	printf("READ:  rwlock   %15" PRIu64 "\n", (e_b - s_b) / STEPS);
