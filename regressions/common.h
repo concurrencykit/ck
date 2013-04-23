@@ -42,7 +42,7 @@
 
 #if defined(_WIN32)
 #include <assert.h>
-#include <time.h>
+#define NOMINMAX
 #include <windows.h>
 #define DELTA_EPOCH  11644473600000000ULL
 #else
