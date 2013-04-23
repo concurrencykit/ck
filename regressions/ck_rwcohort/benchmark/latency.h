@@ -25,7 +25,7 @@
  * SUCH DAMAGE.
  */
 
-#include <ck_rw_cohort.h>
+#include <ck_rwcohort.h>
 #include <ck_spinlock.h>
 #include <inttypes.h>
 #include <stdio.h>
@@ -73,7 +73,7 @@ main(void)
 
 	CK_COHORT_INIT(fas_fas, &cohort, &global_lock, &local_lock,
 	    CK_COHORT_DEFAULT_LOCAL_PASS_LIMIT);
-	LOCK_INIT(fas_fas, &rw_cohort, CK_RW_COHORT_WP_DEFAULT_WAIT_LIMIT);
+	LOCK_INIT(fas_fas, &rw_cohort, CK_RWCOHORT_WP_DEFAULT_WAIT_LIMIT);
 
 	for (i = 0; i < STEPS; i++) {
 		WRITE_LOCK(fas_fas, &rw_cohort, &cohort, NULL, NULL);

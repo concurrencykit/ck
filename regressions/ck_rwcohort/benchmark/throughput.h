@@ -26,7 +26,7 @@
  */
 
 #include <ck_cohort.h>
-#include <ck_rw_cohort.h>
+#include <ck_rwcohort.h>
 #include <ck_spinlock.h>
 #include <inttypes.h>
 #include <pthread.h>

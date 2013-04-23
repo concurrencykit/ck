@@ -37,7 +37,7 @@
 #include <sys/time.h>
 
 #include <ck_pr.h>
-#include <ck_rw_cohort.h>
+#include <ck_rwcohort.h>
 #include <ck_spinlock.h>
 
 #include "../../common.h"
