@@ -28,7 +28,7 @@
 .Dt CK_COHORT_LOCK 3
 .Sh NAME
 .Nm CK_COHORT_LOCK
-.Nd Acquire a cohort's locks
+.Nd acquire cohort lock
 .Sh LIBRARY
 Concurrency Kit (libck, \-lck)
 .Sh SYNOPSIS

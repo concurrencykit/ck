@@ -78,7 +78,7 @@ ck_pr_unary: ck_pr_unary.c
 	$(CC) $(CFLAGS) -o ck_pr_unary ck_pr_unary.c
 
 clean:
-	rm -rf *~ *.o $(OBJECTS) *.dSYM
+	rm -rf *~ *.o $(OBJECTS) *.dSYM *.exe
 
 include ../../../build/regressions.build
 CFLAGS+=-D_GNU_SOURCE

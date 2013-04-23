@@ -29,8 +29,8 @@
 #define _CK_PFLOCK_H
 
 /*
- * This is a naive implementation of phase-fair locks derived
- * from the work described in:
+ * This is an implementation of phase-fair locks derived from the work
+ * described in:
  *    Brandenburg, B. and Anderson, J. 2010. Spin-Based
  *    Reader-Writer Synchronization for Multiprocessor Real-Time Systems
  */

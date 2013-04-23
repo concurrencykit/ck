@@ -28,7 +28,7 @@
 .Dt CK_COHORT_TRYLOCK 3
 .Sh NAME
 .Nm CK_COHORT_TRYLOCK
-.Nd Try to acquire a cohort's locks
+.Nd try to acquire cohort lock
 .Sh LIBRARY
 Concurrency Kit (libck, \-lck)
 .Sh SYNOPSIS

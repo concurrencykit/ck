@@ -14,7 +14,7 @@ parallel_direct: parallel_direct.c ../../../include/ck_ht.h ../../../src/ck_ht.c
 	$(CC) $(PTHREAD_CFLAGS) $(CFLAGS) -o parallel_direct parallel_direct.c ../../../src/ck_ht.c ../../../src/ck_epoch.c
 
 clean:
-	rm -rf *~ *.o $(OBJECTS) *.dSYM
+	rm -rf *~ *.o $(OBJECTS) *.dSYM *.exe
 
 include ../../../build/regressions.build
 CFLAGS+=-D_GNU_SOURCE

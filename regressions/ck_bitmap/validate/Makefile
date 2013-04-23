@@ -8,7 +8,7 @@ serial: serial.c ../../../include/ck_bitmap.h
 	$(CC) $(CFLAGS) -o serial serial.c
 
 clean:
-	rm -rf *~ *.o $(OBJECTS) *.dSYM
+	rm -rf *~ *.o $(OBJECTS) *.dSYM *.exe
 
 check: all
 	./serial

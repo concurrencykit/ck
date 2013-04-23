@@ -167,6 +167,21 @@ main(int argc, char *argv[])
 		ck_error("List is not empty after bulk removal.\n");
 	}
 
+	CK_LIST_INSERT_HEAD(&head, &a, list_entry);
+	CK_LIST_INSERT_AFTER(&a, &b, list_entry);
+
+	if (CK_LIST_NEXT(&b, list_entry) != NULL)
+		ck_error("Inserted item after last, it should not have no next.\n");
+
+	CK_LIST_INIT(&head);
+
+	CK_LIST_INSERT_HEAD(&head, &a, list_entry);
+	CK_LIST_INSERT_BEFORE(&a, &b, list_entry);
+
+	if (CK_LIST_NEXT(&b, list_entry) != &a)
+		ck_error("Inserted item before last, it should point to last.\n");
+
+	CK_LIST_INIT(&head);
 	fprintf(stderr, "done (success)\n");
 
 	fprintf(stderr, "Beginning parallel traversal...");

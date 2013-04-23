@@ -11,7 +11,7 @@ stack_latency: stack_latency.c
 	$(CC) $(CFLAGS) -o stack_latency ../../../src/ck_hp.c stack_latency.c
 
 clean:
-	rm -rf *~ *.o *.dSYM $(OBJECTS)
+	rm -rf *~ *.o *.dSYM *.exe $(OBJECTS)
 
 include ../../../build/regressions.build
 CFLAGS+=$(PTHREAD_CFLAGS) -D_GNU_SOURCE

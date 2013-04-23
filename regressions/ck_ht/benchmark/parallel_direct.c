@@ -70,7 +70,7 @@ struct ht_epoch {
 	ck_epoch_entry_t epoch_entry;
 };
 
-COMMON_ALARM_DECLARE_GLOBAL(alarm_event, next_stage)
+COMMON_ALARM_DECLARE_GLOBAL(ht_alarm, alarm_event, next_stage)
 
 static void
 alarm_handler(int s)
@@ -269,7 +269,7 @@ main(int argc, char *argv[])
 	pthread_t *readers;
 	double p_r, p_d;
 
-	COMMON_ALARM_DECLARE_LOCAL(alarm_event)
+	COMMON_ALARM_DECLARE_LOCAL(ht_alarm, alarm_event)
 
 	r = 20;
 	s = 8;
@@ -309,7 +309,7 @@ main(int argc, char *argv[])
 		}
 	}
 
-	COMMON_ALARM_INIT(alarm_event, r)
+	COMMON_ALARM_INIT(ht_alarm, alarm_event, r)
 
 	affinerator.delta = 1;
 	readers = malloc(sizeof(pthread_t) * n_threads);

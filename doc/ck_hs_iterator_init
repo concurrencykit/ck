@@ -28,7 +28,7 @@
 .Dt CK_HS_ITERATOR_INIT 3
 .Sh NAME
 .Nm ck_hs_iterator_init
-.Nd initialize a hash set
+.Nd initialize hash set iterator
 .Sh LIBRARY
 Concurrency Kit (libck, \-lck)
 .Sh SYNOPSIS

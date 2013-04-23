@@ -28,7 +28,7 @@ check: all
 	exit $$rc
 
 clean:
-	rm -rf *.dSYM *~ *.o $(OBJECTS)
+	rm -rf *.dSYM *.exe *~ *.o $(OBJECTS)
 
 include ../../../build/regressions.build
 CFLAGS+=$(PTHREAD_CFLAGS) -D_GNU_SOURCE

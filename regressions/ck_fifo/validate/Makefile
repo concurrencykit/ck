@@ -23,7 +23,7 @@ ck_fifo_mpmc_iterator: ck_fifo_mpmc_iterator.c ../../../include/ck_fifo.h
 	$(CC) $(CFLAGS) -o ck_fifo_mpmc_iterator ck_fifo_mpmc_iterator.c
 
 clean:
-	rm -rf *.dSYM *~ *.o $(OBJECTS)
+	rm -rf *.dSYM *.exe *~ *.o $(OBJECTS)
 
 include ../../../build/regressions.build
 CFLAGS+=$(PTHREAD_CFLAGS) -D_GNU_SOURCE

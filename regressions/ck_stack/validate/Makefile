@@ -50,7 +50,7 @@ mpmc_trypair mpmc_pair spinlock_pair spinlock_eb_pair pthreads_pair: pair.c
 	$(CC) -DPTHREADS $(CFLAGS) -o pthreads_pair pair.c
 
 clean:
-	rm -rf *~ *.o *.dSYM $(OBJECTS)
+	rm -rf *~ *.o *.dSYM *.exe $(OBJECTS)
 
 include ../../../build/regressions.build
 CFLAGS+=$(PTHREAD_CFLAGS) -D_GNU_SOURCE

@@ -60,6 +60,7 @@ test(void *c)
 {
 	struct context *context = c;
 	struct entry entry;
+	unsigned int s;
 	int i, j;
 	bool r;
 	ck_barrier_centralized_state_t sense =
@@ -85,7 +86,20 @@ test(void *c)
 			entries[i].value = i;
 			entries[i].tid = 0;
 
-			r = CK_RING_ENQUEUE_SPSC(entry_ring, ring, entries + i);
+			if (i & 1) {
+				r = CK_RING_ENQUEUE_SPSC(entry_ring,
+					ring, entries + i);
+			} else {
+				r = CK_RING_ENQUEUE_SPSC_SIZE(entry_ring,
+					ring, entries + i, &s);
+
+				if ((int)s != i) {
+					ck_error("Size is %u, expected %d\n",
+					    s, i);
+				}
+			}
+
+			assert(r != false);
 		}
 
 		if (CK_RING_SIZE(entry_ring, ring) !=
@@ -113,7 +127,20 @@ test(void *c)
 			}
 
 			entry.tid = context->tid;
-			r = CK_RING_ENQUEUE_SPSC(entry_ring, ring + context->tid, &entry);
+
+			if (i & 1) {
+				r = CK_RING_ENQUEUE_SPSC(entry_ring,
+					ring + context->tid, &entry);
+			} else {
+				r = CK_RING_ENQUEUE_SPSC_SIZE(entry_ring,
+					ring + context->tid, &entry, &s);
+
+				if ((int)s >= size) {
+					ck_error("Size %u is out of range %d\n",
+						s, size);
+				}
+			}
+
 			assert(r == true);
 		}
 	}
@@ -140,7 +167,7 @@ main(int argc, char *argv[])
 	assert(nthr >= 1);
 
 	size = atoi(argv[3]);
-	assert(size > 4 && (size & size - 1) == 0);
+	assert(size >= 4 && (size & size - 1) == 0);
 	size -= 1;
 
 	ring = malloc(sizeof(CK_RING_INSTANCE(entry_ring)) * nthr);

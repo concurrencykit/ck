@@ -28,7 +28,7 @@
 .Dt CK_COHORT_UNLOCK 3
 .Sh NAME
 .Nm CK_COHORT_UNLOCK
-.Nd Acquire a cohort's locks
+.Nd release cohort lock
 .Sh LIBRARY
 Concurrency Kit (libck, \-lck)
 .Sh SYNOPSIS

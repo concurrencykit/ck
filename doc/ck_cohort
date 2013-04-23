@@ -28,7 +28,7 @@
 .Dt ck_cohort 3
 .Sh NAME
 .Nm ck_cohort
-.Nd Generalized interface for lock cohorts
+.Nd generalized interface for lock cohorts
 .Sh LIBRARY
 Concurrency Kit (libck, \-lck)
 .Sh SYNOPSIS
@@ -87,7 +87,6 @@ man pages for more details.
 .Pp
 .Sh EXAMPLE
 .Bd -literal -offset indent
-
 #include <stdlib.h>
 #include <pthread.h>
 
@@ -133,7 +132,7 @@ CK_COHORT_PROTOTYPE(test_cohort,
 static ck_spinlock_t global_lock = CK_SPINLOCK_INITIALIZER;
 static unsigned int ready;
 
-static void*
+static void *
 function(void *context)
 {
 	CK_COHORT_INSTANCE(test_cohort) *cohort = context;
@@ -197,7 +196,7 @@ main(void)
 
 	return 0;
 }
-
+.Ed
 .Sh SEE ALSO
 .Xr CK_COHORT_PROTOTYPE 3 ,
 .Xr CK_COHORT_TRYLOCK_PROTOTYPE 3 ,
