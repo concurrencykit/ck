@@ -116,7 +116,9 @@ OBJECTS=ck_ht_count 	  		\
 	ck_ring_trydequeue_spmc		\
 	ck_ring_dequeue_spsc		\
 	ck_ring_enqueue_spsc		\
-	ck_ring_enqueue_spsc_size
+	ck_ring_enqueue_spsc_size	\
+	ck_ring_size			\
+	ck_ring_capacity
 
 all: 
 	for target in $(OBJECTS); do 			   \
