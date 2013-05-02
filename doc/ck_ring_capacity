@@ -25,9 +25,9 @@
 .\"
 .\"
 .Dd April 20, 2013
-.Dt CK_RING_SIZE 3
+.Dt CK_RING_CAPACITY 3
 .Sh NAME
-.Nm ck_ring_size
+.Nm ck_ring_capacity
 .Nd returns number of pointer slots in bounded FIFO
 .Sh LIBRARY
 Concurrency Kit (libck, \-lck)
