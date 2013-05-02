@@ -50,6 +50,7 @@ OBJECTS=ck_ht_count 	  		\
 	ck_epoch_poll			\
 	ck_epoch_recycle		\
 	ck_epoch_register		\
+	ck_epoch_reclaim		\
 	ck_epoch_synchronize		\
 	ck_epoch_unregister		\
 	ck_bag_allocator_set		\
