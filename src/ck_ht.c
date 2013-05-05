@@ -453,18 +453,26 @@ ck_ht_next(struct ck_ht *table,
 }
 
 bool
-ck_ht_reset_spmc(struct ck_ht *table)
+ck_ht_reset_size_spmc(struct ck_ht *table, uint64_t size)
 {
 	struct ck_ht_map *map, *update;
 
 	map = table->map;
-	update = ck_ht_map_create(table, map->capacity);
+	update = ck_ht_map_create(table, size);
 	if (update == NULL)
 		return false;
 
 	ck_pr_store_ptr(&table->map, update);
 	ck_ht_map_destroy(table->m, map, true);
 	return true;
+}
+
+bool
+ck_ht_reset_spmc(struct ck_ht *table)
+{
+	struct ck_ht_map *map = table->map;
+
+	return ck_ht_reset_size_spmc(table, map->capacity);
 }
 
 bool
