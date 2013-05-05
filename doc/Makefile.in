@@ -77,6 +77,7 @@ OBJECTS=ck_ht_count 	  		\
 	ck_hs_grow			\
 	ck_hs_count			\
 	ck_hs_reset			\
+	ck_hs_reset_size		\
 	ck_hs_stat			\
 	ck_cohort			\
 	CK_COHORT_PROTOTYPE		\
