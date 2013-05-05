@@ -64,6 +64,7 @@ thread.
 .Xr ck_hs_put 3 ,
 .Xr ck_hs_set 3 ,
 .Xr ck_hs_remove 3 ,
+.Xr ck_hs_reset_size 3 ,
 .Xr ck_hs_grow 3 ,
 .Xr ck_hs_count 3 ,
 .Xr ck_hs_stat 3

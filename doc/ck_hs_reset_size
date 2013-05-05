@@ -25,7 +25,7 @@
 .\"
 .\"
 .Dd May 5, 2013
-.Dt CK_HS_RESET 3
+.Dt CK_HS_RESET_SIZE 3
 .Sh NAME
 .Nm ck_hs_reset_size
 .Nd remove all keys from a hash set
