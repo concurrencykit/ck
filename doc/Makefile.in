@@ -17,6 +17,7 @@ OBJECTS=ck_ht_count 	  		\
 	ck_ht_put_spmc	  		\
 	ck_ht_remove_spmc	  	\
 	ck_ht_reset_spmc	  	\
+	ck_ht_reset_size_spmc	  	\
 	ck_ht_set_spmc	  		\
 	ck_ht_entry_empty	  	\
 	ck_ht_entry_key			\
