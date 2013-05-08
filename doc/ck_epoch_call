@@ -48,7 +48,7 @@ The function will be provided
 the pointer specified by 
 .Fa entry .
 The function will execute at some time in the future via calls to
-.Fn ck_epoch_synchronize 3 ,
+.Fn ck_epoch_reclaim 3 ,
 .Fn ck_epoch_barrier 3
 or
 .Fn ck_epoch_poll 3 .
@@ -127,6 +127,7 @@ must have been previously registered via
 .Xr ck_epoch_recycle 3 ,
 .Xr ck_epoch_poll 3 ,
 .Xr ck_epoch_synchronize 3 ,
+.Xr ck_epoch_reclaim 3 ,
 .Xr ck_epoch_barrier 3 ,
 .Xr ck_epoch_begin 3 ,
 .Xr ck_epoch_end 3

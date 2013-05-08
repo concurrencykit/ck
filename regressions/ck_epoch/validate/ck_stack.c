@@ -124,7 +124,7 @@ thread(void *unused CK_CC_UNUSED)
 			record.n_pending,
 			record.n_dispatch);
 
-	ck_epoch_synchronize(&stack_epoch, &record);
+	ck_epoch_barrier(&stack_epoch, &record);
 	ck_pr_inc_uint(&e_barrier);
 	while (ck_pr_load_uint(&e_barrier) < (n_threads << 1));
 

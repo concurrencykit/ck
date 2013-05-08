@@ -93,6 +93,7 @@ is not a valid epoch object.
 .Xr ck_epoch_unregister 3 ,
 .Xr ck_epoch_poll 3 ,
 .Xr ck_epoch_synchronize 3 ,
+.Xr ck_epoch_reclaim 3 ,
 .Xr ck_epoch_barrier 3 ,
 .Xr ck_epoch_call 3 ,
 .Xr ck_epoch_begin 3 ,

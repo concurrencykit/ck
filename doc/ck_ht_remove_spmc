@@ -98,6 +98,7 @@ will return
 .Xr ck_ht_get_spmc 3 ,
 .Xr ck_ht_grow_spmc 3 ,
 .Xr ck_ht_reset_spmc 3 ,
+.Xr ck_ht_reset_size_spmc 3 ,
 .Xr ck_ht_count 3 ,
 .Xr ck_ht_entry_empty 3 ,
 .Xr ck_ht_entry_key_set 3 ,

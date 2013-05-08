@@ -42,15 +42,14 @@ function will block the caller until a grace period has been
 detected, according to the semantics of epoch reclamation.
 Any objects requiring safe memory reclamation which are logically
 deleted are safe for physical deletion following a call to
-.Fn ck_epoch_synchronize 3 . This function may also dispatch callbacks
-associated with
-.Fa epoch
-that were previously scheduled via
-.Fn ck_epoch_call 3 .
+.Fn ck_epoch_synchronize 3 .
 If you require that all callbacks be dispatched, then it is suggested
 that you use
 .Fn ck_epoch_barrier 3
-instead.
+instead or follow a call of
+.Fn ck_epoch_synchronize 3
+with
+.Fn ck_epoch_reclaim 3 .
 .Sh EXAMPLE
 .Bd -literal -offset indent
 
@@ -115,6 +114,7 @@ must have been previously registered via
 .Xr ck_epoch_unregister 3 ,
 .Xr ck_epoch_recycle 3 ,
 .Xr ck_epoch_poll 3 ,
+.Xr ck_epoch_reclaim 3 ,
 .Xr ck_epoch_barrier 3 ,
 .Xr ck_epoch_call 3 ,
 .Xr ck_epoch_begin 3 ,
