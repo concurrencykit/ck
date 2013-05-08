@@ -14,7 +14,9 @@ ck_wp: ck_wp.c ../../../include/ck_rwcohort.h
 	$(CC) $(CFLAGS) -o ck_wp ck_wp.c -g
 
 check: all
-	./validate $(CORES) 1
+	./ck_neutral `expr $(CORES) / 2` 2 1
+	./ck_rp `expr $(CORES) / 2` 2 1
+	./ck_wp `expr $(CORES) / 2` 2 1
 
 clean:
 	rm -rf *.dSYM *~ *.o $(OBJECTS)
