@@ -192,7 +192,12 @@ write_thread(void *unused CK_CC_UNUSED)
 			e = stack_container(s);
 			ck_epoch_end(&stack_epoch, &record);
 
-			ck_epoch_synchronize(&stack_epoch, &record);
+			if (i & 1) {
+				ck_epoch_synchronize(&stack_epoch, &record);
+				ck_epoch_reclaim(&record);
+			} else {
+				ck_epoch_barrier(&stack_epoch, &record);
+			}
 
 			if (i & 1) {
 				ck_epoch_call(&stack_epoch, &record, &e->epoch_entry, destructor);

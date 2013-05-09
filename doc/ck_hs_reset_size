@@ -24,69 +24,52 @@
 .\" SUCH DAMAGE.
 .\"
 .\"
-.Dd March 30, 2012
-.Dt CK_HT_ENTRY_KEY_SET 3
+.Dd May 5, 2013
+.Dt CK_HS_RESET_SIZE 3
 .Sh NAME
-.Nm ck_ht_entry_key_set
-.Nd initialize pointer to key in hash table entry
+.Nm ck_hs_reset_size
+.Nd remove all keys from a hash set
 .Sh LIBRARY
 Concurrency Kit (libck, \-lck)
 .Sh SYNOPSIS
-.In ck_ht.h
-.Ft void
-.Fn ck_ht_entry_key_set "ck_ht_entry_t *entry" "const void *key" "uint16_t key_length"
+.In ck_hs.h
+.Ft bool
+.Fn ck_hs_reset_size "ck_hs_t *hs" "unsigned long size"
 .Sh DESCRIPTION
 The
-.Fn ck_ht_entry_key_set
-function will initialize the object pointed to by
-.Fa entry
-with a key pointed to by the
-.Fa key
-argument. The length of the key is specified by
-.Fa key_length.
-The maximum value of
-.Fa key_length
-is defined by the CK_HT_KEY_LENGTH macro.
-This function is typically used to initialize an
-entry for
-.Xr ck_ht_get_spmc 3
-and
-.Xr ck_ht_remove_spmc 3
-operations. It is expected that the entry will
-be associated with a hash table initialized with
-.Dv CK_HT_MODE_BYTESTRING
-(see
-.Xr ck_ht_init 3
-for more information).
+.Fn ck_hs_reset_size 3
+function will remove all keys stored in the hash
+set pointed to by the
+.Fa hs
+argument and create a new generation of the hash set that
+is preallocated for
+.Fa size
+entries.
 .Sh RETURN VALUES
-.Fn ck_ht_entry_key_set
-has no return value.
+If successful,
+.Fn ck_hs_reset_size 3
+will return true and will otherwise return false on failure. This
+function will only fail if a replacement hash set could not be
+allocated internally.
 .Sh ERRORS
-This function will never fail.
+Behavior is undefined if
+.Fa hs
+is uninitialized. Behavior is
+undefined if this function is called by a non-writer
+thread.
 .Sh SEE ALSO
-.Xr ck_ht_stat 3 ,
-.Xr ck_ht_init 3 ,
-.Xr ck_ht_destroy 3 ,
-.Xr ck_ht_hash 3 ,
-.Xr ck_ht_hash_direct 3 ,
-.Xr ck_ht_set_spmc 3 ,
-.Xr ck_ht_put_spmc 3 ,
-.Xr ck_ht_get_spmc 3 ,
-.Xr ck_ht_grow_spmc 3 ,
-.Xr ck_ht_remove_spmc 3 ,
-.Xr ck_ht_count 3 ,
-.Xr ck_ht_reset_spmc 3 ,
-.Xr ck_ht_reset_size_spmc 3 ,
-.Xr ck_ht_entry_empty 3 ,
-.Xr ck_ht_entry_key_set_direct 3 ,
-.Xr ck_ht_entry_key 3 ,
-.Xr ck_ht_entry_key_length 3 ,
-.Xr ck_ht_entry_value 3 ,
-.Xr ck_ht_entry_set 3 ,
-.Xr ck_ht_entry_set_direct 3 ,
-.Xr ck_ht_entry_key_direct 3 ,
-.Xr ck_ht_entry_value_direct 3 ,
-.Xr ck_ht_iterator_init 3 ,
-.Xr ck_ht_next 3
+.Xr ck_hs_init 3 ,
+.Xr ck_hs_destroy 3 ,
+.Xr CK_HS_HASH 3 ,
+.Xr ck_hs_iterator_init 3 ,
+.Xr ck_hs_next 3 ,
+.Xr ck_hs_get 3 ,
+.Xr ck_hs_put 3 ,
+.Xr ck_hs_set 3 ,
+.Xr ck_hs_remove 3 ,
+.Xr ck_hs_grow 3 ,
+.Xr ck_hs_count 3 ,
+.Xr ck_hs_reset 3 ,
+.Xr ck_hs_stat 3
 .Pp
 Additional information available at http://concurrencykit.org/

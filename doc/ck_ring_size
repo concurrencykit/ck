@@ -24,69 +24,32 @@
 .\" SUCH DAMAGE.
 .\"
 .\"
-.Dd March 30, 2012
-.Dt CK_HT_ENTRY_KEY_SET 3
+.Dd April 20, 2013
+.Dt CK_RING_SIZE 3
 .Sh NAME
-.Nm ck_ht_entry_key_set
-.Nd initialize pointer to key in hash table entry
+.Nm ck_ring_size
+.Nd return number of pointers enqueued in bounded FIFO
 .Sh LIBRARY
 Concurrency Kit (libck, \-lck)
 .Sh SYNOPSIS
-.In ck_ht.h
-.Ft void
-.Fn ck_ht_entry_key_set "ck_ht_entry_t *entry" "const void *key" "uint16_t key_length"
+.In ck_ring.h
+.Ft unsigned int
+.Fn ck_ring_size "ck_ring_t *ring"
 .Sh DESCRIPTION
 The
-.Fn ck_ht_entry_key_set
-function will initialize the object pointed to by
-.Fa entry
-with a key pointed to by the
-.Fa key
-argument. The length of the key is specified by
-.Fa key_length.
-The maximum value of
-.Fa key_length
-is defined by the CK_HT_KEY_LENGTH macro.
-This function is typically used to initialize an
-entry for
-.Xr ck_ht_get_spmc 3
-and
-.Xr ck_ht_remove_spmc 3
-operations. It is expected that the entry will
-be associated with a hash table initialized with
-.Dv CK_HT_MODE_BYTESTRING
-(see
-.Xr ck_ht_init 3
-for more information).
-.Sh RETURN VALUES
-.Fn ck_ht_entry_key_set
-has no return value.
-.Sh ERRORS
-This function will never fail.
+.Fn ck_ring_size 3
+function returns the number of pointers currently
+enqueued in the buffer pointed to by
+.Fa ring .
 .Sh SEE ALSO
-.Xr ck_ht_stat 3 ,
-.Xr ck_ht_init 3 ,
-.Xr ck_ht_destroy 3 ,
-.Xr ck_ht_hash 3 ,
-.Xr ck_ht_hash_direct 3 ,
-.Xr ck_ht_set_spmc 3 ,
-.Xr ck_ht_put_spmc 3 ,
-.Xr ck_ht_get_spmc 3 ,
-.Xr ck_ht_grow_spmc 3 ,
-.Xr ck_ht_remove_spmc 3 ,
-.Xr ck_ht_count 3 ,
-.Xr ck_ht_reset_spmc 3 ,
-.Xr ck_ht_reset_size_spmc 3 ,
-.Xr ck_ht_entry_empty 3 ,
-.Xr ck_ht_entry_key_set_direct 3 ,
-.Xr ck_ht_entry_key 3 ,
-.Xr ck_ht_entry_key_length 3 ,
-.Xr ck_ht_entry_value 3 ,
-.Xr ck_ht_entry_set 3 ,
-.Xr ck_ht_entry_set_direct 3 ,
-.Xr ck_ht_entry_key_direct 3 ,
-.Xr ck_ht_entry_value_direct 3 ,
-.Xr ck_ht_iterator_init 3 ,
-.Xr ck_ht_next 3
+.Xr ck_ring_init 3 ,
+.Xr ck_ring_enqueue_spmc 3 ,
+.Xr ck_ring_dequeue_spmc 3 ,
+.Xr ck_ring_trydequeue_spmc 3 ,
+.Xr ck_ring_enqueue_spmc_size 3 ,
+.Xr ck_ring_dequeue_spsc 3 ,
+.Xr ck_ring_enqueue_spsc 3 ,
+.Xr ck_ring_enqueue_spsc_size 3 ,
+.Xr ck_ring_capacity 3
 .Pp
 Additional information available at http://concurrencykit.org/

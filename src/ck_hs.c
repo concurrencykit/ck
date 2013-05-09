@@ -167,18 +167,27 @@ ck_hs_map_create(struct ck_hs *hs, unsigned long entries)
 }
 
 bool
-ck_hs_reset(struct ck_hs *hs)
+ck_hs_reset_size(struct ck_hs *hs, unsigned long capacity)
 {
 	struct ck_hs_map *map, *previous;
 
 	previous = hs->map;
-	map = ck_hs_map_create(hs, previous->capacity);
+	map = ck_hs_map_create(hs, capacity);
 	if (map == NULL)
 		return false;
 
 	ck_pr_store_ptr(&hs->map, map);
 	ck_hs_map_destroy(hs->m, previous, true);
 	return true;
+}
+
+bool
+ck_hs_reset(struct ck_hs *hs)
+{
+	struct ck_hs_map *previous;
+
+	previous = hs->map;
+	return ck_hs_reset_size(hs, previous->capacity);
 }
 
 static inline unsigned long
