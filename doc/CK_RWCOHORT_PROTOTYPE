@@ -33,7 +33,9 @@
 Concurrency Kit (libck, \-lck)
 .Sh SYNOPSIS
 .In ck_rwcohort.h
-.Fn CK_RWCOHORT_PROTOTYPE "COHORT_NAME cohort_name"
+.Fn CK_RWCOHORT_NEUTRAL_PROTOTYPE "COHORT_NAME cohort_name"
+.Fn CK_RWCOHORT_RP_PROTOTYPE "COHORT_NAME cohort_name"
+.Fn CK_RWCOHORT_WP_PROTOTYPE "COHORT_NAME cohort_name"
 .Sh DESCRIPTION
 The ck_rwcohort.h header file does not define any cohort types.  Instead, the user must use
 the CK_RWCOHORT_PROTOTYPE macro to define any types they want to use.

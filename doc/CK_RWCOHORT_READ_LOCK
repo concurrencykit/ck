@@ -33,7 +33,11 @@
 Concurrency Kit (libck, \-lck)
 .Sh SYNOPSIS
 .In ck_cohort.h
-.Fn CK_RWCOHORT_READ_LOCK "COHORT_NAME cohort_name" "LOCK *lock" "COHORT *cohort"\ 
+.Fn CK_RWCOHORT_NEUTRAL_READ_LOCK "COHORT_NAME cohort_name" "LOCK *lock" "COHORT *cohort"\ 
+"void *global_context" "void *local_context"
+.Fn CK_RWCOHORT_RP_READ_LOCK "COHORT_NAME cohort_name" "LOCK *lock" "COHORT *cohort"\ 
+"void *global_context" "void *local_context"
+.Fn CK_RWCOHORT_WP_READ_LOCK "COHORT_NAME cohort_name" "LOCK *lock" "COHORT *cohort"\ 
 "void *global_context" "void *local_context"
 .Sh DESCRIPTION
 This call will acquire read-only permission from

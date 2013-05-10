@@ -33,7 +33,9 @@
 Concurrency Kit (libck, \-lck)
 .Sh SYNOPSIS
 .In ck_cohort.h
-.Fn CK_RWCOHORT_INSTANCE "COHORT_NAME cohort_name"
+.Fn CK_RWCOHORT_NEUTRAL_INSTANCE "COHORT_NAME cohort_name"
+.Fn CK_RWCOHORT_RP_INSTANCE "COHORT_NAME cohort_name"
+.Fn CK_RWCOHORT_WP_INSTANCE "COHORT_NAME cohort_name"
 .Sh DESCRIPTION
 The user must use this macro to declare instances of lock types that they have
 defined using the 
@@ -47,7 +49,7 @@ CK_RWCOHORT_INSTANCE(foo) cohort;
 This macro should also be used when allocating memory for cohorts.  For instance,
 to allocate a block of 4 cohorts:
 .br
-CK_RWCOHORT_INSTANCE(foo) *cohorts = malloc(4 * sizeof(CK_RWCOHORT_INSTANCE(foo)));
+CK_RWCOHORT_WP_INSTANCE(foo) *cohorts = malloc(4 * sizeof(CK_RWCOHORT_WP_INSTANCE(foo)));
 .Sh SEE ALSO
 .Xr ck_rwcohort 3 ,
 .Xr CK_RWCOHORT_PROTOTYPE 3 ,
