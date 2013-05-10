@@ -67,7 +67,7 @@
 	}											\
 												\
 	CK_CC_INLINE static void								\
-	ck_rwcohort_wp_##N##_write_lock(CK_RWCOHORT_WP_INSTANCE(N) *rw_cohort,		\
+	ck_rwcohort_wp_##N##_write_lock(CK_RWCOHORT_WP_INSTANCE(N) *rw_cohort,			\
 	    CK_COHORT_INSTANCE(N) *cohort, void *global_context,				\
 	    void *local_context)								\
 	{											\
@@ -165,7 +165,7 @@
 	}											\
 												\
 	CK_CC_INLINE static void								\
-	ck_rwcohort_rp_##N##_write_lock(CK_RWCOHORT_RP_INSTANCE(N) *rw_cohort,		\
+	ck_rwcohort_rp_##N##_write_lock(CK_RWCOHORT_RP_INSTANCE(N) *rw_cohort,			\
 	    CK_COHORT_INSTANCE(N) *cohort, void *global_context,				\
 	    void *local_context)								\
 	{											\
@@ -176,16 +176,16 @@
                 	CK_COHORT_LOCK(N, cohort, global_context, local_context);		\
                 	if (ck_pr_load_uint(&rw_cohort->read_counter) == 0) {			\
                 		break;								\
-                	} else {								\
-                		CK_COHORT_UNLOCK(N, cohort, global_context, local_context);	\
-                		while (ck_pr_load_uint(&rw_cohort->read_counter) > 0) {		\
-                			ck_pr_stall();						\
-	                                if (++wait_count > rw_cohort->wait_limit && raised == false) {\
-	                                        ck_pr_inc_uint(&rw_cohort->read_barrier);	\
-	                                        raised = true;					\
-	                                }							\
-                		}								\
                 	}									\
+                										\
+        		CK_COHORT_UNLOCK(N, cohort, global_context, local_context);		\
+        		while (ck_pr_load_uint(&rw_cohort->read_counter) > 0) {			\
+        			ck_pr_stall();							\
+                                if (++wait_count > rw_cohort->wait_limit && raised == false) {	\
+                                        ck_pr_inc_uint(&rw_cohort->read_barrier);		\
+                                        raised = true;						\
+                                }								\
+        		}									\
                 }                                                                               \
 												\
 		if (raised == true) {								\
@@ -277,7 +277,7 @@
 	}											\
 												\
 	CK_CC_INLINE static void								\
-	ck_rwcohort_neutral_##N##_read_lock(CK_RWCOHORT_NEUTRAL_INSTANCE(N) *rw_cohort,	\
+	ck_rwcohort_neutral_##N##_read_lock(CK_RWCOHORT_NEUTRAL_INSTANCE(N) *rw_cohort,		\
 	    CK_COHORT_INSTANCE(N) *cohort, void *global_context,				\
 	    void *local_context)								\
 	{											\
@@ -290,7 +290,7 @@
 												\
 												\
 	CK_CC_INLINE static void								\
-	ck_rwcohort_neutral_##N##_read_unlock(CK_RWCOHORT_NEUTRAL_INSTANCE(N) *cohort)	\
+	ck_rwcohort_neutral_##N##_read_unlock(CK_RWCOHORT_NEUTRAL_INSTANCE(N) *cohort)		\
 	{											\
 		ck_pr_dec_uint(&cohort->read_counter);						\
 	}
