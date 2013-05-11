@@ -44,10 +44,12 @@
 #include "gcc/ppc64/ck_pr.h"
 #elif defined(__ppc__)
 #include "gcc/ppc/ck_pr.h"
-#elif defined(__GNUC__)
-#include "gcc/ck_pr.h"
-#else
+#elif !defined(__GNUC__)
 #error Your platform is unsupported
+#endif
+
+#if defined(__GNUC__)
+#include "gcc/ck_pr.h"
 #endif
 
 #define CK_PR_FENCE_EMIT(T)			\
