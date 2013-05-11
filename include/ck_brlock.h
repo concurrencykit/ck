@@ -193,10 +193,9 @@ ck_brlock_read_lock(struct ck_brlock *br, struct ck_brlock_reader *reader)
 		/* Serialize counter update with respect to writer snapshot. */
 		ck_pr_fence_memory();
 #else
-		ck_pr_store_uint(&reader->n_readers, 1);
-
 		/* Loads can be re-ordered before previous stores, even on TSO. */
-		ck_pr_fence_strict_memory();
+		ck_pr_store_uint(&reader->n_readers, 1);
+		ck_pr_fence_store_load();
 #endif
 
 		if (ck_pr_load_uint(&br->writer) == false)
@@ -229,10 +228,9 @@ ck_brlock_read_trylock(struct ck_brlock *br,
 			ck_pr_stall();
 		}
 
-		ck_pr_store_uint(&reader->n_readers, 1);
-
 		/* Loads are re-ordered with respect to prior stores. */
-		ck_pr_fence_strict_memory();
+		ck_pr_store_uint(&reader->n_readers, 1);
+		ck_pr_fence_store_load();
 
 		if (ck_pr_load_uint(&br->writer) == false)
 			break;
