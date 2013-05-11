@@ -31,9 +31,20 @@
 #error Do not include this file directly, use ck_pr.h
 #endif
 
+#include <ck_cc.h>
+
+CK_CC_INLINE 
+static void ck_pr_barrier(void)
+{
+
+	__asm__ __volatile__("" ::: "memory");
+	return;
+}
+
+#ifndef CK_F_PR
+#define CK_F_PR
 #include <stdbool.h>
 #include <ck_stdint.h>
-#include <ck_cc.h>
 
 /*
  * The following represent supported atomic operations.
@@ -112,25 +123,17 @@ ck_pr_fence_load_depends(void)
 	ck_pr_fence_strict_##T(void)			\
 	{						\
 		__sync_synchronize();			\
-	}						\
-	CK_CC_INLINE static void ck_pr_fence_##T(void)	\
-	{						\
-		__sync_synchronize();			\
 	}
 
 CK_PR_FENCE(load)
+CK_PR_FENCE(load_load)
+CK_PR_FENCE(load_store)
 CK_PR_FENCE(store)
+CK_PR_FENCE(store_store)
+CK_PR_FENCE(store_load)
 CK_PR_FENCE(memory)
 
 #undef CK_PR_FENCE
-
-CK_CC_INLINE static void
-ck_pr_barrier(void)
-{
-
-	__asm__ __volatile__("" ::: "memory");
-	return;
-}
 
 /*
  * Atomic compare and swap.
@@ -275,5 +278,5 @@ CK_PR_UNARY_S(8, uint8_t)
 
 #undef CK_PR_UNARY_S
 #undef CK_PR_UNARY
-
+#endif /* !CK_F_PR */
 #endif /* _CK_PR_GCC_H */

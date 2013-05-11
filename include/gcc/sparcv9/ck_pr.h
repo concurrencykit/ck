@@ -41,6 +41,11 @@
 #include "ck_f_pr.h"
 
 /*
+ * Minimum interface requirement met.
+ */
+#define CK_F_PR
+
+/*
  * Order loads at the least.
  */
 CK_CC_INLINE static void

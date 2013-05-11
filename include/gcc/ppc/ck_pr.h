@@ -42,6 +42,11 @@
 #include "ck_f_pr.h"
 
 /*
+ * Minimum interface requirement met.
+ */
+#define CK_F_PR
+
+/*
  * This bounces the hardware thread from low to medium
  * priority. I am unsure of the benefits of this approach
  * but it is used by the Linux kernel.
