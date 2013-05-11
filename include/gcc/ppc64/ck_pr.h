@@ -54,29 +54,12 @@ ck_pr_stall(void)
 	return;
 }
 
-#if defined(CK_MD_RMO) || defined(CK_MD_PSO)
-#define CK_PR_FENCE(T, I)                               \
-        CK_CC_INLINE static void                        \
-        ck_pr_fence_strict_##T(void)                    \
-        {                                               \
-                __asm__ __volatile__(I ::: "memory");   \
-        }                                               \
-        CK_CC_INLINE static void ck_pr_fence_##T(void)  \
-        {                                               \
-                __asm__ __volatile__(I ::: "memory");   \
-        }
-#else
-#define CK_PR_FENCE(T, I)                               \
-        CK_CC_INLINE static void                        \
-        ck_pr_fence_strict_##T(void)                    \
-        {                                               \
-                __asm__ __volatile__(I ::: "memory");   \
-        }                                               \
-        CK_CC_INLINE static void ck_pr_fence_##T(void)  \
-        {                                               \
-                __asm__ __volatile__("" ::: "memory");  \
-        }
-#endif /* !CK_MD_RMO && !CK_MD_PSO */
+#define CK_PR_FENCE(T, I)				\
+	CK_CC_INLINE static void			\
+	ck_pr_fence_strict_##T(void)			\
+	{						\
+		__asm__ __volatile__(I ::: "memory");   \
+	}
 
 /*
  * These are derived from:
@@ -84,7 +67,11 @@ ck_pr_stall(void)
  */
 CK_PR_FENCE(load_depends, "")
 CK_PR_FENCE(store, "lwsync")
+CK_PR_FENCE(store_store, "lwsync")
+CK_PR_FENCE(store_load, "sync")
 CK_PR_FENCE(load, "lwsync")
+CK_PR_FENCE(load_load, "lwsync")
+CK_PR_FENCE(load_store, "lwsync")
 CK_PR_FENCE(memory, "sync")
 
 #undef CK_PR_FENCE

@@ -51,39 +51,20 @@ ck_pr_stall(void)
 	return;
 }
 
-#if defined(CK_MD_RMO) || defined(CK_MD_PSO)
-/*
- * If RMO is forced, then do not assume TSO model.
- */
-#define CK_PR_FENCE(T, I)                               \
-        CK_CC_INLINE static void                        \
-        ck_pr_fence_strict_##T(void)                    \
-        {                                               \
-                __asm__ __volatile__(I ::: "memory");   \
-        }                                               \
-        CK_CC_INLINE static void ck_pr_fence_##T(void)  \
-        {                                               \
-                __asm__ __volatile__(I ::: "memory");   \
-        }
-#else
-/*
- * By default, we will assume TSO model is used on SPARCv9.
- */
-#define CK_PR_FENCE(T, I)                               \
-        CK_CC_INLINE static void                        \
-        ck_pr_fence_strict_##T(void)                    \
-        {                                               \
-                __asm__ __volatile__(I ::: "memory");   \
-        }                                               \
-        CK_CC_INLINE static void ck_pr_fence_##T(void)  \
-        {                                               \
-                __asm__ __volatile__("" ::: "memory");  \
-        }
-#endif /* !CK_MD_RMO && !CK_MD_PSO */
+#define CK_PR_FENCE(T, I)				\
+	CK_CC_INLINE static void			\
+	ck_pr_fence_strict_##T(void)			\
+	{						\
+		__asm__ __volatile__(I ::: "memory");   \
+	}
 
 CK_PR_FENCE(load_depends, "")
 CK_PR_FENCE(store, "membar #StoreStore")
+CK_PR_FENCE(store_store, "membar #StoreStore")
+CK_PR_FENCE(store_load, "membar #StoreLoad")
 CK_PR_FENCE(load, "membar #LoadLoad")
+CK_PR_FENCE(load_load, "membar #LoadLoad")
+CK_PR_FENCE(load_store, "membar #LoadStore")
 CK_PR_FENCE(memory, "membar #LoadLoad | #LoadStore | #StoreStore | #StoreLoad")
 
 #undef CK_PR_FENCE

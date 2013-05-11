@@ -62,40 +62,19 @@ ck_pr_stall(void)
 	return;
 }
 
-#if defined(CK_MD_RMO) || defined(CK_MD_PSO)
 #define CK_PR_FENCE(T, I)				\
 	CK_CC_INLINE static void			\
 	ck_pr_fence_strict_##T(void)			\
 	{						\
 		__asm__ __volatile__(I ::: "memory");	\
-	}						\
-	CK_CC_INLINE static void ck_pr_fence_##T(void)	\
-	{						\
-		__asm__ __volatile__(I ::: "memory");	\
 	}
-#else
-/*
- * IA32 has strong memory ordering guarantees, so memory
- * fences are enabled if and only if the user specifies that
- * that the program will be using non-temporal instructions.
- * Otherwise, an optimization barrier is used in order to prevent
- * compiler re-ordering of loads and stores across the barrier.
- */
-#define CK_PR_FENCE(T, I)				\
-	CK_CC_INLINE static void			\
-	ck_pr_fence_strict_##T(void)			\
-	{						\
-		__asm__ __volatile__(I ::: "memory");	\
-	}						\
-	CK_CC_INLINE static void ck_pr_fence_##T(void)	\
-	{						\
-		__asm__ __volatile__("" ::: "memory");	\
-	}
-#endif /* !CK_MD_RMO && !CK_MD_PSO */
 
 CK_PR_FENCE(load, "lfence")
-CK_PR_FENCE(load_depends, "")
+CK_PR_FENCE(load_load, "lfence")
+CK_PR_FENCE(load_store, "mfence")
 CK_PR_FENCE(store, "sfence")
+CK_PR_FENCE(store_store, "sfence")
+CK_PR_FENCE(store_load, "mfence")
 CK_PR_FENCE(memory, "mfence")
 
 #undef CK_PR_FENCE
