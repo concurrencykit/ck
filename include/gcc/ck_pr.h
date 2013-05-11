@@ -33,8 +33,8 @@
 
 #include <ck_cc.h>
 
-CK_CC_INLINE 
-static void ck_pr_barrier(void)
+CK_CC_INLINE static void
+ck_pr_barrier(void)
 {
 
 	__asm__ __volatile__("" ::: "memory");
@@ -43,6 +43,7 @@ static void ck_pr_barrier(void)
 
 #ifndef CK_F_PR
 #define CK_F_PR
+
 #include <stdbool.h>
 #include <ck_stdint.h>
 
