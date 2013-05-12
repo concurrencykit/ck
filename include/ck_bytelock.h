@@ -134,7 +134,7 @@ ck_bytelock_read_lock(struct ck_bytelock *bytelock, unsigned int slot)
 	if (slot > sizeof bytelock->readers) {
 		for (;;) {
 			ck_pr_inc_uint(&bytelock->n_readers);
-			ck_pr_fence_memory();
+			ck_pr_fence_atomic_load();
 			if (ck_pr_load_uint(&bytelock->owner) == 0)
 				break;
 			ck_pr_dec_uint(&bytelock->n_readers);
