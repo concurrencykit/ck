@@ -72,7 +72,10 @@
 CK_PR_FENCE_NOOP(load_depends)
 #define ck_pr_fence_strict_load_depends ck_pr_fence_load_depends
 
-
+/*
+ * In memory models where atomic operations do not have serializing
+ * effects, atomic read-modify-write operations are modeled as stores.
+ */
 #if defined(CK_MD_RMO)
 /*
  * Only stores to the same location have a global
