@@ -70,6 +70,8 @@
  * load ordering.
  */
 CK_PR_FENCE_NOOP(load_depends)
+#define ck_pr_fence_strict_load_depends ck_pr_fence_load_depends
+
 
 #if defined(CK_MD_RMO)
 /*

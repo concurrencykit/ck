@@ -106,17 +106,6 @@ ck_pr_stall(void)
 }
 
 /*
- * Most target architectures do not require this.
- */
-CK_CC_INLINE static void
-ck_pr_fence_load_depends(void)
-{
-
-	__sync_synchronize();
-	return;
-}
-
-/*
  * Load and store fences are equivalent to full fences in the GCC port.
  */
 #define CK_PR_FENCE(T)					\
