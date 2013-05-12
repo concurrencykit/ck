@@ -70,6 +70,10 @@ ck_pr_stall(void)
 		__asm__ __volatile__(I ::: "memory");	\
 	}
 
+CK_PR_FENCE(atomic_store, "sfence")
+CK_PR_FENCE(atomic_load, "mfence")
+CK_PR_FENCE(store_atomic, "sfence")
+CK_PR_FENCE(load_atomic, "mfence")
 CK_PR_FENCE(load, "lfence")
 CK_PR_FENCE(load_load, "lfence")
 CK_PR_FENCE(load_store, "mfence")

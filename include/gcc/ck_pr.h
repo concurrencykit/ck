@@ -126,6 +126,12 @@ ck_pr_fence_load_depends(void)
 		__sync_synchronize();			\
 	}
 
+CK_PR_FENCE(atomic)
+CK_PR_FENCE(atomic_atomic)
+CK_PR_FENCE(atomic_load)
+CK_PR_FENCE(atomic_store)
+CK_PR_FENCE(store_atomic)
+CK_PR_FENCE(load_atomic)
 CK_PR_FENCE(load)
 CK_PR_FENCE(load_load)
 CK_PR_FENCE(load_store)

@@ -70,7 +70,10 @@ ck_pr_stall(void)
  * These are derived from:
  *     http://www.ibm.com/developerworks/systems/articles/powerpc.html
  */
-CK_PR_FENCE(load_depends, "")
+CK_PR_FENCE(atomic_store, "lwsync")
+CK_PR_FENCE(atomic_load, "sync")
+CK_PR_FENCE(store_atomic, "lwsync")
+CK_PR_FENCE(load_atomic, "lwsync")
 CK_PR_FENCE(store, "lwsync")
 CK_PR_FENCE(store_store, "lwsync")
 CK_PR_FENCE(store_load, "sync")

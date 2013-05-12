@@ -76,6 +76,12 @@ CK_PR_FENCE_NOOP(load_depends)
  * Only stores to the same location have a global
  * ordering.
  */
+CK_PR_FENCE_EMIT(atomic)
+CK_PR_FENCE_EMIT(atomic_atomic)
+CK_PR_FENCE_EMIT(atomic_load)
+CK_PR_FENCE_EMIT(atomic_store)
+CK_PR_FENCE_EMIT(store_atomic)
+CK_PR_FENCE_EMIT(load_atomic)
 CK_PR_FENCE_EMIT(load_load)
 CK_PR_FENCE_EMIT(load_store)
 CK_PR_FENCE_EMIT(store_store)
@@ -88,6 +94,12 @@ CK_PR_FENCE_EMIT(memory)
  * Anything can be re-ordered with respect to stores.
  * Otherwise, loads are executed in-order.
  */
+CK_PR_FENCE_EMIT(atomic)
+CK_PR_FENCE_EMIT(atomic_atomic)
+CK_PR_FENCE_NOOP(atomic_load)
+CK_PR_FENCE_EMIT(atomic_store)
+CK_PR_FENCE_EMIT(store_atomic)
+CK_PR_FENCE_NOOP(load_atomic)
 CK_PR_FENCE_NOOP(load_load)
 CK_PR_FENCE_EMIT(load_store)
 CK_PR_FENCE_EMIT(store_store)
@@ -98,8 +110,14 @@ CK_PR_FENCE_EMIT(memory)
 #elif defined(CK_MD_TSO)
 /*
  * Only loads are re-ordered and only with respect to
- * prior stores.
+ * prior stores. Atomic operations are serializing.
  */
+CK_PR_FENCE_NOOP(atomic)
+CK_PR_FENCE_NOOP(atomic_atomic)
+CK_PR_FENCE_NOOP(atomic_load)
+CK_PR_FENCE_NOOP(atomic_store)
+CK_PR_FENCE_NOOP(store_atomic)
+CK_PR_FENCE_NOOP(load_atomic)
 CK_PR_FENCE_NOOP(load_load)
 CK_PR_FENCE_NOOP(load_store)
 CK_PR_FENCE_NOOP(store_store)
