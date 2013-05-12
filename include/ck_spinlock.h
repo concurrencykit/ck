@@ -142,7 +142,7 @@ ck_spinlock_anderson_lock(struct ck_spinlock_anderson *lock,
 
 	/* Prepare slot for potential re-use by another thread. */
 	ck_pr_store_uint(&lock->slots[position].locked, true);
-	ck_pr_fence_store();
+	ck_pr_fence_memory();
 
 	*slot = lock->slots + position;
 	return;
