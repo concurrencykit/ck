@@ -67,6 +67,8 @@ ck_pr_stall(void)
  * Atomic operations are treated as both load and store
  * operations on SPARCv9.
  */
+CK_PR_FENCE(atomic_atomic, "membar #StoreStore")
+CK_PR_FENCE(atomic, "membar #StoreStore")
 CK_PR_FENCE(atomic_store, "membar #StoreStore")
 CK_PR_FENCE(atomic_load, "membar #StoreLoad")
 CK_PR_FENCE(store_atomic, "membar #StoreStore")
