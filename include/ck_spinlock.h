@@ -142,7 +142,7 @@ ck_spinlock_anderson_lock(struct ck_spinlock_anderson *lock,
 
 	/* Prepare slot for potential re-use by another thread. */
 	ck_pr_store_uint(&lock->slots[position].locked, true);
-	ck_pr_fence_store();
+	ck_pr_fence_memory();
 
 	*slot = lock->slots + position;
 	return;
@@ -194,7 +194,7 @@ ck_spinlock_fas_trylock(struct ck_spinlock_fas *lock)
 	if (value == false)
 		ck_pr_fence_memory();
 
-	return (!value);
+	return !value;
 }
 
 CK_CC_INLINE static bool
@@ -268,7 +268,7 @@ ck_spinlock_cas_trylock(struct ck_spinlock_cas *lock)
 	if (value == false)
 		ck_pr_fence_memory();
 
-	return (!value);
+	return !value;
 }
 
 CK_CC_INLINE static bool
@@ -658,9 +658,9 @@ CK_CC_INLINE static bool
 ck_spinlock_mcs_trylock(struct ck_spinlock_mcs **queue, struct ck_spinlock_mcs *node)
 {
 
-	ck_pr_store_uint(&node->locked, true);
-	ck_pr_store_ptr(&node->next, NULL);
-	ck_pr_fence_store();
+	node->locked = true;
+	node->next = NULL;
+	ck_pr_fence_store_atomic();
 
 	if (ck_pr_cas_ptr(queue, NULL, node) == true) {
 		ck_pr_fence_load();
@@ -686,24 +686,24 @@ ck_spinlock_mcs_lock(struct ck_spinlock_mcs **queue, struct ck_spinlock_mcs *nod
 	 * In the case that there is a successor, let them know they must wait
 	 * for us to unlock.
 	 */
-	ck_pr_store_uint(&node->locked, true);
-	ck_pr_store_ptr(&node->next, NULL);
+	node->locked = true;
+	node->next = NULL;
+	ck_pr_fence_store_atomic();
 
 	/*
 	 * Swap current tail with current lock request. If the swap operation
 	 * returns NULL, it means the queue was empty. If the queue was empty,
 	 * then the operation is complete.
 	 */
-	ck_pr_fence_memory();
 	previous = ck_pr_fas_ptr(queue, node);
-	if (previous == NULL)
-		return;
+	if (previous != NULL) {
+		/* Let the previous lock holder know that we are waiting on them. */
+		ck_pr_store_ptr(&previous->next, node);
+		while (ck_pr_load_uint(&node->locked) == true)
+			ck_pr_stall();
+	}
 
-	/* Let the previous lock holder know that we are waiting on them. */
-	ck_pr_store_ptr(&previous->next, node);
-	while (ck_pr_load_uint(&node->locked) == true)
-		ck_pr_stall();
-
+	ck_pr_fence_load();
 	return;
 }
 
@@ -711,6 +711,8 @@ CK_CC_INLINE static void
 ck_spinlock_mcs_unlock(struct ck_spinlock_mcs **queue, struct ck_spinlock_mcs *node)
 {
 	struct ck_spinlock_mcs *next;
+
+	ck_pr_fence_memory();
 
 	next = ck_pr_load_ptr(&node->next);
 	if (next == NULL) {
@@ -721,7 +723,6 @@ ck_spinlock_mcs_unlock(struct ck_spinlock_mcs **queue, struct ck_spinlock_mcs *n
 		 */
 		if (ck_pr_load_ptr(queue) == node &&
 		    ck_pr_cas_ptr(queue, node, NULL) == true) {
-			ck_pr_fence_memory();
 			return;
 		}
 
@@ -740,9 +741,7 @@ ck_spinlock_mcs_unlock(struct ck_spinlock_mcs **queue, struct ck_spinlock_mcs *n
 	}
 
 	/* Allow the next lock operation to complete. */
-	ck_pr_fence_memory();
 	ck_pr_store_uint(&next->locked, false);
-
 	return;
 }
 #endif /* CK_F_SPINLOCK_MCS */

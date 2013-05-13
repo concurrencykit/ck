@@ -97,12 +97,11 @@ ck_epoch_begin(ck_epoch_t *epoch, ck_epoch_record_t *record)
 		/*
 		 * It is possible for loads to be re-ordered before the store
 		 * is committed into the caller's epoch and active fields.
-		 * Execute a full barrier to serialize stores with respect to
-		 * loads
+		 * For this reason, store to load serialization is necessary.
 		 */
 		ck_pr_store_uint(&record->epoch, g_epoch);
 		ck_pr_store_uint(&record->active, 1);
-		ck_pr_fence_strict_memory();
+		ck_pr_fence_store_load();
 		return;
 	}
 
