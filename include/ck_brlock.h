@@ -83,7 +83,7 @@ ck_brlock_write_lock(struct ck_brlock *br)
 	while (ck_pr_fas_uint(&br->writer, true) == true)
 		ck_pr_stall();
 
-	ck_pr_fence_memory();
+	ck_pr_fence_atomic_load();
 
 	/* The reader list is protected under the writer br. */
 	for (cursor = br->readers; cursor != NULL; cursor = cursor->next) {
@@ -121,7 +121,7 @@ ck_brlock_write_trylock(struct ck_brlock *br, unsigned int factor)
 	 * We do not require a strict fence here as atomic RMW operations
 	 * are serializing.
 	 */
-	ck_pr_fence_memory();
+	ck_pr_fence_atomic_load();
 
 	for (cursor = br->readers; cursor != NULL; cursor = cursor->next) {
 		while (ck_pr_load_uint(&cursor->n_readers) != 0) {
@@ -190,11 +190,18 @@ ck_brlock_read_lock(struct ck_brlock *br, struct ck_brlock_reader *reader)
 #if defined(__x86__) || defined(__x86_64__)
 		ck_pr_fas_uint(&reader->n_readers, 1);
 
-		/* Serialize counter update with respect to writer snapshot. */
-		ck_pr_fence_memory();
+		/*
+		 * Serialize reader counter update with respect to load of
+		 * writer.
+		 */
+		ck_pr_fence_atomic_load();
 #else
-		/* Loads can be re-ordered before previous stores, even on TSO. */
 		ck_pr_store_uint(&reader->n_readers, 1);
+
+		/*
+		 * Serialize reader counter update with respect to load of
+		 * writer.
+		 */
 		ck_pr_fence_store_load();
 #endif
 
@@ -228,9 +235,23 @@ ck_brlock_read_trylock(struct ck_brlock *br,
 			ck_pr_stall();
 		}
 
-		/* Loads are re-ordered with respect to prior stores. */
+#if defined(__x86__) || defined(__x86_64__)
+		ck_pr_fas_uint(&reader->n_readers, 1);
+
+		/*
+		 * Serialize reader counter update with respect to load of
+		 * writer.
+		 */
+		ck_pr_fence_atomic_load();
+#else
 		ck_pr_store_uint(&reader->n_readers, 1);
+
+		/*
+		 * Serialize reader counter update with respect to load of
+		 * writer.
+		 */
 		ck_pr_fence_store_load();
+#endif
 
 		if (ck_pr_load_uint(&br->writer) == false)
 			break;
