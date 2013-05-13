@@ -194,7 +194,7 @@ ck_spinlock_fas_trylock(struct ck_spinlock_fas *lock)
 	if (value == false)
 		ck_pr_fence_memory();
 
-	return (!value);
+	return !value;
 }
 
 CK_CC_INLINE static bool
@@ -268,7 +268,7 @@ ck_spinlock_cas_trylock(struct ck_spinlock_cas *lock)
 	if (value == false)
 		ck_pr_fence_memory();
 
-	return (!value);
+	return !value;
 }
 
 CK_CC_INLINE static bool
