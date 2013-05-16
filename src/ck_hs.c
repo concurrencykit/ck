@@ -421,7 +421,7 @@ restart:
 		 */
 		if (slot != NULL && *slot != CK_HS_EMPTY) {
 			ck_pr_inc_uint(&map->generation[h & CK_HS_G_MASK]);
-			ck_pr_fence_store();
+			ck_pr_fence_atomic_store();
 			ck_pr_store_ptr(slot, CK_HS_TOMBSTONE);
 		}
 	} else {
