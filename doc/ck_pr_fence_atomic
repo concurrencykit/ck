@@ -24,25 +24,24 @@
 .\" SUCH DAMAGE.
 .\"
 .\"
-.Dd April 7, 2013
-.Dt ck_pr_fence_store 3
+.Dd May 16, 2013
+.Dt CK_PR_FENCE_ATOMIC 3 
 .Sh NAME
-.Nm ck_pr_fence_store
-.Nd enforce partial ordering of store operations
+.Nm ck_pr_fence_atomic
+.Nd enforce partial ordering of atomic read-modify-write operations
 .Sh LIBRARY
 Concurrency Kit (libck, \-lck)
 .Sh SYNOPSIS
 .In ck_pr.h
 .Ft void
-.Fn ck_pr_fence_store void
+.Fn ck_pr_fence_atomic void
 .Ft void
-.Fn ck_pr_fence_strict_store void
+.Fn ck_pr_fence_strict_atomic void
 .Sh DESCRIPTION
 The 
-.Fn ck_pr_fence_store
-function enfores the ordering of any memory store,
-.Fn ck_pr_store
-and atomic read-modify-write operations relative to
+.Fn ck_pr_fence_atomic
+function enfores the ordering of any 
+atomic read-modify-write operations relative to
 the invocation of the function. This function
 always serve as an implicit compiler barrier. On
 architectures implementing CK_MD_TSO, this operation
@@ -50,8 +49,8 @@ only serves as a compiler barrier and no fences
 are emitted. On architectures implementing
 CK_MD_PSO and CK_MD_RMO, a store fence is
 emitted. To force the unconditional emission of
-a store fence, use
-.Fn ck_pr_fence_strict_store .
+a fence, use
+.Fn ck_pr_fence_strict_atomic .
 .Sh EXAMPLE
 .Bd -literal -offset indent
 
@@ -65,15 +64,15 @@ void
 function(void)
 {
 
-	ck_pr_store_int(&a, 1);
+	ck_pr_fas_int(&a, 1);
 
 	/*
-	 * Guarantee that the store to a is completed
-	 * with respect to the stores of b and c.
+	 * Guarantee that the update to a is completed
+	 * with respect to the updates of b and c.
 	 */
-	ck_pr_fence_store();
-	ck_pr_store_int(&b, 2);
-	ck_pr_store_int(&c, 2);
+	ck_pr_fence_atomic();
+	ck_pr_fas_int(&b, 2);
+	ck_pr_fas_int(&c, 2);
 
 	return;
 }
@@ -82,7 +81,7 @@ function(void)
 This function has no return value.
 .Sh SEE ALSO
 .Xr ck_pr_stall 3 ,
-.Xr ck_pr_fence_atomic 3 ,
+.Xr ck_pr_fence_store 3 ,
 .Xr ck_pr_fence_load 3 ,
 .Xr ck_pr_fence_load_depends 3 ,
 .Xr ck_pr_fence_memory 3 ,
