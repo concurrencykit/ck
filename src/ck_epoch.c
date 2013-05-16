@@ -162,6 +162,7 @@ ck_epoch_recycle(struct ck_epoch *global)
 		record = ck_epoch_record_container(cursor);
 
 		if (ck_pr_load_uint(&record->state) == CK_EPOCH_STATE_FREE) {
+			/* Serialize with respect to deferral list clean-up. */
 			ck_pr_fence_load();
 			state = ck_pr_fas_uint(&record->state, CK_EPOCH_STATE_USED);
 			if (state == CK_EPOCH_STATE_FREE) {
