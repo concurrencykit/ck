@@ -85,6 +85,8 @@ This function has no return value.
 .Xr ck_pr_fence_atomic_load 3 ,
 .Xr ck_pr_fence_store 3 ,
 .Xr ck_pr_fence_load 3 ,
+.Xr ck_pr_fence_load_atomic 3 ,
+.Xr ck_pr_fence_load_store 3 ,
 .Xr ck_pr_fence_load_depends 3 ,
 .Xr ck_pr_fence_memory 3 ,
 .Xr ck_pr_barrier 3 ,
