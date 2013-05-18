@@ -100,6 +100,8 @@ OBJECTS=ck_ht_count 	  		\
 	ck_pr_fence_load_depends	\
 	ck_pr_fence_memory		\
 	ck_pr_fence_store		\
+	ck_pr_fence_store_atomic	\
+	ck_pr_fence_store_load		\
 	ck_pr_stall			\
 	ck_pr_faa			\
 	ck_pr_inc			\
