@@ -71,16 +71,13 @@ ck_pr_stall(void)
  *     http://www.ibm.com/developerworks/systems/articles/powerpc.html
  */
 CK_PR_FENCE(atomic, "lwsync")
-CK_PR_FENCE(atomic_atomic, "lwsync")
 CK_PR_FENCE(atomic_store, "lwsync")
 CK_PR_FENCE(atomic_load, "sync")
 CK_PR_FENCE(store_atomic, "lwsync")
 CK_PR_FENCE(load_atomic, "lwsync")
 CK_PR_FENCE(store, "lwsync")
-CK_PR_FENCE(store_store, "lwsync")
 CK_PR_FENCE(store_load, "sync")
 CK_PR_FENCE(load, "lwsync")
-CK_PR_FENCE(load_load, "lwsync")
 CK_PR_FENCE(load_store, "lwsync")
 CK_PR_FENCE(memory, "sync")
 
