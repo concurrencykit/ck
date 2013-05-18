@@ -92,6 +92,8 @@ OBJECTS=ck_ht_count 	  		\
 	ck_pr_barrier			\
 	ck_pr_fas			\
 	ck_pr_fence_atomic		\
+	ck_pr_fence_atomic_load		\
+	ck_pr_fence_atomic_store	\
 	ck_pr_fence_load		\
 	ck_pr_fence_load_depends	\
 	ck_pr_fence_memory		\
