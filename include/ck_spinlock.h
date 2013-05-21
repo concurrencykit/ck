@@ -408,9 +408,9 @@ ck_spinlock_dec_unlock(struct ck_spinlock_dec *lock)
 /*
  * If 16-bit or 32-bit increment is supported, implement support for
  * trylock functionality on availability of 32-bit or 64-bit fetch-and-add
- * and compare-and-swap.
+ * and compare-and-swap. This code path is only applied to x86*.
  */
-#if defined(CK_MD_TSO)
+#if defined(CK_MD_TSO) && (defined(__x86__) || defined(__x86_64__))
 #if defined(CK_F_PR_FAA_32) && defined(CK_F_PR_INC_16) && defined(CK_F_PR_CAS_32)
 #define CK_SPINLOCK_TICKET_TYPE         uint32_t
 #define CK_SPINLOCK_TICKET_TYPE_BASE    uint16_t
