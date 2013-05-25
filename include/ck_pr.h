@@ -57,11 +57,13 @@
 	ck_pr_fence_##T(void)			\
 	{					\
 		ck_pr_fence_strict_##T();	\
+		return;				\
 	}
 #define CK_PR_FENCE_NOOP(T)			\
 	CK_CC_INLINE static void		\
 	ck_pr_fence_##T(void)			\
 	{					\
+		ck_pr_barrier();		\
 		return;				\
 	}
 
