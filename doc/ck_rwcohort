@@ -24,66 +24,55 @@
 .\" SUCH DAMAGE.
 .\"
 .\"
-.Dd February 24, 2013.
-.Dt ck_cohort 3
+.Dd April 23, 2013.
+.Dt ck_rwcohort 3
 .Sh NAME
-.Nm ck_cohort
-.Nd generalized interface for lock cohorts
+.Nm ck_rwcohort
+.Nd generalized interface for reader-writer locks using cohort locks
 .Sh LIBRARY
 Concurrency Kit (libck, \-lck)
 .Sh SYNOPSIS
-.In ck_cohort.h
-.Fn CK_COHORT_PROTOTYPE "COHORT_NAME cohort_name" "LOCK_FXN global_lock_method" \
-"LOCK_FXN global_unlock_method" "LOCK_FXN local_lock_method" "LOCK_FXN local_unlock_method"
-.Fn CK_COHORT_TRYLOCK_PROTOTYPE "COHORT_NAME cohort_name" \
-"LOCK_FXN global_lock_method" "LOCK_FXN global_unlock_method" \
-"BOOL_LOCK_FXN global_locked_method" BOOL_LOCK_FXN global_trylock_method" \
-"LOCK_FXN local_lock_method" "LOCK_FXN local_unlock_method" \
-"BOOL_LOCK_FXN local_locked_method" BOOL_LOCK_FXN local_trylock_method"
-.Fn CK_COHORT_INSTANCE "COHORT_NAME cohort_name"
-.Fn CK_COHORT_INIT "COHORT_NAME cohort_name" "ck_cohort *cohort" \
-"void *global_lock" "void *local_lock" "unsigned int pass_limit"
-.Fn CK_COHORT_LOCK "COHORT_NAME cohort_name" "ck_cohort *cohort" \
+.In ck_rwcohort.h
+In each of the following macros, "STRATEGY" should be replaced with either "NEUTRAL", "RP", or "WP"
+depending on which locking strategy the user prefers.  RP and WP represent reader preference and
+writer preference, respectively, while NEUTRAL represents a strategy neutral to reads vs. writes.
+.Fn CK_RWCOHORT_STRATEGY_PROTOTYPE "COHORT_NAME cohort_name"
+.Fn CK_RWCOHORT_STRATEGY_NAME "COHORT_NAME cohort_name"
+.Fn CK_RWCOHORT_STRATEGY_INSTANCE "COHORT_NAME cohort_name"
+.Fn CK_RWCOHORT_STRATEGY_INIT "COHORT_NAME cohort_name" "RWCOHORT lock" "unsigned int wait_limit"
+Note: the wait_limit argument should be omitted for locks using the neutral strategy
+.Fn CK_RWCOHORT_STRATEGY_READ_LOCK "COHORT_NAME cohort_name" "RWCOHORT lock" "COHORT cohort" \
 "void *global_context" "void *local_context"
-.Fn CK_COHORT_UNLOCK "COHORT_NAME cohort_name" "ck_cohort *cohort" \
+.Fn CK_RWCOHORT_STRATEGY_READ_UNLOCK "COHORT_NAME cohort_name" "RWCOHORT lock" "COHORT cohort" \
 "void *global_context" "void *local_context"
-.Pp
-Where LOCK_FXN refers to a method with the signature
-.br
-void(void *lock, void *context)
-.br
-BOOL_LOCK_FXN refers to a method with the signature
-.br
-bool(void *lock, void *context)
-.Pp
-The
-.Fa context 
-argument in each signature is used to pass along any additional information that
-the lock might need for its lock, unlock and trylock methods.  The values for this
-argument are provided to each call to
-.Xr CK_COHORT_LOCK 3 ,
-.Xr CK_COHORT_UNLOCK 3 ,
-.Xr CK_COHORT_LOCKED 3 ,
-and
-.Xr CK_COHORT_TRYLOCK 3
-.
-.Sh DESCRIPTION
-ck_cohort.h provides an interface for defining lock cohorts with
-arbitrary lock types.  Cohorts are a mechanism for coordinating
-threads on NUMA architectures in order to reduce the frequency
-with which a lock is passed between threads on different clusters.
-.Pp
-Before using a cohort, the user must define a cohort type using
-either the
-.Fn CK_COHORT_PROTOTYPE
-or the
-.Fn CK_COHORT_TRYLOCK_PROTOTYPE
-macros.  These macros allow the user to specify the lock methods that
-they would like the cohort to use.  See the
+.Fn CK_RWCOHORT_STRATEGY_WRITE_LOCK "COHORT_NAME cohort_name" "RWCOHORT lock" "COHORT cohort" \
+"void *global_context" "void *local_context"
+.Fn CK_RWCOHORT_STRATEGY_WRITE_UNLOCK "COHORT_NAME cohort_name" "RWCOHORT lock" "COHORT cohort" \
+"void *global_context" "void *local_context"
+
+Arguments of type RWCOHORT must be pointers to structs defined using the
+.Xr CK_RWCOHORT_STRATEGY_PROTOTYPE 3
+macro with the same strategy and cohort name as the current call.
+
+Arguments of type COHORT must be pointers to structs defined using the
 .Xr CK_COHORT_PROTOTYPE 3
-and
+macro.
+
+.Sh DESCRIPTION
+ck_rwcohort.h provides an interface for defining reader-writer locks
+that use cohort locks internally to increase performance on NUMA
+architectures.  See
+.Xr ck_cohort 3
+for more information about cohort locks.
+.Pp
+Before using a reader-writer cohort lock, the user must define a cohort type using
+either the
+.Xr CK_COHORT_PROTOTYPE 3
+or the
 .Xr CK_COHORT_TRYLOCK_PROTOTYPE 3
-man pages for more details.
+macros, and define a reader-writer lock type using the 
+.Xr CK_RWCOHORT_PROTOTYPE 3
+macro.
 .Pp
 .Sh EXAMPLE
 .Bd -literal -offset indent

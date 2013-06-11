@@ -54,7 +54,6 @@
 		unsigned int write_barrier;							\
 		unsigned int wait_limit;							\
 	};											\
-												\
 	CK_CC_INLINE static void								\
 	ck_rwcohort_wp_##N##_init(CK_RWCOHORT_WP_INSTANCE(N) *rw_cohort,			\
 	    unsigned int wait_limit)								\
@@ -65,7 +64,6 @@
 		ck_pr_barrier();								\
 		return;										\
 	}											\
-												\
 	CK_CC_INLINE static void								\
 	ck_rwcohort_wp_##N##_write_lock(CK_RWCOHORT_WP_INSTANCE(N) *rw_cohort,			\
 	    CK_COHORT_INSTANCE(N) *cohort, void *global_context,				\
@@ -83,7 +81,6 @@
 												\
 		return;										\
 	}											\
-												\
 	CK_CC_INLINE static void								\
 	ck_rwcohort_wp_##N##_write_unlock(CK_RWCOHORT_WP_INSTANCE(N) *rw_cohort,		\
 	    CK_COHORT_INSTANCE(N) *cohort, void *global_context,				\
@@ -91,8 +88,8 @@
 	{											\
 		(void)rw_cohort;								\
 		CK_COHORT_UNLOCK(N, cohort, global_context, local_context);			\
+		return;										\
 	}											\
-												\
 	CK_CC_INLINE static void								\
 	ck_rwcohort_wp_##N##_read_lock(CK_RWCOHORT_WP_INSTANCE(N) *rw_cohort,			\
 	    CK_COHORT_INSTANCE(N) *cohort, void *global_context,				\
@@ -101,7 +98,7 @@
 		unsigned int wait_count = 0;							\
 		bool raised = false;								\
 	                                                                                        \
-                while (true) {                                                                  \
+                for (;;) {                                                                  	\
                         ck_pr_inc_uint(&rw_cohort->read_counter);				\
                         if (CK_COHORT_LOCKED(N, cohort, global_context, local_context) == false) {\
                                 break;                                                          \
@@ -123,11 +120,11 @@
 												\
 		return;										\
 	}											\
-												\
 	CK_CC_INLINE static void								\
 	ck_rwcohort_wp_##N##_read_unlock(CK_RWCOHORT_WP_INSTANCE(N) *cohort)			\
 	{											\
 		ck_pr_dec_uint(&cohort->read_counter);						\
+		return;										\
 	}
 
 #define CK_RWCOHORT_WP_INITIALIZER {								\
@@ -152,7 +149,6 @@
 		unsigned int read_barrier;							\
 		unsigned int wait_limit;							\
 	};											\
-												\
 	CK_CC_INLINE static void								\
 	ck_rwcohort_rp_##N##_init(CK_RWCOHORT_RP_INSTANCE(N) *rw_cohort,			\
 	    unsigned int wait_limit)								\
@@ -163,7 +159,6 @@
 		ck_pr_barrier();								\
 		return;										\
 	}											\
-												\
 	CK_CC_INLINE static void								\
 	ck_rwcohort_rp_##N##_write_lock(CK_RWCOHORT_RP_INSTANCE(N) *rw_cohort,			\
 	    CK_COHORT_INSTANCE(N) *cohort, void *global_context,				\
@@ -172,7 +167,7 @@
 		unsigned int wait_count = 0;							\
 		bool raised = false;								\
 	                                                                                        \
-                while (true) {                                                                  \
+                for (;;) {                                                                  	\
                 	CK_COHORT_LOCK(N, cohort, global_context, local_context);		\
                 	if (ck_pr_load_uint(&rw_cohort->read_counter) == 0) {			\
                 		break;								\
@@ -194,15 +189,14 @@
 												\
 		return;										\
 	}											\
-												\
 	CK_CC_INLINE static void								\
 	ck_rwcohort_rp_##N##_write_unlock(CK_RWCOHORT_RP_INSTANCE(N) *rw_cohort,		\
 	    CK_COHORT_INSTANCE(N) *cohort, void *global_context, void *local_context)		\
 	{											\
 		(void)rw_cohort;								\
 		CK_COHORT_UNLOCK(N, cohort, global_context, local_context);			\
+		return;										\
 	}											\
-												\
 	CK_CC_INLINE static void								\
 	ck_rwcohort_rp_##N##_read_lock(CK_RWCOHORT_RP_INSTANCE(N) *rw_cohort,			\
 	    CK_COHORT_INSTANCE(N) *cohort, void *global_context,				\
@@ -219,12 +213,11 @@
 												\
 		return;										\
 	}											\
-												\
-												\
 	CK_CC_INLINE static void								\
 	ck_rwcohort_rp_##N##_read_unlock(CK_RWCOHORT_RP_INSTANCE(N) *cohort)			\
 	{											\
 		ck_pr_dec_uint(&cohort->read_counter);						\
+		return;										\
 	}
 
 #define CK_RWCOHORT_RP_INITIALIZER {								\
@@ -247,7 +240,6 @@
 	CK_RWCOHORT_NEUTRAL_INSTANCE(N) {							\
 		unsigned int read_counter;							\
 	};											\
-												\
 	CK_CC_INLINE static void								\
 	ck_rwcohort_neutral_##N##_init(CK_RWCOHORT_NEUTRAL_INSTANCE(N) *rw_cohort)		\
 	{											\
@@ -255,7 +247,6 @@
 		ck_pr_barrier();								\
 		return;										\
 	}											\
-												\
 	CK_CC_INLINE static void								\
 	ck_rwcohort_neutral_##N##_write_lock(CK_RWCOHORT_NEUTRAL_INSTANCE(N) *rw_cohort,	\
 	    CK_COHORT_INSTANCE(N) *cohort, void *global_context,				\
@@ -267,15 +258,14 @@
 		}										\
 		return;										\
 	}											\
-												\
 	CK_CC_INLINE static void								\
 	ck_rwcohort_neutral_##N##_write_unlock(CK_RWCOHORT_NEUTRAL_INSTANCE(N) *rw_cohort,	\
 	    CK_COHORT_INSTANCE(N) *cohort, void *global_context, void *local_context)		\
 	{											\
 		(void)rw_cohort;								\
 		CK_COHORT_UNLOCK(N, cohort, global_context, local_context);			\
+		return;										\
 	}											\
-												\
 	CK_CC_INLINE static void								\
 	ck_rwcohort_neutral_##N##_read_lock(CK_RWCOHORT_NEUTRAL_INSTANCE(N) *rw_cohort,		\
 	    CK_COHORT_INSTANCE(N) *cohort, void *global_context,				\
@@ -287,12 +277,11 @@
 												\
 		return;										\
 	}											\
-												\
-												\
 	CK_CC_INLINE static void								\
 	ck_rwcohort_neutral_##N##_read_unlock(CK_RWCOHORT_NEUTRAL_INSTANCE(N) *cohort)		\
 	{											\
 		ck_pr_dec_uint(&cohort->read_counter);						\
+		return;										\
 	}
 
 #define CK_RWCOHORT_NEUTRAL_INITIALIZER {							\

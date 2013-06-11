@@ -33,18 +33,20 @@
 Concurrency Kit (libck, \-lck)
 .Sh SYNOPSIS
 .In ck_rwcohort.h
-.Fn CK_RWCOHORT_INIT "COHORT_NAME cohort_name" "LOCK *lock" "unsigned int wait_limit"
+.Fn CK_RWCOHORT_NEUTRAL_INIT "COHORT_NAME cohort_name" "LOCK *lock"
+.Fn CK_RWCOHORT_RP_INIT "COHORT_NAME cohort_name" "LOCK *lock" "unsigned int wait_limit"
+.Fn CK_RWCOHORT_WP_INIT "COHORT_NAME cohort_name" "LOCK *lock" "unsigned int wait_limit"
 .Sh DESCRIPTION
 This macro initializes the lock instance pointed to by the
 .Fa lock
 argument.  Until a lock instance is initialized using the CK_RWCOHORT_INIT macro, any operations
-involving it will have undefined behavior.  The 
+involving it will have undefined behavior.  Note that the 
 .Fa wait_limit
 argument should only be used with reader-preference or writer-preference locks.  For neutral
 locks, this argument should be excluded.
 If you are unsure of a value to use for the 
 .Fa wait_limit
-argument, you should use CK_RWCOHORT_DEFAULT_LOCAL_WAIT_LIMIT.
+argument, you should use CK_RWCOHORT_STRATEGY_DEFAULT_LOCAL_WAIT_LIMIT.
 .Sh SEE ALSO
 .Xr ck_rwcohort 3 ,
 .Xr CK_RWCOHORT_PROTOTYPE 3 ,
