@@ -579,10 +579,9 @@ mkdir -p $P_PWD/src
 if test "$P_PWD" '!=' "$BUILD_DIR"; then
 	mkdir -p $P_PWD/regressions
 	cp $BUILD_DIR/regressions/Makefile.unsupported $P_PWD/regressions/Makefile &> /dev/null
+	cp $BUILD_DIR/build/ck.build.$PROFILE $P_PWD/build/ck.build.$PROFILE &> /dev/null
+	cp $BUILD_DIR/include/ck_md.h $P_PWD/include/ck_md.h &> /dev/null
 fi
-
-cp $BUILD_DIR/build/ck.build.$PROFILE $P_PWD/build/ck.build.$PROFILE &> /dev/null
-cp $BUILD_DIR/include/ck_md.h $P_PWD/include/ck_md.h &> /dev/null
 
 generate src/Makefile.in $P_PWD/src/Makefile
 generate doc/Makefile.in $P_PWD/doc/Makefile

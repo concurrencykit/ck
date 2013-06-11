@@ -76,12 +76,12 @@ ck_hp_fifo_enqueue_mpmc(ck_hp_record_t *record,
 
 	entry->value = value;
 	entry->next = NULL;
-	ck_pr_fence_store();
+	ck_pr_fence_store_atomic();
 
 	for (;;) {
 		tail = ck_pr_load_ptr(&fifo->tail);
 		ck_hp_set(record, 0, tail);
-		ck_pr_fence_strict_memory();
+		ck_pr_fence_store_load();
 		if (tail != ck_pr_load_ptr(&fifo->tail))
 			continue;
 
@@ -93,7 +93,7 @@ ck_hp_fifo_enqueue_mpmc(ck_hp_record_t *record,
 			break;
 	}
 
-	ck_pr_fence_store();
+	ck_pr_fence_atomic();
 	ck_pr_cas_ptr(&fifo->tail, tail, entry);
 	return;
 }
@@ -108,11 +108,11 @@ ck_hp_fifo_tryenqueue_mpmc(ck_hp_record_t *record,
 
 	entry->value = value;
 	entry->next = NULL;
-	ck_pr_fence_store();
+	ck_pr_fence_store_atomic();
 
 	tail = ck_pr_load_ptr(&fifo->tail);
 	ck_hp_set(record, 0, tail);
-	ck_pr_fence_strict_memory();
+	ck_pr_fence_store_load();
 	if (tail != ck_pr_load_ptr(&fifo->tail))
 		return false;
 
@@ -123,7 +123,7 @@ ck_hp_fifo_tryenqueue_mpmc(ck_hp_record_t *record,
 	} else if (ck_pr_cas_ptr(&fifo->tail->next, next, entry) == false)
 		return false;
 
-	ck_pr_fence_store();
+	ck_pr_fence_atomic();
 	ck_pr_cas_ptr(&fifo->tail, tail, entry);
 	return true;
 }
@@ -140,13 +140,13 @@ ck_hp_fifo_dequeue_mpmc(ck_hp_record_t *record,
 		ck_pr_fence_load();
 		tail = ck_pr_load_ptr(&fifo->tail);
 		ck_hp_set(record, 0, head);
-		ck_pr_fence_strict_memory();
+		ck_pr_fence_store_load();
 		if (head != ck_pr_load_ptr(&fifo->head))
 			continue;
 
 		next = ck_pr_load_ptr(&head->next);
 		ck_hp_set(record, 1, next);
-		ck_pr_fence_strict_memory();
+		ck_pr_fence_store_load();
 		if (head != ck_pr_load_ptr(&fifo->head))
 			continue;
 
@@ -175,13 +175,13 @@ ck_hp_fifo_trydequeue_mpmc(ck_hp_record_t *record,
 	ck_pr_fence_load();
 	tail = ck_pr_load_ptr(&fifo->tail);
 	ck_hp_set(record, 0, head);
-	ck_pr_fence_strict_memory();
+	ck_pr_fence_store_load();
 	if (head != ck_pr_load_ptr(&fifo->head))
 		return NULL;
 
 	next = ck_pr_load_ptr(&head->next);
 	ck_hp_set(record, 1, next);
-	ck_pr_fence_strict_memory();
+	ck_pr_fence_store_load();
 	if (head != ck_pr_load_ptr(&fifo->head))
 		return NULL;
 

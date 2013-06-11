@@ -30,6 +30,7 @@
 
 #include <ck_cc.h>
 #include <ck_limits.h>
+#include <ck_md.h>
 #include <ck_stdint.h>
 #include <stdbool.h>
 
@@ -43,11 +44,89 @@
 #include "gcc/ppc64/ck_pr.h"
 #elif defined(__ppc__)
 #include "gcc/ppc/ck_pr.h"
-#elif defined(__GNUC__)
-#include "gcc/ck_pr.h"
-#else
+#elif !defined(__GNUC__)
 #error Your platform is unsupported
 #endif
+
+#if defined(__GNUC__)
+#include "gcc/ck_pr.h"
+#endif
+
+#define CK_PR_FENCE_EMIT(T)			\
+	CK_CC_INLINE static void		\
+	ck_pr_fence_##T(void)			\
+	{					\
+		ck_pr_fence_strict_##T();	\
+		return;				\
+	}
+#define CK_PR_FENCE_NOOP(T)			\
+	CK_CC_INLINE static void		\
+	ck_pr_fence_##T(void)			\
+	{					\
+		ck_pr_barrier();		\
+		return;				\
+	}
+
+/*
+ * None of the currently supported platforms allow for data-dependent
+ * load ordering.
+ */
+CK_PR_FENCE_NOOP(load_depends)
+#define ck_pr_fence_strict_load_depends ck_pr_fence_load_depends
+
+/*
+ * In memory models where atomic operations do not have serializing
+ * effects, atomic read-modify-write operations are modeled as stores.
+ */
+#if defined(CK_MD_RMO)
+/*
+ * Only stores to the same location have a global
+ * ordering.
+ */
+CK_PR_FENCE_EMIT(atomic)
+CK_PR_FENCE_EMIT(atomic_load)
+CK_PR_FENCE_EMIT(atomic_store)
+CK_PR_FENCE_EMIT(store_atomic)
+CK_PR_FENCE_EMIT(load_atomic)
+CK_PR_FENCE_EMIT(load_store)
+CK_PR_FENCE_EMIT(store_load)
+CK_PR_FENCE_EMIT(load)
+CK_PR_FENCE_EMIT(store)
+CK_PR_FENCE_EMIT(memory)
+#elif defined(CK_MD_PSO)
+/*
+ * Anything can be re-ordered with respect to stores.
+ * Otherwise, loads are executed in-order.
+ */
+CK_PR_FENCE_EMIT(atomic)
+CK_PR_FENCE_NOOP(atomic_load)
+CK_PR_FENCE_EMIT(atomic_store)
+CK_PR_FENCE_EMIT(store_atomic)
+CK_PR_FENCE_NOOP(load_atomic)
+CK_PR_FENCE_EMIT(load_store)
+CK_PR_FENCE_EMIT(store_load)
+CK_PR_FENCE_NOOP(load)
+CK_PR_FENCE_EMIT(store)
+CK_PR_FENCE_EMIT(memory)
+#elif defined(CK_MD_TSO)
+/*
+ * Only loads are re-ordered and only with respect to
+ * prior stores. Atomic operations are serializing.
+ */
+CK_PR_FENCE_NOOP(atomic)
+CK_PR_FENCE_NOOP(atomic_load)
+CK_PR_FENCE_NOOP(atomic_store)
+CK_PR_FENCE_NOOP(store_atomic)
+CK_PR_FENCE_NOOP(load_atomic)
+CK_PR_FENCE_NOOP(load_store)
+CK_PR_FENCE_EMIT(store_load)
+CK_PR_FENCE_NOOP(load)
+CK_PR_FENCE_NOOP(store)
+CK_PR_FENCE_NOOP(memory)
+#endif /* CK_MD_TSO */
+
+#undef CK_PR_FENCE_EMIT
+#undef CK_PR_FENCE_NOOP
 
 #define CK_PR_BIN(K, S, M, T, P, C)					\
 	CK_CC_INLINE static void					\

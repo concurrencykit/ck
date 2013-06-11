@@ -237,7 +237,7 @@ ck_fifo_mpmc_enqueue(struct ck_fifo_mpmc *fifo,
 	entry->value = value;
 	entry->next.pointer = NULL;
 	entry->next.generation = 0;
-	ck_pr_fence_store();
+	ck_pr_fence_store_atomic();
 
 	for (;;) {
 		tail.generation = ck_pr_load_ptr(&fifo->tail.generation);
@@ -271,9 +271,10 @@ ck_fifo_mpmc_enqueue(struct ck_fifo_mpmc *fifo,
 		}
 	}
 
+	ck_pr_fence_atomic();
+
 	/* After a successful insert, forward the tail to the new entry. */
 	update.generation = tail.generation + 1;
-	ck_pr_fence_store();
 	ck_pr_cas_ptr_2(&fifo->tail, &tail, &update);
 	return;
 }
@@ -289,7 +290,7 @@ ck_fifo_mpmc_tryenqueue(struct ck_fifo_mpmc *fifo,
 	entry->next.pointer = NULL;
 	entry->next.generation = 0;
 
-	ck_pr_fence_store();
+	ck_pr_fence_store_atomic();
 
 	tail.generation = ck_pr_load_ptr(&fifo->tail.generation);
 	ck_pr_fence_load();
@@ -322,8 +323,9 @@ ck_fifo_mpmc_tryenqueue(struct ck_fifo_mpmc *fifo,
 			return false;
 	}
 
+	ck_pr_fence_atomic();
+
 	/* After a successful insert, forward the tail to the new entry. */
-	ck_pr_fence_store();
 	update.generation = tail.generation + 1;
 	ck_pr_cas_ptr_2(&fifo->tail, &tail, &update);
 	return true;
