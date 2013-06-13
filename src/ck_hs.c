@@ -372,6 +372,26 @@ leave:
 	return cursor;
 }
 
+static inline void *
+ck_hs_marshal(unsigned int mode, const void *key, unsigned long h)
+{
+	void *insert;
+
+#ifdef CK_HS_PP
+	if (mode & CK_HS_MODE_OBJECT) {
+		insert = (void *)((uintptr_t)key | ((h >> 25) << CK_MD_VMA_BITS));
+	} else {
+		insert = (void *)key;
+	}
+#else
+	(void)mode;
+	(void)h;
+	insert = (void *)key;
+#endif
+
+	return insert;
+}
+
 bool
 ck_hs_set(struct ck_hs *hs,
     unsigned long h,
@@ -395,18 +415,10 @@ restart:
 		goto restart;
 	}
 
-#ifdef CK_HS_PP
-	if (hs->mode & CK_HS_MODE_OBJECT) {
-		insert = (void *)((uintptr_t)key | ((h >> 25) << CK_MD_VMA_BITS));
-	} else {
-		insert = (void *)key;
-	}
-#else
-	insert = (void *)key;
-#endif
-
 	if (n_probes > map->probe_maximum)
 		ck_pr_store_uint(&map->probe_maximum, n_probes);
+
+	insert = ck_hs_marshal(hs->mode, key, h);
 
 	if (first != NULL) {
 		/* If an earlier bucket was found, then store entry there. */
@@ -466,18 +478,10 @@ restart:
 	if (slot != NULL && *slot != CK_HS_EMPTY)
 		return false;
 
-#ifdef CK_HS_PP
-	if (hs->mode & CK_HS_MODE_OBJECT) {
-		insert = (void *)((uintptr_t)key | ((h >> 25) << CK_MD_VMA_BITS));
-	} else {
-		insert = (void *)key;
-	}
-#else
-	insert = (void *)key;
-#endif
-
 	if (n_probes > map->probe_maximum)
 		ck_pr_store_uint(&map->probe_maximum, n_probes);
+
+	insert = ck_hs_marshal(hs->mode, key, h);
 
 	if (first != NULL) {
 		/* Insert key into first bucket in probe sequence. */
