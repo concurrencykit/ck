@@ -94,6 +94,7 @@ void ck_hs_destroy(ck_hs_t *);
 void *ck_hs_get(ck_hs_t *, unsigned long, const void *);
 bool ck_hs_put(ck_hs_t *, unsigned long, const void *);
 bool ck_hs_set(ck_hs_t *, unsigned long, const void *, void **);
+bool ck_hs_fas(ck_hs_t *, unsigned long, const void *, void **);
 void *ck_hs_remove(ck_hs_t *, unsigned long, const void *);
 bool ck_hs_grow(ck_hs_t *, unsigned long);
 unsigned long ck_hs_count(ck_hs_t *);
