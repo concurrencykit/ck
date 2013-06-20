@@ -28,7 +28,7 @@
 .Dt CK_HS_FAS 3
 .Sh NAME
 .Nm ck_hs_fas
-.Nd swap key in hash set
+.Nd fetch and store key in hash set
 .Sh LIBRARY
 Concurrency Kit (libck, \-lck)
 .Sh SYNOPSIS
