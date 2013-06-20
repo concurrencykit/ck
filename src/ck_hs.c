@@ -552,8 +552,6 @@ ck_hs_get(struct ck_hs *hs,
 		ck_pr_fence_load();
 
 		slot = ck_hs_map_probe(hs, map, &n_probes, &first, h, key, &object, probe);
-		if (slot == NULL)
-			return NULL;
 
 		ck_pr_fence_load();
 		g_p = ck_pr_load_uint(generation);
