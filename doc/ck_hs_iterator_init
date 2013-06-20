@@ -63,6 +63,7 @@ This function will not fail.
 .Xr ck_hs_get 3 ,
 .Xr ck_hs_put 3 ,
 .Xr ck_hs_set 3 ,
+.Xr ck_hs_fas 3 ,
 .Xr ck_hs_remove 3 ,
 .Xr ck_hs_grow 3 ,
 .Xr ck_hs_count 3 ,
