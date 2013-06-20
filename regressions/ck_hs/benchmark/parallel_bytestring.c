@@ -171,6 +171,16 @@ set_replace(const char *value)
 	return ck_hs_set(&hs, h, value, &previous);
 }
 
+static bool
+set_swap(const char *value)
+{
+	unsigned long h;
+	void *previous;
+
+	h = CK_HS_HASH(&hs, hs_hash, value);
+	return ck_hs_fas(&hs, h, value, &previous);
+}
+
 static void *
 set_get(const char *value)
 {
@@ -204,7 +214,6 @@ set_reset(void)
 
 	return ck_hs_reset(&hs);
 }
-
 
 static void *
 reader(void *unused)
@@ -469,8 +478,13 @@ main(int argc, char *argv[])
 	for (;;) {
 		repeated++;
 		s = rdtsc();
-		for (i = 0; i < keys_length; i++)
-			set_replace(keys[i]);
+		for (i = 0; i < keys_length; i++) {
+			if (i & 1) {
+				set_replace(keys[i]);
+			} else {
+				set_swap(keys[i]);
+			}
+		}
 		e = rdtsc();
 		a += e - s;
 
@@ -542,8 +556,13 @@ main(int argc, char *argv[])
 			}
 			if (p_r != 0.0) {
 				replace = common_drand48();
-				if (replace <= p_r)
-					set_replace(keys[i]);
+				if (replace <= p_r) {
+					if ((i & 1) || (delete <= p_d)) {
+						set_replace(keys[i]);
+					} else {
+						set_swap(keys[i]);
+					}
+				}
 			}
 		}
 		e = rdtsc();

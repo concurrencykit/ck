@@ -108,6 +108,16 @@ set_remove(const char *value)
 }
 
 static bool
+set_swap(const char *value)
+{
+	unsigned long h;
+	void *previous;
+
+	h = CK_HS_HASH(&hs, hs_hash, value);
+	return ck_hs_fas(&hs, h, value, &previous);
+}
+
+static bool
 set_replace(const char *value)
 {
 	unsigned long h;
@@ -178,7 +188,7 @@ main(int argc, char *argv[])
 	char buffer[512];
 	size_t i, j, r;
 	unsigned int d = 0;
-	uint64_t s, e, a, ri, si, ai, sr, rg, sg, ag, sd, ng;
+	uint64_t s, e, a, ri, si, ai, sr, rg, sg, ag, sd, ng, ss;
 	struct ck_hs_stat st;
 	char **t;
 
@@ -226,7 +236,7 @@ main(int argc, char *argv[])
 	fprintf(stderr, "# %zu entries stored, %u duplicates, %u probe.\n",
 	    set_count(), d, st.probe_maximum);
 
-	fprintf(stderr, "#    reverse_insertion serial_insertion random_insertion serial_replace reverse_get serial_get random_get serial_remove negative_get\n\n");
+	fprintf(stderr, "#    reverse_insertion serial_insertion random_insertion serial_swap serial_replace reverse_get serial_get random_get serial_remove negative_get\n\n");
 
 	a = 0;
 	for (j = 0; j < r; j++) {
@@ -271,6 +281,16 @@ main(int argc, char *argv[])
 		a += e - s;
 	}
 	ai = a / (r * keys_length);
+
+	a = 0;
+	for (j = 0; j < r; j++) {
+		s = rdtsc();
+		for (i = 0; i < keys_length; i++)
+			set_swap(keys[i]);
+		e = rdtsc();
+		a += e - s;
+	}
+	ss = a / (r * keys_length);
 
 	a = 0;
 	for (j = 0; j < r; j++) {
@@ -360,8 +380,9 @@ main(int argc, char *argv[])
 	    "%" PRIu64 " "
 	    "%" PRIu64 " "
 	    "%" PRIu64 " "
+	    "%" PRIu64 " "
 	    "%" PRIu64 "\n",
-	    keys_length, ri, si, ai, sr, rg, sg, ag, sd, ng);
+	    keys_length, ri, si, ai, ss, sr, rg, sg, ag, sd, ng);
 
 	return 0;
 }
