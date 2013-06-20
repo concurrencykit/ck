@@ -393,6 +393,41 @@ ck_hs_marshal(unsigned int mode, const void *key, unsigned long h)
 }
 
 bool
+ck_hs_fas(struct ck_hs *hs,
+    unsigned long h,
+    const void *key,
+    void **previous)
+{
+	void **slot, **first, *object, *insert;
+	unsigned long n_probes;
+	struct ck_hs_map *map = hs->map;
+
+	*previous = NULL;
+	slot = ck_hs_map_probe(hs, map, &n_probes, &first, h, key, &object, map->probe_maximum);
+
+	/* Replacement semantics presume existence. */
+	if (object == NULL)
+		return false;
+
+	insert = ck_hs_marshal(hs->mode, key, h);
+
+	if (first != NULL) {
+		ck_pr_store_ptr(first, insert);
+
+		if (*slot != CK_HS_EMPTY) {
+			ck_pr_inc_uint(&map->generation[h & CK_HS_G_MASK]);
+			ck_pr_fence_atomic_store();
+			ck_pr_store_ptr(slot, CK_HS_TOMBSTONE);
+		}
+	} else {
+		ck_pr_store_ptr(slot, insert);
+	}
+
+	*previous = object;
+	return true;
+}
+
+bool
 ck_hs_set(struct ck_hs *hs,
     unsigned long h,
     const void *key,
