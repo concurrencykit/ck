@@ -553,7 +553,10 @@ main(int argc, char *argv[])
 				delete = common_drand48();
 				if (delete <= p_d)
 					set_remove(keys[i]);
+			} else {
+				delete = 0.0;
 			}
+
 			if (p_r != 0.0) {
 				replace = common_drand48();
 				if (replace <= p_r) {
