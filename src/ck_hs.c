@@ -419,12 +419,9 @@ ck_hs_fas(struct ck_hs *hs,
 
 	if (first != NULL) {
 		ck_pr_store_ptr(first, insert);
-
-		if (*slot != CK_HS_EMPTY) {
-			ck_pr_inc_uint(&map->generation[h & CK_HS_G_MASK]);
-			ck_pr_fence_atomic_store();
-			ck_pr_store_ptr(slot, CK_HS_TOMBSTONE);
-		}
+		ck_pr_inc_uint(&map->generation[h & CK_HS_G_MASK]);
+		ck_pr_fence_atomic_store();
+		ck_pr_store_ptr(slot, CK_HS_TOMBSTONE);
 	} else {
 		ck_pr_store_ptr(slot, insert);
 	}
@@ -472,7 +469,7 @@ restart:
 		 * period if we can guarantee earlier position of
 		 * duplicate key.
 		 */
-		if (slot != NULL && *slot != CK_HS_EMPTY) {
+		if (object != NULL) {
 			ck_pr_inc_uint(&map->generation[h & CK_HS_G_MASK]);
 			ck_pr_fence_atomic_store();
 			ck_pr_store_ptr(slot, CK_HS_TOMBSTONE);
@@ -516,7 +513,7 @@ restart:
 	}
 
 	/* Fail operation if a match was found. */
-	if (slot != NULL && *slot != CK_HS_EMPTY)
+	if (object != NULL)
 		return false;
 
 	if (n_probes > map->probe_maximum)
@@ -576,7 +573,7 @@ ck_hs_remove(struct ck_hs *hs,
 	unsigned long n_probes;
 
 	slot = ck_hs_map_probe(hs, map, &n_probes, &first, h, key, &object, map->probe_maximum);
-	if (slot == NULL || object == NULL)
+	if (object == NULL)
 		return NULL;
 
 	ck_pr_store_ptr(slot, CK_HS_TOMBSTONE);
