@@ -492,7 +492,7 @@ ck_spinlock_ticket_lock_pb(struct ck_spinlock_ticket *ticket, unsigned int c)
 		position = CK_SPINLOCK_TICKET_LOAD(&ticket->value) &
 		    CK_SPINLOCK_TICKET_MASK;
 
-		backoff = request - position;
+		backoff = (request - position) & CK_SPINLOCK_TICKET_MASK;
 		backoff <<= c;
 		ck_backoff_eb(&backoff);
 	}
@@ -596,8 +596,7 @@ ck_spinlock_ticket_lock_pb(struct ck_spinlock_ticket *ticket, unsigned int c)
 		if (position == request)
 			break;
 
-		/* Overflow is handled fine, assuming 2s complement. */
-		backoff = (request - position);
+		backoff = (request - position) & CK_SPINLOCK_TICKET_MASK;
 		backoff <<= c;
 
 		/*
