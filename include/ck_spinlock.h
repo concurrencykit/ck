@@ -596,7 +596,7 @@ ck_spinlock_ticket_lock_pb(struct ck_spinlock_ticket *ticket, unsigned int c)
 		if (position == request)
 			break;
 
-		backoff = (request - position) & CK_SPINLOCK_TICKET_MASK;
+		backoff = request - position;
 		backoff <<= c;
 
 		/*
