@@ -538,7 +538,7 @@ ck_hs_get(struct ck_hs *hs,
     unsigned long h,
     const void *key)
 {
-	void **slot, **first, *object;
+	void **first, *object;
 	struct ck_hs_map *map;
 	unsigned long n_probes;
 	unsigned int g, g_p, probe;
@@ -551,7 +551,7 @@ ck_hs_get(struct ck_hs *hs,
 		probe = ck_pr_load_uint(&map->probe_maximum);
 		ck_pr_fence_load();
 
-		slot = ck_hs_map_probe(hs, map, &n_probes, &first, h, key, &object, probe);
+		ck_hs_map_probe(hs, map, &n_probes, &first, h, key, &object, probe);
 
 		ck_pr_fence_load();
 		g_p = ck_pr_load_uint(generation);
