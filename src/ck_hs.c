@@ -241,16 +241,18 @@ restart:
 
 		h = hs->hf(previous, hs->seed);
 		offset = h & update->mask;
-		probes = 0;
+		i = probes = 0;
 
-		for (i = 0; i < update->probe_limit; i++) {
+		for (;;) {
 			bucket = (void *)((uintptr_t)&update->entries[offset] & ~(CK_MD_CACHELINE - 1));
 
 			for (j = 0; j < CK_HS_PROBE_L1; j++) {
 				void **cursor = bucket + ((j + offset) & (CK_HS_PROBE_L1 - 1));
 
-				probes++;
-				if (*cursor == CK_HS_EMPTY) {
+				if (probes++ == update->probe_limit)
+					break;
+
+				if (CK_CC_LIKELY(*cursor == CK_HS_EMPTY)) {
 					*cursor = map->entries[k];
 					update->n_entries++;
 
@@ -264,10 +266,10 @@ restart:
 			if (j < CK_HS_PROBE_L1)
 				break;
 
-			offset = ck_hs_map_probe_next(update, offset, h, i, probes);
+			offset = ck_hs_map_probe_next(update, offset, h, i++, probes);
 		}
 
-		if (i == update->probe_limit) {
+		if (probes > update->probe_limit) {
 			/*
 			 * We have hit the probe limit, map needs to be even larger.
 			 */
@@ -296,8 +298,7 @@ ck_hs_map_probe(struct ck_hs *hs,
 	void **bucket, **cursor, *k;
 	const void *compare;
 	void **pr = NULL;
-	unsigned long offset, i, j;
-	unsigned long probes = 0;
+	unsigned long offset, j, i, probes;
 
 #ifdef CK_HS_PP
 	/* If we are storing object pointers, then we may leverage pointer packing. */
@@ -315,13 +316,18 @@ ck_hs_map_probe(struct ck_hs *hs,
 
 	offset = h & map->mask;
 	*object = NULL;
+	i = probes = 0;
 
-	for (i = 0; i < probe_limit; i++) {
+	for (;;) {
 		bucket = (void **)((uintptr_t)&map->entries[offset] & ~(CK_MD_CACHELINE - 1));
 
 		for (j = 0; j < CK_HS_PROBE_L1; j++) {
 			cursor = bucket + ((j + offset) & (CK_HS_PROBE_L1 - 1));
-			probes++;
+
+			if (probes++ == probe_limit) {
+				k = CK_HS_EMPTY;
+				goto leave;
+			}
 
 			k = ck_pr_load_ptr(cursor);
 			if (k == CK_HS_EMPTY)
@@ -355,14 +361,14 @@ ck_hs_map_probe(struct ck_hs *hs,
 				goto leave;
 		}
 
-		offset = ck_hs_map_probe_next(map, offset, h, i, probes);
+		offset = ck_hs_map_probe_next(map, offset, h, i++, probes);
 	}
 
 leave:
-	if (i != probe_limit) {
-		*object = k;
-	} else {
+	if (probes > probe_limit) {
 		cursor = NULL;
+	} else {
+		*object = k;
 	}
 
 	if (pr == NULL)
