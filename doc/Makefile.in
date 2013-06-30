@@ -74,6 +74,7 @@ OBJECTS=ck_ht_count 	  		\
 	ck_hs_get			\
 	ck_hs_put			\
 	ck_hs_set			\
+	ck_hs_fas			\
 	ck_hs_remove			\
 	ck_hs_grow			\
 	ck_hs_count			\

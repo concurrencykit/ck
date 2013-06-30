@@ -45,7 +45,7 @@ argument in the hash set pointed to by the
 argument. The key specified by
 .Fa key
 is expected to have the hash value specified by the
-.Fa h
+.Fa hash
 argument (which was previously generated using the
 .Xr CK_HS_HASH 3
 macro).
@@ -87,6 +87,7 @@ to accomodate key insertion.
 .Xr ck_hs_next 3 ,
 .Xr ck_hs_get 3 ,
 .Xr ck_hs_put 3 ,
+.Xr ck_hs_fas 3 ,
 .Xr ck_hs_remove 3 ,
 .Xr ck_hs_grow 3 ,
 .Xr ck_hs_count 3 ,

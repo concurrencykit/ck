@@ -77,4 +77,12 @@
 #define CK_CC_CACHELINE
 #endif
 
+#ifndef CK_CC_LIKELY
+#define CK_CC_LIKELY(x)
+#endif
+
+#ifndef CK_CC_UNLIKELY
+#define CK_CC_UNLIKELY(x)
+#endif
+
 #endif /* _CK_CC_H */

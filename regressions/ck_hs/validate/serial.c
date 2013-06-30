@@ -171,6 +171,18 @@ main(void)
 			    test[i], (char *)r);
 		}
 
+		/* Replacement should succeed. */
+		if (ck_hs_fas(&hs, h, test[i], &r) == false)
+			ck_error("ERROR: ck_hs_fas must succeed.\n");
+
+		if (strcmp(r, test[i]) != 0) {
+			ck_error("ERROR: Incorrect replaced value: %s != %s\n",
+			    test[i], (char *)r);
+		}
+
+		if (ck_hs_fas(&hs, h, negative, &r) == true)
+			ck_error("ERROR: Replacement of negative should fail.\n");
+
 		if (ck_hs_set(&hs, h, test[i], &r) == false) {
 			ck_error("ERROR: Failed to set [1]\n");
 		}

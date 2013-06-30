@@ -241,16 +241,18 @@ restart:
 
 		h = hs->hf(previous, hs->seed);
 		offset = h & update->mask;
-		probes = 0;
+		i = probes = 0;
 
-		for (i = 0; i < update->probe_limit; i++) {
+		for (;;) {
 			bucket = (void *)((uintptr_t)&update->entries[offset] & ~(CK_MD_CACHELINE - 1));
 
 			for (j = 0; j < CK_HS_PROBE_L1; j++) {
 				void **cursor = bucket + ((j + offset) & (CK_HS_PROBE_L1 - 1));
 
-				probes++;
-				if (*cursor == CK_HS_EMPTY) {
+				if (probes++ == update->probe_limit)
+					break;
+
+				if (CK_CC_LIKELY(*cursor == CK_HS_EMPTY)) {
 					*cursor = map->entries[k];
 					update->n_entries++;
 
@@ -264,10 +266,10 @@ restart:
 			if (j < CK_HS_PROBE_L1)
 				break;
 
-			offset = ck_hs_map_probe_next(update, offset, h, i, probes);
+			offset = ck_hs_map_probe_next(update, offset, h, i++, probes);
 		}
 
-		if (i == update->probe_limit) {
+		if (probes > update->probe_limit) {
 			/*
 			 * We have hit the probe limit, map needs to be even larger.
 			 */
@@ -296,8 +298,7 @@ ck_hs_map_probe(struct ck_hs *hs,
 	void **bucket, **cursor, *k;
 	const void *compare;
 	void **pr = NULL;
-	unsigned long offset, i, j;
-	unsigned long probes = 0;
+	unsigned long offset, j, i, probes;
 
 #ifdef CK_HS_PP
 	/* If we are storing object pointers, then we may leverage pointer packing. */
@@ -315,13 +316,18 @@ ck_hs_map_probe(struct ck_hs *hs,
 
 	offset = h & map->mask;
 	*object = NULL;
+	i = probes = 0;
 
-	for (i = 0; i < probe_limit; i++) {
+	for (;;) {
 		bucket = (void **)((uintptr_t)&map->entries[offset] & ~(CK_MD_CACHELINE - 1));
 
 		for (j = 0; j < CK_HS_PROBE_L1; j++) {
 			cursor = bucket + ((j + offset) & (CK_HS_PROBE_L1 - 1));
-			probes++;
+
+			if (probes++ == probe_limit) {
+				k = CK_HS_EMPTY;
+				goto leave;
+			}
 
 			k = ck_pr_load_ptr(cursor);
 			if (k == CK_HS_EMPTY)
@@ -355,14 +361,14 @@ ck_hs_map_probe(struct ck_hs *hs,
 				goto leave;
 		}
 
-		offset = ck_hs_map_probe_next(map, offset, h, i, probes);
+		offset = ck_hs_map_probe_next(map, offset, h, i++, probes);
 	}
 
 leave:
-	if (i != probe_limit) {
-		*object = k;
-	} else {
+	if (probes > probe_limit) {
 		cursor = NULL;
+	} else {
+		*object = k;
 	}
 
 	if (pr == NULL)
@@ -370,6 +376,58 @@ leave:
 
 	*priority = pr;
 	return cursor;
+}
+
+static inline void *
+ck_hs_marshal(unsigned int mode, const void *key, unsigned long h)
+{
+	void *insert;
+
+#ifdef CK_HS_PP
+	if (mode & CK_HS_MODE_OBJECT) {
+		insert = (void *)((uintptr_t)key | ((h >> 25) << CK_MD_VMA_BITS));
+	} else {
+		insert = (void *)key;
+	}
+#else
+	(void)mode;
+	(void)h;
+	insert = (void *)key;
+#endif
+
+	return insert;
+}
+
+bool
+ck_hs_fas(struct ck_hs *hs,
+    unsigned long h,
+    const void *key,
+    void **previous)
+{
+	void **slot, **first, *object, *insert;
+	unsigned long n_probes;
+	struct ck_hs_map *map = hs->map;
+
+	*previous = NULL;
+	slot = ck_hs_map_probe(hs, map, &n_probes, &first, h, key, &object, map->probe_maximum);
+
+	/* Replacement semantics presume existence. */
+	if (object == NULL)
+		return false;
+
+	insert = ck_hs_marshal(hs->mode, key, h);
+
+	if (first != NULL) {
+		ck_pr_store_ptr(first, insert);
+		ck_pr_inc_uint(&map->generation[h & CK_HS_G_MASK]);
+		ck_pr_fence_atomic_store();
+		ck_pr_store_ptr(slot, CK_HS_TOMBSTONE);
+	} else {
+		ck_pr_store_ptr(slot, insert);
+	}
+
+	*previous = object;
+	return true;
 }
 
 bool
@@ -395,18 +453,10 @@ restart:
 		goto restart;
 	}
 
-#ifdef CK_HS_PP
-	if (hs->mode & CK_HS_MODE_OBJECT) {
-		insert = (void *)((uintptr_t)key | ((h >> 25) << CK_MD_VMA_BITS));
-	} else {
-		insert = (void *)key;
-	}
-#else
-	insert = (void *)key;
-#endif
-
 	if (n_probes > map->probe_maximum)
 		ck_pr_store_uint(&map->probe_maximum, n_probes);
+
+	insert = ck_hs_marshal(hs->mode, key, h);
 
 	if (first != NULL) {
 		/* If an earlier bucket was found, then store entry there. */
@@ -419,7 +469,7 @@ restart:
 		 * period if we can guarantee earlier position of
 		 * duplicate key.
 		 */
-		if (slot != NULL && *slot != CK_HS_EMPTY) {
+		if (object != NULL) {
 			ck_pr_inc_uint(&map->generation[h & CK_HS_G_MASK]);
 			ck_pr_fence_atomic_store();
 			ck_pr_store_ptr(slot, CK_HS_TOMBSTONE);
@@ -463,21 +513,13 @@ restart:
 	}
 
 	/* Fail operation if a match was found. */
-	if (slot != NULL && *slot != CK_HS_EMPTY)
+	if (object != NULL)
 		return false;
-
-#ifdef CK_HS_PP
-	if (hs->mode & CK_HS_MODE_OBJECT) {
-		insert = (void *)((uintptr_t)key | ((h >> 25) << CK_MD_VMA_BITS));
-	} else {
-		insert = (void *)key;
-	}
-#else
-	insert = (void *)key;
-#endif
 
 	if (n_probes > map->probe_maximum)
 		ck_pr_store_uint(&map->probe_maximum, n_probes);
+
+	insert = ck_hs_marshal(hs->mode, key, h);
 
 	if (first != NULL) {
 		/* Insert key into first bucket in probe sequence. */
@@ -499,7 +541,7 @@ ck_hs_get(struct ck_hs *hs,
     unsigned long h,
     const void *key)
 {
-	void **slot, **first, *object;
+	void **first, *object;
 	struct ck_hs_map *map;
 	unsigned long n_probes;
 	unsigned int g, g_p, probe;
@@ -512,9 +554,7 @@ ck_hs_get(struct ck_hs *hs,
 		probe = ck_pr_load_uint(&map->probe_maximum);
 		ck_pr_fence_load();
 
-		slot = ck_hs_map_probe(hs, map, &n_probes, &first, h, key, &object, probe);
-		if (slot == NULL)
-			return NULL;
+		ck_hs_map_probe(hs, map, &n_probes, &first, h, key, &object, probe);
 
 		ck_pr_fence_load();
 		g_p = ck_pr_load_uint(generation);
@@ -533,7 +573,7 @@ ck_hs_remove(struct ck_hs *hs,
 	unsigned long n_probes;
 
 	slot = ck_hs_map_probe(hs, map, &n_probes, &first, h, key, &object, map->probe_maximum);
-	if (slot == NULL || object == NULL)
+	if (object == NULL)
 		return NULL;
 
 	ck_pr_store_ptr(slot, CK_HS_TOMBSTONE);

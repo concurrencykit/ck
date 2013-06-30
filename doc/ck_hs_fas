@@ -1,5 +1,5 @@
 .\"
-.\" Copyright 2012-2013 Samy Al Bahra.
+.\" Copyright 2013 Samy Al Bahra.
 .\" All rights reserved.
 .\"
 .\" Redistribution and use in source and binary forms, with or without
@@ -24,60 +24,66 @@
 .\" SUCH DAMAGE.
 .\"
 .\"
-.Dd September 17, 2012
-.Dt CK_HS_NEXT 3
+.Dd June 20, 2013
+.Dt CK_HS_FAS 3
 .Sh NAME
-.Nm ck_hs_next
-.Nd iterate to next entry in hash set
+.Nm ck_hs_fas
+.Nd fetch and store key in hash set
 .Sh LIBRARY
 Concurrency Kit (libck, \-lck)
 .Sh SYNOPSIS
 .In ck_hs.h
-.Ft bool 
-.Fn ck_hs_next "ck_hs_t *hs" "ck_hs_iterator_t *iterator" "void **entry"
+.Ft bool
+.Fn ck_hs_fas "ck_hs_t *hs" "unsigned long hash" "const void *key" "void **previous"
 .Sh DESCRIPTION
 The
-.Fn ck_hs_next 3
-function will increment the iterator object pointed to by
-.Fa iterator
-to point to the next non-empty hash set entry. If
-.Fn ck_hs_next 3
-returns true then the pointer pointed to by
-.Fa entry
-is initialized to the current hash set key pointed to by the
-.Fa iterator
-object.
+.Fn ck_hs_fas 3
+function will fetch and store the key specified by the
+.Fa key
+argument in the hash set pointed to by the
+.Fa hs
+argument. The key specified by
+.Fa key
+is expected to have the hash value specified by the
+.Fa hash
+argument (which was previously generated using the
+.Xr CK_HS_HASH 3
+macro).
 .Pp
-It is expected that
-.Fa iterator
-has been initialized using the
-.Xr ck_hs_iterator_init 3
-function or statically initialized using CK_HS_ITERATOR_INITIALIZER.
+If the call to
+.Fn ck_hs_fas 3
+was successful then the key specified by
+.Fa key
+was successfully stored in the hash set pointed to by
+.Fa hs .
+The key must already exist in the hash set, and is
+replaced by 
+.Fa key
+and the previous value is stored into the void pointer
+pointed to by the
+.Fa previous
+argument. If the key does not exist in the hash set
+then the function will return false and the hash set
+is unchanged. This function
+is guaranteed to be stable with respect to memory usage.
 .Sh RETURN VALUES
-If
-.Fn ck_hs_next 3
-returns true then the object pointed to by
-.Fa entry
-points to a valid hash set key. If
-.Fa ck_hs_next 3
-returns false then the value of the object pointed to by
-.Fa entry
-is undefined.
+Upon successful completion,
+.Fn ck_hs_fas 3
+returns true and otherwise returns false on failure.
 .Sh ERRORS
 Behavior is undefined if
-.Fa iterator
+.Fa key
 or
 .Fa hs
-are uninitialized.
+are uninitialized. 
 .Sh SEE ALSO
 .Xr ck_hs_init 3 ,
 .Xr ck_hs_destroy 3 ,
 .Xr CK_HS_HASH 3 ,
 .Xr ck_hs_iterator_init 3 ,
+.Xr ck_hs_next 3 ,
 .Xr ck_hs_get 3 ,
 .Xr ck_hs_put 3 ,
-.Xr ck_hs_set 3 ,
-.Xr ck_hs_fas 3 ,
 .Xr ck_hs_remove 3 ,
 .Xr ck_hs_grow 3 ,
 .Xr ck_hs_count 3 ,
