@@ -81,12 +81,11 @@ macro.
 
 #include <ck_pr.h>
 #include <ck_cohort.h>
+#include <ck_rwcohort.h>
 #include <ck_spinlock.h>
 
-/* 
- * Create cohort methods with signatures that match
- * the required signature
- */
+/* Create cohort methods with signatures that match the required signature */
+
 static void
 ck_spinlock_lock_with_context(ck_spinlock_t *lock, void *context)
 {
@@ -115,10 +114,15 @@ ck_spinlock_locked_with_context(ck_spinlock_t *lock, void *context)
  * the above methods for both its global and local locks
  */
 CK_COHORT_PROTOTYPE(test_cohort,
-	ck_spinlock_lock_with_context, ck_spinlock_unlock_with_context, ck_spinlock_locked_with_context
+	ck_spinlock_lock_with_context, ck_spinlock_unlock_with_context, ck_spinlock_locked_with_context,
 	ck_spinlock_lock_with_context, ck_spinlock_unlock_with_context, ck_spinlock_locked_with_context)
 
+/* define a reader-writer type using the same cohort type */
+CK_RWCOHORT_WP_PROTOTYPE(test_cohort)
+
 static ck_spinlock_t global_lock = CK_SPINLOCK_INITIALIZER;
+static CK_COHORT_INSTANCE(test_cohort) *cohorts;
+static CK_RWCOHORT_WP_INSTANCE(test_cohort) rw_cohort = CK_RWCOHORT_WP_INITIALIZER;
 static unsigned int ready;
 
 static void *
@@ -126,9 +130,9 @@ function(void *context)
 {
 	CK_COHORT_INSTANCE(test_cohort) *cohort = context;
 
-	while (ready == 0);
+	while (ck_pr_load_uint(&ready) == 0);
 
-	while (ready > 0) {
+	while (ck_pr_load_uint(&ready) > 0) {
 		/*
 		 * acquire the cohort lock before performing critical section.
 		 * note that we pass NULL for both the global and local context
