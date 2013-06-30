@@ -71,16 +71,13 @@ ck_pr_stall(void)
 	}
 
 CK_PR_FENCE(atomic, "sfence")
-CK_PR_FENCE(atomic_atomic, "sfence")
 CK_PR_FENCE(atomic_store, "sfence")
 CK_PR_FENCE(atomic_load, "mfence")
 CK_PR_FENCE(store_atomic, "sfence")
 CK_PR_FENCE(load_atomic, "mfence")
 CK_PR_FENCE(load, "lfence")
-CK_PR_FENCE(load_load, "lfence")
 CK_PR_FENCE(load_store, "mfence")
 CK_PR_FENCE(store, "sfence")
-CK_PR_FENCE(store_store, "sfence")
 CK_PR_FENCE(store_load, "mfence")
 CK_PR_FENCE(memory, "mfence")
 

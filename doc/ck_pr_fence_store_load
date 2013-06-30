@@ -24,23 +24,53 @@
 .\" SUCH DAMAGE.
 .\"
 .\"
-.Dd April 7, 2013
-.Dt ck_pr_fence_load_depends 3
+.Dd May 18, 2013
+.Dt CK_PR_FENCE_STORE_LOAD 3
 .Sh NAME
-.Nm ck_pr_fence_load_depends
-.Nd data dependency barrier
+.Nm ck_pr_fence_store_load
+.Nd enforce ordering of store operations to load operations
 .Sh LIBRARY
 Concurrency Kit (libck, \-lck)
 .Sh SYNOPSIS
 .In ck_pr.h
 .Ft void
-.Fn ck_pr_fence_load_depends void
+.Fn ck_pr_fence_store_load void
+.Ft void
+.Fn ck_pr_fence_strict_store_load void
 .Sh DESCRIPTION
 The 
-.Fn ck_pr_fence_load_depends 3
-emits necessary fences for pure data-dependent loads. It currently only serves as a compiler
-barrier for Concurrency Kit's supported platforms. Unless you're on architecture
-which re-orders data-dependent loads (such as the defunct Alpha), this function is unnecessary.
+.Fn ck_pr_fence_store_load
+function enfores the ordering of any memory store,
+.Fn ck_pr_store
+and atomic read-modify-write operations to load
+operations relative to the invocation of the function. This function
+always serve as an implicit compiler barrier. 
+A fence will currently always be emitted for this
+operation, including for TSO memory model targets.
+.Sh EXAMPLE
+.Bd -literal -offset indent
+
+#include <ck_pr.h>
+
+static int a = 0;
+static int b = 0;
+
+void
+function(void)
+{
+	unsigned int snapshot_b;
+
+	ck_pr_store_int(&a, 1);
+
+	/*
+	 * Guarantee that the store to a is completed
+	 * with respect to load from b.
+	 */
+	ck_pr_fence_store_load();
+	snapshot_b = ck_pr_load_int(&b, 2);
+	return;
+}
+.Ed
 .Sh RETURN VALUES
 This function has no return value.
 .Sh SEE ALSO
@@ -51,7 +81,9 @@ This function has no return value.
 .Xr ck_pr_fence_load 3 ,
 .Xr ck_pr_fence_load_atomic 3 ,
 .Xr ck_pr_fence_load_store 3 ,
+.Xr ck_pr_fence_load_depends 3 ,
 .Xr ck_pr_fence_store 3 ,
+.Xr ck_pr_fence_store_atomic 3 ,
 .Xr ck_pr_fence_memory 3 ,
 .Xr ck_pr_barrier 3 ,
 .Xr ck_pr_fas 3 ,

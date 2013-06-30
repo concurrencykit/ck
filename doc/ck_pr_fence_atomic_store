@@ -24,34 +24,68 @@
 .\" SUCH DAMAGE.
 .\"
 .\"
-.Dd April 7, 2013
-.Dt ck_pr_fence_load_depends 3
+.Dd May 16, 2013
+.Dt CK_PR_FENCE_ATOMIC_STORE 3 
 .Sh NAME
-.Nm ck_pr_fence_load_depends
-.Nd data dependency barrier
+.Nm ck_pr_fence_atomic_store
+.Nd enforce ordering of atomic read-modify-write operations to store operations
 .Sh LIBRARY
 Concurrency Kit (libck, \-lck)
 .Sh SYNOPSIS
 .In ck_pr.h
 .Ft void
-.Fn ck_pr_fence_load_depends void
+.Fn ck_pr_fence_atomic_store void
+.Ft void
+.Fn ck_pr_fence_strict_atomic_store void
 .Sh DESCRIPTION
 The 
-.Fn ck_pr_fence_load_depends 3
-emits necessary fences for pure data-dependent loads. It currently only serves as a compiler
-barrier for Concurrency Kit's supported platforms. Unless you're on architecture
-which re-orders data-dependent loads (such as the defunct Alpha), this function is unnecessary.
+.Fn ck_pr_fence_atomic_store
+function enfores the ordering of any 
+atomic read-modify-write operations relative to
+any load operations following the function invocation. This function
+always serve as an implicit compiler barrier. On
+architectures implementing CK_MD_TSO, this operation
+only serves as a compiler barrier and no fences
+are emitted. To force the unconditional emission of
+a fence, use
+.Fn ck_pr_fence_strict_atomic_store .
+.Sh EXAMPLE
+.Bd -literal -offset indent
+
+#include <ck_pr.h>
+
+static int a = 0;
+static int b = 0;
+
+void
+function(void)
+{
+	int c;
+
+	ck_pr_fas_int(&a, 1);
+
+	/*
+	 * Guarantee that the update to a is completed
+	 * with respect to the store into the value pointed
+	 * to by b.
+	 */
+	ck_pr_fence_atomic_store();
+	c = ck_pr_store_int(&b, 2);
+
+	return;
+}
+.Ed
 .Sh RETURN VALUES
 This function has no return value.
 .Sh SEE ALSO
 .Xr ck_pr_stall 3 ,
 .Xr ck_pr_fence_atomic 3 ,
-.Xr ck_pr_fence_atomic_store 3 ,
 .Xr ck_pr_fence_atomic_load 3 ,
+.Xr ck_pr_fence_store 3 ,
 .Xr ck_pr_fence_load 3 ,
 .Xr ck_pr_fence_load_atomic 3 ,
 .Xr ck_pr_fence_load_store 3 ,
-.Xr ck_pr_fence_store 3 ,
+.Xr ck_pr_fence_load_depends 3 ,
 .Xr ck_pr_fence_memory 3 ,
 .Xr ck_pr_barrier 3 ,
 .Xr ck_pr_fas 3 ,

@@ -57,11 +57,13 @@
 	ck_pr_fence_##T(void)			\
 	{					\
 		ck_pr_fence_strict_##T();	\
+		return;				\
 	}
 #define CK_PR_FENCE_NOOP(T)			\
 	CK_CC_INLINE static void		\
 	ck_pr_fence_##T(void)			\
 	{					\
+		ck_pr_barrier();		\
 		return;				\
 	}
 
@@ -82,14 +84,11 @@ CK_PR_FENCE_NOOP(load_depends)
  * ordering.
  */
 CK_PR_FENCE_EMIT(atomic)
-CK_PR_FENCE_EMIT(atomic_atomic)
 CK_PR_FENCE_EMIT(atomic_load)
 CK_PR_FENCE_EMIT(atomic_store)
 CK_PR_FENCE_EMIT(store_atomic)
 CK_PR_FENCE_EMIT(load_atomic)
-CK_PR_FENCE_EMIT(load_load)
 CK_PR_FENCE_EMIT(load_store)
-CK_PR_FENCE_EMIT(store_store)
 CK_PR_FENCE_EMIT(store_load)
 CK_PR_FENCE_EMIT(load)
 CK_PR_FENCE_EMIT(store)
@@ -100,14 +99,11 @@ CK_PR_FENCE_EMIT(memory)
  * Otherwise, loads are executed in-order.
  */
 CK_PR_FENCE_EMIT(atomic)
-CK_PR_FENCE_EMIT(atomic_atomic)
 CK_PR_FENCE_NOOP(atomic_load)
 CK_PR_FENCE_EMIT(atomic_store)
 CK_PR_FENCE_EMIT(store_atomic)
 CK_PR_FENCE_NOOP(load_atomic)
-CK_PR_FENCE_NOOP(load_load)
 CK_PR_FENCE_EMIT(load_store)
-CK_PR_FENCE_EMIT(store_store)
 CK_PR_FENCE_EMIT(store_load)
 CK_PR_FENCE_NOOP(load)
 CK_PR_FENCE_EMIT(store)
@@ -118,14 +114,11 @@ CK_PR_FENCE_EMIT(memory)
  * prior stores. Atomic operations are serializing.
  */
 CK_PR_FENCE_NOOP(atomic)
-CK_PR_FENCE_NOOP(atomic_atomic)
 CK_PR_FENCE_NOOP(atomic_load)
 CK_PR_FENCE_NOOP(atomic_store)
 CK_PR_FENCE_NOOP(store_atomic)
 CK_PR_FENCE_NOOP(load_atomic)
-CK_PR_FENCE_NOOP(load_load)
 CK_PR_FENCE_NOOP(load_store)
-CK_PR_FENCE_NOOP(store_store)
 CK_PR_FENCE_EMIT(store_load)
 CK_PR_FENCE_NOOP(load)
 CK_PR_FENCE_NOOP(store)
