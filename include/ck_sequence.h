@@ -74,7 +74,7 @@ ck_sequence_read_begin(struct ck_sequence *sq)
 }
 
 CK_CC_INLINE static bool
-ck_sequence_read_retry(struct ck_sequence *sq, uint32_t version)
+ck_sequence_read_retry(struct ck_sequence *sq, unsigned int version)
 {
 
 	/*
