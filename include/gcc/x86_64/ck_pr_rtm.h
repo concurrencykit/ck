@@ -98,7 +98,7 @@ ck_pr_rtm_test(void)
 
 	__asm__ __volatile__(".byte 0x0f,0x01,0xd6;"
 			     "setnz %0"
-				: "=r" (out)
+				: "=r" (r)
 				:
 				: "memory");
 
