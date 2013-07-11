@@ -94,6 +94,7 @@ generate()
 	    -e "s#@GZIP@#$GZIP#g"				\
 	    -e "s#@GZIP_SUFFIX@#$GZIP_SUFFIX#g"			\
 	    -e "s#@POINTER_PACK_ENABLE@#$POINTER_PACK_ENABLE#g"	\
+	    -e "s#@RTM_ENABLE@#$RTM_ENABLE#g"			\
 	    -e "s#@VMA_BITS@#$VMA_BITS_R#g"			\
 	    -e "s#@VMA_BITS_VALUE@#$VMA_BITS_VALUE_R#g"		\
 	    -e "s#@MM@#$MM#g"					\
@@ -122,6 +123,7 @@ generate_stdout()
 	echo "      POINTER_PACK = $POINTER_PACK_ENABLE"
 	echo "          VMA_BITS = $VMA_BITS"
 	echo "      MEMORY_MODEL = $MM"
+	echo "               RTM = $RTM_ENABLE"
 	echo
 	echo "Headers will be installed in $HEADERS"
 	echo "Libraries will be installed in $LIBRARY"
@@ -147,6 +149,7 @@ for option in $*; do
 		echo "The following options will modify code generation."
 		echo "  --cores=N                Specify number of cores available on target machine"
 		echo "  --enable-pointer-packing Assumes address encoding is subset of pointer range"
+		echo "  --enable-rtm             Enable restricted transactional memory (x86_64 only)"
 		echo "  --memory-model=N         Specify memory model (currently tso, pso or rmo)"
 		echo "  --vma-bits=N             Specify valid number of VMA bits"
 		echo
@@ -181,6 +184,9 @@ for option in $*; do
 		;;
 	--enable-pointer-packing)
 		POINTER_PACK_ENABLE="CK_MD_POINTER_PACK_ENABLE"
+		;;
+	--enable-rtm)
+		RTM_ENABLE_SET="CK_MD_RTM_ENABLE"
 		;;
 	--cores=*)
 		CORES=$value
@@ -354,6 +360,7 @@ case $PLATFORM in
 		esac
 		;;
 	"amd64"|"x86_64")
+		RTM_ENABLE=${RTM_ENABLE_SET:-"CK_MD_RTM_DISABLE"}
 		PLATFORM=x86_64
 		ENVIRONMENT=64
 		LDFLAGS="-m64 $LDFLAGS"
@@ -364,6 +371,7 @@ case $PLATFORM in
 		ISA=`isainfo -n 2> /dev/null || echo i386`
 		case "$ISA" in
 			"amd64")
+				RTM_ENABLE=${RTM_ENABLE_SET:-"CK_MD_RTM_DISABLE"}
 				PLATFORM=x86_64
 				ENVIRONMENT=64
 				;;

@@ -35,6 +35,10 @@
 #define CK_MD_PAGESIZE (4096)
 #endif
 
+#ifndef @RTM_ENABLE@
+#define @RTM_ENABLE@
+#endif /* @RTM_ENABLE@ */
+
 #ifndef @POINTER_PACK_ENABLE@
 #define @POINTER_PACK_ENABLE@
 #endif /* @POINTER_PACK_ENABLE@ */

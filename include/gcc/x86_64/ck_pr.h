@@ -42,6 +42,13 @@
  */
 #include "ck_f_pr.h"
 
+/*
+ * Support for TSX extensions.
+ */
+#ifdef CK_MD_RTM_ENABLE
+#include "ck_pr_rtm.h"
+#endif
+
 /* Minimum requirements for the CK_PR interface are met. */
 #define CK_F_PR
 
