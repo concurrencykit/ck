@@ -69,6 +69,7 @@ regressions/ck_pr/validate/ck_pr_xor
 regressions/ck_ring/validate/ck_ring_spsc
 regressions/ck_ring/validate/ck_ring_spsc_template
 regressions/ck_sequence/validate/ck_sequence
+regressions/ck_sequence/benchmark/ck_sequence
 regressions/ck_spinlock/benchmark/ck_anderson.LATENCY
 regressions/ck_spinlock/benchmark/ck_anderson.THROUGHPUT
 regressions/ck_spinlock/benchmark/ck_cas.LATENCY
