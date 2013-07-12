@@ -200,6 +200,22 @@ ck_rwlock_read_trylock(ck_rwlock_t *rw)
 	return false;
 }
 
+#ifdef CK_F_PR_RTM
+CK_CC_INLINE static bool
+ck_rwlock_read_trylock_rtm(ck_rwlock_t *rw)
+{
+
+	if (ck_pr_rtm_begin() != CK_PR_RTM_STARTED)
+		return false;
+
+	if (ck_pr_load_uint(&rw->writer) == 0)
+		return true;
+
+	ck_pr_rtm_abort(0);
+	return false;
+}
+#endif /* CK_F_PR_RTM */
+
 CK_CC_INLINE static void
 ck_rwlock_read_lock(ck_rwlock_t *rw)
 {
