@@ -213,6 +213,7 @@ CK_CC_INLINE static bool
 ck_spinlock_fas_locked(struct ck_spinlock_fas *lock)
 {
 
+	ck_pr_fence_load();
 	return ck_pr_load_uint(&lock->value);
 }
 
@@ -287,6 +288,7 @@ CK_CC_INLINE static bool
 ck_spinlock_cas_locked(struct ck_spinlock_cas *lock)
 {
 
+	ck_pr_fence_load();
 	return ck_pr_load_uint(&lock->value);
 }
 
@@ -358,6 +360,7 @@ CK_CC_INLINE static bool
 ck_spinlock_dec_locked(struct ck_spinlock_dec *lock)
 {
 
+	ck_pr_fence_load();
 	return ck_pr_load_uint(&lock->value) != 1;
 }
 
@@ -710,6 +713,7 @@ CK_CC_INLINE static bool
 ck_spinlock_mcs_locked(struct ck_spinlock_mcs **queue)
 {
 
+	ck_pr_fence_load();
 	return ck_pr_load_ptr(queue) != NULL;
 }
 
