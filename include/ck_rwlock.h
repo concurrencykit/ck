@@ -124,9 +124,8 @@ ck_rwlock_write_trylock_rtm(ck_rwlock_t *rw)
 {
 	bool r;
 
-	if (ck_pr_rtm_begin() != CK_PR_RTM_STARTED) {
-		return ck_rwlock_write_trylock(rw);
-	}
+	if (ck_pr_rtm_begin() != CK_PR_RTM_STARTED)
+		return false;
 
 	r = ck_pr_load_uint(&rw->writer) != 0;
 
