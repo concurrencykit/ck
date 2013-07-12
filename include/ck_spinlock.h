@@ -104,6 +104,18 @@ ck_spinlock_anderson_init(struct ck_spinlock_anderson *lock,
 	return;
 }
 
+CK_CC_INLINE static bool
+ck_spinlock_anderson_locked(struct ck_spinlock_anderson *lock)
+{
+	unsigned int position;
+
+	ck_pr_fence_load();
+	position = ck_pr_load_uint(&lock->next) & lock->mask;
+	ck_pr_fence_load();
+
+	return ck_pr_load_uint(&lock->slots[position].locked);
+}
+
 CK_CC_INLINE static void
 ck_spinlock_anderson_lock(struct ck_spinlock_anderson *lock,
     struct ck_spinlock_anderson_thread **slot)
