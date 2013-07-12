@@ -823,7 +823,7 @@ ck_spinlock_clh_lock(struct ck_spinlock_clh **queue, struct ck_spinlock_clh *thr
 	struct ck_spinlock_clh *previous;
 
 	/* Indicate to the next thread on queue that they will have to block. */
-	ck_pr_store_uint(&thread->wait, true);
+	thread->wait = true;
 	ck_pr_fence_store();
 
 	/* Mark current request as last request. Save reference to previous request. */
