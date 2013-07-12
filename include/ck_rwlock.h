@@ -108,7 +108,7 @@ ck_rwlock_write_trylock(ck_rwlock_t *rw)
 	if (ck_pr_fas_uint(&rw->writer, 1) != 0)
 		return false;
 
-	ck_pr_fence_atomic_load();
+	ck_pr_fence_memory();
 
 	if (ck_pr_load_uint(&rw->n_readers) != 0) {
 		ck_rwlock_write_unlock(rw);
@@ -145,7 +145,7 @@ ck_rwlock_write_lock(ck_rwlock_t *rw)
 	while (ck_pr_fas_uint(&rw->writer, 1) != 0)
 		ck_pr_stall();
 
-	ck_pr_fence_atomic_load();
+	ck_pr_fence_memory();
 
 	while (ck_pr_load_uint(&rw->n_readers) != 0)
 		ck_pr_stall();
@@ -188,7 +188,7 @@ ck_rwlock_read_trylock(ck_rwlock_t *rw)
 	 * Serialize with respect to concurrent write
 	 * lock operation.
 	 */
-	ck_pr_fence_atomic_load();
+	ck_pr_fence_memory();
 
 	if (ck_pr_load_uint(&rw->writer) == 0) {
 		ck_pr_fence_load();
@@ -306,7 +306,7 @@ ck_rwlock_recursive_write_lock(ck_rwlock_recursive_t *rw, unsigned int tid)
 	while (ck_pr_cas_uint(&rw->rw.writer, 0, tid) == false)
 		ck_pr_stall();
 
-	ck_pr_fence_atomic_load();
+	ck_pr_fence_memory();
 
 	while (ck_pr_load_uint(&rw->rw.n_readers) != 0)
 		ck_pr_stall();
@@ -328,7 +328,7 @@ ck_rwlock_recursive_write_trylock(ck_rwlock_recursive_t *rw, unsigned int tid)
 	if (ck_pr_cas_uint(&rw->rw.writer, 0, tid) == false)
 		return false;
 
-	ck_pr_fence_atomic_load();
+	ck_pr_fence_memory();
 
 	if (ck_pr_load_uint(&rw->rw.n_readers) != 0) {
 		ck_pr_store_uint(&rw->rw.writer, 0);
