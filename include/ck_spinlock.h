@@ -464,6 +464,20 @@ ck_spinlock_ticket_init(struct ck_spinlock_ticket *ticket)
 	return;
 }
 
+CK_CC_INLINE static bool
+ck_spinlock_ticket_locked(struct ck_spinlock_ticket *ticket)
+{
+	CK_SPINLOCK_TICKET_TYPE request, position;
+
+	ck_pr_fence_load();
+
+	request = CK_SPINLOCK_TICKET_LOAD(&ticket->value);
+	position = request & CK_SPINLOCK_TICKET_MASK;
+	request >>= CK_SPINLOCK_TICKET_SHIFT;
+
+	return request != position;
+}
+
 CK_CC_INLINE static void
 ck_spinlock_ticket_lock(struct ck_spinlock_ticket *ticket)
 {
@@ -573,6 +587,17 @@ ck_spinlock_ticket_init(struct ck_spinlock_ticket *ticket)
 	ck_pr_fence_store();
 
 	return;
+}
+
+CK_CC_INLINE static bool
+ck_spinlock_ticket_locked(struct ck_spinlock_ticket *ticket)
+{
+	unsigned int request;
+
+	ck_pr_fence_load();
+	request = ck_pr_load_uint(&ticket->next);
+	ck_pr_fence_load();
+	return ck_pr_load_uint(&ticket->position) != request;
 }
 
 CK_CC_INLINE static void
