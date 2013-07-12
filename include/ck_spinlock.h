@@ -802,6 +802,17 @@ ck_spinlock_clh_init(struct ck_spinlock_clh **lock, struct ck_spinlock_clh *unow
 	return;
 }
 
+CK_CC_INLINE static bool
+ck_spinlock_clh_locked(struct ck_spinlock_clh **queue)
+{
+	struct ck_spinlock_clh *head;
+
+	ck_pr_fence_load();
+	head = ck_pr_load_ptr(queue);
+	ck_pr_fence_load();
+	return ck_pr_load_uint(&head->wait);
+}
+
 CK_CC_INLINE static void
 ck_spinlock_clh_lock(struct ck_spinlock_clh **queue, struct ck_spinlock_clh *thread)
 {
