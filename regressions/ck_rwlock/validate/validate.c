@@ -123,10 +123,156 @@ thread_recursive(void *null CK_CC_UNUSED)
 	return (NULL);
 }
 
+#ifdef CK_F_PR_RTM
+static void *
+thread_rtm_mix(void *null CK_CC_UNUSED)
+{
+	unsigned int i = ITERATE;
+	unsigned int l;
+
+        if (aff_iterate(&a)) {
+                perror("ERROR: Could not affine thread");
+                exit(EXIT_FAILURE);
+        }
+
+	while (i--) {
+		if (i & 1) {
+			ck_rwlock_write_lock_rtm(&lock);
+		} else {
+			ck_rwlock_write_lock(&lock);
+		}
+
+		{
+			l = ck_pr_load_uint(&locked);
+			if (l != 0) {
+				ck_error("ERROR [WR:%d]: %u != 0\n", __LINE__, l);
+			}
+
+			ck_pr_inc_uint(&locked);
+			ck_pr_inc_uint(&locked);
+			ck_pr_inc_uint(&locked);
+			ck_pr_inc_uint(&locked);
+			ck_pr_inc_uint(&locked);
+			ck_pr_inc_uint(&locked);
+			ck_pr_inc_uint(&locked);
+			ck_pr_inc_uint(&locked);
+
+			l = ck_pr_load_uint(&locked);
+			if (l != 8) {
+				ck_error("ERROR [WR:%d]: %u != 2\n", __LINE__, l);
+			}
+
+			ck_pr_dec_uint(&locked);
+			ck_pr_dec_uint(&locked);
+			ck_pr_dec_uint(&locked);
+			ck_pr_dec_uint(&locked);
+			ck_pr_dec_uint(&locked);
+			ck_pr_dec_uint(&locked);
+			ck_pr_dec_uint(&locked);
+			ck_pr_dec_uint(&locked);
+
+			l = ck_pr_load_uint(&locked);
+			if (l != 0) {
+				ck_error("ERROR [WR:%d]: %u != 0\n", __LINE__, l);
+			}
+		}
+
+		if (i & 1) {
+			ck_rwlock_write_unlock_rtm(&lock);
+		} else {
+			ck_rwlock_write_unlock(&lock);
+		}
+
+		if (i & 1) {
+			ck_rwlock_read_lock_rtm(&lock);
+		} else {
+			ck_rwlock_read_lock(&lock);
+		}
+
+		{
+			l = ck_pr_load_uint(&locked);
+			if (l != 0) {
+				ck_error("ERROR [RD:%d]: %u != 0\n", __LINE__, l);
+			}
+		}
+
+		if (i & 1) {
+			ck_rwlock_read_unlock_rtm(&lock);
+		} else {
+			ck_rwlock_read_unlock(&lock);
+		}
+	}
+
+	return (NULL);
+}
+
+static void *
+thread_rtm(void *null CK_CC_UNUSED)
+{
+	unsigned int i = ITERATE;
+	unsigned int l;
+
+        if (aff_iterate(&a)) {
+                perror("ERROR: Could not affine thread");
+                exit(EXIT_FAILURE);
+        }
+
+	while (i--) {
+		ck_rwlock_write_lock_rtm(&lock);
+		{
+			l = ck_pr_load_uint(&locked);
+			if (l != 0) {
+				ck_error("ERROR [WR:%d]: %u != 0\n", __LINE__, l);
+			}
+
+			ck_pr_inc_uint(&locked);
+			ck_pr_inc_uint(&locked);
+			ck_pr_inc_uint(&locked);
+			ck_pr_inc_uint(&locked);
+			ck_pr_inc_uint(&locked);
+			ck_pr_inc_uint(&locked);
+			ck_pr_inc_uint(&locked);
+			ck_pr_inc_uint(&locked);
+
+			l = ck_pr_load_uint(&locked);
+			if (l != 8) {
+				ck_error("ERROR [WR:%d]: %u != 2\n", __LINE__, l);
+			}
+
+			ck_pr_dec_uint(&locked);
+			ck_pr_dec_uint(&locked);
+			ck_pr_dec_uint(&locked);
+			ck_pr_dec_uint(&locked);
+			ck_pr_dec_uint(&locked);
+			ck_pr_dec_uint(&locked);
+			ck_pr_dec_uint(&locked);
+			ck_pr_dec_uint(&locked);
+
+			l = ck_pr_load_uint(&locked);
+			if (l != 0) {
+				ck_error("ERROR [WR:%d]: %u != 0\n", __LINE__, l);
+			}
+		}
+		ck_rwlock_write_unlock_rtm(&lock);
+
+		ck_rwlock_read_lock_rtm(&lock);
+		{
+			l = ck_pr_load_uint(&locked);
+			if (l != 0) {
+				ck_error("ERROR [RD:%d]: %u != 0\n", __LINE__, l);
+			}
+		}
+		ck_rwlock_read_unlock_rtm(&lock);
+	}
+
+	return (NULL);
+}
+#endif /* CK_F_PR_RTM */
+
 static void *
 thread(void *null CK_CC_UNUSED)
 {
-	int i = ITERATE;
+	unsigned int i = ITERATE;
 	unsigned int l;
 
         if (aff_iterate(&a)) {
@@ -185,11 +331,29 @@ thread(void *null CK_CC_UNUSED)
 	return (NULL);
 }
 
+static void
+rwlock_test(pthread_t *threads, void *(*f)(void *), const char *test)
+{
+	int i;
+
+	fprintf(stderr, "Creating threads (%s)...", test);
+	for (i = 0; i < nthr; i++) {
+		if (pthread_create(&threads[i], NULL, f, NULL)) {
+			ck_error("ERROR: Could not create thread %d\n", i);
+		}
+	}
+	fprintf(stderr, ".");
+
+	for (i = 0; i < nthr; i++)
+		pthread_join(threads[i], NULL);
+	fprintf(stderr, "done (passed)\n");
+	return;
+}
+
 int
 main(int argc, char *argv[])
 {
 	pthread_t *threads;
-	int i;
 
 	if (argc != 3) {
 		ck_error("Usage: validate <number of threads> <affinity delta>\n");
@@ -207,32 +371,12 @@ main(int argc, char *argv[])
 
 	a.delta = atoi(argv[2]);
 
-	fprintf(stderr, "Creating threads (mutual exclusion)...");
-	for (i = 0; i < nthr; i++) {
-		if (pthread_create(&threads[i], NULL, thread, NULL)) {
-			ck_error("ERROR: Could not create thread %d\n", i);
-		}
-	}
-	fprintf(stderr, "done\n");
-
-	fprintf(stderr, "Waiting for threads to finish correctness regression...");
-	for (i = 0; i < nthr; i++)
-		pthread_join(threads[i], NULL);
-	fprintf(stderr, "done (passed)\n");
-
-	fprintf(stderr, "Creating threads (mutual exclusion, recursive)...");
-	for (i = 0; i < nthr; i++) {
-		if (pthread_create(&threads[i], NULL, thread_recursive, NULL)) {
-			ck_error("ERROR: Could not create thread %d\n", i);
-		}
-	}
-	fprintf(stderr, "done\n");
-
-	fprintf(stderr, "Waiting for threads to finish correctness regression...");
-	for (i = 0; i < nthr; i++)
-		pthread_join(threads[i], NULL);
-	fprintf(stderr, "done (passed)\n");
-
-	return (0);
+	rwlock_test(threads, thread, "regular");
+#ifdef CK_F_PR_RTM
+	rwlock_test(threads, thread_rtm, "rtm");
+	rwlock_test(threads, thread_rtm_mix, "rtm-mix");
+#endif
+	rwlock_test(threads, thread_recursive, "recursive");
+	return 0;
 }
 

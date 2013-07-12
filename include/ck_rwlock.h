@@ -58,6 +58,21 @@ ck_rwlock_write_unlock(ck_rwlock_t *rw)
 	return;
 }
 
+#ifdef CK_F_PR_RTM
+CK_CC_INLINE static void
+ck_rwlock_write_unlock_rtm(ck_rwlock_t *rw)
+{
+
+	if (ck_pr_load_uint(&rw->writer) == 0) {
+		ck_pr_rtm_end();
+		return;
+	}
+
+	ck_rwlock_write_unlock(rw);
+	return;
+}
+#endif /* CK_F_PR_RTM */
+
 CK_CC_INLINE static void
 ck_rwlock_write_downgrade(ck_rwlock_t *rw)
 {
@@ -66,6 +81,25 @@ ck_rwlock_write_downgrade(ck_rwlock_t *rw)
 	ck_rwlock_write_unlock(rw);
 	return;
 }
+
+#ifdef CK_F_PR_RTM
+CK_CC_INLINE static void
+ck_rwlock_write_downgrade_rtm(ck_rwlock_t *rw)
+{
+
+	if (ck_pr_load_uint(&rw->writer) != 0) {
+		ck_rwlock_write_downgrade(rw);
+		return;
+	}
+
+	/*
+	 * Both reader and writer counters are in read-set. A transactional
+	 * abort will occur in the presence of another writer. Inner-most
+	 * read_unlock call will attempt a transactional commit.
+	 */
+	return;
+}
+#endif /* CK_F_PR_RTM */
 
 CK_CC_INLINE static bool
 ck_rwlock_write_trylock(ck_rwlock_t *rw)
@@ -84,6 +118,27 @@ ck_rwlock_write_trylock(ck_rwlock_t *rw)
 	return true;
 }
 
+#ifdef CK_F_PR_RTM
+CK_CC_INLINE static bool
+ck_rwlock_write_trylock_rtm(ck_rwlock_t *rw)
+{
+	bool r;
+
+	if (ck_pr_rtm_begin() != CK_PR_RTM_STARTED) {
+		return ck_rwlock_write_trylock(rw);
+	}
+
+	r = ck_pr_load_uint(&rw->writer) != 0;
+
+	ck_pr_fence_load();
+
+	if (r | (ck_pr_load_uint(&rw->n_readers) != 0))
+		ck_pr_rtm_abort(0);
+
+	return true;
+}
+#endif /* CK_F_PR_RTM */
+
 CK_CC_INLINE static void
 ck_rwlock_write_lock(ck_rwlock_t *rw)
 {
@@ -98,6 +153,28 @@ ck_rwlock_write_lock(ck_rwlock_t *rw)
 
 	return;
 }
+
+#ifdef CK_F_PR_RTM
+CK_CC_INLINE static void
+ck_rwlock_write_lock_rtm(ck_rwlock_t *rw)
+{
+	bool r;
+
+	if (ck_pr_rtm_begin() != CK_PR_RTM_STARTED) {
+		ck_rwlock_write_lock(rw);
+		return;
+	}
+
+	r = ck_pr_load_uint(&rw->writer) != 0;
+
+	ck_pr_fence_load();
+
+	if (r | (ck_pr_load_uint(&rw->n_readers) != 0))
+		ck_pr_rtm_abort(0);
+
+	return;
+}
+#endif /* CK_F_PR_RTM */
 
 CK_CC_INLINE static bool
 ck_rwlock_read_trylock(ck_rwlock_t *rw)
@@ -141,6 +218,7 @@ ck_rwlock_read_lock(ck_rwlock_t *rw)
 
 		if (ck_pr_load_uint(&rw->writer) == 0)
 			break;
+
 		ck_pr_dec_uint(&rw->n_readers);
 	}
 
@@ -148,6 +226,23 @@ ck_rwlock_read_lock(ck_rwlock_t *rw)
 	ck_pr_fence_load();
 	return;
 }
+
+#ifdef CK_F_PR_RTM
+CK_CC_INLINE static void
+ck_rwlock_read_lock_rtm(ck_rwlock_t *rw)
+{
+
+	if (ck_pr_rtm_begin() == CK_PR_RTM_STARTED) {
+		if (ck_pr_load_uint(&rw->writer) != 0)
+			ck_pr_rtm_abort(0);
+
+		return;
+	}
+
+	ck_rwlock_read_lock(rw);
+	return;
+}
+#endif /* CK_F_PR_RTM */
 
 CK_CC_INLINE static void
 ck_rwlock_read_unlock(ck_rwlock_t *rw)
@@ -157,6 +252,21 @@ ck_rwlock_read_unlock(ck_rwlock_t *rw)
 	ck_pr_dec_uint(&rw->n_readers);
 	return;
 }
+
+#ifdef CK_F_PR_RTM
+CK_CC_INLINE static void
+ck_rwlock_read_unlock_rtm(ck_rwlock_t *rw)
+{
+
+	if (ck_pr_load_uint(&rw->n_readers) == 0) {
+		ck_pr_rtm_end();
+	} else {
+		ck_rwlock_read_unlock(rw);
+	}
+
+	return;
+}
+#endif /* CK_F_PR_RTM */
 
 /*
  * Recursive writer reader-writer lock implementation.
@@ -251,3 +361,4 @@ ck_rwlock_recursive_read_unlock(ck_rwlock_recursive_t *rw)
 }
 
 #endif /* _CK_RWLOCK_H */
+

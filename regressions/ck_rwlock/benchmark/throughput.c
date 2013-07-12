@@ -41,11 +41,17 @@
 static int barrier;
 static int threads;
 static unsigned int flag CK_CC_CACHELINE;
-static ck_rwlock_t rwlock = CK_RWLOCK_INITIALIZER;
+static struct {
+	ck_rwlock_t lock;
+} rw CK_CC_CACHELINE = {
+	.lock = CK_RWLOCK_INITIALIZER
+};
+
 static struct affinity affinity;
 
+#ifdef CK_F_PR_RTM
 static void *
-thread_rwlock(void *pun)
+thread_lock_rtm(void *pun)
 {
 	uint64_t s_b, e_b, a, i;
 	uint64_t *value = pun;
@@ -61,38 +67,104 @@ thread_rwlock(void *pun)
 
 	for (i = 1, a = 0;; i++) {
 		s_b = rdtsc();
-		ck_rwlock_read_lock(&rwlock);
-		ck_rwlock_read_unlock(&rwlock);
-		ck_rwlock_read_lock(&rwlock);
-		ck_rwlock_read_unlock(&rwlock);
-		ck_rwlock_read_lock(&rwlock);
-		ck_rwlock_read_unlock(&rwlock);
-		ck_rwlock_read_lock(&rwlock);
-		ck_rwlock_read_unlock(&rwlock);
-		ck_rwlock_read_lock(&rwlock);
-		ck_rwlock_read_unlock(&rwlock);
-		ck_rwlock_read_lock(&rwlock);
-		ck_rwlock_read_unlock(&rwlock);
-		ck_rwlock_read_lock(&rwlock);
-		ck_rwlock_read_unlock(&rwlock);
-		ck_rwlock_read_lock(&rwlock);
-		ck_rwlock_read_unlock(&rwlock);
-		ck_rwlock_read_lock(&rwlock);
-		ck_rwlock_read_unlock(&rwlock);
-		ck_rwlock_read_lock(&rwlock);
-		ck_rwlock_read_unlock(&rwlock);
-		ck_rwlock_read_lock(&rwlock);
-		ck_rwlock_read_unlock(&rwlock);
-		ck_rwlock_read_lock(&rwlock);
-		ck_rwlock_read_unlock(&rwlock);
-		ck_rwlock_read_lock(&rwlock);
-		ck_rwlock_read_unlock(&rwlock);
-		ck_rwlock_read_lock(&rwlock);
-		ck_rwlock_read_unlock(&rwlock);
-		ck_rwlock_read_lock(&rwlock);
-		ck_rwlock_read_unlock(&rwlock);
-		ck_rwlock_read_lock(&rwlock);
-		ck_rwlock_read_unlock(&rwlock);
+		ck_rwlock_read_lock_rtm(&rw.lock);
+		ck_rwlock_read_unlock_rtm(&rw.lock);
+		ck_rwlock_read_lock_rtm(&rw.lock);
+		ck_rwlock_read_unlock_rtm(&rw.lock);
+		ck_rwlock_read_lock_rtm(&rw.lock);
+		ck_rwlock_read_unlock_rtm(&rw.lock);
+		ck_rwlock_read_lock_rtm(&rw.lock);
+		ck_rwlock_read_unlock_rtm(&rw.lock);
+		ck_rwlock_read_lock_rtm(&rw.lock);
+		ck_rwlock_read_unlock_rtm(&rw.lock);
+		ck_rwlock_read_lock_rtm(&rw.lock);
+		ck_rwlock_read_unlock_rtm(&rw.lock);
+		ck_rwlock_read_lock_rtm(&rw.lock);
+		ck_rwlock_read_unlock_rtm(&rw.lock);
+		ck_rwlock_read_lock_rtm(&rw.lock);
+		ck_rwlock_read_unlock_rtm(&rw.lock);
+		ck_rwlock_read_lock_rtm(&rw.lock);
+		ck_rwlock_read_unlock_rtm(&rw.lock);
+		ck_rwlock_read_lock_rtm(&rw.lock);
+		ck_rwlock_read_unlock_rtm(&rw.lock);
+		ck_rwlock_read_lock_rtm(&rw.lock);
+		ck_rwlock_read_unlock_rtm(&rw.lock);
+		ck_rwlock_read_lock_rtm(&rw.lock);
+		ck_rwlock_read_unlock_rtm(&rw.lock);
+		ck_rwlock_read_lock_rtm(&rw.lock);
+		ck_rwlock_read_unlock_rtm(&rw.lock);
+		ck_rwlock_read_lock_rtm(&rw.lock);
+		ck_rwlock_read_unlock_rtm(&rw.lock);
+		ck_rwlock_read_lock_rtm(&rw.lock);
+		ck_rwlock_read_unlock_rtm(&rw.lock);
+		ck_rwlock_read_lock_rtm(&rw.lock);
+		ck_rwlock_read_unlock_rtm(&rw.lock);
+		e_b = rdtsc();
+
+		a += (e_b - s_b) >> 4;
+
+		if (ck_pr_load_uint(&flag) == 1)
+			break;
+	}
+
+	ck_pr_inc_int(&barrier);
+	while (ck_pr_load_int(&barrier) != threads * 2)
+		ck_pr_stall();
+
+	*value = (a / i);
+	return NULL;
+}
+#endif /* CK_F_PR_RTM */
+
+static void *
+thread_lock(void *pun)
+{
+	uint64_t s_b, e_b, a, i;
+	uint64_t *value = pun;
+
+	if (aff_iterate(&affinity) != 0) {
+		perror("ERROR: Could not affine thread");
+		exit(EXIT_FAILURE);
+	}
+
+	ck_pr_inc_int(&barrier);
+	while (ck_pr_load_int(&barrier) != threads)
+		ck_pr_stall();
+
+	for (i = 1, a = 0;; i++) {
+		s_b = rdtsc();
+		ck_rwlock_read_lock(&rw.lock);
+		ck_rwlock_read_unlock(&rw.lock);
+		ck_rwlock_read_lock(&rw.lock);
+		ck_rwlock_read_unlock(&rw.lock);
+		ck_rwlock_read_lock(&rw.lock);
+		ck_rwlock_read_unlock(&rw.lock);
+		ck_rwlock_read_lock(&rw.lock);
+		ck_rwlock_read_unlock(&rw.lock);
+		ck_rwlock_read_lock(&rw.lock);
+		ck_rwlock_read_unlock(&rw.lock);
+		ck_rwlock_read_lock(&rw.lock);
+		ck_rwlock_read_unlock(&rw.lock);
+		ck_rwlock_read_lock(&rw.lock);
+		ck_rwlock_read_unlock(&rw.lock);
+		ck_rwlock_read_lock(&rw.lock);
+		ck_rwlock_read_unlock(&rw.lock);
+		ck_rwlock_read_lock(&rw.lock);
+		ck_rwlock_read_unlock(&rw.lock);
+		ck_rwlock_read_lock(&rw.lock);
+		ck_rwlock_read_unlock(&rw.lock);
+		ck_rwlock_read_lock(&rw.lock);
+		ck_rwlock_read_unlock(&rw.lock);
+		ck_rwlock_read_lock(&rw.lock);
+		ck_rwlock_read_unlock(&rw.lock);
+		ck_rwlock_read_lock(&rw.lock);
+		ck_rwlock_read_unlock(&rw.lock);
+		ck_rwlock_read_lock(&rw.lock);
+		ck_rwlock_read_unlock(&rw.lock);
+		ck_rwlock_read_lock(&rw.lock);
+		ck_rwlock_read_unlock(&rw.lock);
+		ck_rwlock_read_lock(&rw.lock);
+		ck_rwlock_read_unlock(&rw.lock);
 		e_b = rdtsc();
 
 		a += (e_b - s_b) >> 4;
@@ -109,10 +181,45 @@ thread_rwlock(void *pun)
 	return NULL;
 }
 
+static void
+rwlock_test(pthread_t *p, int d, uint64_t *latency, void *(*f)(void *), const char *label)
+{
+	int t;
+
+	ck_pr_store_int(&barrier, 0);
+	ck_pr_store_uint(&flag, 0);
+
+	affinity.delta = d;
+	affinity.request = 0;
+
+	fprintf(stderr, "Creating threads (%s)...", label);
+	for (t = 0; t < threads; t++) {
+		if (pthread_create(&p[t], NULL, f, latency + t) != 0) {
+			ck_error("ERROR: Could not create thread %d\n", t);
+		}
+	}
+	fprintf(stderr, "done\n");
+
+	common_sleep(10);
+	ck_pr_store_uint(&flag, 1);
+
+	fprintf(stderr, "Waiting for threads to finish acquisition regression...");
+	for (t = 0; t < threads; t++)
+		pthread_join(p[t], NULL);
+	fprintf(stderr, "done\n\n");
+
+	for (t = 1; t <= threads; t++)
+		printf("%10u %20" PRIu64 "\n", t, latency[t - 1]);
+
+	fprintf(stderr, "\n");
+	return;
+}
+
+
 int
 main(int argc, char *argv[])
 {
-	int t;
+	int d;
 	pthread_t *p;
 	uint64_t *latency;
 
@@ -135,28 +242,13 @@ main(int argc, char *argv[])
 		ck_error("ERROR: Failed to create latency buffer.\n");
 	}
 
-	affinity.delta = atoi(argv[1]);
-	affinity.request = 0;
+	d = atoi(argv[1]);
+	rwlock_test(p, d, latency, thread_lock, "rwlock");
 
-	fprintf(stderr, "Creating threads (rwlock)...");
-	for (t = 0; t < threads; t++) {
-		if (pthread_create(&p[t], NULL, thread_rwlock, latency + t) != 0) {
-			ck_error("ERROR: Could not create thread %d\n", t);
-		}
-	}
-	fprintf(stderr, "done\n");
+#ifdef CK_F_PR_RTM
+	rwlock_test(p, d, latency, thread_lock_rtm, "rwlock, rtm");
+#endif /* CK_F_PR_RTM */
 
-	common_sleep(10);
-	ck_pr_store_uint(&flag, 1);
-
-	fprintf(stderr, "Waiting for threads to finish acquisition regression...");
-	for (t = 0; t < threads; t++)
-		pthread_join(p[t], NULL);
-	fprintf(stderr, "done\n\n");
-
-	for (t = 1; t <= threads; t++)
-		printf("%10u %20" PRIu64 "\n", t, latency[t - 1]);
-
-	return (0);
+	return 0;
 }
 
