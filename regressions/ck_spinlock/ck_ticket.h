@@ -7,4 +7,5 @@
 #ifdef CK_F_SPINLOCK_TICKET_TRYLOCK
 #define TRYLOCK ck_spinlock_ticket_trylock(&lock)
 #endif
+#define LOCKED ck_spinlock_ticket_locked(&lock)
 

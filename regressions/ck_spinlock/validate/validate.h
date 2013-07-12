@@ -81,6 +81,11 @@ thread(void *null CK_CC_UNUSED)
 		LOCK;
 #endif
 
+#ifdef LOCKED
+		if (LOCKED == false)
+			ck_error("is_locked operation failed.");
+#endif
+
 		ck_pr_inc_uint(&locked);
 		ck_pr_inc_uint(&locked);
 		ck_pr_inc_uint(&locked);
