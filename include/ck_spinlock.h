@@ -29,6 +29,7 @@
 
 #include <ck_backoff.h>
 #include <ck_cc.h>
+#include <ck_elide.h>
 #include <ck_limits.h>
 #include <ck_md.h>
 #include <ck_pr.h>
@@ -49,6 +50,13 @@
 #define ck_spinlock_unlock(x)   ck_spinlock_fas_unlock(x)
 #define ck_spinlock_locked(x)   ck_spinlock_fas_locked(x)
 #define ck_spinlock_trylock(x)  ck_spinlock_fas_trylock(x)
+
+CK_ELIDE_PROTOTYPE(ck_spinlock, ck_spinlock_t,
+    ck_spinlock_locked, ck_spinlock_lock,
+    ck_spinlock_locked, ck_spinlock_unlock)
+
+CK_ELIDE_TRYLOCK_PROTOTYPE(ck_spinlock, ck_spinlock_t,
+    ck_spinlock_locked, ck_spinlock_trylock)
 
 #ifndef CK_F_SPINLOCK_ANDERSON
 #define CK_F_SPINLOCK_ANDERSON
@@ -250,6 +258,14 @@ ck_spinlock_fas_unlock(struct ck_spinlock_fas *lock)
 	ck_pr_store_uint(&lock->value, false);
 	return;
 }
+
+CK_ELIDE_PROTOTYPE(ck_spinlock_fas, ck_spinlock_fas_t,
+    ck_spinlock_fas_locked, ck_spinlock_fas_lock,
+    ck_spinlock_fas_locked, ck_spinlock_fas_unlock)
+
+CK_ELIDE_TRYLOCK_PROTOTYPE(ck_spinlock_fas, ck_spinlock_fas_t,
+    ck_spinlock_fas_locked, ck_spinlock_fas_trylock)
+
 #endif /* CK_F_SPINLOCK_FAS */
 
 #ifndef CK_F_SPINLOCK_CAS
@@ -326,6 +342,14 @@ ck_spinlock_cas_unlock(struct ck_spinlock_cas *lock)
 	ck_pr_store_uint(&lock->value, false);
 	return;
 }
+
+CK_ELIDE_PROTOTYPE(ck_spinlock_cas, ck_spinlock_cas_t,
+    ck_spinlock_cas_locked, ck_spinlock_cas_lock,
+    ck_spinlock_cas_locked, ck_spinlock_cas_unlock)
+
+CK_ELIDE_TRYLOCK_PROTOTYPE(ck_spinlock_cas, ck_spinlock_cas_t,
+    ck_spinlock_cas_locked, ck_spinlock_cas_trylock)
+
 #endif /* CK_F_SPINLOCK_CAS */
 
 #ifndef CK_F_SPINLOCK_DEC
@@ -416,6 +440,14 @@ ck_spinlock_dec_unlock(struct ck_spinlock_dec *lock)
 	ck_pr_store_uint(&lock->value, 1);
 	return;
 }
+
+CK_ELIDE_PROTOTYPE(ck_spinlock_dec, ck_spinlock_dec_t,
+    ck_spinlock_dec_locked, ck_spinlock_dec_lock,
+    ck_spinlock_dec_locked, ck_spinlock_dec_unlock)
+
+CK_ELIDE_TRYLOCK_PROTOTYPE(ck_spinlock_dec, ck_spinlock_dec_t,
+    ck_spinlock_dec_locked, ck_spinlock_dec_trylock)
+
 #endif /* CK_F_SPINLOCK_DEC */
 
 #ifndef CK_F_SPINLOCK_TICKET
@@ -669,6 +701,14 @@ ck_spinlock_ticket_unlock(struct ck_spinlock_ticket *ticket)
 	return;
 }
 #endif /* !CK_F_SPINLOCK_TICKET_TRYLOCK */
+
+CK_ELIDE_PROTOTYPE(ck_spinlock_ticket, ck_spinlock_ticket_t,
+    ck_spinlock_ticket_locked, ck_spinlock_ticket_lock,
+    ck_spinlock_ticket_locked, ck_spinlock_ticket_unlock)
+
+CK_ELIDE_TRYLOCK_PROTOTYPE(ck_spinlock_ticket, ck_spinlock_ticket_t,
+    ck_spinlock_ticket_locked, ck_spinlock_ticket_trylock)
+
 #endif /* CK_F_SPINLOCK_TICKET */
 
 #ifndef CK_F_SPINLOCK_MCS
