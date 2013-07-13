@@ -14,4 +14,4 @@ clean:
 	rm -rf *.dSYM *.exe *~ *.o $(OBJECTS)
 
 include ../../../build/regressions.build
-CFLAGS+=$(PTHREAD_CFLAGS) -D_GNU_SOURCE -g
+CFLAGS+=$(PTHREAD_CFLAGS) -D_GNU_SOURCE
