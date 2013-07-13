@@ -99,7 +99,7 @@ ck_stack_pop_upmc(struct ck_stack *target)
 
 	entry = ck_pr_load_ptr(&target->head);
 	if (entry == NULL)
-		return (NULL);
+		return NULL;
 
 	ck_pr_fence_load();
 	next = entry->next;
@@ -111,7 +111,7 @@ ck_stack_pop_upmc(struct ck_stack *target)
 		next = entry->next;
 	}
 
-	return (entry);
+	return entry;
 }
 #endif
 
@@ -154,7 +154,7 @@ ck_stack_batch_pop_upmc(struct ck_stack *target)
 
 	entry = ck_pr_fas_ptr(&target->head, NULL);
 	ck_pr_fence_load();
-	return (entry);
+	return entry;
 }
 #endif /* CK_F_STACK_BATCH_POP_UPMC */
 
@@ -199,7 +199,7 @@ ck_stack_pop_mpmc(struct ck_stack *target)
 	original.generation = ck_pr_load_ptr(&target->generation);
 	original.head = ck_pr_load_ptr(&target->head);
 	if (original.head == NULL)
-		return (NULL);
+		return NULL;
 
 	ck_pr_fence_load();
 
@@ -208,7 +208,7 @@ ck_stack_pop_mpmc(struct ck_stack *target)
 
 	while (ck_pr_cas_ptr_2_value(target, &original, &update, &original) == false) {
 		if (original.head == NULL)
-			return (NULL);
+			return NULL;
 
 		update.generation = original.generation + 1;
 
@@ -216,7 +216,7 @@ ck_stack_pop_mpmc(struct ck_stack *target)
 		update.head = original.head->next;
 	}
 
-	return (original.head);
+	return original.head;
 }
 #endif /* CK_F_STACK_POP_MPMC */
 
@@ -302,12 +302,12 @@ ck_stack_pop_npsc(struct ck_stack *target)
 	struct ck_stack_entry *n;
 
 	if (target->head == NULL)
-		return (NULL);
+		return NULL;
 
 	n = target->head;
 	target->head = n->next;
 
-	return (n);
+	return n;
 }
 
 /*
@@ -321,7 +321,7 @@ ck_stack_batch_pop_npsc(struct ck_stack *target)
 	n = target->head;
 	target->head = NULL;
 
-	return (n);
+	return n;
 }
 
 /*
