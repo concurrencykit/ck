@@ -27,6 +27,7 @@
 #ifndef _CK_RWLOCK_H
 #define _CK_RWLOCK_H
 
+#include <ck_elide.h>
 #include <ck_pr.h>
 #include <stdbool.h>
 #include <stddef.h>
@@ -58,20 +59,13 @@ ck_rwlock_write_unlock(ck_rwlock_t *rw)
 	return;
 }
 
-#ifdef CK_F_PR_RTM
-CK_CC_INLINE static void
-ck_rwlock_write_unlock_rtm(ck_rwlock_t *rw)
+CK_CC_INLINE static bool
+ck_rwlock_locked_writer(ck_rwlock_t *rw)
 {
 
-	if (ck_pr_load_uint(&rw->writer) == 0) {
-		ck_pr_rtm_end();
-		return;
-	}
-
-	ck_rwlock_write_unlock(rw);
-	return;
+	ck_pr_fence_load();
+	return ck_pr_load_uint(&rw->writer);
 }
-#endif /* CK_F_PR_RTM */
 
 CK_CC_INLINE static void
 ck_rwlock_write_downgrade(ck_rwlock_t *rw)
@@ -82,24 +76,17 @@ ck_rwlock_write_downgrade(ck_rwlock_t *rw)
 	return;
 }
 
-#ifdef CK_F_PR_RTM
-CK_CC_INLINE static void
-ck_rwlock_write_downgrade_rtm(ck_rwlock_t *rw)
+CK_CC_INLINE static bool
+ck_rwlock_locked(ck_rwlock_t *rw)
 {
+	unsigned int r;
 
-	if (ck_pr_load_uint(&rw->writer) != 0) {
-		ck_rwlock_write_downgrade(rw);
-		return;
-	}
+	ck_pr_fence_load();
+	r = ck_pr_load_uint(&rw->writer);
+	ck_pr_fence_load();
 
-	/*
-	 * Both reader and writer counters are in read-set. A transactional
-	 * abort will occur in the presence of another writer. Inner-most
-	 * read_unlock call will attempt a transactional commit.
-	 */
-	return;
+	return ck_pr_load_uint(&rw->n_readers) | r;
 }
-#endif /* CK_F_PR_RTM */
 
 CK_CC_INLINE static bool
 ck_rwlock_write_trylock(ck_rwlock_t *rw)
@@ -118,25 +105,8 @@ ck_rwlock_write_trylock(ck_rwlock_t *rw)
 	return true;
 }
 
-#ifdef CK_F_PR_RTM
-CK_CC_INLINE static bool
-ck_rwlock_write_trylock_rtm(ck_rwlock_t *rw)
-{
-	bool r;
-
-	if (ck_pr_rtm_begin() != CK_PR_RTM_STARTED)
-		return false;
-
-	r = ck_pr_load_uint(&rw->writer) != 0;
-
-	ck_pr_fence_load();
-
-	if (r | (ck_pr_load_uint(&rw->n_readers) != 0))
-		ck_pr_rtm_abort(0);
-
-	return true;
-}
-#endif /* CK_F_PR_RTM */
+CK_ELIDE_TRYLOCK_PROTOTYPE(ck_rwlock_write, ck_rwlock_t,
+    ck_rwlock_locked, ck_rwlock_write_trylock)
 
 CK_CC_INLINE static void
 ck_rwlock_write_lock(ck_rwlock_t *rw)
@@ -153,27 +123,9 @@ ck_rwlock_write_lock(ck_rwlock_t *rw)
 	return;
 }
 
-#ifdef CK_F_PR_RTM
-CK_CC_INLINE static void
-ck_rwlock_write_lock_rtm(ck_rwlock_t *rw)
-{
-	bool r;
-
-	if (ck_pr_rtm_begin() != CK_PR_RTM_STARTED) {
-		ck_rwlock_write_lock(rw);
-		return;
-	}
-
-	r = ck_pr_load_uint(&rw->writer) != 0;
-
-	ck_pr_fence_load();
-
-	if (r | (ck_pr_load_uint(&rw->n_readers) != 0))
-		ck_pr_rtm_abort(0);
-
-	return;
-}
-#endif /* CK_F_PR_RTM */
+CK_ELIDE_PROTOTYPE(ck_rwlock_write, ck_rwlock_t,
+    ck_rwlock_locked, ck_rwlock_write_lock,
+    ck_rwlock_locked_writer, ck_rwlock_write_unlock)
 
 CK_CC_INLINE static bool
 ck_rwlock_read_trylock(ck_rwlock_t *rw)
@@ -199,21 +151,8 @@ ck_rwlock_read_trylock(ck_rwlock_t *rw)
 	return false;
 }
 
-#ifdef CK_F_PR_RTM
-CK_CC_INLINE static bool
-ck_rwlock_read_trylock_rtm(ck_rwlock_t *rw)
-{
-
-	if (ck_pr_rtm_begin() != CK_PR_RTM_STARTED)
-		return false;
-
-	if (ck_pr_load_uint(&rw->writer) == 0)
-		return true;
-
-	ck_pr_rtm_abort(0);
-	return false;
-}
-#endif /* CK_F_PR_RTM */
+CK_ELIDE_TRYLOCK_PROTOTYPE(ck_rwlock_read, ck_rwlock_t,
+    ck_rwlock_locked_writer, ck_rwlock_read_trylock)
 
 CK_CC_INLINE static void
 ck_rwlock_read_lock(ck_rwlock_t *rw)
@@ -242,22 +181,13 @@ ck_rwlock_read_lock(ck_rwlock_t *rw)
 	return;
 }
 
-#ifdef CK_F_PR_RTM
-CK_CC_INLINE static void
-ck_rwlock_read_lock_rtm(ck_rwlock_t *rw)
+CK_CC_INLINE static bool
+ck_rwlock_locked_reader(ck_rwlock_t *rw)
 {
 
-	if (ck_pr_rtm_begin() == CK_PR_RTM_STARTED) {
-		if (ck_pr_load_uint(&rw->writer) != 0)
-			ck_pr_rtm_abort(0);
-
-		return;
-	}
-
-	ck_rwlock_read_lock(rw);
-	return;
+	ck_pr_fence_load();
+	return ck_pr_load_uint(&rw->n_readers);
 }
-#endif /* CK_F_PR_RTM */
 
 CK_CC_INLINE static void
 ck_rwlock_read_unlock(ck_rwlock_t *rw)
@@ -268,20 +198,9 @@ ck_rwlock_read_unlock(ck_rwlock_t *rw)
 	return;
 }
 
-#ifdef CK_F_PR_RTM
-CK_CC_INLINE static void
-ck_rwlock_read_unlock_rtm(ck_rwlock_t *rw)
-{
-
-	if (ck_pr_load_uint(&rw->n_readers) == 0) {
-		ck_pr_rtm_end();
-	} else {
-		ck_rwlock_read_unlock(rw);
-	}
-
-	return;
-}
-#endif /* CK_F_PR_RTM */
+CK_ELIDE_PROTOTYPE(ck_rwlock_read, ck_rwlock_t,
+    ck_rwlock_locked_writer, ck_rwlock_read_lock,
+    ck_rwlock_locked_reader, ck_rwlock_read_unlock)
 
 /*
  * Recursive writer reader-writer lock implementation.

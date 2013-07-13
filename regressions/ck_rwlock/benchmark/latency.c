@@ -55,14 +55,14 @@ main(void)
 
 #ifdef CK_F_PR_RTM
 	for (i = 0; i < STEPS; i++) {
-		ck_rwlock_write_lock_rtm(&rwlock);
-		ck_rwlock_write_unlock_rtm(&rwlock);
+		CK_ELIDE_LOCK(ck_rwlock_write, &rwlock);
+		CK_ELIDE_UNLOCK(ck_rwlock_write, &rwlock);
 	}
 
 	s_b = rdtsc();
 	for (i = 0; i < STEPS; i++) {
-		ck_rwlock_write_lock_rtm(&rwlock);
-		ck_rwlock_write_unlock_rtm(&rwlock);
+		CK_ELIDE_LOCK(ck_rwlock_write, &rwlock);
+		CK_ELIDE_UNLOCK(ck_rwlock_write, &rwlock);
 	}
 	e_b = rdtsc();
 	printf(" (rtm) WRITE: rwlock   %15" PRIu64 "\n", (e_b - s_b) / STEPS);
@@ -83,14 +83,14 @@ main(void)
 
 #ifdef CK_F_PR_RTM
 	for (i = 0; i < STEPS; i++) {
-		ck_rwlock_read_lock_rtm(&rwlock);
-		ck_rwlock_read_unlock_rtm(&rwlock);
+		CK_ELIDE_LOCK(ck_rwlock_read, &rwlock);
+		CK_ELIDE_UNLOCK(ck_rwlock_read, &rwlock);
 	}
 
 	s_b = rdtsc();
 	for (i = 0; i < STEPS; i++) {
-		ck_rwlock_read_lock_rtm(&rwlock);
-		ck_rwlock_read_unlock_rtm(&rwlock);
+		CK_ELIDE_LOCK(ck_rwlock_read, &rwlock);
+		CK_ELIDE_UNLOCK(ck_rwlock_read, &rwlock);
 	}
 	e_b = rdtsc();
 	printf(" (rtm) READ:  rwlock   %15" PRIu64 "\n", (e_b - s_b) / STEPS);

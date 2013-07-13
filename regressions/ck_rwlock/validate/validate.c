@@ -137,7 +137,7 @@ thread_rtm_mix(void *null CK_CC_UNUSED)
 
 	while (i--) {
 		if (i & 1) {
-			ck_rwlock_write_lock_rtm(&lock);
+			CK_ELIDE_LOCK(ck_rwlock_write, &lock);
 		} else {
 			ck_rwlock_write_lock(&lock);
 		}
@@ -178,13 +178,13 @@ thread_rtm_mix(void *null CK_CC_UNUSED)
 		}
 
 		if (i & 1) {
-			ck_rwlock_write_unlock_rtm(&lock);
+			CK_ELIDE_UNLOCK(ck_rwlock_write, &lock);
 		} else {
 			ck_rwlock_write_unlock(&lock);
 		}
 
 		if (i & 1) {
-			ck_rwlock_read_lock_rtm(&lock);
+			CK_ELIDE_LOCK(ck_rwlock_read, &lock);
 		} else {
 			ck_rwlock_read_lock(&lock);
 		}
@@ -197,7 +197,7 @@ thread_rtm_mix(void *null CK_CC_UNUSED)
 		}
 
 		if (i & 1) {
-			ck_rwlock_read_unlock_rtm(&lock);
+			CK_ELIDE_UNLOCK(ck_rwlock_read, &lock);
 		} else {
 			ck_rwlock_read_unlock(&lock);
 		}
@@ -218,7 +218,7 @@ thread_rtm(void *null CK_CC_UNUSED)
         }
 
 	while (i--) {
-		ck_rwlock_write_lock_rtm(&lock);
+		CK_ELIDE_LOCK(ck_rwlock_write, &lock);
 		{
 			l = ck_pr_load_uint(&locked);
 			if (l != 0) {
@@ -253,16 +253,16 @@ thread_rtm(void *null CK_CC_UNUSED)
 				ck_error("ERROR [WR:%d]: %u != 0\n", __LINE__, l);
 			}
 		}
-		ck_rwlock_write_unlock_rtm(&lock);
+		CK_ELIDE_UNLOCK(ck_rwlock_write, &lock);
 
-		ck_rwlock_read_lock_rtm(&lock);
+		CK_ELIDE_LOCK(ck_rwlock_read, &lock);
 		{
 			l = ck_pr_load_uint(&locked);
 			if (l != 0) {
 				ck_error("ERROR [RD:%d]: %u != 0\n", __LINE__, l);
 			}
 		}
-		ck_rwlock_read_unlock_rtm(&lock);
+		CK_ELIDE_UNLOCK(ck_rwlock_read, &lock);
 	}
 
 	return (NULL);
