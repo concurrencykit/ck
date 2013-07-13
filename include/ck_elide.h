@@ -30,6 +30,15 @@
 #include <ck_cc.h>
 #include <ck_pr.h>
 
+/*
+ * Defines an elision implementation according to the following variables:
+ *     N - Namespace of elision implementation.
+ *     T - Typename of mutex.
+ *   L_P - Lock predicate, returns false if resource is available.
+ *     L - Function to call if resource is unavailable of transaction aborts.
+ *   U_P - Unlock predicate, returns false if elision failed.
+ *     U - Function to call if transaction failed.
+ */
 #ifdef CK_F_PR_RTM
 #define CK_ELIDE_PROTOTYPE(N, T, L_P, L, U_P, U)			\
 	CK_CC_INLINE static void					\
@@ -96,6 +105,11 @@
 	}
 #endif /* CK_F_PR_RTM */
 
+/*
+ * Best-effort elision lock operations. First argument is name (N)
+ * associated with implementation and the second is a pointer to
+ * the type specified above (T).
+ */
 #define CK_ELIDE_LOCK(NAME, LOCK)	ck_elide_##NAME##_lock(LOCK)	
 #define CK_ELIDE_UNLOCK(NAME, LOCK)	ck_elide_##NAME##_unlock(LOCK)
 #define CK_ELIDE_TRYLOCK(NAME, LOCK)	ck_elide_##NAME##_trylock(LOCK)
