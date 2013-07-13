@@ -1,0 +1,102 @@
+.\"
+.\" Copyright 2013 Samy Al Bahra.
+.\" All rights reserved.
+.\"
+.\" Redistribution and use in source and binary forms, with or without
+.\" modification, are permitted provided that the following conditions
+.\" are met:
+.\" 1. Redistributions of source code must retain the above copyright
+.\"    notice, this list of conditions and the following disclaimer.
+.\" 2. Redistributions in binary form must reproduce the above copyright
+.\"    notice, this list of conditions and the following disclaimer in the
+.\"    documentation and/or other materials provided with the distribution.
+.\"
+.\" THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
+.\" ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+.\" IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+.\" ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
+.\" FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+.\" DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+.\" OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+.\" HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+.\" LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+.\" OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+.\" SUCH DAMAGE.
+.\"
+.\"
+.Dd July 13, 2013.
+.Dt ck_elide 3
+.Sh NAME
+.Nm CK_ELIDE_PROTOTYPE CK_ELIDE_LOCK CK_ELIDE_UNLOCK CK_ELIDE_TRYLOCK_PROTOTYPE CK_ELIDE_TRYLOCK
+.Nd lock elision wrappers
+.Sh LIBRARY
+Concurrency Kit (libck, \-lck)
+.Sh SYNOPSIS
+.In ck_elide.h
+.Fn CK_ELIDE_PROTOTYPE "NAME" "TYPE" "LOCK_PREDICATE" "LOCK_FUNCTION" \
+"UNLOCK_PREDICATE" "UNLOCK_FUNCTION"
+.Fn CK_ELIDE_LOCK "NAME" "TYPE *"
+.Fn CK_ELIDE_UNLOCK "NAME" "TYPE *"
+.Fn CK_ELIDE_TRYLOCK_PROTOTYPE "NAME" "TYPE" "LOCK_PREDICATE" "TRYLOCK_FUNCTION"
+.Fn CK_ELIDE_TRYLOCK "NAME" "TYPE *"
+.Sh DESCRIPTION
+These macros implement lock elision wrappers for a user-specified single-argument
+lock interface. The wrappers will attempt to elide lock acquisition, allowing
+concurrent execution of critical sections that do not issue conflicting memory
+operations. If any threads have successfully elided a lock acquisition,
+conflicting memory operations will roll-back any side-effects of the critical
+section and force every thread to retry the lock acquisition regularly.
+
+.Fn CK_ELIDE_LOCK 3
+and
+.Fn CK_ELIDE_UNLOCK 3
+functions require
+a previous
+.Fn CK_ELIDE_PROTOTYPE 3
+with the same
+.Fa NAME .
+Elision is attempted if the
+.Fa LOCK_PREDICATE
+function returns false. If
+.Fa LOCK_PREDICATE
+returns true then elision is aborted and
+.Fa LOCK_FUNCTION
+is executed instead. If any threads are in an elided critical section,
+.Fa LOCK_FUNCTION
+must force them to rollback through a conflicting memory operation.
+The
+.Fa UNLOCK_PREDICATE
+function must return true if the lock is acquired by the caller, meaning
+that the lock was not successfully elided. If
+.Fa UNLOCK_PREDICATE
+returns true, then the
+.Fa UNLOCK_FUNCTION
+is executed. If RTM is unsupported (no CK_F_PR_RTM macro) then
+.Fn CK_ELIDE_LOCK 3
+will immediately call
+.Fn LOCK_FUNCTION
+and
+.Fn CK_ELIDE_UNLOCK 3
+will immediately call
+.Fn UNLOCK_FUNCTION .
+
+.Fn CK_ELIDE_TRYLOCK 3
+requires a previous
+.Fn CK_ELIDE_TRYLOCK_PROTOTYPE 3
+with the same name.
+Elision is attempted if the
+.Fa LOCK_PREDICATE
+function returns false. If
+.Fa LOCK_PREDICATE
+returns true or if elision fails then the 
+operation is aborted. If RTM is unsupported
+(no CK_F_PR_RTM macro) then
+.Fn CK_ELIDE_TRYLOCK 3
+will immediately call
+.Fn TRYLOCK_FUNCTION 3 .
+
+Both ck_spinlock.h and ck_rwlock.h both define
+ck_elide wrappers under the ck_spinlock and ck_rwlock
+namespace, respectively.
+.Sh SEE ALSO
+Additional information available at http://en.wikipedia.org/wiki/Transactional_Synchronization_Extensions and http://concurrencykit.org/

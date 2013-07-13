@@ -43,6 +43,7 @@ OBJECTS=ck_ht_count 	  		\
 	ck_bitmap_buffer		\
 	ck_bitmap_next			\
 	ck_bitmap_iterator_init		\
+	ck_elide			\
 	ck_epoch_barrier		\
 	ck_epoch_begin			\
 	ck_epoch_call			\
