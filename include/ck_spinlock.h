@@ -51,13 +51,6 @@
 #define ck_spinlock_locked(x)   ck_spinlock_fas_locked(x)
 #define ck_spinlock_trylock(x)  ck_spinlock_fas_trylock(x)
 
-CK_ELIDE_PROTOTYPE(ck_spinlock, ck_spinlock_t,
-    ck_spinlock_locked, ck_spinlock_lock,
-    ck_spinlock_locked, ck_spinlock_unlock)
-
-CK_ELIDE_TRYLOCK_PROTOTYPE(ck_spinlock, ck_spinlock_t,
-    ck_spinlock_locked, ck_spinlock_trylock)
-
 #ifndef CK_F_SPINLOCK_ANDERSON
 #define CK_F_SPINLOCK_ANDERSON
 /*
@@ -905,6 +898,13 @@ ck_spinlock_clh_unlock(struct ck_spinlock_clh **thread)
 	return;
 }
 #endif /* CK_F_SPINLOCK_CLH */
+
+CK_ELIDE_PROTOTYPE(ck_spinlock, ck_spinlock_t,
+    ck_spinlock_locked, ck_spinlock_lock,
+    ck_spinlock_locked, ck_spinlock_unlock)
+
+CK_ELIDE_TRYLOCK_PROTOTYPE(ck_spinlock, ck_spinlock_t,
+    ck_spinlock_locked, ck_spinlock_trylock)
 
 #endif /* _CK_SPINLOCK_H */
 
