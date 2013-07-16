@@ -78,11 +78,11 @@
 #endif
 
 #ifndef CK_CC_LIKELY
-#define CK_CC_LIKELY(x)
+#define CK_CC_LIKELY(x) x
 #endif
 
 #ifndef CK_CC_UNLIKELY
-#define CK_CC_UNLIKELY(x)
+#define CK_CC_UNLIKELY(x) x
 #endif
 
 #endif /* _CK_CC_H */
