@@ -125,7 +125,16 @@ _ck_elide_fallback(int *retry,
 	return CK_ELIDE_HINT_STOP;
 }
 
-#define CK_ELIDE_ADAPTIVE_PROTOTYPE(N, T, L_P, L, U_P, U)				\
+/*
+ * Defines an elision implementation according to the following variables:
+ *     N - Namespace of elision implementation.
+ *     T - Typename of mutex.
+ *   L_P - Lock predicate, returns false if resource is available.
+ *     L - Function to call if resource is unavailable of transaction aborts.
+ *   U_P - Unlock predicate, returns false if elision failed.
+ *     U - Function to call if transaction failed.
+ */
+#define CK_ELIDE_PROTOTYPE(N, T, L_P, L, U_P, U)					\
 	CK_CC_INLINE static void							\
 	ck_elide_##N##_lock_adaptive(T *lock,						\
 	    struct ck_elide_stat *st,							\
@@ -185,47 +194,32 @@ _ck_elide_fallback(int *retry,
 		}									\
 											\
 		return;									\
-	}
-
-/*
- * Defines an elision implementation according to the following variables:
- *     N - Namespace of elision implementation.
- *     T - Typename of mutex.
- *   L_P - Lock predicate, returns false if resource is available.
- *     L - Function to call if resource is unavailable of transaction aborts.
- *   U_P - Unlock predicate, returns false if elision failed.
- *     U - Function to call if transaction failed.
- *
- * Unlike the adaptive variant, this interface does not have any retry
- * semantics. In environments where jitter is low, this may yield a tighter
- * fast path.
- */
-#define CK_ELIDE_PROTOTYPE(N, T, L_P, L, U_P, U)			\
-	CK_CC_INLINE static void					\
-	ck_elide_##N##_lock(T *lock)					\
-	{								\
-									\
-		if (ck_pr_rtm_begin() != CK_PR_RTM_STARTED) {		\
-			L(lock);					\
-			return;						\
-		}							\
-									\
-		if (L_P(lock) == true)					\
-			ck_pr_rtm_abort(_CK_ELIDE_LOCK_BUSY);		\
-									\
-		return;							\
-	}								\
-	CK_CC_INLINE static void					\
-	ck_elide_##N##_unlock(T *lock)					\
-	{								\
-									\
-		if (U_P(lock) == false) {				\
-			ck_pr_rtm_end();				\
-		} else {						\
-			U(lock);					\
-		}							\
-									\
-		return;							\
+	}										\
+	CK_CC_INLINE static void							\
+	ck_elide_##N##_lock(T *lock)							\
+	{										\
+											\
+		if (ck_pr_rtm_begin() != CK_PR_RTM_STARTED) {				\
+			L(lock);							\
+			return;								\
+		}									\
+											\
+		if (L_P(lock) == true)							\
+			ck_pr_rtm_abort(_CK_ELIDE_LOCK_BUSY);				\
+											\
+		return;									\
+	}										\
+	CK_CC_INLINE static void							\
+	ck_elide_##N##_unlock(T *lock)							\
+	{										\
+											\
+		if (U_P(lock) == false) {						\
+			ck_pr_rtm_end();						\
+		} else {								\
+			U(lock);							\
+		}									\
+											\
+		return;									\
 	}
 
 #define CK_ELIDE_TRYLOCK_PROTOTYPE(N, T, TL_P, TL)			\
@@ -249,7 +243,7 @@ _ck_elide_fallback(int *retry,
  * are paid (typically a storage cost that is a function of lock objects and
  * thread count).
  */
-#define CK_ELIDE_ADAPTIVE_PROTOTYPE(N, T, L_P, L, U_P, U)		\
+#define CK_ELIDE_PROTOTYPE(N, T, L_P, L, U_P, U)			\
 	CK_CC_INLINE static void					\
 	ck_elide_##N##_lock_adaptive(T *lock,				\
 	    struct ck_elide_stat *st,					\
@@ -269,9 +263,7 @@ _ck_elide_fallback(int *retry,
 		(void)st;						\
 		U(lock);						\
 		return;							\
-	}
-
-#define CK_ELIDE_PROTOTYPE(N, T, L_P, L, U_P, U)			\
+	}								\
 	CK_CC_INLINE static void					\
 	ck_elide_##N##_lock(T *lock)					\
 	{								\
@@ -300,6 +292,10 @@ _ck_elide_fallback(int *retry,
  * Best-effort elision lock operations. First argument is name (N)
  * associated with implementation and the second is a pointer to
  * the type specified above (T).
+ *
+ * Unlike the adaptive variant, this interface does not have any retry
+ * semantics. In environments where jitter is low, this may yield a tighter
+ * fast path.
  */
 #define CK_ELIDE_LOCK(NAME, LOCK)	ck_elide_##NAME##_lock(LOCK)	
 #define CK_ELIDE_UNLOCK(NAME, LOCK)	ck_elide_##NAME##_unlock(LOCK)
