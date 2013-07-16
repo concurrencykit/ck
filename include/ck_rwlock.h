@@ -127,10 +127,6 @@ CK_ELIDE_PROTOTYPE(ck_rwlock_write, ck_rwlock_t,
     ck_rwlock_locked, ck_rwlock_write_lock,
     ck_rwlock_locked_writer, ck_rwlock_write_unlock)
 
-CK_ELIDE_ADAPTIVE_PROTOTYPE(ck_rwlock_write, ck_rwlock_t,
-    ck_rwlock_locked, ck_rwlock_write_lock,
-    ck_rwlock_locked_writer, ck_rwlock_write_unlock)
-
 CK_CC_INLINE static bool
 ck_rwlock_read_trylock(ck_rwlock_t *rw)
 {
@@ -203,10 +199,6 @@ ck_rwlock_read_unlock(ck_rwlock_t *rw)
 }
 
 CK_ELIDE_PROTOTYPE(ck_rwlock_read, ck_rwlock_t,
-    ck_rwlock_locked_writer, ck_rwlock_read_lock,
-    ck_rwlock_locked_reader, ck_rwlock_read_unlock)
-
-CK_ELIDE_ADAPTIVE_PROTOTYPE(ck_rwlock_read, ck_rwlock_t,
     ck_rwlock_locked_writer, ck_rwlock_read_lock,
     ck_rwlock_locked_reader, ck_rwlock_read_unlock)
 
