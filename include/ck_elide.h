@@ -29,6 +29,163 @@
 
 #include <ck_cc.h>
 #include <ck_pr.h>
+#include <string.h>
+
+/*
+ * skip_-prefixed counters represent the number of consecutive
+ * elisions to forfeit. retry_-prefixed counters represent the
+ * number of elision retries to attempt before forfeit.
+ *
+ *     _busy: Lock was busy
+ *    _other: Unknown explicit abort
+ * _conflict: Data conflict in elision section
+ */
+struct ck_elide_config {
+	unsigned short skip_busy;
+	short retry_busy;
+	unsigned short skip_other;
+	short retry_other;
+	unsigned short skip_conflict;
+	short retry_conflict;
+};
+
+#define CK_ELIDE_CONFIG_DEFAULT_INITIALIZER	\
+	{					\
+		.skip_busy = 5,			\
+		.retry_busy = 256,		\
+		.skip_other = 3,		\
+		.retry_other = 3,		\
+		.skip_conflict = 2,		\
+		.retry_conflict = 5		\
+	}
+
+struct ck_elide_stat {
+	unsigned int n_fallback;
+	unsigned int n_elide;
+	unsigned short skip;
+};
+
+#define CK_ELIDE_STAT_INITIALIZER { 0, 0, 0 }
+
+static inline void
+ck_elide_stat_init(struct ck_elide_stat *st)
+{
+
+	memset(st, 0, sizeof(*st));
+	return;
+}
+
+#ifdef CK_F_PR_RTM
+enum _ck_elide_hint {
+	CK_ELIDE_HINT_RETRY = 0,
+	CK_ELIDE_HINT_SPIN,
+	CK_ELIDE_HINT_STOP
+};
+
+#define _CK_ELIDE_LOCK_BUSY 0xFF
+
+static enum _ck_elide_hint
+_ck_elide_fallback(int *retry,
+    struct ck_elide_stat *st,
+    struct ck_elide_config *c,
+    unsigned int status)
+{
+
+	st->n_fallback++;
+	if (*retry > 0)
+		return CK_ELIDE_HINT_RETRY;
+
+	if (st->skip != 0)
+		return CK_ELIDE_HINT_STOP;
+
+	if (status & CK_PR_RTM_EXPLICIT) {
+		if (CK_PR_RTM_CODE(status) == _CK_ELIDE_LOCK_BUSY) {
+			st->skip = c->skip_busy;
+			*retry = c->retry_busy;
+			return CK_ELIDE_HINT_SPIN;
+		}
+
+		st->skip = c->skip_other;
+		return CK_ELIDE_HINT_STOP;
+	}
+
+	if ((status & CK_PR_RTM_RETRY) &&
+	    (status & CK_PR_RTM_CONFLICT)) {
+		st->skip = c->skip_conflict;
+		*retry = c->retry_conflict;
+		return CK_ELIDE_HINT_RETRY;
+	}
+
+	/*
+	 * Capacity, debug and nesting abortions are likely to be
+	 * invariant conditions for the acquisition, execute regular
+	 * path instead. If retry bit is not set, then take the hint.
+	 */
+	st->skip = USHRT_MAX;
+	return CK_ELIDE_HINT_STOP;
+}
+
+#define CK_ELIDE_ADAPTIVE_PROTOTYPE(N, T, L_P, L, U_P, U)				\
+	CK_CC_INLINE static void							\
+	ck_elide_##N##_lock_adaptive(T *lock,						\
+	    struct ck_elide_stat *st,							\
+	    struct ck_elide_config *c)							\
+	{										\
+		enum _ck_elide_hint hint;						\
+		int retry;								\
+											\
+		if (CK_CC_UNLIKELY(st->skip != 0)) {					\
+			st->skip--;							\
+			goto acquire;							\
+		}									\
+											\
+		retry = c->retry_conflict;						\
+		do {									\
+			unsigned int status = ck_pr_rtm_begin();			\
+			if (status == CK_PR_RTM_STARTED) {				\
+				if (L_P(lock) == true)					\
+					ck_pr_rtm_abort(_CK_ELIDE_LOCK_BUSY);		\
+											\
+				return;							\
+			}								\
+											\
+			hint = _ck_elide_fallback(&retry, st, c, status);		\
+			if (hint == CK_ELIDE_HINT_RETRY)				\
+				continue;						\
+											\
+			if (hint == CK_ELIDE_HINT_SPIN) {				\
+				while (--retry != 0) {					\
+					if (L_P(lock) == false)				\
+						break;					\
+											\
+					ck_pr_stall();					\
+				}							\
+											\
+				continue;						\
+			}								\
+											\
+			if (hint == CK_ELIDE_HINT_STOP)					\
+				break;							\
+		} while (CK_CC_LIKELY(--retry > 0));					\
+											\
+	acquire:									\
+		L(lock);								\
+		return;									\
+	}										\
+	CK_CC_INLINE static void							\
+	ck_elide_##N##_unlock_adaptive(struct ck_elide_stat *st, T *lock)		\
+	{										\
+											\
+		if (U_P(lock) == false) {						\
+			ck_pr_rtm_end();						\
+			st->skip = 0;							\
+			st->n_elide++;							\
+		} else {								\
+			U(lock);							\
+		}									\
+											\
+		return;									\
+	}
 
 /*
  * Defines an elision implementation according to the following variables:
@@ -38,8 +195,11 @@
  *     L - Function to call if resource is unavailable of transaction aborts.
  *   U_P - Unlock predicate, returns false if elision failed.
  *     U - Function to call if transaction failed.
+ *
+ * Unlike the adaptive variant, this interface does not have any retry
+ * semantics. In environments where jitter is low, this may yield a tighter
+ * fast path.
  */
-#ifdef CK_F_PR_RTM
 #define CK_ELIDE_PROTOTYPE(N, T, L_P, L, U_P, U)			\
 	CK_CC_INLINE static void					\
 	ck_elide_##N##_lock(T *lock)					\
@@ -51,7 +211,7 @@
 		}							\
 									\
 		if (L_P(lock) == true)					\
-			ck_pr_rtm_abort(0xFF);				\
+			ck_pr_rtm_abort(_CK_ELIDE_LOCK_BUSY);		\
 									\
 		return;							\
 	}								\
@@ -67,6 +227,7 @@
 									\
 		return;							\
 	}
+
 #define CK_ELIDE_TRYLOCK_PROTOTYPE(N, T, TL_P, TL)			\
 	CK_CC_INLINE static bool					\
 	ck_elide_##N##_trylock(T *lock)					\
@@ -76,12 +237,41 @@
 			return false;					\
 									\
 		if (TL_P(lock) == true)					\
-			ck_pr_rtm_abort(0xFF);				\
+			ck_pr_rtm_abort(_CK_ELIDE_LOCK_BUSY);		\
 									\
 		return true;						\
 	}
 #else
-#define CK_ELIDE_PROTOTYPE(N, T, L_P, U_P, L, U)			\
+/*
+ * If RTM is not enabled on the target platform (CK_F_PR_RTM) then these
+ * elision wrappers directly calls into the user-specified lock operations.
+ * Unfortunately, the storage cost of both ck_elide_config and ck_elide_stat
+ * are paid (typically a storage cost that is a function of lock objects and
+ * thread count).
+ */
+#define CK_ELIDE_ADAPTIVE_PROTOTYPE(N, T, L_P, L, U_P, U)		\
+	CK_CC_INLINE static void					\
+	ck_elide_##N##_lock_adaptive(T *lock,				\
+	    struct ck_elide_stat *st,					\
+	    struct ck_elide_config *c)					\
+	{								\
+									\
+		(void)st;						\
+		(void)c;						\
+		L(lock);						\
+		return;							\
+	}								\
+	CK_CC_INLINE static void					\
+	ck_elide_##N##_unlock_adaptive(struct ck_elide_stat *st,	\
+	    T *lock)							\
+	{								\
+									\
+		(void)st;						\
+		U(lock);						\
+		return;							\
+	}
+
+#define CK_ELIDE_PROTOTYPE(N, T, L_P, L, U_P, U)			\
 	CK_CC_INLINE static void					\
 	ck_elide_##N##_lock(T *lock)					\
 	{								\
@@ -96,6 +286,7 @@
 		U(lock);						\
 		return;							\
 	}
+
 #define CK_ELIDE_TRYLOCK_PROTOTYPE(N, T, TL_P, TL)			\
 	CK_CC_INLINE static bool					\
 	ck_elide_##N##_trylock(T *lock)					\
@@ -103,7 +294,7 @@
 									\
 		return TL_P(lock);					\
 	}
-#endif /* CK_F_PR_RTM */
+#endif /* !CK_F_PR_RTM */
 
 /*
  * Best-effort elision lock operations. First argument is name (N)
@@ -113,6 +304,17 @@
 #define CK_ELIDE_LOCK(NAME, LOCK)	ck_elide_##NAME##_lock(LOCK)	
 #define CK_ELIDE_UNLOCK(NAME, LOCK)	ck_elide_##NAME##_unlock(LOCK)
 #define CK_ELIDE_TRYLOCK(NAME, LOCK)	ck_elide_##NAME##_trylock(LOCK)
+
+/*
+ * Adaptive elision lock operations. In addition to name and pointer
+ * to the lock, you must pass in a pointer to an initialized
+ * ck_elide_config structure along with a per-thread stat structure.
+ */
+#define CK_ELIDE_LOCK_ADAPTIVE(NAME, STAT, CONFIG, LOCK) \
+	ck_elide_##NAME##_lock_adaptive(LOCK, STAT, CONFIG)
+
+#define CK_ELIDE_UNLOCK_ADAPTIVE(NAME, STAT, LOCK) \
+	ck_elide_##NAME##_unlock_adaptive(STAT, LOCK)
 
 #endif /* _CK_ELIDE_H */
 
