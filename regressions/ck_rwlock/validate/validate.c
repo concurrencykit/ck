@@ -125,6 +125,70 @@ thread_recursive(void *null CK_CC_UNUSED)
 
 #ifdef CK_F_PR_RTM
 static void *
+thread_rtm_adaptive(void *null CK_CC_UNUSED)
+{
+	unsigned int i = ITERATE;
+	unsigned int l;
+	struct ck_elide_config config = CK_ELIDE_CONFIG_DEFAULT_INITIALIZER;
+	struct ck_elide_stat st = CK_ELIDE_STAT_INITIALIZER;
+
+        if (aff_iterate(&a)) {
+                perror("ERROR: Could not affine thread");
+                exit(EXIT_FAILURE);
+        }
+
+	while (i--) {
+		CK_ELIDE_LOCK_ADAPTIVE(ck_rwlock_write, &st, &config, &lock);
+		{
+			l = ck_pr_load_uint(&locked);
+			if (l != 0) {
+				ck_error("ERROR [WR:%d]: %u != 0\n", __LINE__, l);
+			}
+
+			ck_pr_inc_uint(&locked);
+			ck_pr_inc_uint(&locked);
+			ck_pr_inc_uint(&locked);
+			ck_pr_inc_uint(&locked);
+			ck_pr_inc_uint(&locked);
+			ck_pr_inc_uint(&locked);
+			ck_pr_inc_uint(&locked);
+			ck_pr_inc_uint(&locked);
+
+			l = ck_pr_load_uint(&locked);
+			if (l != 8) {
+				ck_error("ERROR [WR:%d]: %u != 2\n", __LINE__, l);
+			}
+
+			ck_pr_dec_uint(&locked);
+			ck_pr_dec_uint(&locked);
+			ck_pr_dec_uint(&locked);
+			ck_pr_dec_uint(&locked);
+			ck_pr_dec_uint(&locked);
+			ck_pr_dec_uint(&locked);
+			ck_pr_dec_uint(&locked);
+			ck_pr_dec_uint(&locked);
+
+			l = ck_pr_load_uint(&locked);
+			if (l != 0) {
+				ck_error("ERROR [WR:%d]: %u != 0\n", __LINE__, l);
+			}
+		}
+		CK_ELIDE_UNLOCK_ADAPTIVE(ck_rwlock_write, &st, &lock);
+
+		CK_ELIDE_LOCK(ck_rwlock_read, &lock);
+		{
+			l = ck_pr_load_uint(&locked);
+			if (l != 0) {
+				ck_error("ERROR [RD:%d]: %u != 0\n", __LINE__, l);
+			}
+		}
+		CK_ELIDE_UNLOCK(ck_rwlock_read, &lock);
+	}
+
+	return NULL;
+}
+
+static void *
 thread_rtm_mix(void *null CK_CC_UNUSED)
 {
 	unsigned int i = ITERATE;
@@ -375,6 +439,7 @@ main(int argc, char *argv[])
 #ifdef CK_F_PR_RTM
 	rwlock_test(threads, thread_rtm, "rtm");
 	rwlock_test(threads, thread_rtm_mix, "rtm-mix");
+	rwlock_test(threads, thread_rtm_adaptive, "rtm-adaptive");
 #endif
 	rwlock_test(threads, thread_recursive, "recursive");
 	return 0;

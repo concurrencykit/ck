@@ -30,8 +30,10 @@
 
 #include "../../common.h"
 
+#define CK_F_PR_RTM
+
 #ifndef STEPS
-#define STEPS 1000000
+#define STEPS 2000000
 #endif
 
 int
@@ -51,9 +53,12 @@ main(void)
 		ck_rwlock_write_unlock(&rwlock);
 	}
 	e_b = rdtsc();
-	printf("       WRITE: rwlock   %15" PRIu64 "\n", (e_b - s_b) / STEPS);
+	printf("                WRITE: rwlock   %15" PRIu64 "\n", (e_b - s_b) / STEPS);
 
 #ifdef CK_F_PR_RTM
+	struct ck_elide_config config = CK_ELIDE_CONFIG_DEFAULT_INITIALIZER;
+	struct ck_elide_stat st = CK_ELIDE_STAT_INITIALIZER;
+
 	for (i = 0; i < STEPS; i++) {
 		CK_ELIDE_LOCK(ck_rwlock_write, &rwlock);
 		CK_ELIDE_UNLOCK(ck_rwlock_write, &rwlock);
@@ -65,7 +70,20 @@ main(void)
 		CK_ELIDE_UNLOCK(ck_rwlock_write, &rwlock);
 	}
 	e_b = rdtsc();
-	printf(" (rtm) WRITE: rwlock   %15" PRIu64 "\n", (e_b - s_b) / STEPS);
+	printf("          (rtm) WRITE: rwlock   %15" PRIu64 "\n", (e_b - s_b) / STEPS);
+
+	for (i = 0; i < STEPS; i++) {
+		CK_ELIDE_LOCK_ADAPTIVE(ck_rwlock_write, &st, &config, &rwlock);
+		CK_ELIDE_UNLOCK_ADAPTIVE(ck_rwlock_write, &st, &rwlock);
+	}
+
+	s_b = rdtsc();
+	for (i = 0; i < STEPS; i++) {
+		CK_ELIDE_LOCK_ADAPTIVE(ck_rwlock_write, &st, &config, &rwlock);
+		CK_ELIDE_UNLOCK_ADAPTIVE(ck_rwlock_write, &st, &rwlock);
+	}
+	e_b = rdtsc();
+	printf(" (rtm-adaptive) WRITE: rwlock   %15" PRIu64 "\n", (e_b - s_b) / STEPS);
 #endif /* CK_F_PR_RTM */
 
 	for (i = 0; i < STEPS; i++) {
@@ -79,9 +97,11 @@ main(void)
 		ck_rwlock_read_unlock(&rwlock);
 	}
 	e_b = rdtsc();
-	printf("       READ:  rwlock   %15" PRIu64 "\n", (e_b - s_b) / STEPS);
+	printf("                READ:  rwlock   %15" PRIu64 "\n", (e_b - s_b) / STEPS);
 
 #ifdef CK_F_PR_RTM
+	ck_elide_stat_init(&st);
+
 	for (i = 0; i < STEPS; i++) {
 		CK_ELIDE_LOCK(ck_rwlock_read, &rwlock);
 		CK_ELIDE_UNLOCK(ck_rwlock_read, &rwlock);
@@ -93,7 +113,20 @@ main(void)
 		CK_ELIDE_UNLOCK(ck_rwlock_read, &rwlock);
 	}
 	e_b = rdtsc();
-	printf(" (rtm) READ:  rwlock   %15" PRIu64 "\n", (e_b - s_b) / STEPS);
+	printf("          (rtm) READ:  rwlock   %15" PRIu64 "\n", (e_b - s_b) / STEPS);
+
+	for (i = 0; i < STEPS; i++) {
+		CK_ELIDE_LOCK_ADAPTIVE(ck_rwlock_read, &st, &config, &rwlock);
+		CK_ELIDE_UNLOCK_ADAPTIVE(ck_rwlock_read, &st, &rwlock);
+	}
+
+	s_b = rdtsc();
+	for (i = 0; i < STEPS; i++) {
+		CK_ELIDE_LOCK_ADAPTIVE(ck_rwlock_read, &st, &config, &rwlock);
+		CK_ELIDE_UNLOCK_ADAPTIVE(ck_rwlock_read, &st, &rwlock);
+	}
+	e_b = rdtsc();
+	printf(" (rtm-adaptive) READ:  rwlock   %15" PRIu64 "\n", (e_b - s_b) / STEPS);
 #endif /* CK_F_PR_RTM */
 
 	return 0;

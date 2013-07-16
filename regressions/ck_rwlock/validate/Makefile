@@ -4,7 +4,7 @@ OBJECTS=validate
 
 all: $(OBJECTS)
 
-validate: validate.c ../../../include/ck_rwlock.h
+validate: validate.c ../../../include/ck_rwlock.h ../../../include/ck_elide.h
 	$(CC) $(CFLAGS) -o validate validate.c
 
 check: all
