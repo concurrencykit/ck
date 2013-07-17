@@ -27,18 +27,37 @@
 .Dd July 13, 2013.
 .Dt ck_elide 3
 .Sh NAME
-.Nm CK_ELIDE_PROTOTYPE CK_ELIDE_LOCK CK_ELIDE_UNLOCK CK_ELIDE_TRYLOCK_PROTOTYPE CK_ELIDE_TRYLOCK
+.Nm CK_ELIDE_PROTOTYPE CK_ELIDE_LOCK_ADAPTIVE CK_ELIDE_UNLOCK_ADAPTIVE CK_ELIDE_LOCK CK_ELIDE_UNLOCK CK_ELIDE_TRYLOCK_PROTOTYPE CK_ELIDE_TRYLOCK
 .Nd lock elision wrappers
 .Sh LIBRARY
 Concurrency Kit (libck, \-lck)
 .Sh SYNOPSIS
 .In ck_elide.h
-.Fn CK_ELIDE_PROTOTYPE "NAME" "TYPE" "LOCK_PREDICATE" "LOCK_FUNCTION" \
-"UNLOCK_PREDICATE" "UNLOCK_FUNCTION"
+.Pp
+.Dv ck_elide_stat_t stat = CK_ELIDE_STAT_INITIALIZER;
+.Pp
+.Ft void
+.Fn ck_elide_stat_init "ck_elide_stat_t *"
+.Pp
+.Dv struct ck_elide_config config = CK_ELIDE_CONFIG_DEFAULT_INITIALIZER;
+.Pp
+.Bd -literal -offset
+struct ck_elide_config {
+	unsigned short skip_busy;
+	short retry_busy;
+	unsigned short skip_other;
+	short retry_other;
+	unsigned short skip_conflict;
+	short retry_conflict;
+};
+.Ed
+.Pp
+.Fn CK_ELIDE_PROTOTYPE "NAME" "TYPE" "LOCK_PREDICATE" "LOCK_FUNCTION" "UNLOCK_PREDICATE" "UNLOCK_FUNCTION"
+.Fn CK_ELIDE_LOCK_ADAPTIVE "NAME" "ck_elide_stat_t *" "struct ck_elide_config *" "TYPE *"
+.Fn CK_ELIDE_UNLOCK_ADAPTIVE "NAME" "ck_elide_stat_t *" "TYPE *"
 .Fn CK_ELIDE_LOCK "NAME" "TYPE *"
 .Fn CK_ELIDE_UNLOCK "NAME" "TYPE *"
 .Fn CK_ELIDE_TRYLOCK_PROTOTYPE "NAME" "TYPE" "LOCK_PREDICATE" "TRYLOCK_FUNCTION"
-.Fn CK_ELIDE_TRYLOCK "NAME" "TYPE *"
 .Sh DESCRIPTION
 These macros implement lock elision wrappers for a user-specified single-argument
 lock interface. The wrappers will attempt to elide lock acquisition, allowing
@@ -47,12 +66,14 @@ operations. If any threads have successfully elided a lock acquisition,
 conflicting memory operations will roll-back any side-effects of the critical
 section and force every thread to retry the lock acquisition regularly.
 
-.Fn CK_ELIDE_LOCK 3
+.Fn CK_ELIDE_LOCK ,
+.Fn CK_ELIDE_UNLOCK ,
+.Fn CK_ELIDE_LOCK_ADAPTIVE ,
 and
-.Fn CK_ELIDE_UNLOCK 3
-functions require
+.Fn CK_ELIDE_UNLOCK_ADAPTIVE
+macros require
 a previous
-.Fn CK_ELIDE_PROTOTYPE 3
+.Fn CK_ELIDE_PROTOTYPE
 with the same
 .Fa NAME .
 Elision is attempted if the
@@ -72,17 +93,20 @@ that the lock was not successfully elided. If
 returns true, then the
 .Fa UNLOCK_FUNCTION
 is executed. If RTM is unsupported (no CK_F_PR_RTM macro) then
-.Fn CK_ELIDE_LOCK 3
+.Fn CK_ELIDE_LOCK
+and 
+.Fn CK_ELIDE_LOCK_ADAPTIVE
 will immediately call
-.Fn LOCK_FUNCTION
+.Fn LOCK_FUNCTION .
+.Fn CK_ELIDE_UNLOCK
 and
-.Fn CK_ELIDE_UNLOCK 3
+.Fn CK_ELIDE_UNLOCK_ADAPTIVE
 will immediately call
 .Fn UNLOCK_FUNCTION .
 
-.Fn CK_ELIDE_TRYLOCK 3
+.Fn CK_ELIDE_TRYLOCK
 requires a previous
-.Fn CK_ELIDE_TRYLOCK_PROTOTYPE 3
+.Fn CK_ELIDE_TRYLOCK_PROTOTYPE
 with the same name.
 Elision is attempted if the
 .Fa LOCK_PREDICATE
@@ -91,12 +115,27 @@ function returns false. If
 returns true or if elision fails then the 
 operation is aborted. If RTM is unsupported
 (no CK_F_PR_RTM macro) then
-.Fn CK_ELIDE_TRYLOCK 3
+.Fn CK_ELIDE_TRYLOCK
 will immediately call
-.Fn TRYLOCK_FUNCTION 3 .
+.Fn TRYLOCK_FUNCTION .
 
-Both ck_spinlock.h and ck_rwlock.h both define
-ck_elide wrappers under the ck_spinlock and ck_rwlock
-namespace, respectively.
+.Fn CK_ELIDE_LOCK_ADAPTIVE
+and
+.Fn CK_ELIDE_UNLOCK_ADAPTIVE
+will adapt the elision behavior associated with lock operations
+according to the run-time behavior of the program. This behavior
+is defined by the ck_elide_config structure pointer passed to
+.Fn CK_ELIDE_LOCK_ADAPTIVE .
+A thread-local ck_elide_stat structure must be passed to both
+.Fn CK_ELIDE_LOCK_ADAPTIVE
+and
+.Fn CK_ELIDE_UNLOCK_ADAPTIVE .
+This structure is expected to be unique for different workloads,
+may not be re-used in recursive acquisitions and must match the
+lifetime of the lock it is associated with.
+
+Both ck_spinlock.h and ck_rwlock.h define ck_elide wrappers under
+the ck_spinlock and ck_rwlock namespace, respectively.
 .Sh SEE ALSO
 Additional information available at http://en.wikipedia.org/wiki/Transactional_Synchronization_Extensions and http://concurrencykit.org/
+
