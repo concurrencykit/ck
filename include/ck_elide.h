@@ -64,11 +64,12 @@ struct ck_elide_stat {
 	unsigned int n_elide;
 	unsigned short skip;
 };
+typedef struct ck_elide_stat ck_elide_stat_t;
 
 #define CK_ELIDE_STAT_INITIALIZER { 0, 0, 0 }
 
 static inline void
-ck_elide_stat_init(struct ck_elide_stat *st)
+ck_elide_stat_init(ck_elide_stat_t *st)
 {
 
 	memset(st, 0, sizeof(*st));
