@@ -583,6 +583,26 @@ ck_hs_remove(struct ck_hs *hs,
 }
 
 bool
+ck_hs_move(struct ck_hs *hs,
+    struct ck_hs *source,
+    ck_hs_hash_cb_t *hf,
+    ck_hs_compare_cb_t *compare,
+    struct ck_malloc *m)
+{
+
+	if (m == NULL || m->malloc == NULL || m->free == NULL || hf == NULL)
+		return false;
+
+	hs->mode = source->mode;
+	hs->seed = source->seed;
+	hs->map = source->map;
+	hs->m = m;
+	hs->hf = hf;
+	hs->compare = compare;
+	return true;
+}
+
+bool
 ck_hs_init(struct ck_hs *hs,
     unsigned int mode,
     ck_hs_hash_cb_t *hf,
