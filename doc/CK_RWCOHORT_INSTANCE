@@ -25,42 +25,40 @@
 .\"
 .\"
 .Dd February 24, 2013.
-.Dt CK_COHORT_INIT 3
+.Dt CK_RWCOHORT_INSTANCE 3
 .Sh NAME
-.Nm CK_COHORT_INIT
-.Nd initialize instance of a cohort type
+.Nm CK_RWCOHORT_INSTANCE
+.Nd declare an instance of a cohort-based reader-writer lock type
 .Sh LIBRARY
 Concurrency Kit (libck, \-lck)
 .Sh SYNOPSIS
 .In ck_cohort.h
-.Fn CK_COHORT_INIT "COHORT_NAME cohort_name" "COHORT *cohort" "void *global_lock" \
-"void *local_lock" "unsigned int pass_limit"
+.Fn CK_RWCOHORT_NEUTRAL_INSTANCE "COHORT_NAME cohort_name"
+.Fn CK_RWCOHORT_RP_INSTANCE "COHORT_NAME cohort_name"
+.Fn CK_RWCOHORT_WP_INSTANCE "COHORT_NAME cohort_name"
 .Sh DESCRIPTION
-Until a cohort instance is initialized using the CK_COHORT_INIT macro, any operations
-involving it will have undefined behavior.  After this macro has been called, the cohort
-pointed to by the 
-.Fa cohort
-argument will use the lock pointed to by
-.Fa global_lock
-as its global lock and the lock pointed to by
-.Fa local_lock
-as its local lock.
+The user must use this macro to declare instances of lock types that they have
+defined using the 
+.Xr CK_RWCOHORT_PROTOTYPE 3
+macro.  The cohort_name must be the same as the one used in the prototype macro.  
+For instance, if CK_RWCOHORT_PROTOTYPE was called with the name "foo", the
+CK_RWCOHORT_INSTANCE macro should be called as
+.br
+CK_RWCOHORT_INSTANCE(foo) cohort;
 .Pp
-The cohort will relinquish its global lock after
-.Fa pass_limit
-consecutive acquisitions of its local lock, even if there are other threads waiting.  
-If you are unsure of a value to use for the 
-.Fa pass_limit
-argument, you should use CK_COHORT_DEFAULT_LOCAL_PASS_LIMIT.
+This macro should also be used when allocating memory for cohorts.  For instance,
+to allocate a block of 4 cohorts:
+.br
+CK_RWCOHORT_WP_INSTANCE(foo) *cohorts = malloc(4 * sizeof(CK_RWCOHORT_WP_INSTANCE(foo)));
 .Sh SEE ALSO
-.Xr ck_cohort 3 ,
-.Xr CK_COHORT_PROTOTYPE 3 ,
-.Xr CK_COHORT_TRYLOCK_PROTOTYPE 3 ,
-.Xr CK_COHORT_INSTANCE 3 ,
-.Xr CK_COHORT_INITIALIZER 3 ,
-.Xr CK_COHORT_LOCK 3 ,
-.Xr CK_COHORT_UNLOCK 3 ,
-.Xr CK_COHORT_LOCKED 3 ,
-.Xr CK_COHORT_TRYLOCK 3 ,
+.Xr ck_rwcohort 3 ,
+.Xr CK_RWCOHORT_PROTOTYPE 3 ,
+.Xr CK_RWCOHORT_TRYLOCK_PROTOTYPE 3 ,
+.Xr CK_RWCOHORT_INSTANCE 3 ,
+.Xr CK_RWCOHORT_INITIALIZER 3 ,
+.Xr CK_RWCOHORT_LOCK 3 ,
+.Xr CK_RWCOHORT_UNLOCK 3 ,
+.Xr CK_RWCOHORT_LOCKED 3 ,
+.Xr CK_RWCOHORT_TRYLOCK 3 ,
 .Pp
 Additional information available at http://concurrencykit.org/

@@ -25,39 +25,29 @@
  * SUCH DAMAGE.
  */
 
-#include <errno.h>
+#include <ck_cohort.h>
+#include <ck_rwcohort.h>
+#include <ck_spinlock.h>
 #include <inttypes.h>
 #include <pthread.h>
-#include <math.h>
-#include <stdint.h>
 #include <stdio.h>
+#include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
-#include <strings.h>
 #include <unistd.h>
-#include <sys/time.h>
-
-#include <ck_pr.h>
-#include <ck_cohort.h>
-#include <ck_md.h>
-#include <ck_spinlock.h>
 
 #include "../../common.h"
 
 #define max(x, y) (((x) > (y)) ? (x) : (y))
 
-static struct affinity a;
-static unsigned int ready;
+#ifndef STEPS
+#define STEPS 1000000
+#endif
 
-struct counters {
-	uint64_t value;
-} CK_CC_CACHELINE;
-
-static struct counters *count;
-static uint64_t nthr;
-static unsigned int n_cohorts;
 static unsigned int barrier;
-static int critical CK_CC_CACHELINE;
+static unsigned int flag CK_CC_CACHELINE;
+static struct affinity affinity;
+static unsigned int nthr;
 
 static void
 ck_spinlock_fas_lock_with_context(ck_spinlock_fas_t *lock, void *context)
@@ -85,71 +75,104 @@ ck_spinlock_fas_locked_with_context(ck_spinlock_fas_t *lock, void *context)
 	return ck_spinlock_fas_locked(lock);
 }
 
-CK_COHORT_PROTOTYPE(basic,
+CK_COHORT_PROTOTYPE(fas_fas,
     ck_spinlock_fas_lock_with_context, ck_spinlock_fas_unlock_with_context, ck_spinlock_fas_locked_with_context,
     ck_spinlock_fas_lock_with_context, ck_spinlock_fas_unlock_with_context, ck_spinlock_fas_locked_with_context)
+LOCK_PROTOTYPE(fas_fas)
 
 struct cohort_record {
-	CK_COHORT_INSTANCE(basic) cohort;
+	CK_COHORT_INSTANCE(fas_fas) cohort;
 } CK_CC_CACHELINE;
 static struct cohort_record *cohorts;
 
 static ck_spinlock_t global_lock = CK_SPINLOCK_INITIALIZER;
+static LOCK_INSTANCE(fas_fas) rw_cohort = LOCK_INITIALIZER;
+static unsigned int n_cohorts;
 
 struct block {
 	unsigned int tid;
 };
 
 static void *
-fairness(void *null)
+thread_rwlock(void *pun)
 {
-	struct block *context = null;
-	unsigned int i = context->tid;
-	volatile int j;
-	long int base;
+	uint64_t s_b, e_b, a, i;
+	uint64_t *value = pun;
+	CK_COHORT_INSTANCE(fas_fas) *cohort;
 	unsigned int core;
-	CK_COHORT_INSTANCE(basic) *cohort;
 
-
-	if (aff_iterate_core(&a, &core)) {
+	if (aff_iterate_core(&affinity, &core) != 0) {
 		perror("ERROR: Could not affine thread");
 		exit(EXIT_FAILURE);
 	}
 
-	cohort = &((cohorts + (core / (int)(a.delta)) % n_cohorts)->cohort);
-
-	while (ck_pr_load_uint(&ready) == 0);
+	cohort = &((cohorts + (core / (int)(affinity.delta)) % n_cohorts)->cohort);
 
 	ck_pr_inc_uint(&barrier);
-	while (ck_pr_load_uint(&barrier) != nthr);
+	while (ck_pr_load_uint(&barrier) != nthr)
+		ck_pr_stall();
 
-	while (ready) {
-		CK_COHORT_LOCK(basic, cohort, NULL, NULL);
+	for (i = 1, a = 0;; i++) {
+		s_b = rdtsc();
+		READ_LOCK(fas_fas, &rw_cohort, cohort, NULL, NULL);
+		READ_UNLOCK(fas_fas, &rw_cohort, cohort, NULL, NULL);
+		READ_LOCK(fas_fas, &rw_cohort, cohort, NULL, NULL);
+		READ_UNLOCK(fas_fas, &rw_cohort, cohort, NULL, NULL);
+		READ_LOCK(fas_fas, &rw_cohort, cohort, NULL, NULL);
+		READ_UNLOCK(fas_fas, &rw_cohort, cohort, NULL, NULL);
+		READ_LOCK(fas_fas, &rw_cohort, cohort, NULL, NULL);
+		READ_UNLOCK(fas_fas, &rw_cohort, cohort, NULL, NULL);
+		READ_LOCK(fas_fas, &rw_cohort, cohort, NULL, NULL);
+		READ_UNLOCK(fas_fas, &rw_cohort, cohort, NULL, NULL);
+		READ_LOCK(fas_fas, &rw_cohort, cohort, NULL, NULL);
+		READ_UNLOCK(fas_fas, &rw_cohort, cohort, NULL, NULL);
+		READ_LOCK(fas_fas, &rw_cohort, cohort, NULL, NULL);
+		READ_UNLOCK(fas_fas, &rw_cohort, cohort, NULL, NULL);
+		READ_LOCK(fas_fas, &rw_cohort, cohort, NULL, NULL);
+		READ_UNLOCK(fas_fas, &rw_cohort, cohort, NULL, NULL);
+		READ_LOCK(fas_fas, &rw_cohort, cohort, NULL, NULL);
+		READ_UNLOCK(fas_fas, &rw_cohort, cohort, NULL, NULL);
+		READ_LOCK(fas_fas, &rw_cohort, cohort, NULL, NULL);
+		READ_UNLOCK(fas_fas, &rw_cohort, cohort, NULL, NULL);
+		READ_LOCK(fas_fas, &rw_cohort, cohort, NULL, NULL);
+		READ_UNLOCK(fas_fas, &rw_cohort, cohort, NULL, NULL);
+		READ_LOCK(fas_fas, &rw_cohort, cohort, NULL, NULL);
+		READ_UNLOCK(fas_fas, &rw_cohort, cohort, NULL, NULL);
+		READ_LOCK(fas_fas, &rw_cohort, cohort, NULL, NULL);
+		READ_UNLOCK(fas_fas, &rw_cohort, cohort, NULL, NULL);
+		READ_LOCK(fas_fas, &rw_cohort, cohort, NULL, NULL);
+		READ_UNLOCK(fas_fas, &rw_cohort, cohort, NULL, NULL);
+		READ_LOCK(fas_fas, &rw_cohort, cohort, NULL, NULL);
+		READ_UNLOCK(fas_fas, &rw_cohort, cohort, NULL, NULL);
+		READ_LOCK(fas_fas, &rw_cohort, cohort, NULL, NULL);
+		READ_UNLOCK(fas_fas, &rw_cohort, cohort, NULL, NULL);
+		e_b = rdtsc();
 
-		count[i].value++;
-		if (critical) {
-			base = common_lrand48() % critical;
-			for (j = 0; j < base; j++);
-		}
+		a += (e_b - s_b) >> 4;
 
-		CK_COHORT_UNLOCK(basic, cohort, NULL, NULL);
+		if (ck_pr_load_uint(&flag) == 1)
+			break;
 	}
 
+	ck_pr_inc_uint(&barrier);
+	while (ck_pr_load_uint(&barrier) != nthr * 2)
+		ck_pr_stall();
+
+	*value = (a / i);
 	return NULL;
 }
 
 int
 main(int argc, char *argv[])
 {
-	uint64_t v, d;
 	unsigned int i;
 	pthread_t *threads;
+	uint64_t *latency;
 	struct block *context;
-	ck_spinlock_t *local_lock;
+	ck_spinlock_fas_t *local_lock;
 
-	if (argc != 5) {
-		ck_error("Usage: ck_cohort <number of cohorts> <threads per cohort> "
-			"<affinity delta> <critical section>\n");
+	if (argc != 4) {
+		ck_error("Usage: throughput <number of cohorts> <threads per cohort> <affinity delta>\n");
 	}
 
 	n_cohorts = atoi(argv[1]);
@@ -160,11 +183,6 @@ main(int argc, char *argv[])
 	nthr = n_cohorts * atoi(argv[2]);
 	if (nthr <= 0) {
 		ck_error("ERROR: Number of threads must be greater than 0\n");
-	}
-
-	critical = atoi(argv[4]);
-	if (critical < 0) {
-		ck_error("ERROR: critical section cannot be negative\n");
 	}
 
 	threads = malloc(sizeof(pthread_t) * nthr);
@@ -182,58 +200,46 @@ main(int argc, char *argv[])
 		ck_error("ERROR: Could not allocate thread contexts\n");
 	}
 
-	a.delta = atoi(argv[2]);
-	a.request = 0;
+	affinity.delta = atoi(argv[3]);
+	affinity.request = 0;
 
-	count = malloc(sizeof(*count) * nthr);
-	if (count == NULL) {
-		ck_error("ERROR: Could not create acquisition buffer\n");
+	latency = malloc(sizeof(*latency) * nthr);
+	if (latency == NULL) {
+		ck_error("ERROR: Could not create latency buffer\n");
 	}
-	memset(count, 0, sizeof(*count) * nthr);
+	memset(latency, 0, sizeof(*latency) * nthr);
 
 	fprintf(stderr, "Creating cohorts...");
 	for (i = 0 ; i < n_cohorts ; i++) {
-		local_lock = malloc(max(CK_MD_CACHELINE, sizeof(ck_spinlock_t)));
+		local_lock = malloc(max(CK_MD_CACHELINE, sizeof(ck_spinlock_fas_t)));
 		if (local_lock == NULL) {
 			ck_error("ERROR: Could not allocate local lock\n");
 		}
-		CK_COHORT_INIT(basic, &((cohorts + i)->cohort), &global_lock, local_lock,
+		CK_COHORT_INIT(fas_fas, &((cohorts + i)->cohort), &global_lock, local_lock,
 		    CK_COHORT_DEFAULT_LOCAL_PASS_LIMIT);
 		local_lock = NULL;
 	}
 	fprintf(stderr, "done\n");
 
-	fprintf(stderr, "Creating threads (fairness)...");
+	fprintf(stderr, "Creating threads (rwlock)...");
 	for (i = 0; i < nthr; i++) {
-		context[i].tid = i;
-		if (pthread_create(&threads[i], NULL, fairness, context + i)) {
+		if (pthread_create(&threads[i], NULL, thread_rwlock, latency + i) != 0) {
 			ck_error("ERROR: Could not create thread %d\n", i);
 		}
 	}
 	fprintf(stderr, "done\n");
 
-	ck_pr_store_uint(&ready, 1);
 	common_sleep(10);
-	ck_pr_store_uint(&ready, 0);
+	ck_pr_store_uint(&flag, 1);
 
 	fprintf(stderr, "Waiting for threads to finish acquisition regression...");
 	for (i = 0; i < nthr; i++)
 		pthread_join(threads[i], NULL);
 	fprintf(stderr, "done\n\n");
 
-	for (i = 0, v = 0; i < nthr; i++) {
-		printf("%d %15" PRIu64 "\n", i, count[i].value);
-		v += count[i].value;
-	}
+	for (i = 1; i <= nthr; i++)
+		printf("%10u %20" PRIu64 "\n", i, latency[i - 1]);
 
-	printf("\n# total       : %15" PRIu64 "\n", v);
-	printf("# throughput  : %15" PRIu64 " a/s\n", (v /= nthr) / 10);
-
-	for (i = 0, d = 0; i < nthr; i++)
-		d += (count[i].value - v) * (count[i].value - v);
-
-	printf("# average     : %15" PRIu64 "\n", v);
-	printf("# deviation   : %.2f (%.2f%%)\n\n", sqrt(d / nthr), (sqrt(d / nthr) / v) * 100.00);
-
-	return 0;
+	return (0);
 }
+
