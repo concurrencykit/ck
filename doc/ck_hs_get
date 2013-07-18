@@ -38,7 +38,7 @@ Concurrency Kit (libck, \-lck)
 .Sh DESCRIPTION
 The
 .Fn ck_hs_get 3
-will return a pointer to a key in the hash set
+function will return a pointer to a key in the hash set
 .Fa hs
 that is of equivalent value to the object pointed to by
 .Fa key .
