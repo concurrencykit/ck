@@ -82,6 +82,14 @@ OBJECTS=ck_ht_count 	  		\
 	ck_hs_reset			\
 	ck_hs_reset_size		\
 	ck_hs_stat			\
+	ck_rwcohort			\
+	CK_RWCOHORT_INIT		\
+	CK_RWCOHORT_INSTANCE		\
+	CK_RWCOHORT_PROTOTYPE		\
+	CK_RWCOHORT_READ_LOCK		\
+	CK_RWCOHORT_READ_UNLOCK		\
+	CK_RWCOHORT_WRITE_LOCK		\
+	CK_RWCOHORT_WRITE_UNLOCK	\
 	ck_cohort			\
 	CK_COHORT_PROTOTYPE		\
 	CK_COHORT_TRYLOCK_PROTOTYPE	\
