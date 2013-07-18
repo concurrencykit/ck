@@ -49,15 +49,14 @@ struct ck_elide_config {
 	short retry_conflict;
 };
 
-#define CK_ELIDE_CONFIG_DEFAULT_INITIALIZER	\
-	{					\
-		.skip_busy = 5,			\
-		.retry_busy = 256,		\
-		.skip_other = 3,		\
-		.retry_other = 3,		\
-		.skip_conflict = 2,		\
-		.retry_conflict = 5		\
-	}
+#define CK_ELIDE_CONFIG_DEFAULT_INITIALIZER {	\
+	.skip_busy = 5,				\
+	.retry_busy = 256,			\
+	.skip_other = 3,			\
+	.retry_other = 3,			\
+	.skip_conflict = 2,			\
+	.retry_conflict = 5			\
+}
 
 struct ck_elide_stat {
 	unsigned int n_fallback;
