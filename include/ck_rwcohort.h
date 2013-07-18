@@ -105,6 +105,7 @@
 											\
 		for (;;) {								\
 			ck_pr_inc_uint(&rw_cohort->read_counter);			\
+			ck_pr_fence_atomic_load();					\
 			if (CK_COHORT_LOCKED(N, cohort, global_context,			\
 			    local_context) == false)					\
 				break;							\
@@ -130,6 +131,7 @@
 	ck_rwcohort_wp_##N##_read_unlock(CK_RWCOHORT_WP_INSTANCE(N) *cohort)		\
 	{										\
 											\
+		ck_pr_fence_memory();							\
 		ck_pr_dec_uint(&cohort->read_counter);					\
 		return;									\
 	}
@@ -216,7 +218,9 @@
 											\
 		while (ck_pr_load_uint(&rw_cohort->read_barrier) > 0)			\
 			ck_pr_stall();							\
+											\
 		ck_pr_inc_uint(&rw_cohort->read_counter);				\
+		ck_pr_fence_atomic_load();						\
 											\
 		while (CK_COHORT_LOCKED(N, cohort, global_context,			\
 		    local_context) == true)						\
@@ -228,6 +232,7 @@
 	ck_rwcohort_rp_##N##_read_unlock(CK_RWCOHORT_RP_INSTANCE(N) *cohort)		\
 	{										\
 											\
+		ck_pr_fence_memory();							\
 		ck_pr_dec_uint(&cohort->read_counter);					\
 		return;									\
 	}
@@ -299,6 +304,7 @@
 	ck_rwcohort_neutral_##N##_read_unlock(CK_RWCOHORT_NEUTRAL_INSTANCE(N) *cohort)	\
 	{										\
 											\
+		ck_pr_fence_memory();							\
 		ck_pr_dec_uint(&cohort->read_counter);					\
 		return;									\
 	}
