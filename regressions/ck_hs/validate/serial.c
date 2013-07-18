@@ -89,11 +89,11 @@ main(void)
 {
 	const char *blob = "blobs";
 	unsigned long h;
-	ck_hs_t hs[4];
+	ck_hs_t hs[16];
 	size_t i, j;
 	const size_t size = sizeof(hs) / sizeof(*hs);
 
-	if (ck_hs_init(&hs[0], CK_HS_MODE_SPMC | CK_HS_MODE_OBJECT, hs_hash, hs_compare, &my_allocator, 8, 6602834) == false) {
+	if (ck_hs_init(&hs[0], CK_HS_MODE_SPMC | CK_HS_MODE_OBJECT, hs_hash, hs_compare, &my_allocator, 4, 6602834) == false) {
 		perror("ck_hs_init");
 		exit(EXIT_FAILURE);
 	}
@@ -121,12 +121,14 @@ main(void)
 		}
 
 		h = ULONG_MAX;
-		if (ck_hs_put(&hs[j], h, blob) == false) {
-			ck_error("ERROR: Duplicate put failed.\n");
-		}
-
-		if (ck_hs_put(&hs[j], h, blob) == true) {
-			ck_error("ERROR: Duplicate put succeeded.\n");
+		if (ck_hs_get(&hs[j], h, blob) == NULL) {
+			if (ck_hs_put(&hs[j], h, blob) == false) {
+				ck_error("ERROR: A unique blob put failed.\n");
+			}
+		} else {
+			if (ck_hs_put(&hs[j], h, blob) == true) {
+				ck_error("ERROR: Duplicate blob put succeeded.\n");
+			}
 		}
 
 		/* Grow set and check get semantics. */
