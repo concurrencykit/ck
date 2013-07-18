@@ -402,6 +402,7 @@ esac
 assert "$PLATFORM" "$PLATFORM" "unsupported"
 
 printf "Detecting VMA bits..............."
+VMA="unknown"
 if test "$VMA_BITS" = "unknown"; then
 	if test "$PLATFORM" = "x86" || test $PLATFORM = "x86_64"; then
 		case $SYSTEM in
