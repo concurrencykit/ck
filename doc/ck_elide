@@ -163,9 +163,17 @@ function(void)
 	CK_ELIDE_LOCK(ck_rwlock_write, &rw);
 	CK_ELIDE_UNLOCK(ck_rwlock_write, &rw);
 
+	/* Attempt to acquire the write-side lock. */
+	if (CK_ELIDE_TRYLOCK(ck_rwlock_write, &rw) == true)
+		CK_ELIDE_UNLOCK(ck_rwlock_write, &rw);
+
 	/* Lock-unlock read-side lock in weak best-effort manner. */
 	CK_ELIDE_LOCK(ck_rwlock_read, &rw);
 	CK_ELIDE_UNLOCK(ck_rwlock_read, &rw);
+
+	/* Attempt to acquire the read-side lock. */
+	if (CK_ELIDE_TRYLOCK(ck_rwlock_read, &rw) == true)
+		CK_ELIDE_UNLOCK(ck_rwlock_read, &rw);
 
 	/* Lock-unlock write-side lock in an adaptive manner. */
 	CK_ELIDE_LOCK_ADAPTIVE(ck_rwlock_write, &rw_stat,
