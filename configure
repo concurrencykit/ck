@@ -224,6 +224,7 @@ LIBRARY=${LIBRARY:-"${PREFIX}/lib"}
 MANDIR=${MANDIR:-"${PREFIX}/share/man"}
 GZIP=${GZIP:-"gzip -c"}
 POINTER_PACK_ENABLE=${POINTER_PACK_ENABLE:-"CK_MD_POINTER_PACK_DISABLE"}
+RTM_ENABLE=${RTM_ENABLE_SET:-"CK_MD_RTM_DISABLE"}
 
 if test "$PROFILE"; then
 	printf "Using user-specified profile....."
@@ -302,12 +303,14 @@ printf "Detecting machine architecture..."
 PLATFORM=`uname -m 2> /dev/null`
 case $PLATFORM in
 	"macppc"|"Power Macintosh"|"powerpc")
+		RTM_ENABLE="CK_MD_RTM_DISABLE"
 		MM="${MM:-"CK_MD_RMO"}"
 		PLATFORM=ppc
 		ENVIRONMENT=32
 		LDFLAGS="-m32 $LDFLAGS"
 		;;
 	"sun4u"|"sun4v"|"sparc64")
+		RTM_ENABLE="CK_MD_RTM_DISABLE"
 		MM="${MM:-"CK_MD_TSO"}"
 		PLATFORM=sparcv9
 		ENVIRONMENT=64
@@ -360,13 +363,13 @@ case $PLATFORM in
 		esac
 		;;
 	"amd64"|"x86_64")
-		RTM_ENABLE=${RTM_ENABLE_SET:-"CK_MD_RTM_DISABLE"}
 		PLATFORM=x86_64
 		ENVIRONMENT=64
 		LDFLAGS="-m64 $LDFLAGS"
 		MM="${MM:-"CK_MD_TSO"}"
 		;;
 	"i86pc")
+		RTM_ENABLE="CK_MD_RTM_DISABLE"
 		MM="${MM:-"CK_MD_TSO"}"
 		ISA=`isainfo -n 2> /dev/null || echo i386`
 		case "$ISA" in
@@ -383,11 +386,13 @@ case $PLATFORM in
 		esac
 		;;
 	"ppc64")
+		RTM_ENABLE="CK_MD_RTM_DISABLE"
 		MM="${MM:-"CK_MD_RMO"}"
 		PLATFORM=ppc64
 		ENVIRONMENT=64
 		;;
 	*)
+		RTM_ENABLE="CK_MD_RTM_DISABLE"
 		PLATFORM=
 		MM="${MM:-"CK_MD_RMO"}"
 		;;
