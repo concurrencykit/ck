@@ -51,9 +51,9 @@ and the allocator callbacks to
 Further modifications to
 .Fa source
 will result in undefined behavior. Concurrent
-.Fn ck_hs_get 3
+.Xr ck_hs_get 3
 and
-.Fn ck_hs_fas 3
+.Xr ck_hs_fas 3
 operations to
 .Fa source
 are legal until the next write operation to
