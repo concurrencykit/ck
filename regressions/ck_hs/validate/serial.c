@@ -89,107 +89,115 @@ main(void)
 {
 	const char *blob = "blobs";
 	unsigned long h;
-	ck_hs_t hs;
-	size_t i;
+	ck_hs_t hs[4];
+	size_t i, j;
+	const size_t size = sizeof(hs) / sizeof(*hs);
 
-	if (ck_hs_init(&hs, CK_HS_MODE_SPMC | CK_HS_MODE_OBJECT, hs_hash, hs_compare, &my_allocator, 8, 6602834) == false) {
+	if (ck_hs_init(&hs[0], CK_HS_MODE_SPMC | CK_HS_MODE_OBJECT, hs_hash, hs_compare, &my_allocator, 8, 6602834) == false) {
 		perror("ck_hs_init");
 		exit(EXIT_FAILURE);
 	}
 
-	/* Test serial put semantics. */
-	for (i = 0; i < sizeof(test) / sizeof(*test); i++) {
-		h = test[i][0];
-		ck_hs_put(&hs, h, test[i]);
-		if (ck_hs_put(&hs, h, test[i]) == true) {
-			ck_error("ERROR [1]: put must fail on collision.\n");
-		}
-	}
-
-	/* Test grow semantics. */
-	ck_hs_grow(&hs, 32);
-	for (i = 0; i < sizeof(test) / sizeof(*test); i++) {
-		h = test[i][0];
-		if (ck_hs_put(&hs, h, test[i]) == true) {
-			ck_error("ERROR [2]: put must fail on collision.\n");
+	for (j = 0; j < size; j++) {
+		for (i = 0; i < sizeof(test) / sizeof(*test); i++) {
+			h = test[i][0];
+			ck_hs_put(&hs[j], h, test[i]);
+			if (ck_hs_put(&hs[j], h, test[i]) == true) {
+				ck_error("ERROR [1]: put must fail on collision.\n");
+			}
 		}
 
-		if (ck_hs_get(&hs, h, test[i]) == NULL) {
-			ck_error("ERROR: get must not fail\n");
-		}
-	}
+		/* Test grow semantics. */
+		ck_hs_grow(&hs[j], 32);
+		for (i = 0; i < sizeof(test) / sizeof(*test); i++) {
+			h = test[i][0];
+			if (ck_hs_put(&hs[j], h, test[i]) == true) {
+				ck_error("ERROR [2]: put must fail on collision.\n");
+			}
 
-	h = ULONG_MAX;
-	if (ck_hs_put(&hs, h, blob) == false) {
-		ck_error("ERROR: Duplicate put failed.\n");
-	}
-
-	if (ck_hs_put(&hs, h, blob) == true) {
-		ck_error("ERROR: Duplicate put succeeded.\n");
-	}
-
-	/* Grow set and check get semantics. */
-	ck_hs_grow(&hs, 128);
-	for (i = 0; i < sizeof(test) / sizeof(*test); i++) {
-		h = test[i][0];
-		if (ck_hs_get(&hs, h, test[i]) == NULL) {
-			ck_error("ERROR: get must not fail\n");
-		}
-	}
-
-	/* Delete and check negative membership. */
-	for (i = 0; i < sizeof(test) / sizeof(*test); i++) {
-		void *r;
-
-		h = test[i][0];
-		if (ck_hs_get(&hs, h, test[i]) == NULL)
-			continue;
-
-		if (r = ck_hs_remove(&hs, h, test[i]), r == NULL) {
-			ck_error("ERROR: remove must not fail\n");
+			if (ck_hs_get(&hs[j], h, test[i]) == NULL) {
+				ck_error("ERROR: get must not fail\n");
+			}
 		}
 
-		if (strcmp(r, test[i]) != 0) {
-			ck_error("ERROR: Removed incorrect node (%s != %s)\n", (char *)r, test[i]);
-		}
-	}
-
-	/* Test replacement semantics. */
-	for (i = 0; i < sizeof(test) / sizeof(*test); i++) {
-		void *r;
-		bool d;
-
-		h = test[i][0];
-		d = ck_hs_get(&hs, h, test[i]) != NULL;
-		if (ck_hs_set(&hs, h, test[i], &r) == false) {
-			ck_error("ERROR: Failed to set\n");
+		h = ULONG_MAX;
+		if (ck_hs_put(&hs[j], h, blob) == false) {
+			ck_error("ERROR: Duplicate put failed.\n");
 		}
 
-		/* Expected replacement. */
-		if (d == true && (r == NULL || strcmp(r, test[i]) != 0)) {
-			ck_error("ERROR: Incorrect previous value: %s != %s\n",
-			    test[i], (char *)r);
+		if (ck_hs_put(&hs[j], h, blob) == true) {
+			ck_error("ERROR: Duplicate put succeeded.\n");
 		}
 
-		/* Replacement should succeed. */
-		if (ck_hs_fas(&hs, h, test[i], &r) == false)
-			ck_error("ERROR: ck_hs_fas must succeed.\n");
-
-		if (strcmp(r, test[i]) != 0) {
-			ck_error("ERROR: Incorrect replaced value: %s != %s\n",
-			    test[i], (char *)r);
+		/* Grow set and check get semantics. */
+		ck_hs_grow(&hs[j], 128);
+		for (i = 0; i < sizeof(test) / sizeof(*test); i++) {
+			h = test[i][0];
+			if (ck_hs_get(&hs[j], h, test[i]) == NULL) {
+				ck_error("ERROR: get must not fail\n");
+			}
 		}
 
-		if (ck_hs_fas(&hs, h, negative, &r) == true)
-			ck_error("ERROR: Replacement of negative should fail.\n");
+		/* Delete and check negative membership. */
+		for (i = 0; i < sizeof(test) / sizeof(*test); i++) {
+			void *r;
 
-		if (ck_hs_set(&hs, h, test[i], &r) == false) {
-			ck_error("ERROR: Failed to set [1]\n");
+			h = test[i][0];
+			if (ck_hs_get(&hs[j], h, test[i]) == NULL)
+				continue;
+
+			if (r = ck_hs_remove(&hs[j], h, test[i]), r == NULL) {
+				ck_error("ERROR: remove must not fail\n");
+			}
+
+			if (strcmp(r, test[i]) != 0) {
+				ck_error("ERROR: Removed incorrect node (%s != %s)\n", (char *)r, test[i]);
+			}
 		}
 
-		if (strcmp(r, test[i]) != 0) {
-			ck_error("ERROR: Invalid pointer: %s != %s\n", (char *)r, test[i]);
+		/* Test replacement semantics. */
+		for (i = 0; i < sizeof(test) / sizeof(*test); i++) {
+			void *r;
+			bool d;
+
+			h = test[i][0];
+			d = ck_hs_get(&hs[j], h, test[i]) != NULL;
+			if (ck_hs_set(&hs[j], h, test[i], &r) == false) {
+				ck_error("ERROR: Failed to set\n");
+			}
+
+			/* Expected replacement. */
+			if (d == true && (r == NULL || strcmp(r, test[i]) != 0)) {
+				ck_error("ERROR: Incorrect previous value: %s != %s\n",
+				    test[i], (char *)r);
+			}
+
+			/* Replacement should succeed. */
+			if (ck_hs_fas(&hs[j], h, test[i], &r) == false)
+				ck_error("ERROR: ck_hs_fas must succeed.\n");
+
+			if (strcmp(r, test[i]) != 0) {
+				ck_error("ERROR: Incorrect replaced value: %s != %s\n",
+				    test[i], (char *)r);
+			}
+
+			if (ck_hs_fas(&hs[j], h, negative, &r) == true)
+				ck_error("ERROR: Replacement of negative should fail.\n");
+
+			if (ck_hs_set(&hs[j], h, test[i], &r) == false) {
+				ck_error("ERROR: Failed to set [1]\n");
+			}
+
+			if (strcmp(r, test[i]) != 0) {
+				ck_error("ERROR: Invalid &hs[j]: %s != %s\n", (char *)r, test[i]);
+			}
 		}
+
+		if (j == size - 1)
+			break;
+
+		if (ck_hs_move(&hs[j + 1], &hs[j], hs_hash, hs_compare, &my_allocator) == false)
+			ck_error("Failed to move hash table");
 	}
 
 	return 0;
