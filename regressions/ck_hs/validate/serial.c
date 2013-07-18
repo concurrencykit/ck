@@ -87,7 +87,7 @@ hs_compare(const void *previous, const void *compare)
 int
 main(void)
 {
-	const char *blob = "blobs";
+	const char *blob = "#blobs";
 	unsigned long h;
 	ck_hs_t hs[16];
 	size_t i, j;
@@ -108,7 +108,7 @@ main(void)
 		}
 
 		/* Test grow semantics. */
-		ck_hs_grow(&hs[j], 32);
+		ck_hs_grow(&hs[j], 128);
 		for (i = 0; i < sizeof(test) / sizeof(*test); i++) {
 			h = test[i][0];
 			if (ck_hs_put(&hs[j], h, test[i]) == true) {
@@ -120,8 +120,11 @@ main(void)
 			}
 		}
 
-		h = ULONG_MAX;
+		h = blob[0];
 		if (ck_hs_get(&hs[j], h, blob) == NULL) {
+			if (j > 0)
+				ck_error("ERROR: Blob must always exist after first.\n");
+
 			if (ck_hs_put(&hs[j], h, blob) == false) {
 				ck_error("ERROR: A unique blob put failed.\n");
 			}
@@ -132,7 +135,7 @@ main(void)
 		}
 
 		/* Grow set and check get semantics. */
-		ck_hs_grow(&hs[j], 128);
+		ck_hs_grow(&hs[j], 512);
 		for (i = 0; i < sizeof(test) / sizeof(*test); i++) {
 			h = test[i][0];
 			if (ck_hs_get(&hs[j], h, test[i]) == NULL) {
