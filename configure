@@ -225,6 +225,7 @@ MANDIR=${MANDIR:-"${PREFIX}/share/man"}
 GZIP=${GZIP:-"gzip -c"}
 POINTER_PACK_ENABLE=${POINTER_PACK_ENABLE:-"CK_MD_POINTER_PACK_DISABLE"}
 RTM_ENABLE=${RTM_ENABLE_SET:-"CK_MD_RTM_DISABLE"}
+VMA_BITS=${VMA_BITS:-"unknown"}
 
 if test "$PROFILE"; then
 	printf "Using user-specified profile....."
@@ -401,7 +402,7 @@ esac
 assert "$PLATFORM" "$PLATFORM" "unsupported"
 
 printf "Detecting VMA bits..............."
-if test "$VMA_BITS" = ""; then
+if test "$VMA_BITS" = "unknown"; then
 	if test "$PLATFORM" = "x86" || test $PLATFORM = "x86_64"; then
 		case $SYSTEM in
 			darwin)
