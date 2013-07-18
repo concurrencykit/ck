@@ -67,6 +67,7 @@ or
 are uninitialized.
 .Sh SEE ALSO
 .Xr ck_hs_init 3 ,
+.Xr ck_hs_move 3 ,
 .Xr ck_hs_destroy 3 ,
 .Xr CK_HS_HASH 3 ,
 .Xr ck_hs_iterator_init 3 ,

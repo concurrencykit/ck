@@ -56,6 +56,7 @@ has no return value.
 This function is guaranteed not to fail.
 .Sh SEE ALSO
 .Xr ck_hs_init 3 ,
+.Xr ck_hs_move 3 ,
 .Xr CK_HS_HASH 3 ,
 .Xr ck_hs_iterator_init 3 ,
 .Xr ck_hs_next 3 ,
