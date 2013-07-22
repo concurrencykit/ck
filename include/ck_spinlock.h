@@ -581,7 +581,7 @@ ck_spinlock_ticket_unlock(struct ck_spinlock_ticket *ticket)
 {
 
 	ck_pr_fence_memory();
-	CK_SPINLOCK_TICKET_INC((CK_SPINLOCK_TICKET_TYPE_BASE *)&ticket->value);
+	CK_SPINLOCK_TICKET_INC((CK_SPINLOCK_TICKET_TYPE_BASE *)(void *)&ticket->value);
 	return;
 }
 
