@@ -139,7 +139,8 @@ OBJECTS=ck_ht_count 	  		\
 	ck_ring_enqueue_spsc		\
 	ck_ring_enqueue_spsc_size	\
 	ck_ring_size			\
-	ck_ring_capacity
+	ck_ring_capacity		\
+	ck_spinlock
 
 all: 
 	for target in $(OBJECTS); do 			   \
