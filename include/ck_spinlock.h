@@ -724,6 +724,14 @@ typedef struct ck_spinlock_mcs ck_spinlock_mcs_context_t;
 
 #define CK_SPINLOCK_MCS_INITIALIZER         (NULL)
 
+CK_CC_INLINE static void
+ck_spinlock_mcs_init(struct ck_spinlock_mcs **queue)
+{
+
+    ck_pr_store_ptr(queue, NULL);
+    return;
+}
+
 CK_CC_INLINE static bool
 ck_spinlock_mcs_trylock(struct ck_spinlock_mcs **queue, struct ck_spinlock_mcs *node)
 {
