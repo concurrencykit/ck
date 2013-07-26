@@ -48,6 +48,23 @@ static ck_sequence_t seqlock CK_CC_CACHELINE = CK_SEQUENCE_INITIALIZER;
 static unsigned int barrier;
 static struct affinity affinerator;
 
+static void
+validate(struct example *copy)
+{
+
+	if (copy->b != copy->a + 1000) {
+		ck_error("ERROR: Failed regression: copy->b (%u != %u + %u / %u)\n",
+		    copy->b, copy->a, 1000, copy->a + 1000);
+	}
+
+	if (copy->c != copy->a + copy->b) {
+		ck_error("ERROR: Failed regression: copy->c (%u != %u + %u / %u)\n",
+		    copy->c, copy->a, copy->b, copy->a + copy->b);
+	}
+
+	return;
+}
+
 static void *
 consumer(void *unused CK_CC_UNUSED)
 {
@@ -77,14 +94,15 @@ consumer(void *unused CK_CC_UNUSED)
 			copy.c = ck_pr_load_uint(&global.c);
 			retries++;
                 } while (ck_sequence_read_retry(&seqlock, version) == true);
+		validate(&copy);
 
-		if (copy.b != copy.a + 1000) {
-			ck_error("ERROR: Failed regression: copy.b (%u != %u + %u / %u)\n", copy.b, copy.a, 1000, copy.a + 1000);
+		CK_SEQUENCE_READ(&seqlock, &version) {
+                        copy.a = ck_pr_load_uint(&global.a);
+                        copy.b = ck_pr_load_uint(&global.b);
+			copy.c = ck_pr_load_uint(&global.c);
+			retries++;
 		}
-
-		if (copy.c != copy.a + copy.b) {
-			ck_error("ERROR: Failed regression: copy.c (%u != %u + %u / %u)\n", copy.c, copy.a, copy.b, copy.a + copy.b);
-		}
+		validate(&copy);
         }
 
         fprintf(stderr, "%u retries.\n", retries - STEPS);

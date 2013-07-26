@@ -44,6 +44,7 @@ int
 main(void)
 {
 	unsigned int i = 0;
+	unsigned int version;
 	uint64_t a, s;
 
 	/* Read-side latency. */
@@ -57,6 +58,17 @@ main(void)
 		a += rdtsc() - s;
 	}
 	printf("read: %" PRIu64 "\n", a / STEPS);
+
+	a = 0;
+	for (i = 0; i < STEPS / 4; i++) {
+		s = rdtsc();
+		CK_SEQUENCE_READ(&seqlock, &version);
+		CK_SEQUENCE_READ(&seqlock, &version);
+		CK_SEQUENCE_READ(&seqlock, &version);
+		CK_SEQUENCE_READ(&seqlock, &version);
+		a += rdtsc() - s;
+	}
+	printf("READ %" PRIu64 "\n", a / STEPS);
 
 	/* Write-side latency. */
 	a = 0;
