@@ -85,6 +85,11 @@ ck_sequence_read_retry(struct ck_sequence *sq, unsigned int version)
 	return ck_pr_load_uint(&sq->sequence) != version;
 }
 
+#define CK_SEQUENCE_READ(seqlock, version) 						\
+	for (*(version) = 1;								\
+	    (*(version) != 0) && (*(version) = ck_sequence_read_begin(seqlock), 1);	\
+	    *(version) = ck_sequence_read_retry(seqlock, *(version)))
+
 /*
  * This must be called after a successful mutex acquisition.
  */
