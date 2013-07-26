@@ -99,14 +99,20 @@ reader(void)
 	 * ck_sequence_read_retry then attempt another read since
 	 * the data may be in an inconsistent state.
 	 */
-	CK_SEQUENCE_READ(&seqlock, &version) {
-		copy = global;
-	}
-
 	do {
 		version = ck_sequence_read_begin(&seqlock);
 		copy = global;
 	} while (ck_sequence_read_retry(&seqlock, version));
+
+	/*
+	 * The previous may also be expressed using CK_SEQUENCE_READ.
+	 * Generally recommend to only use ck_sequence_read_retry
+	 * if you would like to detect a conflicting write at some
+	 * higher granularity.
+	 */
+	CK_SEQUENCE_READ(&seqlock, version) {
+		copy = global;
+	}
 
 	return;
 }
