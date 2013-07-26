@@ -196,6 +196,6 @@ example(void)
 .Ed
 .Sh SEE ALSO
 .Xr ck_cohort 3 ,
-.Xr ck_sequence 3
+.Xr ck_elide 3
 .Pp
 Additional information available at http://concurrencykit.org/
