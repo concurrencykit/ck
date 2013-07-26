@@ -25,9 +25,9 @@
 .\"
 .\"
 .Dd February 24, 2013.
-.Dt CK_RWCOHORT_READ_LOCK 3
+.Dt CK_RWCOHORT_WRITE_UNLOCK 3
 .Sh NAME
-.Nm CK_RWCOHORT_READ_LOCK
+.Nm CK_RWCOHORT_WRITE_LOCK
 .Nd relinquish write access for cohort-based reader-writer lock
 .Sh LIBRARY
 Concurrency Kit (libck, \-lck)
