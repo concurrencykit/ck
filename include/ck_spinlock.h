@@ -357,14 +357,14 @@ struct ck_spinlock_dec {
 };
 typedef struct ck_spinlock_dec ck_spinlock_dec_t;
 
-#define CK_SPINLOCK_DEC_INITIALIZER {1}
+#define CK_SPINLOCK_DEC_INITIALIZER	{1}
 
 CK_CC_INLINE static void
 ck_spinlock_dec_init(struct ck_spinlock_dec *lock)
 {
 
-    ck_pr_store_uint(&lock->value, 1);
-    return;
+	ck_pr_store_uint(&lock->value, 1);
+	return;
 }
 
 CK_CC_INLINE static bool
@@ -728,8 +728,8 @@ CK_CC_INLINE static void
 ck_spinlock_mcs_init(struct ck_spinlock_mcs **queue)
 {
 
-    ck_pr_store_ptr(queue, NULL);
-    return;
+	ck_pr_store_ptr(queue, NULL);
+	return;
 }
 
 CK_CC_INLINE static bool
