@@ -110,7 +110,7 @@ reader(void)
 	 * if you would like to detect a conflicting write at some
 	 * higher granularity.
 	 */
-	CK_SEQUENCE_READ(&seqlock, version) {
+	CK_SEQUENCE_READ(&seqlock, &version) {
 		copy = global;
 	}
 
