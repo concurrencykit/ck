@@ -241,4 +241,6 @@ function(void)
 .Xr ck_rwlock 3 ,
 .Xr ck_spinlock 3
 .Pp
+Ravi Rajwar and James R. Goodman. 2001. Speculative lock elision: enabling highly concurrent multithreaded execution. In Proceedings of the 34th annual ACM/IEEE international symposium on Microarchitecture (MICRO 34). IEEE Computer Society, Washington, DC, USA, 294-305.
+.Pp
 Additional information available at http://en.wikipedia.org/wiki/Transactional_Synchronization_Extensions and http://concurrencykit.org/
