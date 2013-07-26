@@ -359,6 +359,14 @@ typedef struct ck_spinlock_dec ck_spinlock_dec_t;
 
 #define CK_SPINLOCK_DEC_INITIALIZER {1}
 
+CK_CC_INLINE static void
+ck_spinlock_dec_init(struct ck_spinlock_dec *lock)
+{
+
+    ck_pr_store_uint(&lock->value, 1);
+    return;
+}
+
 CK_CC_INLINE static bool
 ck_spinlock_dec_trylock(struct ck_spinlock_dec *lock)
 {
