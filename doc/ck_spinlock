@@ -134,15 +134,15 @@ A family of busy-wait spinlock implementations. The ck_spinlock_t implementation
 a wrapper around the fetch-and-swap (ck_spinlock_fas_t) implementation. The table below
 provides a summary of the current implementations.
 .Bd -literal
-|          Namespace   |  Algorithm                   |  Type         | Restrictions            |   Fair   |
-\'----------------------|------------------------------|---------------|-------------------------|----------'
-  ck_spinlock_anderson    Anderson                       Array          Fixed number of threads     Yes
-       ck_spinlock_cas    Compare-and-Swap               Centralized    None                        No
-       ck_spinlock_clh    Craig, Landin and Hagersten    Queue          Lifetime requirements       Yes
-       ck_spinlock_dec    Decrement (Linux kernel)       Centralized    UINT_MAX concurrency        No
-       ck_spinlock_fas    Fetch-and-store                Centralized    None                        No
-       ck_spinlock_mcs    Mellor-Crummey and Scott       Queue          None                        Yes
-    ck_spinlock_ticket    Ticket                         Centralized    None                        Yes
+|            Namespace | Algorithm                   | Type          | Restrictions            | Fair   |
+\'----------------------|-----------------------------|---------------|-------------------------|--------'
+  ck_spinlock_anderson   Anderson                      Array           Fixed number of threads   Yes
+       ck_spinlock_cas   Compare-and-Swap              Centralized     None                      No
+       ck_spinlock_clh   Craig, Landin and Hagersten   Queue           Lifetime requirements     Yes
+       ck_spinlock_dec   Decrement (Linux kernel)      Centralized     UINT_MAX concurrency      No
+       ck_spinlock_fas   Fetch-and-store               Centralized     None                      No
+       ck_spinlock_mcs   Mellor-Crummey and Scott      Queue           None                      Yes
+    ck_spinlock_ticket   Ticket                        Centralized     None                      Yes
 .Ed
 .Pp
 If contention is low and there is no hard requirement for starvation-freedom
