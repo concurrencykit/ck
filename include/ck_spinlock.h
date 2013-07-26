@@ -43,13 +43,13 @@
  * from faster but less robust implementations.
  */
 #define CK_SPINLOCK_INITIALIZER CK_SPINLOCK_FAS_INITIALIZER
-#define ck_spinlock_t           ck_spinlock_fas_t
-#define ck_spinlock_init(x)     ck_spinlock_fas_init(x)
-#define ck_spinlock_lock(x)     ck_spinlock_fas_lock(x)
-#define ck_spinlock_lock_eb(x)  ck_spinlock_fas_lock_eb(x)
-#define ck_spinlock_unlock(x)   ck_spinlock_fas_unlock(x)
-#define ck_spinlock_locked(x)   ck_spinlock_fas_locked(x)
-#define ck_spinlock_trylock(x)  ck_spinlock_fas_trylock(x)
+#define ck_spinlock_t		ck_spinlock_fas_t
+#define ck_spinlock_init(x)	ck_spinlock_fas_init(x)
+#define ck_spinlock_lock(x)	ck_spinlock_fas_lock(x)
+#define ck_spinlock_lock_eb(x)	ck_spinlock_fas_lock_eb(x)
+#define ck_spinlock_unlock(x)	ck_spinlock_fas_unlock(x)
+#define ck_spinlock_locked(x)	ck_spinlock_fas_locked(x)
+#define ck_spinlock_trylock(x)	ck_spinlock_fas_trylock(x)
 
 #ifndef CK_F_SPINLOCK_ANDERSON
 #define CK_F_SPINLOCK_ANDERSON
@@ -460,25 +460,25 @@ CK_ELIDE_TRYLOCK_PROTOTYPE(ck_spinlock_dec, ck_spinlock_dec_t,
  */
 #if defined(CK_MD_TSO) && (defined(__x86__) || defined(__x86_64__))
 #if defined(CK_F_PR_FAA_32) && defined(CK_F_PR_INC_16) && defined(CK_F_PR_CAS_32)
-#define CK_SPINLOCK_TICKET_TYPE         uint32_t
-#define CK_SPINLOCK_TICKET_TYPE_BASE    uint16_t
-#define CK_SPINLOCK_TICKET_INC(x)       ck_pr_inc_16(x)
+#define CK_SPINLOCK_TICKET_TYPE		uint32_t
+#define CK_SPINLOCK_TICKET_TYPE_BASE	uint16_t
+#define CK_SPINLOCK_TICKET_INC(x)	ck_pr_inc_16(x)
 #define CK_SPINLOCK_TICKET_CAS(x, y, z) ck_pr_cas_32(x, y, z)
-#define CK_SPINLOCK_TICKET_FAA(x, y)    ck_pr_faa_32(x, y)
-#define CK_SPINLOCK_TICKET_LOAD(x)      ck_pr_load_32(x)
-#define CK_SPINLOCK_TICKET_INCREMENT    (0x00010000UL)
-#define CK_SPINLOCK_TICKET_MASK         (0xFFFFUL)
-#define CK_SPINLOCK_TICKET_SHIFT        (16)
+#define CK_SPINLOCK_TICKET_FAA(x, y)	ck_pr_faa_32(x, y)
+#define CK_SPINLOCK_TICKET_LOAD(x)	ck_pr_load_32(x)
+#define CK_SPINLOCK_TICKET_INCREMENT	(0x00010000UL)
+#define CK_SPINLOCK_TICKET_MASK		(0xFFFFUL)
+#define CK_SPINLOCK_TICKET_SHIFT	(16)
 #elif defined(CK_F_PR_FAA_64) && defined(CK_F_PR_INC_32) && defined(CK_F_PR_CAS_64)
-#define CK_SPINLOCK_TICKET_TYPE         uint64_t
-#define CK_SPINLOCK_TICKET_TYPE_BASE    uint32_t
-#define CK_SPINLOCK_TICKET_INC(x)       ck_pr_inc_32(x)
+#define CK_SPINLOCK_TICKET_TYPE		uint64_t
+#define CK_SPINLOCK_TICKET_TYPE_BASE	uint32_t
+#define CK_SPINLOCK_TICKET_INC(x)	ck_pr_inc_32(x)
 #define CK_SPINLOCK_TICKET_CAS(x, y, z) ck_pr_cas_64(x, y, z)
-#define CK_SPINLOCK_TICKET_FAA(x, y)    ck_pr_faa_64(x, y)
-#define CK_SPINLOCK_TICKET_LOAD(x)      ck_pr_load_64(x)
-#define CK_SPINLOCK_TICKET_INCREMENT    (0x0000000100000000ULL)
-#define CK_SPINLOCK_TICKET_MASK         (0xFFFFFFFFULL)
-#define CK_SPINLOCK_TICKET_SHIFT        (32)
+#define CK_SPINLOCK_TICKET_FAA(x, y)	ck_pr_faa_64(x, y)
+#define CK_SPINLOCK_TICKET_LOAD(x)	ck_pr_load_64(x)
+#define CK_SPINLOCK_TICKET_INCREMENT	(0x0000000100000000ULL)
+#define CK_SPINLOCK_TICKET_MASK		(0xFFFFFFFFULL)
+#define CK_SPINLOCK_TICKET_SHIFT	(32)
 #endif
 #endif /* CK_MD_TSO */
 
@@ -722,7 +722,7 @@ struct ck_spinlock_mcs {
 typedef struct ck_spinlock_mcs * ck_spinlock_mcs_t;
 typedef struct ck_spinlock_mcs ck_spinlock_mcs_context_t;
 
-#define CK_SPINLOCK_MCS_INITIALIZER         (NULL)
+#define CK_SPINLOCK_MCS_INITIALIZER	    (NULL)
 
 CK_CC_INLINE static void
 ck_spinlock_mcs_init(struct ck_spinlock_mcs **queue)
