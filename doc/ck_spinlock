@@ -24,8 +24,8 @@
 .\" SUCH DAMAGE.
 .\"
 .\"
-.Dd July 13, 2013.
-.Dt ck_elide 3
+.Dd July 26, 2013.
+.Dt ck_spinlock 3
 .Sh NAME
 .Nm ck_spinlock
 .Nd spinlock implementations
