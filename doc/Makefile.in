@@ -141,6 +141,7 @@ OBJECTS=ck_brlock			\
 	ck_ring_enqueue_spsc_size	\
 	ck_ring_size			\
 	ck_ring_capacity		\
+	ck_rwlock			\
 	ck_sequence			\
 	ck_spinlock
 
