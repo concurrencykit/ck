@@ -7,7 +7,8 @@ BUILD_DIR=@BUILD_DIR@
 SRC_DIR=@SRC_DIR@
 HTML_SUFFIX=.html
 
-OBJECTS=ck_ht_count 	  		\
+OBJECTS=ck_brlock			\
+	ck_ht_count 	  		\
 	ck_ht_destroy	  		\
 	ck_ht_get_spmc	  		\
 	ck_ht_grow_spmc	  		\
