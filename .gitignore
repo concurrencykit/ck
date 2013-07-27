@@ -8,6 +8,7 @@ src/Makefile
 doc/Makefile
 build/Makefile
 .DS_Store
+*.html
 *.gz
 *.o
 *.a
