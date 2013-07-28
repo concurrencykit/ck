@@ -131,6 +131,7 @@ OBJECTS=ck_brlock			\
 	ck_pr_btr			\
 	ck_pr_store			\
 	ck_pr_load			\
+	ck_queue			\
 	ck_ring_init			\
 	ck_ring_dequeue_spmc		\
 	ck_ring_enqueue_spmc		\
