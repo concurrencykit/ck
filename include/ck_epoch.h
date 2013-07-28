@@ -153,3 +153,4 @@ void ck_epoch_barrier(ck_epoch_t *, ck_epoch_record_t *);
 void ck_epoch_reclaim(ck_epoch_record_t *);
 
 #endif /* _CK_EPOCH_H */
+

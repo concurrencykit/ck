@@ -276,3 +276,4 @@ ck_brlock_read_unlock(struct ck_brlock_reader *reader)
 }
 
 #endif /* _CK_BRLOCK_H */
+

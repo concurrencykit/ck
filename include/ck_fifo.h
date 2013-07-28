@@ -454,3 +454,4 @@ ck_fifo_mpmc_trydequeue(struct ck_fifo_mpmc *fifo,
 #endif /* CK_F_PR_CAS_PTR_2 */
 
 #endif /* _CK_FIFO_H */
+

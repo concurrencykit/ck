@@ -27,7 +27,15 @@
 .Dd July 26, 2013.
 .Dt ck_brlock 3
 .Sh NAME
-.Nm ck_brlock
+.Nm ck_brlock_init ,
+.Nm ck_brlock_write_lock ,
+.Nm ck_brlock_write_unlock ,
+.Nm ck_brlock_write_trylock ,
+.Nm ck_brlock_read_register ,
+.Nm ck_brlock_read_unregister ,
+.Nm ck_brlock_read_lock ,
+.Nm ck_brlock_read_trylock ,
+.Nm ck_brlock_read_unlock
 .Nd big-reader locks
 .Sh LIBRARY
 Concurrency Kit (libck, \-lck)

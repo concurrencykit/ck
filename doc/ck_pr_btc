@@ -27,8 +27,13 @@
 .Dd April 11, 2013
 .Dt ck_pr_btc 3
 .Sh NAME
-.Nm ck_pr_btc
-.Nd atomic bit test-and-complement operation
+.Nm ck_pr_btc_ptr ,
+.Nm ck_pr_btc_uint ,
+.Nm ck_pr_btc_int ,
+.Nm ck_pr_btc_64 ,
+.Nm ck_pr_btc_32 ,
+.Nm ck_pr_btc_16
+.Nd atomic bit test-and-complement operations
 .Sh LIBRARY
 Concurrency Kit (libck, \-lck)
 .Sh SYNOPSIS

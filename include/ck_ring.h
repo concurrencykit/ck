@@ -461,3 +461,4 @@ ck_ring_init(struct ck_ring *ring, void *buffer, unsigned int size)
 }
 
 #endif /* _CK_RING_H */
+

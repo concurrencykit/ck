@@ -27,8 +27,25 @@
 .Dd April 7, 2013
 .Dt ck_pr_neg 3
 .Sh NAME
-.Nm ck_pr_neg
-.Nd atomic negation operation
+.Nm ck_pr_neg_ptr ,
+.Nm ck_pr_neg_ptr_zero ,
+.Nm ck_pr_neg_double ,
+.Nm ck_pr_neg_double_zero ,
+.Nm ck_pr_neg_char ,
+.Nm ck_pr_neg_char_zero ,
+.Nm ck_pr_neg_uint ,
+.Nm ck_pr_neg_uint_zero ,
+.Nm ck_pr_neg_int ,
+.Nm ck_pr_neg_int_zero ,
+.Nm ck_pr_neg_64 ,
+.Nm ck_pr_neg_64_zero ,
+.Nm ck_pr_neg_32 ,
+.Nm ck_pr_neg_32_zero ,
+.Nm ck_pr_neg_16 ,
+.Nm ck_pr_neg_16_zero ,
+.Nm ck_pr_neg_8 ,
+.Nm ck_pr_neg_8_zero
+.Nd atomic negation operations
 .Sh LIBRARY
 Concurrency Kit (libck, \-lck)
 .Sh SYNOPSIS

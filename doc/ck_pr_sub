@@ -27,8 +27,16 @@
 .Dd April 11, 2013
 .Dt ck_pr_sub 3
 .Sh NAME
-.Nm ck_pr_sub
-.Nd atomic subtraction operation
+.Nm ck_pr_sub_ptr ,
+.Nm ck_pr_sub_double ,
+.Nm ck_pr_sub_char ,
+.Nm ck_pr_sub_uint ,
+.Nm ck_pr_sub_int ,
+.Nm ck_pr_sub_64 ,
+.Nm ck_pr_sub_32 ,
+.Nm ck_pr_sub_16 ,
+.Nm ck_pr_sub_8
+.Nd atomic subtraction operations
 .Sh LIBRARY
 Concurrency Kit (libck, \-lck)
 .Sh SYNOPSIS

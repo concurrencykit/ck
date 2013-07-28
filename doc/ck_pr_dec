@@ -27,8 +27,25 @@
 .Dd April 7, 2013
 .Dt ck_pr_dec 3
 .Sh NAME
-.Nm ck_pr_dec
-.Nd atomic decrement operation
+.Nm ck_pr_dec_ptr ,
+.Nm ck_pr_dec_ptr_zero ,
+.Nm ck_pr_dec_double ,
+.Nm ck_pr_dec_double_zero ,
+.Nm ck_pr_dec_char ,
+.Nm ck_pr_dec_char_zero ,
+.Nm ck_pr_dec_uint ,
+.Nm ck_pr_dec_uint_zero ,
+.Nm ck_pr_dec_int ,
+.Nm ck_pr_dec_int_zero ,
+.Nm ck_pr_dec_64 ,
+.Nm ck_pr_dec_64_zero ,
+.Nm ck_pr_dec_32 ,
+.Nm ck_pr_dec_32_zero ,
+.Nm ck_pr_dec_16 ,
+.Nm ck_pr_dec_16_zero ,
+.Nm ck_pr_dec_8 ,
+.Nm ck_pr_dec_8_zero
+.Nd atomic decrement operations
 .Sh LIBRARY
 Concurrency Kit (libck, \-lck)
 .Sh SYNOPSIS

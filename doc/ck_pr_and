@@ -27,8 +27,15 @@
 .Dd April 11, 2013
 .Dt ck_pr_and 3
 .Sh NAME
-.Nm ck_pr_and
-.Nd atomic bitwise-and operation
+.Nm ck_pr_and_ptr ,
+.Nm ck_pr_and_char ,
+.Nm ck_pr_and_uint ,
+.Nm ck_pr_and_int ,
+.Nm ck_pr_and_64 ,
+.Nm ck_pr_and_32 ,
+.Nm ck_pr_and_16 ,
+.Nm ck_pr_and_8
+.Nd atomic bitwise-and operations
 .Sh LIBRARY
 Concurrency Kit (libck, \-lck)
 .Sh SYNOPSIS

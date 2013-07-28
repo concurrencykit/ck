@@ -27,8 +27,16 @@
 .Dd April 15, 2013
 .Dt ck_pr_store 3
 .Sh NAME
-.Nm ck_pr_store
-.Nd atomic volatile store operation
+.Nm ck_pr_store_ptr ,
+.Nm ck_pr_store_double ,
+.Nm ck_pr_store_uint ,
+.Nm ck_pr_store_int ,
+.Nm ck_pr_store_char ,
+.Nm ck_pr_store_64 ,
+.Nm ck_pr_store_32 ,
+.Nm ck_pr_store_16 ,
+.Nm ck_pr_store_8
+.Nd atomic volatile store operations
 .Sh LIBRARY
 Concurrency Kit (libck, \-lck)
 .Sh SYNOPSIS

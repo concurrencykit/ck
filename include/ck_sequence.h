@@ -123,3 +123,4 @@ ck_sequence_write_end(struct ck_sequence *sq)
 }
 
 #endif /* _CK_SEQUENCE_H */
+

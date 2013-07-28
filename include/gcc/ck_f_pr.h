@@ -103,3 +103,4 @@
 #define CK_F_PR_XOR_INT
 #define CK_F_PR_XOR_PTR
 #define CK_F_PR_XOR_UINT
+

@@ -27,8 +27,16 @@
 .Dd April 7, 2013
 .Dt ck_pr_fas 3
 .Sh NAME
-.Nm ck_pr_fas
-.Nd atomic swap operation
+.Nm ck_pr_fas_ptr ,
+.Nm ck_pr_fas_double ,
+.Nm ck_pr_fas_char ,
+.Nm ck_pr_fas_uint ,
+.Nm ck_pr_fas_int ,
+.Nm ck_pr_fas_64 ,
+.Nm ck_pr_fas_32 ,
+.Nm ck_pr_fas_16 ,
+.Nm ck_pr_fas_8
+.Nd atomic swap operations
 .Sh LIBRARY
 Concurrency Kit (libck, \-lck)
 .Sh SYNOPSIS

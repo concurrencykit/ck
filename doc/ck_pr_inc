@@ -27,8 +27,25 @@
 .Dd April 7, 2013
 .Dt ck_pr_inc 3
 .Sh NAME
-.Nm ck_pr_inc
-.Nd atomic increment operation
+.Nm ck_pr_inc_ptr ,
+.Nm ck_pr_inc_ptr_zero ,
+.Nm ck_pr_inc_double ,
+.Nm ck_pr_inc_double_zero ,
+.Nm ck_pr_inc_char ,
+.Nm ck_pr_inc_char_zero ,
+.Nm ck_pr_inc_uint ,
+.Nm ck_pr_inc_uint_zero ,
+.Nm ck_pr_inc_int ,
+.Nm ck_pr_inc_int_zero ,
+.Nm ck_pr_inc_64 ,
+.Nm ck_pr_inc_64_zero ,
+.Nm ck_pr_inc_32 ,
+.Nm ck_pr_inc_32_zero ,
+.Nm ck_pr_inc_16 ,
+.Nm ck_pr_inc_16_zero ,
+.Nm ck_pr_inc_8 ,
+.Nm ck_pr_inc_8_zero
+.Nd atomic increment operations
 .Sh LIBRARY
 Concurrency Kit (libck, \-lck)
 .Sh SYNOPSIS

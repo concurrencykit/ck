@@ -27,8 +27,16 @@
 .Dd April 15, 2013
 .Dt ck_pr_load 3
 .Sh NAME
-.Nm ck_pr_load
-.Nd atomic volatile load operation
+.Nm ck_pr_load_ptr ,
+.Nm ck_pr_load_double ,
+.Nm ck_pr_load_uint ,
+.Nm ck_pr_load_int ,
+.Nm ck_pr_load_char ,
+.Nm ck_pr_load_64 ,
+.Nm ck_pr_load_32 ,
+.Nm ck_pr_load_16 ,
+.Nm ck_pr_load_8
+.Nd atomic volatile load operations
 .Sh LIBRARY
 Concurrency Kit (libck, \-lck)
 .Sh SYNOPSIS

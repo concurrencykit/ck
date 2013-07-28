@@ -89,3 +89,4 @@
 #define CK_CC_ALIASED __attribute__((__may_alias__))
 
 #endif /* _CK_GCC_CC_H */
+

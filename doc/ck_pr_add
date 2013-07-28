@@ -27,8 +27,16 @@
 .Dd April 11, 2013
 .Dt ck_pr_add 3
 .Sh NAME
-.Nm ck_pr_add
-.Nd atomic addition operation
+.Nm ck_pr_add_ptr ,
+.Nm ck_pr_add_double ,
+.Nm ck_pr_add_char ,
+.Nm ck_pr_add_uint ,
+.Nm ck_pr_add_int ,
+.Nm ck_pr_add_64 ,
+.Nm ck_pr_add_32 ,
+.Nm ck_pr_add_16 ,
+.Nm ck_pr_add_8
+.Nd atomic addition operations
 .Sh LIBRARY
 Concurrency Kit (libck, \-lck)
 .Sh SYNOPSIS

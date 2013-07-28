@@ -27,8 +27,15 @@
 .Dd April 11, 2013
 .Dt ck_pr_xor 3
 .Sh NAME
-.Nm ck_pr_xor
-.Nd atomic bitwise-xor operation
+.Nm ck_pr_xor_ptr ,
+.Nm ck_pr_xor_char ,
+.Nm ck_pr_xor_uint ,
+.Nm ck_pr_xor_int ,
+.Nm ck_pr_xor_64 ,
+.Nm ck_pr_xor_32 ,
+.Nm ck_pr_xor_16 ,
+.Nm ck_pr_xor_8
+.Nd atomic bitwise-xor operations
 .Sh LIBRARY
 Concurrency Kit (libck, \-lck)
 .Sh SYNOPSIS

@@ -27,8 +27,13 @@
 .Dd April 11, 2013
 .Dt ck_pr_btr 3
 .Sh NAME
-.Nm ck_pr_btr
-.Nd atomic bit test-and-reset operation
+.Nm ck_pr_btr_ptr ,
+.Nm ck_pr_btr_uint ,
+.Nm ck_pr_btr_int ,
+.Nm ck_pr_btr_64 ,
+.Nm ck_pr_btr_32 ,
+.Nm ck_pr_btr_16
+.Nd atomic bit test-and-reset operations
 .Sh LIBRARY
 Concurrency Kit (libck, \-lck)
 .Sh SYNOPSIS

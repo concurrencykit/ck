@@ -211,3 +211,4 @@ ck_hp_fifo_trydequeue_mpmc(ck_hp_record_t *record,
              (entry) = (T))
 
 #endif /* _CK_HP_FIFO_H */
+

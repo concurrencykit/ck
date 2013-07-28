@@ -27,8 +27,16 @@
 .Dd April 7, 2013
 .Dt ck_pr_faa 3
 .Sh NAME
-.Nm ck_pr_faa
-.Nd atomic fetch-and-add operation
+.Nm ck_pr_faa_ptr ,
+.Nm ck_pr_faa_double ,
+.Nm ck_pr_faa_char ,
+.Nm ck_pr_faa_uint ,
+.Nm ck_pr_faa_int ,
+.Nm ck_pr_faa_64 ,
+.Nm ck_pr_faa_32 ,
+.Nm ck_pr_faa_16 ,
+.Nm ck_pr_faa_8
+.Nd atomic fetch-and-add operations
 .Sh LIBRARY
 Concurrency Kit (libck, \-lck)
 .Sh SYNOPSIS

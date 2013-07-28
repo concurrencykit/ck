@@ -352,3 +352,4 @@ ck_stack_init(struct ck_stack *stack)
 	     (entry) = (T))
 
 #endif /* _CK_STACK_H */
+

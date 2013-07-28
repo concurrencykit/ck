@@ -194,3 +194,4 @@ bool ck_bag_remove_spmc(ck_bag_t *, void *);
 bool ck_bag_member_spmc(ck_bag_t *, void *);
 
 #endif /* _CK_BAG_H */
+

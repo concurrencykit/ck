@@ -27,8 +27,16 @@
 .Dd April 7, 2013
 .Dt ck_pr_not 3
 .Sh NAME
-.Nm ck_pr_not
-.Nd atomic complement operation
+.Nm ck_pr_not_ptr ,
+.Nm ck_pr_not_double ,
+.Nm ck_pr_not_char ,
+.Nm ck_pr_not_uint ,
+.Nm ck_pr_not_int ,
+.Nm ck_pr_not_64 ,
+.Nm ck_pr_not_32 ,
+.Nm ck_pr_not_16 ,
+.Nm ck_pr_not_8
+.Nd atomic complement operations
 .Sh LIBRARY
 Concurrency Kit (libck, \-lck)
 .Sh SYNOPSIS
