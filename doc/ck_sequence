@@ -27,7 +27,12 @@
 .Dd July 26, 2013.
 .Dt ck_sequence 3
 .Sh NAME
-.Nm ck_sequence
+.Nm ck_sequence_init ,
+.Nm ck_sequence_read_begin ,
+.Nm ck_sequence_read_retry ,
+.Nm ck_sequence_read_retry. ,
+.Nm ck_sequence_write_begin ,
+.Nm ck_sequence_write_end
 .Nd sequence locks
 .Sh LIBRARY
 Concurrency Kit (libck, \-lck)
