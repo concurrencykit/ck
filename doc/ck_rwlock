@@ -27,7 +27,23 @@
 .Dd July 26, 2013.
 .Dt ck_rwlock 3
 .Sh NAME
-.Nm ck_rwlock
+.Nm ck_rwlock_init ,
+.Nm ck_rwlock_write_lock ,
+.Nm ck_rwlock_write_unlock ,
+.Nm ck_rwlock_write_trylock ,
+.Nm ck_rwlock_write_downgrade ,
+.Nm ck_rwlock_locked_writer ,
+.Nm ck_rwlock_read_lock ,
+.Nm ck_rwlock_read_trylock ,
+.Nm ck_rwlock_read_unlock ,
+.Nm ck_rwlock_locked_reader ,
+.Nm ck_rwlock_recursive_write_lock ,
+.Nm ck_rwlock_recursive_write_trylock ,
+.Nm ck_rwlock_recurisve_write_unlock ,
+.Nm ck_rwlock_recursive_read_lock ,
+.Nm ck_rwlock_recursive_read_trylock ,
+.Nm ck_rwlock_recursive_read_unlock ,
+.Nm ck_rwlock_write_downgrade
 .Nd centralized write-biased reader-writer locks
 .Sh LIBRARY
 Concurrency Kit (libck, \-lck)
