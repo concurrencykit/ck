@@ -44,6 +44,8 @@
 #include "gcc/ppc64/ck_pr.h"
 #elif defined(__ppc__)
 #include "gcc/ppc/ck_pr.h"
+#elif defined(__arm__)
+#include "gcc/arm/ck_pr.h"
 #elif !defined(__GNUC__)
 #error Your platform is unsupported
 #endif
