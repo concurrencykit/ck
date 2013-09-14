@@ -611,7 +611,7 @@ generate build/regressions.build.in $P_PWD/build/regressions.build
 generate build/ck.pc.in $P_PWD/build/ck.pc
 generate build/ck.spec.in $P_PWD/build/ck.spec
 generate Makefile.in $P_PWD/Makefile
-
+touch src/*.c
 echo "success"
 generate_stdout
 
