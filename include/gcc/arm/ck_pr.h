@@ -122,8 +122,9 @@ CK_PR_LOAD_S(char, char, "ldrb")
 	ck_pr_store_##S(M *target, T v)				\
 	{							\
 		__asm__ __volatile__(I " %1, [%0]"		\
-					: : "r" (target),	\
-					"r" (v)			\
+					:			\
+					: "r" (target),		\
+					  "r" (v)		\
 					: "memory");		\
 		return;						\
 	}
@@ -154,10 +155,10 @@ ck_pr_cas_ptr_value(void *target, void *compare, void *set, void *value)
 			     "cmpeq   %1, #1;"
 			     "beq   1b;"
 			  	: "=&r" (previous),
-				"=&r" (tmp)
+				  "=&r" (tmp)
 		  		: "r"   (target),
-				"r"   (set),
-				"r"   (compare)	
+				  "r"   (set),
+				  "r"   (compare)	
 				: "memory", "cc");
 	*(void **)value = previous;
 	return (previous == compare);
@@ -174,10 +175,10 @@ ck_pr_cas_ptr(void *target, void *compare, void *set)
 			     "cmpeq   %1, #1;"
 			     "beq   1b;"
 			  	: "=&r" (previous),
-				"=&r" (tmp)
+				  "=&r" (tmp)
 		  		: "r"   (target),
-				"r"   (set),
-				"r"   (compare)	
+				  "r"   (set),
+				  "r"   (compare)	
 				: "memory", "cc");
 	return (previous == compare);
 }
