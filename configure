@@ -392,7 +392,7 @@ case $PLATFORM in
 		PLATFORM=ppc64
 		ENVIRONMENT=64
 		;;
-	arm|armv6*l|armv7*l)
+	arm|armv6l|armv7l)
 		RTM_ENABLE="CK_MD_RTM_DISABLE"
 		MM="${MM:-"CK_MD_RMO"}"
 		PLATFORM=arm
