@@ -1,1 +1,1 @@
-CFLAGS+= -D__arm__
+CFLAGS+=-D__arm__ -marm
