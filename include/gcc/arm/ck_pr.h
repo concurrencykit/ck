@@ -151,6 +151,7 @@ ck_pr_cas_ptr_value(void *target, void *compare, void *set, void *value)
 	__asm__ __volatile__("1:"
 			     "ldrex %0, [%2];"
 			     "cmp   %0, %4;"
+			     "itt eq;"
 			     "strexeq %1, %3, [%2];"
 			     "cmpeq   %1, #1;"
 			     "beq   1b;"
@@ -171,6 +172,7 @@ ck_pr_cas_ptr(void *target, void *compare, void *set)
 	__asm__ __volatile__("1:"
 			     "ldrex %0, [%2];"
 			     "cmp   %0, %4;"
+			     "itt eq;"
 			     "strexeq %1, %3, [%2];"
 			     "cmpeq   %1, #1;"
 			     "beq   1b;"
@@ -191,6 +193,7 @@ ck_pr_cas_ptr(void *target, void *compare, void *set)
 		__asm__ __volatile__("1:"				\
 				     "ldrex" W " %0, [%2];"		\
 				     "cmp   %0, %4;"			\
+				     "itt eq;"				\
 				     "strex" W "eq %1, %3, [%2];"	\
 		    		     "cmpeq   %1, #1;"			\
 				     "beq   1b;"			\
@@ -214,8 +217,9 @@ ck_pr_cas_ptr(void *target, void *compare, void *set)
 		__asm__ __volatile__("1:"				\
 				     "ldrex" W " %0, [%2];"		\
 				     "cmp   %0, %4;"			\
+				     "itt eq;"				\
 				     "strex" W "eq %1, %3, [%2];"	\
-				     "cmp   %1, #1;"			\
+				     "cmpeq   %1, #1;"			\
 				     "beq   1b;"			\
 					: "+&r" (previous),		\
 		    			  "+&r" (tmp)			\
