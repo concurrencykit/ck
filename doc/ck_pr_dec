@@ -52,40 +52,40 @@ Concurrency Kit (libck, \-lck)
 .In ck_pr.h
 .Ft void
 .Fn ck_pr_dec_ptr "void *target"
-.Ft bool
-.Fn ck_pr_dec_ptr_zero "void *target"
+.Ft void
+.Fn ck_pr_dec_ptr_zero "void *target" "bool *z"
 .Ft void
 .Fn ck_pr_dec_double "double *target"
-.Ft bool
-.Fn ck_pr_dec_double_zero "double *target"
+.Ft void
+.Fn ck_pr_dec_double_zero "double *target" "bool *z"
 .Ft void
 .Fn ck_pr_dec_char "char *target"
-.Ft bool
-.Fn ck_pr_dec_char_zero "char *target"
+.Ft void
+.Fn ck_pr_dec_char_zero "char *target" "bool *z"
 .Ft void
 .Fn ck_pr_dec_uint "unsigned int *target"
-.Ft bool
-.Fn ck_pr_dec_uint_zero "unsigned int *target"
+.Ft void
+.Fn ck_pr_dec_uint_zero "unsigned int *target" "bool *z"
 .Ft void
 .Fn ck_pr_dec_int "int *target"
-.Ft bool
-.Fn ck_pr_dec_int_zero "int *target"
+.Ft void
+.Fn ck_pr_dec_int_zero "int *target" "bool *z"
 .Ft void
 .Fn ck_pr_dec_64 "uint64_t *target"
-.Ft bool
-.Fn ck_pr_dec_64_zero "uint64_t *target"
+.Ft void
+.Fn ck_pr_dec_64_zero "uint64_t *target" "bool *z"
 .Ft void
 .Fn ck_pr_dec_32 "uint32_t *target"
-.Ft bool
-.Fn ck_pr_dec_32_zero "uint32_t *target"
+.Ft void
+.Fn ck_pr_dec_32_zero "uint32_t *target" "bool *z"
 .Ft void
 .Fn ck_pr_dec_16 "uint16_t *target"
-.Ft bool
-.Fn ck_pr_dec_16_zero "uint16_t *target"
+.Ft void
+.Fn ck_pr_dec_16_zero "uint16_t *target" "bool *z"
 .Ft void
 .Fn ck_pr_dec_8 "uint8_t *target"
-.Ft bool
-.Fn ck_pr_dec_8_zero "uint8_t *target"
+.Ft void
+.Fn ck_pr_dec_8_zero "uint8_t *target" "bool *z"
 .Sh DESCRIPTION
 The 
 .Fn ck_pr_dec 3
@@ -93,9 +93,12 @@ family of functions atomically decrement the value pointed to
 by
 .Fa target .
 .Sh RETURN VALUES
-The ck_pr_dec_zero family of functions returns true if the result
-of the decrement operation was 0. They return
-false otherwise.
+The ck_pr_dec_zero family of functions set the value pointed to by
+.Fa z
+to true if the result
+of the decrement operation was 0. They set the value pointed to by
+.Fa z
+to false otherwise.
 .Sh SEE ALSO
 .Xr ck_pr_fence_load 3 ,
 .Xr ck_pr_fence_load_depends 3 ,
