@@ -32,6 +32,7 @@
 
 struct ck_malloc {
 	void *(*malloc)(size_t);
+	void *(*realloc)(void *, size_t, size_t, bool);
 	void (*free)(void *, size_t, bool);
 };
 

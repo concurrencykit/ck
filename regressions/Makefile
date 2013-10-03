@@ -1,4 +1,5 @@
-DIR=backoff	\
+DIR=array	\
+    backoff	\
     bag		\
     barrier	\
     bitmap	\
@@ -22,6 +23,7 @@ DIR=backoff	\
 .PHONY: all clean check
 
 all:
+	$(MAKE) -C ./ck_array/validate all
 	$(MAKE) -C ./ck_cohort/validate all
 	$(MAKE) -C ./ck_cohort/benchmark all
 	$(MAKE) -C ./ck_bitmap/validate all
@@ -61,6 +63,7 @@ all:
 	$(MAKE) -C ./ck_bag/validate all
 
 clean:
+	$(MAKE) -C ./ck_array/validate clean
 	$(MAKE) -C ./ck_pflock/validate clean
 	$(MAKE) -C ./ck_pflock/benchmark clean
 	$(MAKE) -C ./ck_rwcohort/validate clean

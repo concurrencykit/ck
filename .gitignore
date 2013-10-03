@@ -15,6 +15,7 @@ build/Makefile
 *.so
 *.dSYM
 .*.sw[op]
+regressions/ck_array/validate/serial
 regressions/ck_cohort/benchmark/ck_cohort.LATENCY
 regressions/ck_cohort/benchmark/ck_cohort.THROUGHPUT
 regressions/ck_pflock/benchmark/latency
