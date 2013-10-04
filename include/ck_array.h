@@ -56,7 +56,7 @@ typedef struct ck_array_iterator ck_array_iterator_t;
 #define CK_ARRAY_MODE_SPMC 0U
 #define CK_ARRAY_MODE_MPMC (void) /* Unsupported. */
 
-bool ck_array_init(ck_array_t *, unsigned int mode, struct ck_malloc *, unsigned int);
+bool ck_array_init(ck_array_t *, unsigned int, struct ck_malloc *, unsigned int);
 bool ck_array_commit(ck_array_t *);
 bool ck_array_put(ck_array_t *, void *);
 int ck_array_put_unique(ck_array_t *, void *);
