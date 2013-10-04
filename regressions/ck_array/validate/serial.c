@@ -138,7 +138,13 @@ main(void)
 	if (i != ITERATION - 1 || ck_array_length(&array) != ITERATION - 1)
 		ck_error("Incorrect item count in iteration after unique put\n");
 
+	if (ck_array_initialized(&array) == false)
+		ck_error("Error, expected array to be initialized.\n");
+
 	ck_array_deinit(&array, false);
+
+	if (ck_array_initialized(&array) == true)
+		ck_error("Error, expected array to be uninitialized.\n");
 
 	return 0;
 }

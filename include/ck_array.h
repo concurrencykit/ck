@@ -32,6 +32,7 @@
 #include <ck_malloc.h>
 #include <ck_pr.h>
 #include <stdbool.h>
+#include <stddef.h>
 
 struct _ck_array {
 	unsigned int n_committed;
@@ -79,6 +80,13 @@ ck_array_buffer(struct ck_array *array, unsigned int *length)
 	ck_pr_fence_load();
 	*length = ck_pr_load_uint(&a->n_committed);
 	return a->values;
+}
+
+CK_CC_INLINE static bool
+ck_array_initialized(struct ck_array *array)
+{
+
+	return ck_pr_load_ptr(&array->active) != NULL;
 }
 
 #define CK_ARRAY_FOREACH(a, i, b)		   	\

@@ -238,6 +238,7 @@ ck_array_deinit(struct ck_array *array, bool defer)
 		    sizeof(struct _ck_array) + sizeof(void *) * array->transaction->length, defer);
 	}
 
+	array->transaction = array->active = NULL;
 	return;
 }
 
