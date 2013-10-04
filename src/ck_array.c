@@ -112,7 +112,7 @@ ck_array_put(struct ck_array *array, void *value)
 		update = array->allocator->realloc(array->transaction,
 		    sizeof(struct _ck_array) + sizeof(void *) * array->n_entries,
 		    sizeof(struct _ck_array) + sizeof(void *) * size,
-		    false);
+		    true);
 
 		if (update == NULL)
 			return false;
