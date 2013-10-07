@@ -84,16 +84,16 @@ hs_compare(const void *previous, const void *compare)
 	return strcmp(previous, compare) == 0;
 }
 
-int
-main(void)
+static void
+run_test(unsigned int is)
 {
+	ck_hs_t hs[16];
+	const size_t size = sizeof(hs) / sizeof(*hs);
+	size_t i, j;
 	const char *blob = "#blobs";
 	unsigned long h;
-	ck_hs_t hs[16];
-	size_t i, j;
-	const size_t size = sizeof(hs) / sizeof(*hs);
 
-	if (ck_hs_init(&hs[0], CK_HS_MODE_SPMC | CK_HS_MODE_OBJECT, hs_hash, hs_compare, &my_allocator, 4, 6602834) == false) {
+	if (ck_hs_init(&hs[0], CK_HS_MODE_SPMC | CK_HS_MODE_OBJECT, hs_hash, hs_compare, &my_allocator, is, 6602834) == false) {
 		perror("ck_hs_init");
 		exit(EXIT_FAILURE);
 	}
@@ -103,7 +103,10 @@ main(void)
 			h = test[i][0];
 			ck_hs_put(&hs[j], h, test[i]);
 			if (ck_hs_put(&hs[j], h, test[i]) == true) {
-				ck_error("ERROR [1]: put must fail on collision.\n");
+				ck_error("ERROR [%u] [1]: put must fail on collision.\n", is);
+			}
+			if (ck_hs_get(&hs[j], h, test[i]) == NULL) {
+				ck_error("ERROR [%u]: get must not fail after put\n", is);
 			}
 		}
 
@@ -112,25 +115,25 @@ main(void)
 		for (i = 0; i < sizeof(test) / sizeof(*test); i++) {
 			h = test[i][0];
 			if (ck_hs_put(&hs[j], h, test[i]) == true) {
-				ck_error("ERROR [2]: put must fail on collision.\n");
+				ck_error("ERROR [%u] [2]: put must fail on collision.\n", is);
 			}
 
 			if (ck_hs_get(&hs[j], h, test[i]) == NULL) {
-				ck_error("ERROR: get must not fail\n");
+				ck_error("ERROR [%u]: get must not fail\n", is);
 			}
 		}
 
 		h = blob[0];
 		if (ck_hs_get(&hs[j], h, blob) == NULL) {
 			if (j > 0)
-				ck_error("ERROR: Blob must always exist after first.\n");
+				ck_error("ERROR [%u]: Blob must always exist after first.\n", is);
 
 			if (ck_hs_put(&hs[j], h, blob) == false) {
-				ck_error("ERROR: A unique blob put failed.\n");
+				ck_error("ERROR [%u]: A unique blob put failed.\n", is);
 			}
 		} else {
 			if (ck_hs_put(&hs[j], h, blob) == true) {
-				ck_error("ERROR: Duplicate blob put succeeded.\n");
+				ck_error("ERROR [%u]: Duplicate blob put succeeded.\n", is);
 			}
 		}
 
@@ -139,7 +142,7 @@ main(void)
 		for (i = 0; i < sizeof(test) / sizeof(*test); i++) {
 			h = test[i][0];
 			if (ck_hs_get(&hs[j], h, test[i]) == NULL) {
-				ck_error("ERROR: get must not fail\n");
+				ck_error("ERROR [%u]: get must not fail\n", is);
 			}
 		}
 
@@ -152,11 +155,11 @@ main(void)
 				continue;
 
 			if (r = ck_hs_remove(&hs[j], h, test[i]), r == NULL) {
-				ck_error("ERROR: remove must not fail\n");
+				ck_error("ERROR [%u]: remove must not fail\n", is);
 			}
 
 			if (strcmp(r, test[i]) != 0) {
-				ck_error("ERROR: Removed incorrect node (%s != %s)\n", (char *)r, test[i]);
+				ck_error("ERROR [%u]: Removed incorrect node (%s != %s)\n", (char *)r, test[i], is);
 			}
 		}
 
@@ -168,33 +171,33 @@ main(void)
 			h = test[i][0];
 			d = ck_hs_get(&hs[j], h, test[i]) != NULL;
 			if (ck_hs_set(&hs[j], h, test[i], &r) == false) {
-				ck_error("ERROR: Failed to set\n");
+				ck_error("ERROR [%u]: Failed to set\n", is);
 			}
 
 			/* Expected replacement. */
 			if (d == true && (r == NULL || strcmp(r, test[i]) != 0)) {
-				ck_error("ERROR: Incorrect previous value: %s != %s\n",
-				    test[i], (char *)r);
+				ck_error("ERROR [%u]: Incorrect previous value: %s != %s\n",
+				    is, test[i], (char *)r);
 			}
 
 			/* Replacement should succeed. */
 			if (ck_hs_fas(&hs[j], h, test[i], &r) == false)
-				ck_error("ERROR: ck_hs_fas must succeed.\n");
+				ck_error("ERROR [%u]: ck_hs_fas must succeed.\n", is);
 
 			if (strcmp(r, test[i]) != 0) {
-				ck_error("ERROR: Incorrect replaced value: %s != %s\n",
-				    test[i], (char *)r);
+				ck_error("ERROR [%u]: Incorrect replaced value: %s != %s\n",
+				    is, test[i], (char *)r);
 			}
 
 			if (ck_hs_fas(&hs[j], h, negative, &r) == true)
-				ck_error("ERROR: Replacement of negative should fail.\n");
+				ck_error("ERROR [%u]: Replacement of negative should fail.\n", is);
 
 			if (ck_hs_set(&hs[j], h, test[i], &r) == false) {
-				ck_error("ERROR: Failed to set [1]\n");
+				ck_error("ERROR [%u]: Failed to set [1]\n", is);
 			}
 
 			if (strcmp(r, test[i]) != 0) {
-				ck_error("ERROR: Invalid &hs[j]: %s != %s\n", (char *)r, test[i]);
+				ck_error("ERROR [%u]: Invalid &hs[j]: %s != %s\n", (char *)r, test[i], is);
 			}
 		}
 
@@ -203,6 +206,18 @@ main(void)
 
 		if (ck_hs_move(&hs[j + 1], &hs[j], hs_hash, hs_compare, &my_allocator) == false)
 			ck_error("Failed to move hash table");
+	}
+
+	return;
+}
+
+int
+main(void)
+{
+	unsigned int k;
+
+	for (k = 4; k <= 32; k <<= 1) {
+		run_test(k);
 	}
 
 	return 0;
