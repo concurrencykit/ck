@@ -72,7 +72,8 @@ ck_array_init(struct ck_array *array, unsigned int mode, struct ck_malloc *alloc
 bool
 ck_array_put(struct ck_array *array, void *value)
 {
-	struct _ck_array *target, *update;
+	struct _ck_array *target;
+	unsigned int size;
 
 	/*
 	 * If no transaction copy has been necessary, attempt to do in-place
@@ -82,23 +83,21 @@ ck_array_put(struct ck_array *array, void *value)
 		target = array->active;
 
 		if (array->n_entries == target->length) {
-			unsigned int size = target->length << 1;
+			size = target->length << 1;
 
-			update = ck_array_create(array->allocator, size);
-			if (update == NULL)
+			target = array->allocator->realloc(target,
+			    sizeof(struct _ck_array) + sizeof(void *) * array->n_entries,
+			    sizeof(struct _ck_array) + sizeof(void *) * size,
+			    true);
+
+			if (target == NULL)
 				return false;
 
-			memcpy(update->values, target->values, sizeof(void *) * array->n_entries);
-			update->n_committed = target->n_committed;
-			update->length = size;
+			ck_pr_store_uint(&target->length, size);
 
-			/* Serialize with respect to update contents. */
+			/* Serialize with respect to contents. */
 			ck_pr_fence_store();
-			ck_pr_store_ptr(&array->active, update);
-
-			array->allocator->free(target,
-			    sizeof(struct _ck_array) + target->length * sizeof(void *), true);
-			target = update;
+			ck_pr_store_ptr(&array->active, target);
 		}
 
 		target->values[array->n_entries++] = value;
@@ -107,19 +106,18 @@ ck_array_put(struct ck_array *array, void *value)
 
 	target = array->transaction;
 	if (array->n_entries == target->length) {
-		unsigned int size = target->length << 1;
+		size = target->length << 1;
 
-		update = array->allocator->realloc(array->transaction,
+		target = array->allocator->realloc(target,
 		    sizeof(struct _ck_array) + sizeof(void *) * array->n_entries,
 		    sizeof(struct _ck_array) + sizeof(void *) * size,
 		    true);
 
-		if (update == NULL)
+		if (target == NULL)
 			return false;
 
-		update->n_committed = target->n_committed;
-		update->length = size;
-		array->transaction = update;
+		target->length = size;
+		array->transaction = target;
 	}
 
 	target->values[array->n_entries++] = value;
@@ -189,9 +187,8 @@ ck_array_remove(struct ck_array *array, void *value)
 	 * transactional array which will be applied upon commit time.
 	 */
 	target = ck_array_create(array->allocator, array->n_entries);
-	if (target == NULL) {
+	if (target == NULL)
 		return false;
-	}
 
 	memcpy(target->values, array->active->values, sizeof(void *) * array->n_entries);
 	target->length = array->n_entries;

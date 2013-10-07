@@ -141,6 +141,18 @@ main(void)
 	if (ck_array_initialized(&array) == false)
 		ck_error("Error, expected array to be initialized.\n");
 
+	for (i = 0; i < ITERATION * 4; i++) {
+		ck_array_remove(&array, (void *)i);
+	}
+
+	for (i = 0; i < ITERATION * 2; i++) {
+		ck_array_put(&array, (void *)i);
+	}
+
+	for (i = 0; i < ITERATION * 8; i++) {
+		ck_array_put(&array, (void *)i);
+	}
+
 	ck_array_deinit(&array, false);
 
 	if (ck_array_initialized(&array) == true)
