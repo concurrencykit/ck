@@ -176,7 +176,6 @@ ck_array_remove(struct ck_array *array, void *value)
 
 	/* If there are pending additions, immediately eliminate the operation. */
 	if (target->n_committed != array->n_entries) {
-		target = array->active;
 		ck_pr_store_ptr(&target->values[i], target->values[--array->n_entries]);
 		return true;
 	}

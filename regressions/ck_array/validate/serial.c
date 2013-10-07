@@ -145,14 +145,29 @@ main(void)
 		ck_array_remove(&array, (void *)i);
 	}
 
-	for (i = 0; i < ITERATION * 2; i++) {
+	for (i = 0; i < ITERATION * 16; i++) {
 		ck_array_put(&array, (void *)i);
 	}
 
-	for (i = 0; i < ITERATION * 8; i++) {
+	ck_array_commit(&array);
+
+	for (i = 0; i < ITERATION * 128; i++) {
 		ck_array_put(&array, (void *)i);
+		if (ck_array_put_unique(&array, (void *)i) != -1)
+			ck_error("put_unique for non-unique value should fail.\n");
 	}
 
+	for (i = 0; i < ITERATION * 64; i++) {
+		bool f = ck_array_remove(&array, (void *)i);
+
+		if (f == false && i < ITERATION * 144)
+			ck_error("Remove failed for existing entry.\n");
+
+		if (f == true && i > ITERATION * 144)
+			ck_error("Remove succeeded for non-existing entry.\n");
+	}
+
+	ck_array_commit(&array);
 	ck_array_deinit(&array, false);
 
 	if (ck_array_initialized(&array) == true)
