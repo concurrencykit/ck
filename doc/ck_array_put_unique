@@ -25,10 +25,10 @@
 .\"
 .\"
 .Dd October 18, 2013
-.Dt CK_ARRAY_PUT 3
+.Dt CK_ARRAY_PUT_UNIQUE 3
 .Sh NAME
 .Nm ck_array_put_unique
-.Nd attempt immediate or deferred insertion of a pointer into array
+.Nd attempt immediate or deferred insertion of a unique pointer into array
 .Sh LIBRARY
 Concurrency Kit (libck, \-lck)
 .Sh SYNOPSIS

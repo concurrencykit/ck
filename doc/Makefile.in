@@ -7,11 +7,17 @@ BUILD_DIR=@BUILD_DIR@
 SRC_DIR=@SRC_DIR@
 HTML_SUFFIX=.html
 
-OBJECTS=ck_array_commit			\
+OBJECTS=CK_ARRAY_FOREACH		\
+	ck_array_buffer			\
+	ck_array_commit			\
+	ck_array_deinit			\
 	ck_array_init			\
+	ck_array_initialized		\
+	ck_array_length			\
 	ck_array_put			\
 	ck_array_put_unique		\
 	ck_array_remove			\
+	ck_array_deinit			\
 	ck_brlock			\
 	ck_ht_count 	  		\
 	ck_ht_destroy	  		\

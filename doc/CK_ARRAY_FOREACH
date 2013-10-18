@@ -25,40 +25,55 @@
 .\"
 .\"
 .Dd October 18, 2013
-.Dt CK_ARRAY_REMOVE 3
+.Dt CK_ARRAY_FOREACH 3
 .Sh NAME
-.Nm ck_array_remove
-.Nd attempt immediate or deferred removal of a pointer from an array
+.Nm CK_ARRAY_FOREACH
+.Nd iterate through an array
 .Sh LIBRARY
 Concurrency Kit (libck, \-lck)
 .Sh SYNOPSIS
 .In ck_array.h
 .Ft bool
-.Fn ck_array_remove "ck_array_t *array" "void *pointer"
+.Fn CK_ARRAY_FOREACH "ck_array_t *array" "ck_array_iterator_t *iterator" "void **b"
 .Sh DESCRIPTION
 The
-.Fn ck_array_remove 3
-function will attempt to remove the value of
-.Fa pointer
-into the array pointed to by
-.Fa array . The operation is also free to apply
-the operation immediately if there is an opportunity
-for elimination with a pending (uncommitted) put
-operation. If no elimination was possible, the function
-may require to allocate more memory.
+.Fn CK_ARRAY_FOREACH 3
+macro iterates through the array pointed to by
+.Fa array .
+A pointer to an iterator object must be specified by
+.Fa iterator
+and
+.Fa b
+must point to a void pointer.
+.Sh EXAMPLE
+.Bd -literal -offset indent
+#include <ck_array.h>
+
+/* Assume this was already previously initialized. */
+ck_array_t array;
+
+void
+example(void)
+{
+	ck_array_iterator_t iterator;
+	void *pointer;
+
+	CK_ARRAY_FOREACH(&array, &iterator, &pointer) {
+		do_something(pointer);
+	}
+}
+.Ed
 .Sh RETURN VALUES
-This function returns true if the remove operation succeeded. It will
-return false otherwise due to internal allocation failures or because
-the value did not exist.
+This macro has no return value.
 .Sh SEE ALSO
 .Xr ck_array_init 3 ,
 .Xr ck_array_commit 3 ,
-.Xr ck_array_remove 3 ,
+.Xr ck_array_put 3 ,
 .Xr ck_array_put_unique 3 ,
+.Xr ck_array_remove 3 ,
 .Xr ck_array_deinit 3
 .Xr ck_array_length 3 ,
 .Xr ck_array_buffer 3 ,
-.Xr ck_array_initialized 3 ,
-.Xr CK_ARRAY_FOREACH 3
+.Xr ck_array_initialized 3
 .Pp
 Additional information available at http://concurrencykit.org/
