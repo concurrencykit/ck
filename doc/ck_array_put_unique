@@ -33,7 +33,7 @@
 Concurrency Kit (libck, \-lck)
 .Sh SYNOPSIS
 .In ck_array.h
-.Ft bool
+.Ft int
 .Fn ck_array_put_unique "ck_array_t *array" "void *pointer"
 .Sh DESCRIPTION
 The
