@@ -124,10 +124,10 @@ main(void)
 	if (ck_array_put_unique(&array, (void *)UINTPTR_MAX) != 0)
 		ck_error("Unique value put failed.\n");
 
-	if (ck_array_put_unique(&array, (void *)(uintptr_t)4) != -1)
+	if (ck_array_put_unique(&array, (void *)(uintptr_t)4) != 1)
 		ck_error("put of 4 not detected as non-unique.\n");
 
-	if (ck_array_put_unique(&array, (void *)UINTPTR_MAX) != -1)
+	if (ck_array_put_unique(&array, (void *)UINTPTR_MAX) != 1)
 		ck_error("put of UINTPTR_MAX not detected as non-unique.\n");
 
 	ck_array_commit(&array);
@@ -153,7 +153,7 @@ main(void)
 
 	for (i = 0; i < ITERATION * 128; i++) {
 		ck_array_put(&array, (void *)i);
-		if (ck_array_put_unique(&array, (void *)i) != -1)
+		if (ck_array_put_unique(&array, (void *)i) != 1)
 			ck_error("put_unique for non-unique value should fail.\n");
 	}
 

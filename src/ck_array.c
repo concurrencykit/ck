@@ -140,10 +140,10 @@ ck_array_put_unique(struct ck_array *array, void *value)
 
 	for (i = 0; i < limit; i++) {
 		if (v[i] == value)
-			return -1;
+			return 1;
 	}
 
-	return !ck_array_put(array, value);
+	return -!ck_array_put(array, value);
 }
 
 bool

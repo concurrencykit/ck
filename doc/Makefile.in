@@ -7,7 +7,12 @@ BUILD_DIR=@BUILD_DIR@
 SRC_DIR=@SRC_DIR@
 HTML_SUFFIX=.html
 
-OBJECTS=ck_brlock			\
+OBJECTS=ck_array_commit			\
+	ck_array_init			\
+	ck_array_put			\
+	ck_array_put_unique		\
+	ck_array_remove			\
+	ck_brlock			\
 	ck_ht_count 	  		\
 	ck_ht_destroy	  		\
 	ck_ht_get_spmc	  		\
