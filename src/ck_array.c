@@ -1,5 +1,6 @@
 /*
  * Copyright 2013 Samy Al Bahra
+ * Copyright 2013 AppNexus, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
