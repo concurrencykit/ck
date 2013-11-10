@@ -67,18 +67,6 @@ OBJECTS=CK_ARRAY_FOREACH		\
 	ck_epoch_reclaim		\
 	ck_epoch_synchronize		\
 	ck_epoch_unregister		\
-	ck_bag_allocator_set		\
-	ck_bag_block_count		\
-	ck_bag_block_next		\
-	ck_bag_count			\
-	ck_bag_destroy			\
-	ck_bag_init			\
-	ck_bag_iterator_init		\
-	ck_bag_member_spmc		\
-	ck_bag_next			\
-	ck_bag_put_spmc			\
-	ck_bag_remove_spmc		\
-	ck_bag_set_spmc			\
 	ck_hs_init			\
 	ck_hs_destroy			\
 	CK_HS_HASH			\

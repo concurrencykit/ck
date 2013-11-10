@@ -15,7 +15,6 @@ OBJECTS=ck_barrier_centralized.o	\
 	ck_epoch.o			\
 	ck_ht.o				\
 	ck_hp.o				\
-	ck_bag.o			\
 	ck_hs.o				\
 	ck_array.o
 
@@ -29,9 +28,6 @@ libck.a: $(OBJECTS)
 
 ck_array.o: $(INCLUDE_DIR)/ck_array.h $(SDIR)/ck_array.c
 	$(CC) $(CFLAGS) -c -o $(TARGET_DIR)/ck_array.o $(SDIR)/ck_array.c
-
-ck_bag.o: $(INCLUDE_DIR)/ck_bag.h $(SDIR)/ck_bag.c
-	$(CC) $(CFLAGS) -c -o $(TARGET_DIR)/ck_bag.o $(SDIR)/ck_bag.c
 
 ck_epoch.o: $(INCLUDE_DIR)/ck_epoch.h $(SDIR)/ck_epoch.c
 	$(CC) $(CFLAGS) -c -o $(TARGET_DIR)/ck_epoch.o $(SDIR)/ck_epoch.c

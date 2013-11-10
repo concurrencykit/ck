@@ -1,6 +1,5 @@
 DIR=array	\
     backoff	\
-    bag		\
     barrier	\
     bitmap	\
     brlock	\
@@ -60,7 +59,6 @@ all:
 	$(MAKE) -C ./ck_pflock/benchmark all
 	$(MAKE) -C ./ck_hp/validate all
 	$(MAKE) -C ./ck_hp/benchmark all
-	$(MAKE) -C ./ck_bag/validate all
 
 clean:
 	$(MAKE) -C ./ck_array/validate clean
@@ -102,7 +100,6 @@ clean:
 	$(MAKE) -C ./ck_pflock/benchmark clean
 	$(MAKE) -C ./ck_hp/validate clean
 	$(MAKE) -C ./ck_hp/benchmark clean
-	$(MAKE) -C ./ck_bag/validate clean
 
 check: all
 	rc=0; 							\
