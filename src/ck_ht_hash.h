@@ -32,6 +32,7 @@
  */
 
 #include <ck_stdint.h>
+#include <string.h>
 
 //-----------------------------------------------------------------------------
 // MurmurHash3 was written by Austin Appleby, and is placed in the public
@@ -173,7 +174,14 @@ static inline uint64_t MurmurHash64A ( const void * key, int len, uint64_t seed 
 
   while(data != end)
   {
-    uint64_t k = *data++;
+    uint64_t k;
+ 
+    if (!((uintptr_t)data & 0x7))
+	    k = *data++;
+    else {
+	    memcpy(&k, (void *)data, sizeof(k));
+	    data++;
+    }
 
     k *= m;
     k ^= k >> r;
