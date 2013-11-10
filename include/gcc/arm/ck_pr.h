@@ -117,6 +117,17 @@ CK_PR_LOAD_S(char, char, "ldrb")
 #undef CK_PR_LOAD_S
 #undef CK_PR_LOAD
 
+CK_CC_INLINE static uint64_t
+ck_pr_load_64(const uint64_t *target)
+{
+	register uint64_t ret asm("r0");
+
+	__asm __volatile("ldrd %0, [%1]" : "+r" (ret)
+	    				 : "r" (target) 
+					 : "memory", "cc");
+	return (ret);
+}
+
 #define CK_PR_STORE(S, M, T, C, I)				\
 	CK_CC_INLINE static void				\
 	ck_pr_store_##S(M *target, T v)				\
@@ -143,6 +154,86 @@ CK_PR_STORE_S(char, char, "strb")
 
 #undef CK_PR_STORE_S
 #undef CK_PR_STORE
+
+CK_CC_INLINE static void
+ck_pr_store_64(const uint64_t *target, uint64_t value)
+{
+	register uint64_t tmp asm("r0") = value;
+
+	__asm __volatile("strd %0, [%1]"
+				:
+				: "r" (tmp), "r" (target)
+				: "memory", "cc");
+}
+
+CK_CC_INLINE static bool
+ck_pr_cas_64_value(uint64_t *target, uint64_t compare, uint64_t set, uint64_t *value)
+{
+	register uint64_t __compare asm("r0") = compare;
+	register uint64_t __set asm("r2") = set;
+
+	__asm__ __volatile__("1:"
+			     "ldrexd r4, [%3];"
+			     "cmp    r4, r0;"
+			     "ittt eq;"
+			     "cmpeq  r5, r1;"
+			     "strexdeq r6, r2, [%3];"
+			     "cmpeq  r6, #1;"
+			     "beq 1b;"
+			     "strd r4, [%0];"
+				: "+r" (value)
+				: "r" (__compare), "r" (__set) ,
+				  "r"(target)
+				: "memory", "cc", "r4", "r5", "r6");
+	return (*value == compare);
+}
+
+CK_CC_INLINE static bool
+ck_pr_cas_ptr_2_value(void *target, void *compare, void *set, void *value)
+{
+	uint32_t *_compare = compare;
+	uint32_t *_set = set;
+	uint64_t __compare = ((uint64_t)_compare[0]) | ((uint64_t)_compare[1] << 32);
+	uint64_t __set = ((uint64_t)_set[0]) | ((uint64_t)_set[1] << 32);
+
+	return (ck_pr_cas_64_value(target, __compare, __set, value));
+}
+
+
+CK_CC_INLINE static bool
+ck_pr_cas_64(uint64_t *target, uint64_t compare, uint64_t set)
+{
+	register uint64_t __compare asm("r0") = compare;
+	register uint64_t __set asm("r2") = set;
+	int ret;
+
+	__asm__ __volatile__("1:"
+			     "mov %0, #0;"
+			     "ldrexd r4, [%3];"
+			     "cmp    r4, r0;"
+			     "itttt eq;"
+			     "cmpeq  r5, r1;"
+			     "strexdeq r6, r2, [%3];"
+			     "moveq %0, #1;"
+			     "cmpeq  r6, #1;"
+			     "beq 1b;"
+			     : "=&r" (ret)
+			     : "r" (__compare), "r" (__set) ,
+			       "r"(target)
+			     : "memory", "cc", "r4", "r5", "r6");
+
+	return (ret);
+}
+
+CK_CC_INLINE static bool
+ck_pr_cas_ptr_2(void *target, void *compare, void *set)
+{
+	uint32_t *_compare = compare;
+	uint32_t *_set = set;
+	uint64_t __compare = ((uint64_t)_compare[0]) | ((uint64_t)_compare[1] << 32);
+	uint64_t __set = ((uint64_t)_set[0]) | ((uint64_t)_set[1] << 32);
+	return (ck_pr_cas_64(target, __compare, __set));
+}
 
 CK_CC_INLINE static bool
 ck_pr_cas_ptr_value(void *target, void *compare, void *set, void *value)
