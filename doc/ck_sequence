@@ -30,7 +30,6 @@
 .Nm ck_sequence_init ,
 .Nm ck_sequence_read_begin ,
 .Nm ck_sequence_read_retry ,
-.Nm ck_sequence_read_retry. ,
 .Nm ck_sequence_write_begin ,
 .Nm ck_sequence_write_end
 .Nd sequence locks
@@ -68,7 +67,7 @@ the data associated with a ck_sequence_t it must pass the earlier return value
 of
 .Fn ck_sequence_read_begin
 to
-.Fn ck_sequence_read_retry. If
+.Fn "ck_sequence_read_retry". If
 .Fn ck_sequence_read_retry
 returns true then the copy of data may be inconsistent and the read process
 must be retried. Writers must rely on their own synchronization primitives.
