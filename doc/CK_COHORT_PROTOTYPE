@@ -53,17 +53,11 @@ of the other CK_COHORT macros.
 .Fa global_unlock_method
 : The method that should be called to relinquish the global lock
 .br
-.Fa global_locked_method
-: This method should return true iff the global lock is acquired by a thread.
-.br
 .Fa local_lock_method
 : The method that should be called to acquire the local lock
 .br
 .Fa local_unlock_method
 : The method that should be called to relinquish the local lock
-.br
-.Fa global_locked_method
-: This method should return true iff the local lock is acquired by a thread.
 .Pp
 Instances of the defined cohort type can be declared as:
 .br
