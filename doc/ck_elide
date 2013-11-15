@@ -30,7 +30,8 @@
 .Nm CK_ELIDE_PROTOTYPE ,
 .Nm CK_ELIDE_LOCK_ADAPTIVE ,
 .Nm CK_ELIDE_UNLOCK_ADAPTIVE ,
-.Nm CK_ELIDE_LOCK CK_ELIDE_UNLOCK ,
+.Nm CK_ELIDE_LOCK ,
+.Nm CK_ELIDE_UNLOCK ,
 .Nm CK_ELIDE_TRYLOCK_PROTOTYPE ,
 .Nm CK_ELIDE_TRYLOCK
 .Nd lock elision wrappers
@@ -218,7 +219,7 @@ implementation.
  * This function returns true if the lock is unavailable at the time
  * it was called or false if the lock is available.
  */
-bool is_locked(lock_t *)
+bool is_locked(lock_t *);
 
 /*
  * This function acquires the supplied lock.
