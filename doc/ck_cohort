@@ -37,9 +37,9 @@ Concurrency Kit (libck, \-lck)
 "LOCK_FXN global_unlock_method" "LOCK_FXN local_lock_method" "LOCK_FXN local_unlock_method"
 .Fn CK_COHORT_TRYLOCK_PROTOTYPE "COHORT_NAME cohort_name" \
 "LOCK_FXN global_lock_method" "LOCK_FXN global_unlock_method" \
-"BOOL_LOCK_FXN global_locked_method" BOOL_LOCK_FXN global_trylock_method" \
+"BOOL_LOCK_FXN global_locked_method" "BOOL_LOCK_FXN global_trylock_method" \
 "LOCK_FXN local_lock_method" "LOCK_FXN local_unlock_method" \
-"BOOL_LOCK_FXN local_locked_method" BOOL_LOCK_FXN local_trylock_method"
+"BOOL_LOCK_FXN local_locked_method" "BOOL_LOCK_FXN local_trylock_method"
 .Fn CK_COHORT_INSTANCE "COHORT_NAME cohort_name"
 .Fn CK_COHORT_INIT "COHORT_NAME cohort_name" "ck_cohort *cohort" \
 "void *global_lock" "void *local_lock" "unsigned int pass_limit"
@@ -126,7 +126,7 @@ ck_spinlock_locked_with_context(ck_spinlock_t *lock, void *context)
  * the above methods for both its global and local locks
  */
 CK_COHORT_PROTOTYPE(test_cohort,
-	ck_spinlock_lock_with_context, ck_spinlock_unlock_with_context, ck_spinlock_locked_with_context
+	ck_spinlock_lock_with_context, ck_spinlock_unlock_with_context, ck_spinlock_locked_with_context,
 	ck_spinlock_lock_with_context, ck_spinlock_unlock_with_context, ck_spinlock_locked_with_context)
 
 static ck_spinlock_t global_lock = CK_SPINLOCK_INITIALIZER;
