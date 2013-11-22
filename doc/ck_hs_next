@@ -59,7 +59,7 @@ If
 returns true then the object pointed to by
 .Fa entry
 points to a valid hash set key. If
-.Fa ck_hs_next 3
+.Fn ck_hs_next 3
 returns false then the value of the object pointed to by
 .Fa entry
 is undefined.
