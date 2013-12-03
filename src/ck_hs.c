@@ -205,16 +205,13 @@ ck_hs_map_probe_next(struct ck_hs_map *map,
     unsigned long level,
     unsigned long probes)
 {
-	unsigned long r;
-	unsigned long stride;
+	unsigned long r, stride;
 
-	(void)probes;
-	(void)level;
-
-	r = h >> map->step;
+	r = (h >> map->step) >> level;
 	stride = (r & ~CK_HS_PROBE_L1_MASK) << 1 | (r & CK_HS_PROBE_L1_MASK);
 
-	return (offset + (stride | CK_HS_PROBE_L1)) & map->mask;
+	return (offset + (probes >> CK_HS_PROBE_L1_SHIFT) +
+	    (stride | CK_HS_PROBE_L1)) & map->mask;
 }
 
 bool
