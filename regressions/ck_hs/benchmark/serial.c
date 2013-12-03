@@ -103,8 +103,7 @@ set_remove(const char *value)
 	unsigned long h;
 
 	h = CK_HS_HASH(&hs, hs_hash, value);
-	ck_hs_remove(&hs, h, value);
-	return true;
+	return ck_hs_remove(&hs, h, value) != NULL;
 }
 
 static bool
@@ -148,6 +147,15 @@ set_insert(const char *value)
 	return ck_hs_put(&hs, h, value);
 }
 
+static bool
+set_insert_unique(const char *value)
+{
+	unsigned long h;
+
+	h = CK_HS_HASH(&hs, hs_hash, value);
+	return ck_hs_put_unique(&hs, h, value);
+}
+
 static size_t
 set_count(void)
 {
@@ -188,7 +196,7 @@ main(int argc, char *argv[])
 	char buffer[512];
 	size_t i, j, r;
 	unsigned int d = 0;
-	uint64_t s, e, a, ri, si, ai, sr, rg, sg, ag, sd, ng, ss, sts;
+	uint64_t s, e, a, ri, si, ai, sr, rg, sg, ag, sd, ng, ss, sts, su;
 	struct ck_hs_stat st;
 	char **t;
 
@@ -237,7 +245,8 @@ main(int argc, char *argv[])
 	    set_count(), d, st.probe_maximum);
 
 	fprintf(stderr, "#    reverse_insertion serial_insertion random_insertion serial_swap "
-	    "serial_replace reverse_get serial_get random_get serial_remove negative_get tombstone\n\n");
+	    "serial_replace reverse_get serial_get random_get serial_remove negative_get tombstone "
+	    "set_unique\n\n");
 
 	a = 0;
 	for (j = 0; j < r; j++) {
@@ -391,6 +400,32 @@ main(int argc, char *argv[])
 	}
 	sts = a / (r * keys_length);
 
+	set_reset();
+
+	/* Prune duplicates. */
+	for (i = 0; i < keys_length; i++) {
+		if (set_insert(keys[i]) == true)
+			continue;
+
+		keys[i] = keys[--keys_length];
+	}
+
+	for (i = 0; i < keys_length; i++)
+		set_remove(keys[i]);
+
+	a = 0;
+	for (j = 0; j < r; j++) {
+		s = rdtsc();
+		for (i = 0; i < keys_length; i++)
+			set_insert_unique(keys[i]);
+		e = rdtsc();
+		a += e - s;
+
+		for (i = 0; i < keys_length; i++)
+			set_remove(keys[i]);
+	}
+	su = a / (r * keys_length);
+
 	printf("%zu "
 	    "%" PRIu64 " "
 	    "%" PRIu64 " "
@@ -402,8 +437,9 @@ main(int argc, char *argv[])
 	    "%" PRIu64 " "
 	    "%" PRIu64 " "
 	    "%" PRIu64 " "
+	    "%" PRIu64 " "
 	    "%" PRIu64 "\n",
-	    keys_length, ri, si, ai, ss, sr, rg, sg, ag, sd, ng, sts);
+	    keys_length, ri, si, ai, ss, sr, rg, sg, ag, sd, ng, sts, su);
 
 	return 0;
 }

@@ -57,15 +57,16 @@ static struct ck_malloc my_allocator = {
 	.free = hs_free
 };
 
-const char *test[] = {"Samy", "Al", "Bahra", "dances", "in", "the", "wind.", "Once",
+const char *test[] = { "Samy", "Al", "Bahra", "dances", "in", "the", "wind.", "Once",
 			"upon", "a", "time", "his", "gypsy", "ate", "one", "itsy",
 			    "bitsy", "spider.", "What", "goes", "up", "must",
 				"come", "down.", "What", "is", "down", "stays",
 				    "down.", "A", "B", "C", "D", "E", "F", "G", "H",
-					"I", "J", "K", "L", "M", "N", "O"};
+					"I", "J", "K", "L", "M", "N", "O", "P", "Q" };
 
 const char *negative = "negative";
 
+/* Purposefully crappy hash function. */
 static unsigned long
 hs_hash(const void *object, unsigned long seed)
 {
@@ -99,6 +100,19 @@ run_test(unsigned int is)
 	}
 
 	for (j = 0; j < size; j++) {
+		for (i = 0; i < sizeof(test) / sizeof(*test); i++) {
+			h = test[i][0];
+			if (ck_hs_get(&hs[j], h, test[i]) != NULL) {
+				continue;
+			}
+
+			if (ck_hs_put_unique(&hs[j], h, test[i]) == false)
+				ck_error("ERROR [%zu]: Failed to insert unique (%s)\n", j, test[i]);
+
+			if (ck_hs_remove(&hs[j], h, test[i]) == false)
+				ck_error("ERROR [%zu]: Failed to remove unique (%s)\n", j, test[i]);
+		}
+
 		for (i = 0; i < sizeof(test) / sizeof(*test); i++) {
 			h = test[i][0];
 			ck_hs_put(&hs[j], h, test[i]);
