@@ -51,6 +51,11 @@
 #define CK_HS_G		(2)
 #define CK_HS_G_MASK	(CK_HS_G - 1)
 
+enum ck_hs_probe_behavior {
+	CK_HS_PROBE = 0,	/* Default behavior. */
+	CK_HS_PROBE_TOMBSTONE	/* Short-circuit on tombstone. */
+};
+
 struct ck_hs_map {
 	unsigned int generation[CK_HS_G];
 	unsigned int probe_maximum;
@@ -296,7 +301,8 @@ ck_hs_map_probe(struct ck_hs *hs,
     unsigned long h,
     const void *key,
     void **object,
-    unsigned long probe_limit)
+    unsigned long probe_limit,
+    enum ck_hs_probe_behavior behavior)
 {
 	void **bucket, **cursor, *k;
 	const void *compare;
@@ -340,6 +346,11 @@ ck_hs_map_probe(struct ck_hs *hs,
 				if (pr == NULL) {
 					pr = cursor;
 					*n_probes = probes;
+
+					if (behavior == CK_HS_PROBE_TOMBSTONE) {
+						k = CK_HS_EMPTY;
+						goto leave;
+					}
 				}
 
 				continue;
@@ -412,7 +423,7 @@ ck_hs_fas(struct ck_hs *hs,
 	struct ck_hs_map *map = hs->map;
 
 	*previous = NULL;
-	slot = ck_hs_map_probe(hs, map, &n_probes, &first, h, key, &object, map->probe_maximum);
+	slot = ck_hs_map_probe(hs, map, &n_probes, &first, h, key, &object, map->probe_maximum, CK_HS_PROBE);
 
 	/* Replacement semantics presume existence. */
 	if (object == NULL)
@@ -448,7 +459,7 @@ ck_hs_set(struct ck_hs *hs,
 restart:
 	map = hs->map;
 
-	slot = ck_hs_map_probe(hs, map, &n_probes, &first, h, key, &object, map->probe_limit);
+	slot = ck_hs_map_probe(hs, map, &n_probes, &first, h, key, &object, map->probe_limit, CK_HS_PROBE);
 	if (slot == NULL && first == NULL) {
 		if (ck_hs_grow(hs, map->capacity << 1) == false)
 			return false;
@@ -495,10 +506,11 @@ restart:
 	return true;
 }
 
-bool
-ck_hs_put(struct ck_hs *hs,
+CK_CC_INLINE static bool
+ck_hs_put_internal(struct ck_hs *hs,
     unsigned long h,
-    const void *key)
+    const void *key,
+    enum ck_hs_probe_behavior behavior)
 {
 	void **slot, **first, *object, *insert;
 	unsigned long n_probes;
@@ -507,7 +519,9 @@ ck_hs_put(struct ck_hs *hs,
 restart:
 	map = hs->map;
 
-	slot = ck_hs_map_probe(hs, map, &n_probes, &first, h, key, &object, map->probe_limit);
+	slot = ck_hs_map_probe(hs, map, &n_probes, &first, h, key, &object,
+	    map->probe_limit, behavior);
+
 	if (slot == NULL && first == NULL) {
 		if (ck_hs_grow(hs, map->capacity << 1) == false)
 			return false;
@@ -539,6 +553,24 @@ restart:
 	return true;
 }
 
+bool
+ck_hs_put(struct ck_hs *hs,
+    unsigned long h,
+    const void *key)
+{
+
+	return ck_hs_put_internal(hs, h, key, CK_HS_PROBE);
+}
+
+bool
+ck_hs_put_unique(struct ck_hs *hs,
+    unsigned long h,
+    const void *key)
+{
+
+	return ck_hs_put_internal(hs, h, key, CK_HS_PROBE_TOMBSTONE);
+}
+
 void *
 ck_hs_get(struct ck_hs *hs,
     unsigned long h,
@@ -557,7 +589,7 @@ ck_hs_get(struct ck_hs *hs,
 		probe = ck_pr_load_uint(&map->probe_maximum);
 		ck_pr_fence_load();
 
-		ck_hs_map_probe(hs, map, &n_probes, &first, h, key, &object, probe);
+		ck_hs_map_probe(hs, map, &n_probes, &first, h, key, &object, probe, CK_HS_PROBE);
 
 		ck_pr_fence_load();
 		g_p = ck_pr_load_uint(generation);
@@ -575,7 +607,7 @@ ck_hs_remove(struct ck_hs *hs,
 	struct ck_hs_map *map = hs->map;
 	unsigned long n_probes;
 
-	slot = ck_hs_map_probe(hs, map, &n_probes, &first, h, key, &object, map->probe_maximum);
+	slot = ck_hs_map_probe(hs, map, &n_probes, &first, h, key, &object, map->probe_maximum, CK_HS_PROBE);
 	if (object == NULL)
 		return NULL;
 
