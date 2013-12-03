@@ -36,7 +36,7 @@
 #include "ck_internal.h"
 
 #ifndef CK_HS_PROBE_L1_SHIFT
-#define CK_HS_PROBE_L1_SHIFT 4ULL
+#define CK_HS_PROBE_L1_SHIFT 3ULL
 #endif /* CK_HS_PROBE_L1_SHIFT */
 
 #define CK_HS_PROBE_L1 (1 << CK_HS_PROBE_L1_SHIFT)
