@@ -188,7 +188,7 @@ main(int argc, char *argv[])
 	char buffer[512];
 	size_t i, j, r;
 	unsigned int d = 0;
-	uint64_t s, e, a, ri, si, ai, sr, rg, sg, ag, sd, ng, ss;
+	uint64_t s, e, a, ri, si, ai, sr, rg, sg, ag, sd, ng, ss, sts;
 	struct ck_hs_stat st;
 	char **t;
 
@@ -236,7 +236,8 @@ main(int argc, char *argv[])
 	fprintf(stderr, "# %zu entries stored, %u duplicates, %u probe.\n",
 	    set_count(), d, st.probe_maximum);
 
-	fprintf(stderr, "#    reverse_insertion serial_insertion random_insertion serial_swap serial_replace reverse_get serial_get random_get serial_remove negative_get\n\n");
+	fprintf(stderr, "#    reverse_insertion serial_insertion random_insertion serial_swap "
+	    "serial_replace reverse_get serial_get random_get serial_remove negative_get tombstone\n\n");
 
 	a = 0;
 	for (j = 0; j < r; j++) {
@@ -371,6 +372,25 @@ main(int argc, char *argv[])
 	}
 	ng = a / (r * keys_length);
 
+	set_reset();
+	for (i = 0; i < keys_length; i++)
+		set_insert(keys[i]);
+	for (i = 0; i < keys_length; i++)
+		set_remove(keys[i]);
+
+	a = 0;
+	for (j = 0; j < r; j++) {
+		s = rdtsc();
+		for (i = 0; i < keys_length; i++)
+			set_insert(keys[i]);
+		e = rdtsc();
+		a += e - s;
+
+		for (i = 0; i < keys_length; i++)
+			set_remove(keys[i]);
+	}
+	sts = a / (r * keys_length);
+
 	printf("%zu "
 	    "%" PRIu64 " "
 	    "%" PRIu64 " "
@@ -381,8 +401,9 @@ main(int argc, char *argv[])
 	    "%" PRIu64 " "
 	    "%" PRIu64 " "
 	    "%" PRIu64 " "
+	    "%" PRIu64 " "
 	    "%" PRIu64 "\n",
-	    keys_length, ri, si, ai, ss, sr, rg, sg, ag, sd, ng);
+	    keys_length, ri, si, ai, ss, sr, rg, sg, ag, sd, ng, sts);
 
 	return 0;
 }
