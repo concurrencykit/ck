@@ -46,6 +46,10 @@
 #define CK_HS_PROBE_L1_DEFAULT CK_MD_CACHELINE
 #endif
 
+#define CK_HS_VMA_MASK ((uintptr_t)((1ULL << CK_MD_VMA_BITS) - 1))
+#define CK_HS_VMA(x)	\
+	((void *)((uintptr_t)(x) & CK_HS_VMA_MASK))
+
 #define CK_HS_EMPTY     NULL
 #define CK_HS_TOMBSTONE ((void *)~(uintptr_t)0)
 #define CK_HS_G		(2)
@@ -92,7 +96,7 @@ ck_hs_next(struct ck_hs *hs, struct ck_hs_iterator *i, void **key)
 		if (value != CK_HS_EMPTY && value != CK_HS_TOMBSTONE) {
 #ifdef CK_HS_PP
 			if (hs->mode & CK_HS_MODE_OBJECT)
-				value = (void *)((uintptr_t)value & (((uintptr_t)1 << CK_MD_VMA_BITS) - 1));
+				value = CK_HS_VMA(value);
 #endif
 			i->offset++;
 			*key = value;
@@ -241,7 +245,7 @@ restart:
 
 #ifdef CK_HS_PP
 		if (hs->mode & CK_HS_MODE_OBJECT)
-			previous = (void *)((uintptr_t)previous & (((uintptr_t)1 << CK_MD_VMA_BITS) - 1));
+			previous = CK_HS_VMA(previous);
 #endif
 
 		h = hs->hf(previous, hs->seed);
@@ -312,7 +316,7 @@ ck_hs_map_probe(struct ck_hs *hs,
 
 	if (hs->mode & CK_HS_MODE_OBJECT) {
 		hv = (h >> 25) & CK_HS_KEY_MASK;
-		compare = (void *)((uintptr_t)key | (hv << CK_MD_VMA_BITS));
+		compare = CK_HS_VMA(key);
 	} else {
 		compare = key;
 	}
@@ -358,7 +362,7 @@ ck_hs_map_probe(struct ck_hs *hs,
 				if (((uintptr_t)k >> CK_MD_VMA_BITS) != hv)
 					continue;
 
-				k = (void *)((uintptr_t)k & (((uintptr_t)1 << CK_MD_VMA_BITS) - 1));
+				k = CK_HS_VMA(k);
 			}
 #endif
 
@@ -396,7 +400,7 @@ ck_hs_marshal(unsigned int mode, const void *key, unsigned long h)
 
 #ifdef CK_HS_PP
 	if (mode & CK_HS_MODE_OBJECT) {
-		insert = (void *)((uintptr_t)key | ((h >> 25) << CK_MD_VMA_BITS));
+		insert = (void *)((uintptr_t)CK_HS_VMA(key) | ((h >> 25) << CK_MD_VMA_BITS));
 	} else {
 		insert = (void *)key;
 	}
