@@ -512,7 +512,7 @@ ck_hs_gc(struct ck_hs *hs)
 		void **first, *object, *entry;
 		unsigned long n_probes, offset, h;
 
-		entry = map->entries[i & map->mask];
+		entry = map->entries[i];
 		if (entry == CK_HS_EMPTY || entry == CK_HS_TOMBSTONE)
 			continue;
 
