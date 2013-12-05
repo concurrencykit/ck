@@ -180,6 +180,22 @@ set_reset(void)
 }
 
 static void
+set_gc(void)
+{
+
+	ck_hs_gc(&hs);
+	return;
+}
+
+static void
+set_rebuild(void)
+{
+
+	ck_hs_rebuild(&hs);
+	return;
+}
+
+static void
 keys_shuffle(char **k)
 {
 	size_t i, j;
@@ -205,7 +221,7 @@ run_test(const char *file, size_t r, unsigned int size, unsigned int mode)
 	char buffer[512];
 	size_t i, j;
 	unsigned int d = 0;
-	uint64_t s, e, a, ri, si, ai, sr, rg, sg, ag, sd, ng, ss, sts, su;
+	uint64_t s, e, a, ri, si, ai, sr, rg, sg, ag, sd, ng, ss, sts, su, sgc, sb;
 	struct ck_hs_stat st;
 	char **t;
 
@@ -418,6 +434,24 @@ run_test(const char *file, size_t r, unsigned int size, unsigned int mode)
 	}
 	su = a / (r * keys_length);
 
+	a = 0;
+	for (j = 0; j < r; j++) {
+		s = rdtsc();
+		set_gc();
+		e = rdtsc();
+		a += e - s;
+	}
+	sgc = a / r;
+
+	a = 0;
+	for (j = 0; j < r; j++) {
+		s = rdtsc();
+		set_rebuild();
+		e = rdtsc();
+		a += e - s;
+	}
+	sb = a / r;
+
 	printf("%zu "
 	    "%" PRIu64 " "
 	    "%" PRIu64 " "
@@ -430,8 +464,10 @@ run_test(const char *file, size_t r, unsigned int size, unsigned int mode)
 	    "%" PRIu64 " "
 	    "%" PRIu64 " "
 	    "%" PRIu64 " "
+	    "%" PRIu64 " "
+	    "%" PRIu64 " "
 	    "%" PRIu64 "\n",
-	    keys_length, ri, si, ai, ss, sr, rg, sg, ag, sd, ng, sts, su);
+	    keys_length, ri, si, ai, ss, sr, rg, sg, ag, sd, ng, sts, su, sgc, sb);
 
 	fclose(fp);
 
@@ -468,7 +504,7 @@ main(int argc, char *argv[])
 	run_test(argv[1], r, size, CK_HS_MODE_DELETE);
 	fprintf(stderr, "#    reverse_insertion serial_insertion random_insertion serial_swap "
 	    "serial_replace reverse_get serial_get random_get serial_remove negative_get tombstone "
-	    "set_unique\n\n");
+	    "set_unique gc rebuild\n\n");
 
 	return 0;
 }
