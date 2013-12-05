@@ -493,6 +493,48 @@ ck_hs_marshal(unsigned int mode, const void *key, unsigned long h)
 }
 
 bool
+ck_hs_gc(struct ck_hs *hs)
+{
+	unsigned long i;
+	struct ck_hs_map *map = hs->map;
+	unsigned long size = sizeof(CK_HS_WORD) * map->capacity;
+	CK_HS_WORD *bounds;
+
+	if (map->probe_bound == NULL)
+		return true;
+
+	bounds = hs->m->malloc(size);
+	if (bounds == NULL)
+		return false;
+
+	memset(bounds, 0, size);
+	for (i = 0; i < map->capacity; i++) {
+		void **first, *object, *entry;
+		unsigned long n_probes, offset, h;
+
+		entry = map->entries[i & map->mask];
+		if (entry == CK_HS_EMPTY || entry == CK_HS_TOMBSTONE)
+			continue;
+
+		h = hs->hf(entry, hs->seed);
+		offset = h & map->mask;
+
+		ck_hs_map_probe(hs, map, &n_probes, &first, h, entry, &object, map->probe_maximum, CK_HS_PROBE);
+		if (n_probes > CK_HS_WORD_MAX)
+			n_probes = CK_HS_WORD_MAX;
+
+		if (n_probes > bounds[offset])
+			bounds[offset] = n_probes;
+	}
+
+	for (i = 0; i < map->capacity; i++)
+		CK_HS_STORE(&map->probe_bound[i], bounds[i]);
+
+	hs->m->free(bounds, size, false);
+	return true;
+}
+
+bool
 ck_hs_fas(struct ck_hs *hs,
     unsigned long h,
     const void *key,
