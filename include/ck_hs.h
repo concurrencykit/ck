@@ -27,11 +27,10 @@
 #ifndef _CK_HS_H
 #define _CK_HS_H
 
-#include <ck_pr.h>
-
 #include <ck_cc.h>
 #include <ck_malloc.h>
 #include <ck_md.h>
+#include <ck_pr.h>
 #include <ck_stdint.h>
 #include <stdbool.h>
 #include <stddef.h>
