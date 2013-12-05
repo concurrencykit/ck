@@ -36,9 +36,32 @@
 #include <stdbool.h>
 #include <stddef.h>
 
-#define CK_HS_MODE_SPMC     1
-#define CK_HS_MODE_DIRECT   2
-#define CK_HS_MODE_OBJECT   8
+/*
+ * Indicates a single-writer many-reader workload. Mutually
+ * exclusive with CK_HS_MODE_MPMC
+ */
+#define CK_HS_MODE_SPMC		1
+
+/*
+ * Indicates that values to be stored are not pointers but
+ * values. Allows for full precision. Mutually exclusive
+ * with CK_HS_MODE_OBJECT.
+ */
+#define CK_HS_MODE_DIRECT	2
+
+/* 
+ * Indicates that the values to be stored are pointers.
+ * Allows for space optimizations in the presence of pointer
+ * packing. Mutually exclusive with CK_HS_MODE_DIRECT.
+ */
+#define CK_HS_MODE_OBJECT	8
+
+/*
+ * Indicates a delete-heavy workload. This will reduce the
+ * need for garbage collection at the cost of approximately
+ * 12% to 20% increased memory usage.
+ */
+#define CK_HS_MODE_DELETE	16
 
 /* Currently unsupported. */
 #define CK_HS_MODE_MPMC    (void)
