@@ -220,6 +220,13 @@ run_test(unsigned int is, unsigned int ad)
 
 		if (ck_hs_move(&hs[j + 1], &hs[j], hs_hash, hs_compare, &my_allocator) == false)
 			ck_error("Failed to move hash table");
+
+		if (j & 1) {
+			ck_hs_gc(&hs[j + 1]);
+		}
+
+		if (ck_hs_rebuild(&hs[j + 1]) == false)
+			ck_error("Failed to rebuild");
 	}
 
 	return;
