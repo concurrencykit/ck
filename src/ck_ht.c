@@ -217,14 +217,7 @@ ck_ht_map_probe_wr(struct ck_ht_map *map,
 	size_t offset, i, j;
 	uint64_t probes = 0;
 
-#ifndef CK_HT_PP
-	uint64_t d = 0;
-	uint64_t d_prime = 0;
-retry:
-#endif
-
 	offset = h.value & map->mask;
-
 	for (i = 0; i < map->probe_limit; i++) {
 		/*
 		 * Probe on a complete cache line first. Scan forward and wrap around to
@@ -277,17 +270,6 @@ retry:
 #else
 				if (cursor->hash != h.value)
 					continue;
-
-				if (probe_limit == NULL) {
-					d_prime = ck_pr_load_64(&map->deletions);
-
-					/*
-					 * It is possible that the slot was
-					 * replaced, initiate a re-probe.
-					 */
-					if (d != d_prime)
-						goto retry;
-				}
 #endif
 
 				pointer = ck_ht_entry_key(cursor);
