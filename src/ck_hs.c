@@ -510,7 +510,7 @@ ck_hs_gc(struct ck_hs *hs)
 
 	memset(bounds, 0, size);
 	for (i = 0; i < map->capacity; i++) {
-		void **first, *object, *entry;
+		void **first, *object, *entry, **slot;
 		unsigned long n_probes, offset, h;
 
 		entry = map->entries[i];
@@ -525,7 +525,18 @@ ck_hs_gc(struct ck_hs *hs)
 		h = hs->hf(entry, hs->seed);
 		offset = h & map->mask;
 
-		ck_hs_map_probe(hs, map, &n_probes, &first, h, entry, &object, map->probe_maximum, CK_HS_PROBE);
+		slot = ck_hs_map_probe(hs, map, &n_probes, &first, h, entry, &object,
+		    ck_hs_map_bound_get(map, h), CK_HS_PROBE);
+
+		if (first != NULL) {
+			void *insert = ck_hs_marshal(hs->mode, entry, h);
+
+			ck_pr_store_ptr(first, insert);
+			ck_pr_inc_uint(&map->generation[h & CK_HS_G_MASK]);
+			ck_pr_fence_atomic_store();
+			ck_pr_store_ptr(slot, CK_HS_TOMBSTONE);
+		}
+
 		if (n_probes > CK_HS_WORD_MAX)
 			n_probes = CK_HS_WORD_MAX;
 
@@ -536,8 +547,12 @@ ck_hs_gc(struct ck_hs *hs)
 			maximum = n_probes;
 	}
 
-	for (i = 0; i < map->capacity; i++)
+	for (i = 0; i < map->capacity; i++) {
+		if (bounds[i] == 0 && map->probe_bound[i] != 0)
+			continue;
+
 		CK_HS_STORE(&map->probe_bound[i], bounds[i]);
+	}
 
 	ck_pr_store_uint(&map->probe_maximum, maximum);
 	hs->m->free(bounds, size, false);
