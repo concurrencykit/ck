@@ -123,6 +123,7 @@ bool ck_hs_set(ck_hs_t *, unsigned long, const void *, void **);
 bool ck_hs_fas(ck_hs_t *, unsigned long, const void *, void **);
 void *ck_hs_remove(ck_hs_t *, unsigned long, const void *);
 bool ck_hs_grow(ck_hs_t *, unsigned long);
+bool ck_hs_rebuild(ck_hs_t *);
 unsigned long ck_hs_count(ck_hs_t *);
 bool ck_hs_reset(ck_hs_t *);
 bool ck_hs_reset_size(ck_hs_t *, unsigned long);

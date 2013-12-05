@@ -366,6 +366,13 @@ restart:
 	return true;
 }
 
+bool
+ck_hs_rebuild(struct ck_hs *hs)
+{
+
+	return ck_hs_grow(hs, hs->map->capacity);
+}
+
 static void **
 ck_hs_map_probe(struct ck_hs *hs,
     struct ck_hs_map *map,
