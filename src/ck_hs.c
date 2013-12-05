@@ -498,6 +498,7 @@ ck_hs_gc(struct ck_hs *hs)
 	unsigned long i;
 	struct ck_hs_map *map = hs->map;
 	unsigned long size = sizeof(CK_HS_WORD) * map->capacity;
+	unsigned int maximum = 0;
 	CK_HS_WORD *bounds;
 
 	if (map->probe_bound == NULL)
@@ -516,6 +517,11 @@ ck_hs_gc(struct ck_hs *hs)
 		if (entry == CK_HS_EMPTY || entry == CK_HS_TOMBSTONE)
 			continue;
 
+#ifdef CK_HS_PP
+		if (hs->mode & CK_HS_MODE_OBJECT)
+			entry = CK_HS_VMA(entry);
+#endif
+
 		h = hs->hf(entry, hs->seed);
 		offset = h & map->mask;
 
@@ -525,11 +531,15 @@ ck_hs_gc(struct ck_hs *hs)
 
 		if (n_probes > bounds[offset])
 			bounds[offset] = n_probes;
+
+		if (n_probes > maximum)
+			maximum = n_probes;
 	}
 
 	for (i = 0; i < map->capacity; i++)
 		CK_HS_STORE(&map->probe_bound[i], bounds[i]);
 
+	ck_pr_store_uint(&map->probe_maximum, maximum);
 	hs->m->free(bounds, size, false);
 	return true;
 }
@@ -723,9 +733,10 @@ ck_hs_remove(struct ck_hs *hs,
 {
 	void **slot, **first, *object;
 	struct ck_hs_map *map = hs->map;
-	unsigned long n_probes = ck_hs_map_bound_get(map, h);
+	unsigned long n_probes;
 
-	slot = ck_hs_map_probe(hs, map, &n_probes, &first, h, key, &object, n_probes, CK_HS_PROBE);
+	slot = ck_hs_map_probe(hs, map, &n_probes, &first, h, key, &object,
+	    ck_hs_map_bound_get(map, h), CK_HS_PROBE);
 	if (object == NULL)
 		return NULL;
 
