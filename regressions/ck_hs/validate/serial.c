@@ -86,7 +86,7 @@ hs_compare(const void *previous, const void *compare)
 }
 
 static void
-run_test(unsigned int is)
+run_test(unsigned int is, unsigned int ad)
 {
 	ck_hs_t hs[16];
 	const size_t size = sizeof(hs) / sizeof(*hs);
@@ -94,7 +94,7 @@ run_test(unsigned int is)
 	const char *blob = "#blobs";
 	unsigned long h;
 
-	if (ck_hs_init(&hs[0], CK_HS_MODE_SPMC | CK_HS_MODE_OBJECT, hs_hash, hs_compare, &my_allocator, is, 6602834) == false) {
+	if (ck_hs_init(&hs[0], CK_HS_MODE_SPMC | CK_HS_MODE_OBJECT | ad, hs_hash, hs_compare, &my_allocator, is, 6602834) == false) {
 		perror("ck_hs_init");
 		exit(EXIT_FAILURE);
 	}
@@ -231,7 +231,8 @@ main(void)
 	unsigned int k;
 
 	for (k = 4; k <= 32; k <<= 1) {
-		run_test(k);
+		run_test(k, 0);
+		run_test(k, CK_HS_MODE_DELETE);
 	}
 
 	return 0;
