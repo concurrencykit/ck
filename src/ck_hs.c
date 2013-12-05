@@ -674,9 +674,9 @@ ck_hs_remove(struct ck_hs *hs,
 {
 	void **slot, **first, *object;
 	struct ck_hs_map *map = hs->map;
-	unsigned long n_probes;
+	unsigned long n_probes = ck_hs_map_bound_get(map, h);
 
-	slot = ck_hs_map_probe(hs, map, &n_probes, &first, h, key, &object, map->probe_maximum, CK_HS_PROBE);
+	slot = ck_hs_map_probe(hs, map, &n_probes, &first, h, key, &object, n_probes, CK_HS_PROBE);
 	if (object == NULL)
 		return NULL;
 
