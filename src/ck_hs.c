@@ -497,18 +497,19 @@ ck_hs_gc(struct ck_hs *hs)
 {
 	unsigned long i;
 	struct ck_hs_map *map = hs->map;
-	unsigned long size = sizeof(CK_HS_WORD) * map->capacity;
+	unsigned long size;
 	unsigned int maximum = 0;
-	CK_HS_WORD *bounds;
+	CK_HS_WORD *bounds = NULL;
 
-	if (map->probe_bound == NULL)
-		return true;
+	if (map->probe_bound != NULL) {
+		size = sizeof(CK_HS_WORD) * map->capacity;
+		bounds = hs->m->malloc(size);
+		if (bounds == NULL)
+			return false;
 
-	bounds = hs->m->malloc(size);
-	if (bounds == NULL)
-		return false;
+		memset(bounds, 0, size);
+	}
 
-	memset(bounds, 0, size);
 	for (i = 0; i < map->capacity; i++) {
 		void **first, *object, *entry, **slot;
 		unsigned long n_probes, offset, h;
@@ -540,22 +541,25 @@ ck_hs_gc(struct ck_hs *hs)
 		if (n_probes > CK_HS_WORD_MAX)
 			n_probes = CK_HS_WORD_MAX;
 
-		if (n_probes > bounds[offset])
+		if (bounds != NULL && n_probes > bounds[offset])
 			bounds[offset] = n_probes;
 
 		if (n_probes > maximum)
 			maximum = n_probes;
 	}
 
-	for (i = 0; i < map->capacity; i++) {
-		if (bounds[i] == 0 && map->probe_bound[i] != 0)
-			continue;
+	if (bounds != NULL) { 
+		for (i = 0; i < map->capacity; i++) {
+			if (bounds[i] == 0 && map->probe_bound[i] != 0)
+				continue;
 
-		CK_HS_STORE(&map->probe_bound[i], bounds[i]);
+			CK_HS_STORE(&map->probe_bound[i], bounds[i]);
+		}
+
+		hs->m->free(bounds, size, false);
 	}
 
 	ck_pr_store_uint(&map->probe_maximum, maximum);
-	hs->m->free(bounds, size, false);
 	return true;
 }
 
