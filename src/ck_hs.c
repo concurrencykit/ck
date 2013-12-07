@@ -493,15 +493,15 @@ ck_hs_marshal(unsigned int mode, const void *key, unsigned long h)
 }
 
 bool
-ck_hs_gc(struct ck_hs *hs)
+ck_hs_gc(struct ck_hs *hs, unsigned long cycles, unsigned long seed)
 {
 	unsigned long i;
 	struct ck_hs_map *map = hs->map;
 	unsigned long size;
-	unsigned int maximum = 0;
+	unsigned int maximum = map->probe_maximum;
 	CK_HS_WORD *bounds = NULL;
 
-	if (map->probe_bound != NULL) {
+	if (cycles == 0 && map->probe_bound != NULL) {
 		size = sizeof(CK_HS_WORD) * map->capacity;
 		bounds = hs->m->malloc(size);
 		if (bounds == NULL)
@@ -514,7 +514,7 @@ ck_hs_gc(struct ck_hs *hs)
 		void **first, *object, *entry, **slot;
 		unsigned long n_probes, offset, h;
 
-		entry = map->entries[i];
+		entry = map->entries[(i + seed) & map->mask];
 		if (entry == CK_HS_EMPTY || entry == CK_HS_TOMBSTONE)
 			continue;
 
@@ -538,14 +538,17 @@ ck_hs_gc(struct ck_hs *hs)
 			ck_pr_store_ptr(slot, CK_HS_TOMBSTONE);
 		}
 
-		if (n_probes > CK_HS_WORD_MAX)
-			n_probes = CK_HS_WORD_MAX;
+		if (cycles == 0) {
+			if (n_probes > CK_HS_WORD_MAX)
+				n_probes = CK_HS_WORD_MAX;
 
-		if (bounds != NULL && n_probes > bounds[offset])
-			bounds[offset] = n_probes;
+			if (bounds != NULL && n_probes > bounds[offset])
+				bounds[offset] = n_probes;
 
-		if (n_probes > maximum)
-			maximum = n_probes;
+			if (n_probes > maximum)
+				maximum = n_probes;
+		} else if (--cycles == 0)
+			break;
 	}
 
 	if (bounds != NULL) { 
