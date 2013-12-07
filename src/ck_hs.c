@@ -203,7 +203,7 @@ ck_hs_map_create(struct ck_hs *hs, unsigned long entries)
 	memset(map->generation, 0, sizeof map->generation);
 
 	if (hs->mode & CK_HS_MODE_DELETE) {
-		map->probe_bound = (CK_HS_WORD *)(map + 1);
+		map->probe_bound = (CK_HS_WORD *)&map[1];
 		memset(map->probe_bound, 0, sizeof(CK_HS_WORD) * n_entries);
 	} else {
 		map->probe_bound = NULL;
