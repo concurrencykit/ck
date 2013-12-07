@@ -167,13 +167,14 @@ ck_ht_map_probe_next(struct ck_ht_map *map, size_t offset, ck_ht_hash_t h, size_
 {
 	ck_ht_hash_t r;
 	size_t stride;
+	unsigned long level = (unsigned long)probes >> CK_HT_BUCKET_SHIFT;
 
-	(void)probes;
-	r.value = h.value >> map->step;
+	r.value = (h.value >> map->step) >> level;
 	stride = (r.value & ~CK_HT_BUCKET_MASK) << 1
 		     | (r.value & CK_HT_BUCKET_MASK);
 
-	return (offset + (stride | CK_HT_BUCKET_LENGTH)) & map->mask;
+	return (offset + level +
+	    (stride | CK_HT_BUCKET_LENGTH)) & map->mask;
 }
 
 bool
