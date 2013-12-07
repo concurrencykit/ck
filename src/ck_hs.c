@@ -168,6 +168,9 @@ ck_hs_map_create(struct ck_hs *hs, unsigned long entries)
 	unsigned long size, n_entries, prefix, limit;
 
 	n_entries = ck_internal_power_2(entries);
+	if (n_entries < CK_HS_PROBE_L1)
+		return NULL;
+
 	size = sizeof(struct ck_hs_map) + (sizeof(void *) * n_entries + CK_MD_CACHELINE - 1);
 
 	if (hs->mode & CK_HS_MODE_DELETE) {
@@ -196,7 +199,7 @@ ck_hs_map_create(struct ck_hs *hs, unsigned long entries)
 	map->n_entries = 0;
 
 	/* Align map allocation to cache line. */
-	map->entries = (void *)(((uintptr_t)(map + 1) + prefix +
+	map->entries = (void *)(((uintptr_t)&map[1] + prefix +
 	    CK_MD_CACHELINE - 1) & ~(CK_MD_CACHELINE - 1));
 
 	memset(map->entries, 0, sizeof(void *) * n_entries);
@@ -204,7 +207,7 @@ ck_hs_map_create(struct ck_hs *hs, unsigned long entries)
 
 	if (hs->mode & CK_HS_MODE_DELETE) {
 		map->probe_bound = (CK_HS_WORD *)&map[1];
-		memset(map->probe_bound, 0, sizeof(CK_HS_WORD) * n_entries);
+		memset(map->probe_bound, 0, prefix);
 	} else {
 		map->probe_bound = NULL;
 	}
