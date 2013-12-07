@@ -94,10 +94,8 @@ run_test(unsigned int is, unsigned int ad)
 	const char *blob = "#blobs";
 	unsigned long h;
 
-	if (ck_hs_init(&hs[0], CK_HS_MODE_SPMC | CK_HS_MODE_OBJECT | ad, hs_hash, hs_compare, &my_allocator, is, 6602834) == false) {
-		perror("ck_hs_init");
-		exit(EXIT_FAILURE);
-	}
+	if (ck_hs_init(&hs[0], CK_HS_MODE_SPMC | CK_HS_MODE_OBJECT | ad, hs_hash, hs_compare, &my_allocator, is, 6602834) == false)
+		ck_error("ck_hs_init\n");
 
 	for (j = 0; j < size; j++) {
 		for (i = 0; i < sizeof(test) / sizeof(*test); i++) {
@@ -111,6 +109,8 @@ run_test(unsigned int is, unsigned int ad)
 
 			if (ck_hs_remove(&hs[j], h, test[i]) == false)
 				ck_error("ERROR [%zu]: Failed to remove unique (%s)\n", j, test[i]);
+
+			break;
 		}
 
 		for (i = 0; i < sizeof(test) / sizeof(*test); i++) {
@@ -239,9 +239,10 @@ main(void)
 {
 	unsigned int k;
 
-	for (k = 4; k <= 32; k <<= 1) {
+	for (k = 16; k <= 64; k <<= 1) {
 		run_test(k, 0);
 		run_test(k, CK_HS_MODE_DELETE);
+		break;
 	}
 
 	return 0;
