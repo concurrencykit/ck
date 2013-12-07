@@ -515,7 +515,7 @@ restart:
 				struct ck_ht_entry *cursor = bucket + ((j + offset) & (CK_HT_BUCKET_LENGTH - 1));
 
 				probes++;
-				if (cursor->key == CK_HT_KEY_EMPTY) {
+				if (CK_CC_LIKELY(cursor->key == CK_HT_KEY_EMPTY)) {
 					*cursor = *previous;
 					update->n_entries++;
 
