@@ -102,6 +102,9 @@ ck_internal_bsf(unsigned long v)
 CK_CC_INLINE static uint64_t
 ck_internal_bsf_64(uint64_t v)
 {
+#if defined(__GNUC__)
+	return __builtin_ffs(v);
+#else
 	unsigned int i;
 	const unsigned int s = sizeof(unsigned long) * 8 - 1;
 
@@ -109,6 +112,8 @@ ck_internal_bsf_64(uint64_t v)
 		if (v & (1ULL << (63U - i)))
 			return i;
 	}
+#endif /* !__GNUC__ */
 
 	return 1;
 }
+
