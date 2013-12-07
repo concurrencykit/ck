@@ -6,7 +6,7 @@ all: $(OBJECTS)
 
 check: all
 	./ck_fifo_spsc $(CORES) 1 64000
-	./ck_fifo_mpmc $(CORES) 1 64000
+	./ck_fifo_mpmc $(CORES) 1 16000
 	./ck_fifo_spsc_iterator
 	./ck_fifo_mpmc_iterator
 
