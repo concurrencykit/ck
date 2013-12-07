@@ -222,7 +222,9 @@ run_test(unsigned int is, unsigned int ad)
 			ck_error("Failed to move hash table");
 
 		if (j & 1) {
-			ck_hs_gc(&hs[j + 1]);
+			ck_hs_gc(&hs[j + 1], 0, 0);
+		} else {
+			ck_hs_gc(&hs[j + 1], 26, 26);
 		}
 
 		if (ck_hs_rebuild(&hs[j + 1]) == false)

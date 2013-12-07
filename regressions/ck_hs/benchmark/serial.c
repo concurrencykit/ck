@@ -183,7 +183,7 @@ static void
 set_gc(void)
 {
 
-	ck_hs_gc(&hs);
+	ck_hs_gc(&hs, 0, 0);
 	return;
 }
 
