@@ -82,6 +82,7 @@ to accomodate key insertion.
 .Xr CK_HS_HASH 3 ,
 .Xr ck_hs_iterator_init 3 ,
 .Xr ck_hs_next 3 ,
+.Xr ck_hs_put_unique 3 ,
 .Xr ck_hs_get 3 ,
 .Xr ck_hs_set 3 ,
 .Xr ck_hs_fas 3 ,
