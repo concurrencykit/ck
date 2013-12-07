@@ -562,14 +562,14 @@ ck_ht_remove_spmc(ck_ht_t *table,
 
 	if (table->mode == CK_HT_MODE_BYTESTRING) {
 		candidate = ck_ht_map_probe_wr(map, h, &snapshot, &priority,
-				ck_ht_entry_key(entry),
-				ck_ht_entry_key_length(entry),
-				&probes, &probes_wr);
+		    ck_ht_entry_key(entry),
+		    ck_ht_entry_key_length(entry),
+		    &probes, &probes_wr);
 	} else {
 		candidate = ck_ht_map_probe_wr(map, h, &snapshot, &priority,
-				(void *)entry->key,
-				sizeof(entry->key),
-				&probes, &probes_wr);
+		    (void *)entry->key,
+		    sizeof(entry->key),
+		    &probes, &probes_wr);
 	}
 
 	/* No matching entry was found. */
@@ -662,14 +662,14 @@ ck_ht_set_spmc(ck_ht_t *table,
 
 		if (table->mode == CK_HT_MODE_BYTESTRING) {
 			candidate = ck_ht_map_probe_wr(map, h, &snapshot, &priority,
-					ck_ht_entry_key(entry),
-					ck_ht_entry_key_length(entry),
-					&probes, &probes_wr);
+			    ck_ht_entry_key(entry),
+			    ck_ht_entry_key_length(entry),
+			    &probes, &probes_wr);
 		} else {
 			candidate = ck_ht_map_probe_wr(map, h, &snapshot, &priority,
-					(void *)entry->key,
-					sizeof(entry->key),
-					&probes, &probes_wr);
+			    (void *)entry->key,
+			    sizeof(entry->key),
+			    &probes, &probes_wr);
 		}
 
 		if (priority != NULL) {
@@ -775,14 +775,14 @@ ck_ht_put_spmc(ck_ht_t *table,
 
 		if (table->mode == CK_HT_MODE_BYTESTRING) {
 			candidate = ck_ht_map_probe_wr(map, h, &snapshot, &priority,
-					ck_ht_entry_key(entry),
-					ck_ht_entry_key_length(entry),
-					&probes, &probes_wr);
+			    ck_ht_entry_key(entry),
+			    ck_ht_entry_key_length(entry),
+			    &probes, &probes_wr);
 		} else {
 			candidate = ck_ht_map_probe_wr(map, h, &snapshot, &priority,
-					(void *)entry->key,
-					sizeof(entry->key),
-					&probes, &probes_wr);
+			    (void *)entry->key,
+			    sizeof(entry->key),
+			    &probes, &probes_wr);
 		}
 
 		if (candidate != NULL || priority != NULL)
@@ -839,3 +839,4 @@ ck_ht_destroy(struct ck_ht *table)
 }
 
 #endif /* CK_F_HT */
+
