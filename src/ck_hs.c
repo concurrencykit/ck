@@ -498,9 +498,8 @@ ck_hs_marshal(unsigned int mode, const void *key, unsigned long h)
 bool
 ck_hs_gc(struct ck_hs *hs, unsigned long cycles, unsigned long seed)
 {
-	unsigned long i;
+	unsigned long size, i;
 	struct ck_hs_map *map = hs->map;
-	unsigned long size;
 	unsigned int maximum = map->probe_maximum;
 	CK_HS_WORD *bounds = NULL;
 
