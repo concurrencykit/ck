@@ -86,7 +86,7 @@ hs_compare(const void *previous, const void *compare)
 }
 
 static void
-run_test(unsigned int is)
+run_test(unsigned int is, unsigned int ad)
 {
 	ck_hs_t hs[16];
 	const size_t size = sizeof(hs) / sizeof(*hs);
@@ -94,10 +94,8 @@ run_test(unsigned int is)
 	const char *blob = "#blobs";
 	unsigned long h;
 
-	if (ck_hs_init(&hs[0], CK_HS_MODE_SPMC | CK_HS_MODE_OBJECT, hs_hash, hs_compare, &my_allocator, is, 6602834) == false) {
-		perror("ck_hs_init");
-		exit(EXIT_FAILURE);
-	}
+	if (ck_hs_init(&hs[0], CK_HS_MODE_SPMC | CK_HS_MODE_OBJECT | ad, hs_hash, hs_compare, &my_allocator, is, 6602834) == false)
+		ck_error("ck_hs_init\n");
 
 	for (j = 0; j < size; j++) {
 		for (i = 0; i < sizeof(test) / sizeof(*test); i++) {
@@ -111,6 +109,8 @@ run_test(unsigned int is)
 
 			if (ck_hs_remove(&hs[j], h, test[i]) == false)
 				ck_error("ERROR [%zu]: Failed to remove unique (%s)\n", j, test[i]);
+
+			break;
 		}
 
 		for (i = 0; i < sizeof(test) / sizeof(*test); i++) {
@@ -220,6 +220,15 @@ run_test(unsigned int is)
 
 		if (ck_hs_move(&hs[j + 1], &hs[j], hs_hash, hs_compare, &my_allocator) == false)
 			ck_error("Failed to move hash table");
+
+		if (j & 1) {
+			ck_hs_gc(&hs[j + 1], 0, 0);
+		} else {
+			ck_hs_gc(&hs[j + 1], 26, 26);
+		}
+
+		if (ck_hs_rebuild(&hs[j + 1]) == false)
+			ck_error("Failed to rebuild");
 	}
 
 	return;
@@ -230,8 +239,10 @@ main(void)
 {
 	unsigned int k;
 
-	for (k = 4; k <= 32; k <<= 1) {
-		run_test(k);
+	for (k = 16; k <= 64; k <<= 1) {
+		run_test(k, 0);
+		run_test(k, CK_HS_MODE_DELETE);
+		break;
 	}
 
 	return 0;

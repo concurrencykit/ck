@@ -42,6 +42,7 @@ static ck_hs_t hs;
 static char **keys;
 static size_t keys_length = 0;
 static size_t keys_capacity = 128;
+static unsigned long global_seed;
 
 static void *
 hs_malloc(size_t r)
@@ -85,11 +86,19 @@ hs_compare(const void *previous, const void *compare)
 }
 
 static void
-set_init(void)
+set_destroy(void)
 {
 
-	common_srand48((long int)time(NULL));
-	if (ck_hs_init(&hs, CK_HS_MODE_OBJECT | CK_HS_MODE_SPMC, hs_hash, hs_compare, &my_allocator, 8, common_lrand48()) == false) {
+	ck_hs_destroy(&hs);
+	return;
+}
+
+static void
+set_init(unsigned int size, unsigned int mode)
+{
+
+	if (ck_hs_init(&hs, CK_HS_MODE_OBJECT | CK_HS_MODE_SPMC | mode, hs_hash, hs_compare,
+	    &my_allocator, size, global_seed) == false) {
 		perror("ck_hs_init");
 		exit(EXIT_FAILURE);
 	}
@@ -171,6 +180,22 @@ set_reset(void)
 }
 
 static void
+set_gc(void)
+{
+
+	ck_hs_gc(&hs, 0, 0);
+	return;
+}
+
+static void
+set_rebuild(void)
+{
+
+	ck_hs_rebuild(&hs);
+	return;
+}
+
+static void
 keys_shuffle(char **k)
 {
 	size_t i, j;
@@ -189,35 +214,21 @@ keys_shuffle(char **k)
 	return;
 }
 
-int
-main(int argc, char *argv[])
+static void
+run_test(const char *file, size_t r, unsigned int size, unsigned int mode)
 {
 	FILE *fp;
 	char buffer[512];
-	size_t i, j, r;
+	size_t i, j;
 	unsigned int d = 0;
-	uint64_t s, e, a, ri, si, ai, sr, rg, sg, ag, sd, ng, ss, sts, su;
+	uint64_t s, e, a, ri, si, ai, sr, rg, sg, ag, sd, ng, ss, sts, su, sgc, sb;
 	struct ck_hs_stat st;
 	char **t;
-
-	r = 20;
-	s = 8;
-	srand(time(NULL));
-
-	if (argc < 2) {
-		ck_error("Usage: ck_hs <dictionary> [<repetitions> <initial size>]\n");
-	}
-
-	if (argc >= 3)
-		r = atoi(argv[2]);
-
-	if (argc >= 4)
-		s = (uint64_t)atoi(argv[3]);
 
 	keys = malloc(sizeof(char *) * keys_capacity);
 	assert(keys != NULL);
 
-	fp = fopen(argv[1], "r");
+	fp = fopen(file, "r");
 	assert(fp != NULL);
 
 	while (fgets(buffer, sizeof(buffer), fp) != NULL) {
@@ -236,17 +247,13 @@ main(int argc, char *argv[])
 	assert(t != NULL);
 	keys = t;
 
-	set_init();
+	set_init(size, mode);
 	for (i = 0; i < keys_length; i++)
 		d += set_insert(keys[i]) == false;
 	ck_hs_stat(&hs, &st);
 
 	fprintf(stderr, "# %zu entries stored, %u duplicates, %u probe.\n",
 	    set_count(), d, st.probe_maximum);
-
-	fprintf(stderr, "#    reverse_insertion serial_insertion random_insertion serial_swap "
-	    "serial_replace reverse_get serial_get random_get serial_remove negative_get tombstone "
-	    "set_unique\n\n");
 
 	a = 0;
 	for (j = 0; j < r; j++) {
@@ -407,6 +414,7 @@ main(int argc, char *argv[])
 		if (set_insert(keys[i]) == true)
 			continue;
 
+		free(keys[i]);
 		keys[i] = keys[--keys_length];
 	}
 
@@ -426,6 +434,24 @@ main(int argc, char *argv[])
 	}
 	su = a / (r * keys_length);
 
+	a = 0;
+	for (j = 0; j < r; j++) {
+		s = rdtsc();
+		set_gc();
+		e = rdtsc();
+		a += e - s;
+	}
+	sgc = a / r;
+
+	a = 0;
+	for (j = 0; j < r; j++) {
+		s = rdtsc();
+		set_rebuild();
+		e = rdtsc();
+		a += e - s;
+	}
+	sb = a / r;
+
 	printf("%zu "
 	    "%" PRIu64 " "
 	    "%" PRIu64 " "
@@ -438,8 +464,47 @@ main(int argc, char *argv[])
 	    "%" PRIu64 " "
 	    "%" PRIu64 " "
 	    "%" PRIu64 " "
+	    "%" PRIu64 " "
+	    "%" PRIu64 " "
 	    "%" PRIu64 "\n",
-	    keys_length, ri, si, ai, ss, sr, rg, sg, ag, sd, ng, sts, su);
+	    keys_length, ri, si, ai, ss, sr, rg, sg, ag, sd, ng, sts, su, sgc, sb);
+
+	fclose(fp);
+
+	for (i = 0; i < keys_length; i++) {
+		free(keys[i]);
+	}
+
+	free(keys);
+	keys_length = 0;
+	set_destroy();
+	return;
+}
+
+int
+main(int argc, char *argv[])
+{
+	unsigned int r, size;
+
+	common_srand48((long int)time(NULL));
+	if (argc < 2) {
+		ck_error("Usage: ck_hs <dictionary> [<repetitions> <initial size>]\n");
+	}
+
+	r = 16;
+	if (argc >= 3)
+		r = atoi(argv[2]);
+
+	size = 8;
+	if (argc >= 4)
+		size = atoi(argv[3]);
+
+	global_seed = common_lrand48();
+	run_test(argv[1], r, size, 0);
+	run_test(argv[1], r, size, CK_HS_MODE_DELETE);
+	fprintf(stderr, "#    reverse_insertion serial_insertion random_insertion serial_swap "
+	    "serial_replace reverse_get serial_get random_get serial_remove negative_get tombstone "
+	    "set_unique gc rebuild\n\n");
 
 	return 0;
 }

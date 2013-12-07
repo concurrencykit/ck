@@ -35,9 +35,32 @@
 #include <stdbool.h>
 #include <stddef.h>
 
-#define CK_HS_MODE_SPMC     1
-#define CK_HS_MODE_DIRECT   2
-#define CK_HS_MODE_OBJECT   8
+/*
+ * Indicates a single-writer many-reader workload. Mutually
+ * exclusive with CK_HS_MODE_MPMC
+ */
+#define CK_HS_MODE_SPMC		1
+
+/*
+ * Indicates that values to be stored are not pointers but
+ * values. Allows for full precision. Mutually exclusive
+ * with CK_HS_MODE_OBJECT.
+ */
+#define CK_HS_MODE_DIRECT	2
+
+/* 
+ * Indicates that the values to be stored are pointers.
+ * Allows for space optimizations in the presence of pointer
+ * packing. Mutually exclusive with CK_HS_MODE_DIRECT.
+ */
+#define CK_HS_MODE_OBJECT	8
+
+/*
+ * Indicates a delete-heavy workload. This will reduce the
+ * need for garbage collection at the cost of approximately
+ * 12% to 20% increased memory usage.
+ */
+#define CK_HS_MODE_DELETE	16
 
 /* Currently unsupported. */
 #define CK_HS_MODE_MPMC    (void)
@@ -99,6 +122,8 @@ bool ck_hs_set(ck_hs_t *, unsigned long, const void *, void **);
 bool ck_hs_fas(ck_hs_t *, unsigned long, const void *, void **);
 void *ck_hs_remove(ck_hs_t *, unsigned long, const void *);
 bool ck_hs_grow(ck_hs_t *, unsigned long);
+bool ck_hs_rebuild(ck_hs_t *);
+bool ck_hs_gc(ck_hs_t *, unsigned long, unsigned long);
 unsigned long ck_hs_count(ck_hs_t *);
 bool ck_hs_reset(ck_hs_t *);
 bool ck_hs_reset_size(ck_hs_t *, unsigned long);
