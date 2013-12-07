@@ -79,6 +79,7 @@ OBJECTS=CK_ARRAY_FOREACH		\
 	ck_hs_remove			\
 	ck_hs_move			\
 	ck_hs_grow			\
+	ck_hs_rebuild			\
 	ck_hs_count			\
 	ck_hs_reset			\
 	ck_hs_reset_size		\
