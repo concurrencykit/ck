@@ -38,6 +38,9 @@
 #elif defined(__MACH__)
 #include <mach/mach.h>
 #include <mach/thread_policy.h>
+#elif defined(__FreeBSD__)
+#include <sys/param.h>
+#include <sys/cpuset.h>
 #endif
 
 #if defined(_WIN32)
@@ -319,6 +322,31 @@ aff_iterate_core(struct affinity *acb, unsigned int *core)
 				 THREAD_AFFINITY_POLICY,
 				 (thread_policy_t)&policy,
 				 THREAD_AFFINITY_POLICY_COUNT);
+}
+#elif defined(__FreeBSD__)
+CK_CC_UNUSED static int
+aff_iterate(struct affinity *acb CK_CC_UNUSED)
+{
+	unsigned int c;
+	cpuset_t mask;
+
+	c = ck_pr_faa_uint(&acb->request, acb->delta) % CORES;
+	CPU_ZERO(&mask);
+	CPU_SET(c, &mask);
+	return (cpuset_setaffinity(CPU_LEVEL_WHICH, CPU_WHICH_TID, -1,
+	    sizeof(mask), &mask));
+}
+
+CK_CC_UNUSED static int
+aff_iterate_core(struct affinity *acb CK_CC_UNUSED, unsigned int *core)
+{
+	cpuset_t mask;
+
+	*core = ck_pr_faa_uint(&acb->request, acb->delta) % CORES;
+	CPU_ZERO(&mask);
+	CPU_SET(*core, &mask);
+	return (cpuset_setaffinity(CPU_LEVEL_WHICH, CPU_WHICH_TID, -1,
+	    sizeof(mask), &mask));
 }
 #else
 CK_CC_UNUSED static int
