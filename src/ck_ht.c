@@ -178,7 +178,7 @@ ck_ht_map_probe_next(struct ck_ht_map *map, size_t offset, ck_ht_hash_t h, size_
 }
 
 bool
-ck_ht_init(ck_ht_t *table,
+ck_ht_init(struct ck_ht *table,
     enum ck_ht_mode mode,
     ck_ht_hash_cb_t *h,
     struct ck_malloc *m,
@@ -404,7 +404,7 @@ leave:
 }
 
 uint64_t
-ck_ht_count(ck_ht_t *table)
+ck_ht_count(struct ck_ht *table)
 {
 	struct ck_ht_map *map = ck_pr_load_ptr(&table->map);
 
@@ -459,7 +459,7 @@ ck_ht_reset_spmc(struct ck_ht *table)
 }
 
 bool
-ck_ht_grow_spmc(ck_ht_t *table, uint64_t capacity)
+ck_ht_grow_spmc(struct ck_ht *table, uint64_t capacity)
 {
 	struct ck_ht_map *map, *update;
 	struct ck_ht_entry *bucket, *previous;
@@ -550,7 +550,7 @@ restart:
 }
 
 bool
-ck_ht_remove_spmc(ck_ht_t *table,
+ck_ht_remove_spmc(struct ck_ht *table,
     ck_ht_hash_t h,
     ck_ht_entry_t *entry)
 {
@@ -605,7 +605,7 @@ ck_ht_remove_spmc(ck_ht_t *table,
 }
 
 bool
-ck_ht_get_spmc(ck_ht_t *table,
+ck_ht_get_spmc(struct ck_ht *table,
     ck_ht_hash_t h,
     ck_ht_entry_t *entry)
 {
@@ -648,7 +648,7 @@ restart:
 }
 
 bool
-ck_ht_set_spmc(ck_ht_t *table,
+ck_ht_set_spmc(struct ck_ht *table,
     ck_ht_hash_t h,
     ck_ht_entry_t *entry)
 {
@@ -762,7 +762,7 @@ ck_ht_set_spmc(ck_ht_t *table,
 }
 
 bool
-ck_ht_put_spmc(ck_ht_t *table,
+ck_ht_put_spmc(struct ck_ht *table,
     ck_ht_hash_t h,
     ck_ht_entry_t *entry)
 {
