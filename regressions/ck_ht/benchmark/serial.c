@@ -142,6 +142,13 @@ table_count(void)
 }
 
 static bool
+table_gc(void)
+{
+
+	return ck_ht_gc(&ht, 0, 0);
+}
+
+static bool
 table_reset(void)
 {
 
@@ -174,7 +181,7 @@ main(int argc, char *argv[])
 	char buffer[512];
 	size_t i, j, r;
 	unsigned int d = 0;
-	uint64_t s, e, a, ri, si, ai, sr, rg, sg, ag, sd, ng;
+	uint64_t s, e, a, ri, si, ai, sr, rg, sg, ag, sd, ng, gg;
 	char **t;
 	struct ck_ht_stat st;
 
@@ -223,7 +230,7 @@ main(int argc, char *argv[])
 	fprintf(stderr, "# %zu entries stored, %u duplicates, %" PRIu64 " probe.\n",
 	    table_count(), d, st.probe_maximum);
 
-	fprintf(stderr, "#    reverse_insertion serial_insertion random_insertion serial_replace reverse_get serial_get random_get serial_remove negative_get\n\n");
+	fprintf(stderr, "#    reverse_insertion serial_insertion random_insertion serial_replace reverse_get serial_get random_get serial_remove negative_get garbage_collect\n\n");
 
 	a = 0;
 	for (j = 0; j < r; j++) {
@@ -337,6 +344,18 @@ main(int argc, char *argv[])
 	}
 	sd = a / (r * keys_length);
 
+	for (i = 0; i < keys_length / 2; i++)
+		table_remove(keys[i]);
+
+	a = 0;
+	for (j = 0; j < r; j++) {
+		s = rdtsc();
+		table_gc();
+		e = rdtsc();
+		a += e - s;
+	}
+	gg = a / r;
+
 	a = 0;
 	for (j = 0; j < r; j++) {
 		s = rdtsc();
@@ -357,8 +376,9 @@ main(int argc, char *argv[])
 	    "%" PRIu64 " "
 	    "%" PRIu64 " "
 	    "%" PRIu64 " "
+	    "%" PRIu64 " "
 	    "%" PRIu64 "\n",
-	    keys_length, ri, si, ai, sr, rg, sg, ag, sd, ng);
+	    keys_length, ri, si, ai, sr, rg, sg, ag, sd, ng, gg);
 
 	return 0;
 }

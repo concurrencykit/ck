@@ -187,6 +187,10 @@ main(void)
 		}
 	}
 
+	if (ck_ht_gc(&ht, 0, 0) == false) {
+		ck_error("ck_ht_gc\n");
+	}
+
 	for (i = 0; i < sizeof(test) / sizeof(*test); i++) {
 		l = strlen(test[i]);
 		ck_ht_hash(&h, &ht, test[i], l);
