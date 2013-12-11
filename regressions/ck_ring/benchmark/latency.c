@@ -14,8 +14,6 @@ struct entry {
 	int tid;
 	int value;
 };
-CK_RING(entry, entry_ring)
-static CK_RING_INSTANCE(entry_ring) ring;
 
 int
 main(int argc, char *argv[])
@@ -24,6 +22,8 @@ main(int argc, char *argv[])
 	uint64_t s, e, e_a, d_a;
 	struct entry *buffer;
 	struct entry entry = {0, 0};
+	ck_ring_buffer_t buf;
+	ck_ring_t ring;
 
 	if (argc != 2) {
 		ck_error("Usage: latency <size>\n");
@@ -39,26 +39,27 @@ main(int argc, char *argv[])
 		ck_error("ERROR: Failed to allocate buffer\n");
 	}
 
-	CK_RING_INIT(entry_ring, &ring, buffer, size);
+	ck_ring_init(&ring, size);
+	buf.ring = buffer;
 
 	e_a = d_a = s = e = 0;
 	for (r = 0; r < ITERATIONS; r++) {
 		for (i = 0; i < size / 4; i += 4) {
 			s = rdtsc();
-			CK_RING_ENQUEUE_SPSC(entry_ring, &ring, &entry);
-			CK_RING_ENQUEUE_SPSC(entry_ring, &ring, &entry);
-			CK_RING_ENQUEUE_SPSC(entry_ring, &ring, &entry);
-			CK_RING_ENQUEUE_SPSC(entry_ring, &ring, &entry);
+			ck_ring_enqueue_spsc(&ring, buf, &entry);
+			ck_ring_enqueue_spsc(&ring, buf, &entry);
+			ck_ring_enqueue_spsc(&ring, buf, &entry);
+			ck_ring_enqueue_spsc(&ring, buf, &entry);
 			e = rdtsc();
 		}
 		e_a += (e - s) / 4;
 
 		for (i = 0; i < size / 4; i += 4) {
 			s = rdtsc();
-			CK_RING_DEQUEUE_SPSC(entry_ring, &ring, &entry);
-			CK_RING_DEQUEUE_SPSC(entry_ring, &ring, &entry);
-			CK_RING_DEQUEUE_SPSC(entry_ring, &ring, &entry);
-			CK_RING_DEQUEUE_SPSC(entry_ring, &ring, &entry);
+			ck_ring_dequeue_spsc(&ring, buf, &entry);
+			ck_ring_dequeue_spsc(&ring, buf, &entry);
+			ck_ring_dequeue_spsc(&ring, buf, &entry);
+			ck_ring_dequeue_spsc(&ring, buf, &entry);
 			e = rdtsc();
 		}
 		d_a += (e - s) / 4;
@@ -70,20 +71,20 @@ main(int argc, char *argv[])
 	for (r = 0; r < ITERATIONS; r++) {
 		for (i = 0; i < size / 4; i += 4) {
 			s = rdtsc();
-			CK_RING_ENQUEUE_SPMC(entry_ring, &ring, &entry);
-			CK_RING_ENQUEUE_SPMC(entry_ring, &ring, &entry);
-			CK_RING_ENQUEUE_SPMC(entry_ring, &ring, &entry);
-			CK_RING_ENQUEUE_SPMC(entry_ring, &ring, &entry);
+			ck_ring_enqueue_spmc(&ring, buf, &entry);
+			ck_ring_enqueue_spmc(&ring, buf, &entry);
+			ck_ring_enqueue_spmc(&ring, buf, &entry);
+			ck_ring_enqueue_spmc(&ring, buf, &entry);
 			e = rdtsc();
 		}
 		e_a += (e - s) / 4;
 
 		for (i = 0; i < size / 4; i += 4) {
 			s = rdtsc();
-			CK_RING_DEQUEUE_SPMC(entry_ring, &ring, &entry);
-			CK_RING_DEQUEUE_SPMC(entry_ring, &ring, &entry);
-			CK_RING_DEQUEUE_SPMC(entry_ring, &ring, &entry);
-			CK_RING_DEQUEUE_SPMC(entry_ring, &ring, &entry);
+			ck_ring_dequeue_spmc(&ring, buf, &entry);
+			ck_ring_dequeue_spmc(&ring, buf, &entry);
+			ck_ring_dequeue_spmc(&ring, buf, &entry);
+			ck_ring_dequeue_spmc(&ring, buf, &entry);
 			e = rdtsc();
 		}
 		d_a += (e - s) / 4;

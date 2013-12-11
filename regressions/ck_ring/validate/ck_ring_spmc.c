@@ -43,6 +43,7 @@ struct context {
 	unsigned int tid;
 	unsigned int previous;
 	unsigned int next;
+	void *buffer;
 };
 
 struct entry {
@@ -60,6 +61,7 @@ static struct affinity a;
 static int size;
 static int eb;
 static ck_barrier_centralized_t barrier = CK_BARRIER_CENTRALIZED_INITIALIZER;
+static struct context *_context;
 
 static void *
 test_spmc(void *c)
@@ -68,8 +70,10 @@ test_spmc(void *c)
 	unsigned long previous = 0;
 	unsigned int seed;
 	int i, k, j, tid;
+	struct context *context = c;
+	ck_ring_buffer_t buf;
 
-	(void)c;
+	buf.ring = context->buffer;
         if (aff_iterate(&a)) {
                 perror("ERROR: Could not affine thread");
                 exit(EXIT_FAILURE);
@@ -86,9 +90,11 @@ test_spmc(void *c)
 
 			/* Keep trying until we encounter at least one node. */
 			if (j & 1) {
-				while (ck_ring_dequeue_spmc(&ring_spmc, &o) == false);
+				while (ck_ring_dequeue_spmc(&ring_spmc, buf,
+				    &o) == false);
 			} else {
-				while (ck_ring_trydequeue_spmc(&ring_spmc, &o) == false);
+				while (ck_ring_trydequeue_spmc(&ring_spmc, buf,
+				    &o) == false);
 			}
 
 			observed++;
@@ -132,8 +138,11 @@ test(void *c)
 	unsigned int s;
 	int i, j;
 	bool r;
+	ck_ring_buffer_t buf;
 	ck_barrier_centralized_state_t sense =
 	    CK_BARRIER_CENTRALIZED_STATE_INITIALIZER;
+
+	buf.ring = context->buffer;
 
         if (aff_iterate(&a)) {
                 perror("ERROR: Could not affine thread");
@@ -156,9 +165,10 @@ test(void *c)
 			entries[i].tid = 0;
 
 			if (i & 1) {
-				r = ck_ring_enqueue_spmc(ring, entries + i);
+				r = ck_ring_enqueue_spmc(ring, buf, 
+				    entries + i);
 			} else {
-				r = ck_ring_enqueue_spmc_size(ring,
+				r = ck_ring_enqueue_spmc_size(ring, buf,
 					entries + i, &s);
 
 				if ((int)s != i) {
@@ -188,7 +198,9 @@ test(void *c)
 
 	for (i = 0; i < ITERATIONS; i++) {
 		for (j = 0; j < size; j++) {
-			while (ck_ring_dequeue_spmc(ring + context->previous, &entry) == false);
+			buf.ring = _context[context->previous].buffer;
+			while (ck_ring_dequeue_spmc(ring + context->previous, 
+			    buf, &entry) == false);
 
 			if (context->previous != (unsigned int)entry->tid) {
 				ck_error("[%u:%p] %u != %u\n",
@@ -201,13 +213,14 @@ test(void *c)
 			}
 
 			entry->tid = context->tid;
+			buf.ring = context->buffer;
 
 			if (i & 1) {
 				r = ck_ring_enqueue_spmc(ring + context->tid,
-					entry);
+					buf, entry);
 			} else {
 				r = ck_ring_enqueue_spmc_size(ring + context->tid,
-					entry, &s);
+					buf, entry, &s);
 
 				if ((int)s >= size) {
 					ck_error("Size %u out of range of %d\n",
@@ -227,8 +240,8 @@ main(int argc, char *argv[])
 	int i, r;
 	void *buffer;
 	unsigned long l;
-	struct context *context;
 	pthread_t *thread;
+	ck_ring_buffer_t buf;
 
 	if (argc != 4) {
 		ck_error("Usage: validate <threads> <affinity delta> <size>\n");
@@ -247,31 +260,32 @@ main(int argc, char *argv[])
 	ring = malloc(sizeof(ck_ring_t) * nthr);
 	assert(ring);
 
-	context = malloc(sizeof(*context) * nthr);
-	assert(context);
+	_context = malloc(sizeof(*_context) * nthr);
+	assert(_context);
 
 	thread = malloc(sizeof(pthread_t) * nthr);
 	assert(thread);
 
 	fprintf(stderr, "SPSC test:");
 	for (i = 0; i < nthr; i++) {
-		context[i].tid = i;
+		_context[i].tid = i;
 		if (i == 0) {
-			context[i].previous = nthr - 1;
-			context[i].next = i + 1;
+			_context[i].previous = nthr - 1;
+			_context[i].next = i + 1;
 		} else if (i == nthr - 1) {
-			context[i].next = 0;
-			context[i].previous = i - 1;
+			_context[i].next = 0;
+			_context[i].previous = i - 1;
 		} else {
-			context[i].next = i + 1;
-			context[i].previous = i - 1;
+			_context[i].next = i + 1;
+			_context[i].previous = i - 1;
 		}
 
 		buffer = malloc(sizeof(void *) * (size + 1));
 		assert(buffer);
 		memset(buffer, 0, sizeof(void *) * (size + 1));
-		ck_ring_init(ring + i, buffer, size + 1);
-		r = pthread_create(thread + i, NULL, test, context + i);
+		_context[i].buffer = buffer;
+		ck_ring_init(ring + i, size + 1);
+		r = pthread_create(thread + i, NULL, test, _context + i);
 		assert(r == 0);
 	}
 
@@ -284,9 +298,11 @@ main(int argc, char *argv[])
 	buffer = malloc(sizeof(void *) * (size + 1));
 	assert(buffer);
 	memset(buffer, 0, sizeof(void *) * (size + 1));
-	ck_ring_init(&ring_spmc, buffer, size + 1);
+	ck_ring_init(&ring_spmc, size + 1);
+	buf.ring = buffer;
 	for (i = 0; i < nthr - 1; i++) {
-		r = pthread_create(thread + i, NULL, test_spmc, context + i);
+		_context[i].buffer = buffer;
+		r = pthread_create(thread + i, NULL, test_spmc, _context + i);
 		assert(r == 0);
 	}
 
@@ -302,13 +318,14 @@ main(int argc, char *argv[])
 
 		/* Wait until queue is not full. */
 		if (l & 1) {
-			while (ck_ring_enqueue_spmc(&ring_spmc, entry) == false)
+			while (ck_ring_enqueue_spmc(&ring_spmc, buf, 
+			    entry) == false)
 				ck_pr_stall();
 		} else {
 			unsigned int s;
 
 			while (ck_ring_enqueue_spmc_size(&ring_spmc,
-				    entry, &s) == false) {
+				    buf, entry, &s) == false) {
 				ck_pr_stall();
 			}
 
