@@ -145,7 +145,7 @@ static bool
 table_gc(void)
 {
 
-	return ck_ht_gc(&ht, 0, 0);
+	return ck_ht_gc(&ht, 0, common_lrand48());
 }
 
 static bool
