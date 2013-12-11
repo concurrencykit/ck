@@ -836,7 +836,9 @@ struct ck_spinlock_hclh {
 typedef struct ck_spinlock_hclh ck_spinlock_hclh_t;
 
 CK_CC_INLINE static void
-ck_spinlock_hclh_init(struct ck_spinlock_hclh **lock, struct ck_spinlock_hclh *unowned, int cluster_id)
+ck_spinlock_hclh_init(struct ck_spinlock_hclh **lock,
+    struct ck_spinlock_hclh *unowned,
+    int cluster_id)
 {
 
 	ck_pr_store_ptr(&unowned->previous, NULL);
@@ -860,7 +862,9 @@ ck_spinlock_hclh_locked(struct ck_spinlock_hclh **queue)
 }
 
 CK_CC_INLINE static void
-ck_spinlock_hclh_lock(struct ck_spinlock_hclh **glob_queue, struct ck_spinlock_hclh **local_queue, struct ck_spinlock_hclh *thread)
+ck_spinlock_hclh_lock(struct ck_spinlock_hclh **glob_queue,
+    struct ck_spinlock_hclh **local_queue,
+    struct ck_spinlock_hclh *thread)
 {
 	struct ck_spinlock_hclh *previous, *local_tail;
 
