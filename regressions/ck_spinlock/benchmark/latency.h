@@ -53,6 +53,7 @@ main(void)
 	#endif
 
 	uint64_t s_b, e_b, i;
+	int core = 0;
 
 	s_b = rdtsc();
 	for (i = 0; i < STEPS; ++i) {
