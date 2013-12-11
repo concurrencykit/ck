@@ -250,6 +250,7 @@ void ck_ht_destroy(ck_ht_t *);
 bool ck_ht_set_spmc(ck_ht_t *, ck_ht_hash_t, ck_ht_entry_t *);
 bool ck_ht_put_spmc(ck_ht_t *, ck_ht_hash_t, ck_ht_entry_t *);
 bool ck_ht_get_spmc(ck_ht_t *, ck_ht_hash_t, ck_ht_entry_t *);
+bool ck_ht_gc(struct ck_ht *, unsigned long, unsigned long);
 bool ck_ht_grow_spmc(ck_ht_t *, uint64_t);
 bool ck_ht_remove_spmc(ck_ht_t *, ck_ht_hash_t, ck_ht_entry_t *);
 bool ck_ht_reset_spmc(ck_ht_t *);

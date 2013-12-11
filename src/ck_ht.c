@@ -217,9 +217,16 @@ ck_ht_map_probe_wr(struct ck_ht_map *map,
 	struct ck_ht_entry *first = NULL;
 	size_t offset, i, j;
 	uint64_t probes = 0;
+	uint64_t limit;
+
+	if (probe_limit == NULL) {
+		limit = map->probe_maximum;
+	} else {
+		limit = map->probe_limit;
+	}
 
 	offset = h.value & map->mask;
-	for (i = 0; i < map->probe_limit; i++) {
+	for (i = 0; i < limit; i++) {
 		/*
 		 * Probe on a complete cache line first. Scan forward and wrap around to
 		 * the beginning of the cache line. Only when the complete cache line has
@@ -285,7 +292,10 @@ ck_ht_map_probe_wr(struct ck_ht_map *map,
 	cursor = NULL;
 
 leave:
-	*probe_limit = probes;
+	if (probe_limit != NULL) {
+		*probe_limit = probes;
+	}
+
 	*available = first;
 
 	if (cursor != NULL) {
@@ -293,6 +303,61 @@ leave:
 	}
 
 	return cursor;
+}
+
+bool
+ck_ht_gc(struct ck_ht *ht, unsigned long cycles, unsigned long seed)
+{
+	struct ck_ht_map *map = ht->map;
+	uint64_t maximum = map->probe_maximum;
+	uint64_t i;
+
+	for (i = 0; i < map->capacity; i++) {
+		struct ck_ht_entry *entry, *priority, snapshot;
+		struct ck_ht_hash h;
+		uint64_t probes_wr;
+
+		entry = &map->entries[(i + seed) & map->mask];
+		if (entry->key == CK_HT_KEY_EMPTY ||
+		    entry->key == CK_HT_KEY_TOMBSTONE) {
+			continue;
+		}
+
+		if (cycles != 0 && --cycles == 0)
+			break;
+
+#ifndef CK_HT_PP
+		h.value = entry->hash;
+#else
+		ht->h(&h, ck_ht_entry_key(entry), ck_ht_entry_key_length(entry),
+		    ht->seed);
+#endif
+
+		entry = ck_ht_map_probe_wr(map, h, &snapshot, &priority,
+		    ck_ht_entry_key(entry),
+		    ck_ht_entry_key_length(entry),
+		    NULL, &probes_wr);
+
+		if (priority == NULL)
+			continue;
+
+#ifndef CK_HT_PP
+		ck_pr_store_64(&priority->key_length, entry->key_length);
+		ck_pr_store_64(&priority->hash, entry->hash);
+#endif
+		ck_pr_store_ptr(&priority->value, (void *)entry->value);
+		ck_pr_fence_store();
+		ck_pr_store_ptr(&priority->key, (void *)entry->key);
+		ck_pr_fence_store();
+		ck_pr_store_64(&map->deletions, map->deletions + 1);
+		ck_pr_fence_store();
+		ck_pr_store_ptr(&entry->key, (void *)CK_HT_KEY_TOMBSTONE);
+
+		if (probes_wr > maximum)
+			ck_pr_store_64(&map->probe_maximum, probes_wr);
+	}
+
+	return true;
 }
 
 static struct ck_ht_entry *
