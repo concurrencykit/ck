@@ -869,10 +869,12 @@ ck_spinlock_hclh_lock(struct ck_spinlock_hclh **glob_queue,
 	struct ck_spinlock_hclh *previous, *local_tail;
 
 	/* Indicate to the next thread on queue that they will have to block. */
-	ck_pr_store_uint(&thread->wait, true);
-	ck_pr_store_uint(&thread->splice, false);
+	thread->wait = true;
+	thread->splice = false;
 	thread->cluster_id = (*local_queue)->cluster_id;
-	ck_pr_fence_store();
+
+	/* Serialize with respect to update of local queue. */
+	ck_pr_fence_store_atomic();
 
 	/* Mark current request as last request. Save reference to previous request. */
 	previous = ck_pr_fas_ptr(local_queue, thread);
@@ -882,23 +884,23 @@ ck_spinlock_hclh_lock(struct ck_spinlock_hclh **glob_queue,
 	ck_pr_fence_load();
 	if (previous->previous != NULL &&
 	    previous->cluster_id == thread->cluster_id) {
-
-		while (ck_pr_load_uint(&previous->wait) == true);
+		while (ck_pr_load_uint(&previous->wait) == true)
 			ck_pr_stall();
+
 		/* We're head of the global queue, we're done */
-		if (!(ck_pr_load_uint(&previous->splice)))
+		if (ck_pr_load_uint(&previous->splice) == false)
 			return;
 	} 
 
-	/* Now we need to splice the local queue into the global queue */
+	/* Now we need to splice the local queue into the global queue. */
 	local_tail = ck_pr_load_ptr(local_queue);
-	ck_pr_fence_load();
 	previous = ck_pr_fas_ptr(glob_queue, local_tail);
 	ck_pr_store_uint(&local_tail->splice, true);
-	ck_pr_fence_store();
+
 	/* Wait until previous thread from the global queue is done with lock. */
 	while (ck_pr_load_uint(&previous->wait) == true)
 		ck_pr_stall();
+
 	return;
 }
 
