@@ -894,9 +894,9 @@ ck_spinlock_hclh_lock(struct ck_spinlock_hclh **glob_queue,
 
 	/* Now we need to splice the local queue into the global queue. */
 	local_tail = ck_pr_load_ptr(local_queue);
-	ck_pr_store_uint(&local_tail->splice, true);
-
 	previous = ck_pr_fas_ptr(glob_queue, local_tail);
+
+	ck_pr_store_uint(&local_tail->splice, true);
 
 	/* Wait until previous thread from the global queue is done with lock. */
 	while (ck_pr_load_uint(&previous->wait) == true)
