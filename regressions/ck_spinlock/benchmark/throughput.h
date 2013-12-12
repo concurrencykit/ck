@@ -70,7 +70,7 @@ LOCK_DEFINE;
 CK_CC_USED static void
 gen_lock(void)
 {
-	int core = 0;
+	CK_CC_UNUSED int core = 0;
 #ifdef LOCK_STATE
 	LOCK_STATE;
 #endif
