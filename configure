@@ -406,28 +406,6 @@ esac
 
 assert "$PLATFORM" "$PLATFORM" "unsupported"
 
-printf "Detecting VMA bits..............."
-VMA="unknown"
-if test "$VMA_BITS" = "unknown"; then
-	if test "$PLATFORM" = "x86" || test $PLATFORM = "x86_64"; then
-		case $SYSTEM in
-			darwin)
-				VMA=`sysctl -n machdep.cpu.address_bits.virtual`
-				;;
-			linux)
-				VMA=`awk '/address sizes/ {print $7;exit}' /proc/cpuinfo`
-				;;
-			*)
-				VMA="unknown"
-				;;
-		esac
-	fi
-
-	VMA_BITS=$VMA
-else
-	VMA=$VMA_BITS
-fi
-
 if test "$VMA" = "unknown"; then
 	echo "unknown"
 	VMA_BITS_R="CK_MD_VMA_BITS_UNKNOWN"
@@ -560,6 +538,68 @@ elif test "$COMPILER" = "gcc" || test "$COMPILER" = "clang" || test "$COMPILER" 
 	fi
 else
 	assert "" "unknown compiler"
+fi
+
+printf "Detecting VMA bits..............."
+VMA="unknown"
+if test "$VMA_BITS" = "unknown"; then
+	if test "$PLATFORM" = "x86" || test $PLATFORM = "x86_64"; then
+		case $SYSTEM in
+			darwin)
+				VMA=`sysctl -n machdep.cpu.address_bits.virtual`
+				;;
+			linux)
+				VMA=`awk '/address sizes/ {print $7;exit}' /proc/cpuinfo`
+				;;
+			*)
+				if test "$PLATFORM" = "x86"; then
+					VMA="32"
+				else
+					cat << EOF > .1.c
+					#include <stdio.h>
+
+					int main(int argc, char *argv[])
+					{
+						unsigned long ret = 0x80000000;
+
+						__asm __volatile("cpuid\n"
+								 : "+a" (ret));
+						if (ret >= 0x80000008) {
+								ret = 0x80000008;
+								__asm __volatile("cpuid\n"
+								 : "+a" (ret));
+								printf("%lu\n", (ret >> 8) & 0xff);
+						} else {
+								return (1);
+						}
+						return (0);
+					}
+EOF
+					
+					$CC -o .1 .1.c 2>/dev/null
+					VMA=`./.1 2>/dev/null`
+					if test $? -ne 0; then
+						VMA="unknown"
+					fi
+					rm -f .1.c .1
+				fi
+		esac
+	fi
+
+	VMA_BITS=$VMA
+else
+	VMA=$VMA_BITS
+fi
+
+if test "$VMA" = "unknown"; then
+	echo "unknown"
+	VMA_BITS_R="CK_MD_VMA_BITS_UNKNOWN"
+	VMA_BITS_VALUE_R=""
+	POINTER_PACK_ENABLE="CK_MD_POINTER_PACK_DISABLE"
+else
+	echo "success [$VMA]"
+	VMA_BITS_R="CK_MD_VMA_BITS"
+	VMA_BITS_VALUE_R="${VMA_BITS}ULL"
 fi
 
 for i in $REQUIRE_HEADER; do
