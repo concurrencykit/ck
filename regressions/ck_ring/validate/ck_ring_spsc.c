@@ -66,14 +66,14 @@ test(void *c)
 	bool r;
 	ck_barrier_centralized_state_t sense =
 	    CK_BARRIER_CENTRALIZED_STATE_INITIALIZER;
-	ck_ring_buffer_t buf;
+	ck_ring_buffer_t *buffer;
 
         if (aff_iterate(&a)) {
                 perror("ERROR: Could not affine thread");
                 exit(EXIT_FAILURE);
         }
 
-	buf.ring = context->buffer;
+	buffer = context->buffer;
 	if (context->tid == 0) {
 		struct entry *entries;
 
@@ -90,11 +90,11 @@ test(void *c)
 			entries[i].tid = 0;
 
 			if (i & 1) {
-				r = ck_ring_enqueue_spsc(ring, buf, 
+				r = ck_ring_enqueue_spsc(ring, buffer,
 				    entries + i);
 			} else {
 				r = ck_ring_enqueue_spsc_size(ring,
-					buf, entries + i, &s);
+					buffer, entries + i, &s);
 
 				if ((int)s != i) {
 					ck_error("Size is %u, expected %d\n",
@@ -120,9 +120,9 @@ test(void *c)
 
 	for (i = 0; i < ITERATIONS; i++) {
 		for (j = 0; j < size; j++) {
-			buf.ring = _context[context->previous].buffer;
+			buffer = _context[context->previous].buffer;
 			while (ck_ring_dequeue_spsc(ring + context->previous,
-			    buf, &entry) == false);
+			    buffer, &entry) == false);
 
 			if (context->previous != (unsigned int)entry->tid) {
 				ck_error("[%u:%p] %u != %u\n",
@@ -135,13 +135,13 @@ test(void *c)
 			}
 
 			entry->tid = context->tid;
-			buf.ring = context->buffer;
+			buffer = context->buffer;
 			if (i & 1) {
 				r = ck_ring_enqueue_spsc(ring + context->tid,
-					buf, entry);
+					buffer, entry);
 			} else {
 				r = ck_ring_enqueue_spsc_size(ring +
-					context->tid, buf, entry, &s);
+					context->tid, buffer, entry, &s);
 
 				if ((int)s >= size) {
 					ck_error("Size %u is out of range %d\n",
@@ -159,7 +159,7 @@ int
 main(int argc, char *argv[])
 {
 	int i, r;
-	void *buffer;
+	ck_ring_buffer_t *buffer;
 	pthread_t *thread;
 
 	if (argc != 4) {
@@ -198,7 +198,7 @@ main(int argc, char *argv[])
 			_context[i].previous = i - 1;
 		}
 
-		buffer = malloc(sizeof(void *) * (size + 1));
+		buffer = malloc(sizeof(ck_ring_buffer_t) * (size + 1));
 		assert(buffer);
 		_context[i].buffer = buffer;
 		ck_ring_init(ring + i, size + 1);

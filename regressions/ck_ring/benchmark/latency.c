@@ -20,9 +20,8 @@ main(int argc, char *argv[])
 {
 	int i, r, size;
 	uint64_t s, e, e_a, d_a;
-	struct entry *buffer;
 	struct entry entry = {0, 0};
-	ck_ring_buffer_t buf;
+	ck_ring_buffer_t *buf;
 	ck_ring_t ring;
 
 	if (argc != 2) {
@@ -34,13 +33,12 @@ main(int argc, char *argv[])
 		ck_error("ERROR: Size must be a power of 2 greater than 4.\n");
 	}
 
-	buffer = malloc(sizeof(struct entry) * size);
-	if (buffer == NULL) {
+	buf = malloc(sizeof(ck_ring_buffer_t) * size);
+	if (buf == NULL) {
 		ck_error("ERROR: Failed to allocate buffer\n");
 	}
 
 	ck_ring_init(&ring, size);
-	buf.ring = buffer;
 
 	e_a = d_a = s = e = 0;
 	for (r = 0; r < ITERATIONS; r++) {
