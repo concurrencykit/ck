@@ -67,7 +67,6 @@ ck_ring_capacity(struct ck_ring *ring)
 struct ck_ring_buffer {
 	void *ring;
 };
-
 typedef struct ck_ring_buffer ck_ring_buffer_t;
 
 /*
