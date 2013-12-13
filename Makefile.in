@@ -38,6 +38,10 @@ install-headers:
 	cp include/ck_md.h $(DESTDIR)/$(HEADERS)/ck_md.h || exit
 	chmod 755 $(DESTDIR)/$(HEADERS)/gcc
 	chmod 644 $(DESTDIR)/$(HEADERS)/gcc/ck_*.h $(DESTDIR)/$(HEADERS)/gcc/*/ck_*.h || exit
+	mkdir -p $(DESTDIR)$(HEADERS)/spinlock || exit
+	cp -r $(SRC_DIR)/include/spinlock/* $(DESTDIR)/$(HEADERS)/spinlock || exit
+	chmod 755 $(DESTDIR)/$(HEADERS)/spinlock
+	chmod 644 $(DESTDIR)/$(HEADERS)/spinlock/*.h || exit
 
 install: all install-headers
 	$(MAKE) -C doc install
@@ -60,6 +64,7 @@ uninstall:
 	rm -f $(DESTDIR)/$(LIBRARY)/libck.so*
 	rm -f $(DESTDIR)/$(LIBRARY)/libck.a
 	rm -f $(DESTDIR)/$(HEADERS)/ck_*.h
+	rm -f $(DESTDIR)/$(HEADERS)/spinlock/*.h
 	rm -f $(DESTDIR)/$(HEADERS)/gcc/ck_*.h
 	rm -f $(DESTDIR)/$(HEADERS)/gcc/*/ck_*.h
 	rm -f $(DESTDIR)/$(PKGCONFIG_DATA)/ck.pc
