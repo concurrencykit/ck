@@ -41,6 +41,7 @@ struct context {
 	unsigned int tid;
 	unsigned int previous;
 	unsigned int next;
+	void *buffer;
 };
 
 struct entry {
@@ -53,6 +54,7 @@ static ck_ring_t *ring;
 static struct affinity a;
 static int size;
 static ck_barrier_centralized_t barrier = CK_BARRIER_CENTRALIZED_INITIALIZER;
+static struct context *_context;
 
 static void *
 test(void *c)
@@ -64,12 +66,14 @@ test(void *c)
 	bool r;
 	ck_barrier_centralized_state_t sense =
 	    CK_BARRIER_CENTRALIZED_STATE_INITIALIZER;
+	ck_ring_buffer_t *buffer;
 
         if (aff_iterate(&a)) {
                 perror("ERROR: Could not affine thread");
                 exit(EXIT_FAILURE);
         }
 
+	buffer = context->buffer;
 	if (context->tid == 0) {
 		struct entry *entries;
 
@@ -86,10 +90,11 @@ test(void *c)
 			entries[i].tid = 0;
 
 			if (i & 1) {
-				r = ck_ring_enqueue_spsc(ring, entries + i);
+				r = ck_ring_enqueue_spsc(ring, buffer,
+				    entries + i);
 			} else {
 				r = ck_ring_enqueue_spsc_size(ring,
-					entries + i, &s);
+					buffer, entries + i, &s);
 
 				if ((int)s != i) {
 					ck_error("Size is %u, expected %d\n",
@@ -115,7 +120,9 @@ test(void *c)
 
 	for (i = 0; i < ITERATIONS; i++) {
 		for (j = 0; j < size; j++) {
-			while (ck_ring_dequeue_spsc(ring + context->previous, &entry) == false);
+			buffer = _context[context->previous].buffer;
+			while (ck_ring_dequeue_spsc(ring + context->previous,
+			    buffer, &entry) == false);
 
 			if (context->previous != (unsigned int)entry->tid) {
 				ck_error("[%u:%p] %u != %u\n",
@@ -128,12 +135,13 @@ test(void *c)
 			}
 
 			entry->tid = context->tid;
+			buffer = context->buffer;
 			if (i & 1) {
 				r = ck_ring_enqueue_spsc(ring + context->tid,
-					entry);
+					buffer, entry);
 			} else {
 				r = ck_ring_enqueue_spsc_size(ring +
-					context->tid, entry, &s);
+					context->tid, buffer, entry, &s);
 
 				if ((int)s >= size) {
 					ck_error("Size %u is out of range %d\n",
@@ -151,8 +159,7 @@ int
 main(int argc, char *argv[])
 {
 	int i, r;
-	void *buffer;
-	struct context *context;
+	ck_ring_buffer_t *buffer;
 	pthread_t *thread;
 
 	if (argc != 4) {
@@ -172,29 +179,30 @@ main(int argc, char *argv[])
 	ring = malloc(sizeof(ck_ring_t) * nthr);
 	assert(ring);
 
-	context = malloc(sizeof(*context) * nthr);
-	assert(context);
+	_context = malloc(sizeof(*_context) * nthr);
+	assert(_context);
 
 	thread = malloc(sizeof(pthread_t) * nthr);
 	assert(thread);
 
 	for (i = 0; i < nthr; i++) {
-		context[i].tid = i;
+		_context[i].tid = i;
 		if (i == 0) {
-			context[i].previous = nthr - 1;
-			context[i].next = i + 1;
+			_context[i].previous = nthr - 1;
+			_context[i].next = i + 1;
 		} else if (i == nthr - 1) {
-			context[i].next = 0;
-			context[i].previous = i - 1;
+			_context[i].next = 0;
+			_context[i].previous = i - 1;
 		} else {
-			context[i].next = i + 1;
-			context[i].previous = i - 1;
+			_context[i].next = i + 1;
+			_context[i].previous = i - 1;
 		}
 
-		buffer = malloc(sizeof(void *) * (size + 1));
+		buffer = malloc(sizeof(ck_ring_buffer_t) * (size + 1));
 		assert(buffer);
-		ck_ring_init(ring + i, buffer, size + 1);
-		r = pthread_create(thread + i, NULL, test, context + i);
+		_context[i].buffer = buffer;
+		ck_ring_init(ring + i, size + 1);
+		r = pthread_create(thread + i, NULL, test, _context + i);
 		assert(r == 0);
 	}
 

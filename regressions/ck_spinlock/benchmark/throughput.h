@@ -70,6 +70,7 @@ LOCK_DEFINE;
 CK_CC_USED static void
 gen_lock(void)
 {
+	CK_CC_UNUSED int core = 0;
 #ifdef LOCK_STATE
 	LOCK_STATE;
 #endif
@@ -101,8 +102,9 @@ fairness(void *null)
 	unsigned int i = context->tid;
 	volatile int j;
 	long int base;
+	unsigned int core;
 
-        if (aff_iterate(&a)) {
+        if (aff_iterate_core(&a, &core)) {
                 perror("ERROR: Could not affine thread");
                 exit(EXIT_FAILURE);
         }

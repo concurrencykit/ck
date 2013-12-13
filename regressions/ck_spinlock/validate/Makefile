@@ -1,7 +1,7 @@
 .PHONY: check clean
 
 all: ck_ticket ck_mcs ck_dec ck_cas ck_fas ck_clh linux_spinlock \
-     ck_ticket_pb ck_anderson ck_spinlock
+     ck_ticket_pb ck_anderson ck_spinlock ck_hclh
 
 check: all
 	./ck_ticket $(CORES) 1
@@ -26,6 +26,9 @@ ck_ticket_pb: ck_ticket_pb.c
 
 ck_clh: ck_clh.c
 	$(CC) $(CFLAGS) -o ck_clh ck_clh.c
+
+ck_hclh: ck_hclh.c
+	$(CC) $(CFLAGS) -o ck_hclh ck_hclh.c
 
 ck_anderson: ck_anderson.c
 	$(CC) $(CFLAGS) -o ck_anderson ck_anderson.c

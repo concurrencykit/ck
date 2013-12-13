@@ -63,8 +63,9 @@ thread(void *null CK_CC_UNUSED)
 #endif
 	unsigned int i = ITERATE;
 	unsigned int j;
+	unsigned int core;
 
-        if (aff_iterate(&a)) {
+        if (aff_iterate_core(&a, &core)) {
                 perror("ERROR: Could not affine thread");
                 exit(EXIT_FAILURE);
         }
