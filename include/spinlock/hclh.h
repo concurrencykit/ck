@@ -1,4 +1,5 @@
 /*
+ * Copyright 2013 Olivier Houchard
  * Copyright 2010-2013 Samy Al Bahra.
  * All rights reserved.
  *
