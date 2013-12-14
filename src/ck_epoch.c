@@ -337,7 +337,7 @@ ck_epoch_synchronize(struct ck_epoch *global, struct ck_epoch_record *record)
 		 * we are at a grace period.
 		 */
 		if (active == false)
-			goto leave;
+			break;
 
 		/*
 		 * Increment current epoch. CAS semantics are used to eliminate
@@ -364,34 +364,10 @@ reload:
 			 * generation. We can actually avoid an addtional scan step
 			 * at this point.
 			 */
-			goto leave;
+			break;
 		}
 	}
 
-	/*
-	 * At this point, we are at e + 2. If all threads have observed
-	 * this epoch value, then no threads are at e + 1 and no references
-	 * could exist to the snapshot of e observed at the time this
-	 * function was called.
-	 */
-	while (cr = ck_epoch_scan(global, cr, delta, &active), cr != NULL) {
-		ck_pr_stall();
-
-		/*
-		 * If the epoch value was changed from underneath us then
-		 * our epoch must have been observed at some point.
-		 *
-		 * If all threads have gone inactive, we are also at a grace
-		 * period as any reads succeeding this call to synchronize
-		 * will imply a full memory barrier (logically deleted objects
-		 * will not be visible).
-		 */
-		epoch = ck_pr_load_uint(&global->epoch);
-		if ((epoch != delta) | (active == false))
-			break;
-	}
-
-leave:
 	record->epoch = delta;
 	return;
 }
