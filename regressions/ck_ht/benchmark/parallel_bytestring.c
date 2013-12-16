@@ -124,11 +124,16 @@ static struct ck_malloc my_allocator = {
 static void
 table_init(void)
 {
+	unsigned int mode = CK_HT_MODE_BYTESTRING;
+
+#ifdef HT_DELETE
+	mode |= CK_HT_WORKLOAD_DELETE;
+#endif
 
 	ck_epoch_init(&epoch_ht);
 	ck_epoch_register(&epoch_ht, &epoch_wr);
 	common_srand48((long int)time(NULL));
-	if (ck_ht_init(&ht, CK_HT_MODE_BYTESTRING, NULL, &my_allocator, 8, common_lrand48()) == false) {
+	if (ck_ht_init(&ht, mode, NULL, &my_allocator, 8, common_lrand48()) == false) {
 		perror("ck_ht_init");
 		exit(EXIT_FAILURE);
 	}

@@ -280,6 +280,7 @@ main(int argc, char *argv[])
 	if (argc < 2) {
 		fprintf(stderr, "Usage: parallel <#entries> [<interval length> <initial size> <readers>\n"
 		    " <probability of replacement> <probability of deletion> <epoch threshold>]\n");
+		exit(EXIT_FAILURE);
 	}
 
 	if (argc >= 3)
