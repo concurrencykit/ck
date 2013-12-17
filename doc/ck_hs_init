@@ -74,6 +74,16 @@ The hash set should allow for concurrent readers in the
 presence of concurrent writers. This is currently unsupported.
 .El
 .Pp
+The developer is free to specify additional workload hints.
+These hints are one of:
+.Bl -tag -width indent
+.It CK_HS_MODE_DELETE
+The hash set is expected to have a delete-heavy workload.
+At the cost of approximately 13% increased memory usage,
+allow for stronger per-slot probe bounds to combat the
+effects of tombstone accumulation.
+.El
+.Pp
 The argument
 .Fa hash_function
 is a mandatory pointer to a user-specified hash function.
