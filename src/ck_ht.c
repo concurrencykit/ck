@@ -385,26 +385,31 @@ ck_ht_gc(struct ck_ht *ht, unsigned long cycles, unsigned long seed)
 {
 	CK_HT_WORD *bounds = NULL;
 	struct ck_ht_map *map = ht->map;
-	uint64_t maximum = map->probe_maximum;
-	uint64_t i;
+	uint64_t maximum, i;
 	uint64_t size = 0;
 
-	if (cycles == 0 && map->probe_bound != NULL) {
-		size = sizeof(CK_HT_WORD) * map->capacity;
-		bounds = ht->m->malloc(size);
-		if (bounds == NULL)
-			return false;
+	if (cycles == 0) {
+		maximum = 0;
 
-		memset(bounds, 0, size);
+		if (map->probe_bound != NULL) {
+			size = sizeof(CK_HT_WORD) * map->capacity;
+			bounds = ht->m->malloc(size);
+			if (bounds == NULL)
+				return false;
+
+			memset(bounds, 0, size);
+		}
+	} else {
+		maximum = map->probe_maximum;
 	}
 
 	for (i = 0; i < map->capacity; i++) {
 		struct ck_ht_entry *entry, *priority, snapshot;
 		struct ck_ht_hash h;
 		uint64_t probes_wr;
-		uint64_t offset = (i + seed) & map->mask;
+		uint64_t offset;
 
-		entry = &map->entries[offset];
+		entry = &map->entries[(i + seed) & map->mask];
 		if (entry->key == CK_HT_KEY_EMPTY ||
 		    entry->key == CK_HT_KEY_TOMBSTONE) {
 			continue;
@@ -417,7 +422,7 @@ ck_ht_gc(struct ck_ht *ht, unsigned long cycles, unsigned long seed)
 			ht->h(&h, ck_ht_entry_key(entry), ck_ht_entry_key_length(entry),
 			    ht->seed);
 #endif
-			ck_ht_map_probe_wr(map, h, &snapshot, &priority,
+			entry = ck_ht_map_probe_wr(map, h, &snapshot, &priority,
 			    ck_ht_entry_key(entry),
 			    ck_ht_entry_key_length(entry),
 			    NULL, &probes_wr);
@@ -427,52 +432,51 @@ ck_ht_gc(struct ck_ht *ht, unsigned long cycles, unsigned long seed)
 #else
 			ht->h(&h, &entry->key, sizeof(entry->key), ht->seed);
 #endif
-			ck_ht_map_probe_wr(map, h, &snapshot, &priority,
+			entry = ck_ht_map_probe_wr(map, h, &snapshot, &priority,
 			    &entry->key,
 			    sizeof(entry->key),
 			    NULL, &probes_wr);
 		}
 
-		if (priority == NULL)
-			continue;
+		offset = h.value & map->mask;
 
+		if (priority != NULL) {
 #ifndef CK_HT_PP
-		ck_pr_store_64(&priority->key_length, entry->key_length);
-		ck_pr_store_64(&priority->hash, entry->hash);
+			ck_pr_store_64(&priority->key_length, entry->key_length);
+			ck_pr_store_64(&priority->hash, entry->hash);
 #endif
-		ck_pr_store_ptr(&priority->value, (void *)entry->value);
-		ck_pr_fence_store();
-		ck_pr_store_ptr(&priority->key, (void *)entry->key);
-		ck_pr_fence_store();
-		ck_pr_store_64(&map->deletions, map->deletions + 1);
-		ck_pr_fence_store();
-		ck_pr_store_ptr(&entry->key, (void *)CK_HT_KEY_TOMBSTONE);
+			ck_pr_store_ptr(&priority->value, (void *)entry->value);
+			ck_pr_fence_store();
+			ck_pr_store_ptr(&priority->key, (void *)entry->key);
+			ck_pr_fence_store();
+			ck_pr_store_64(&map->deletions, map->deletions + 1);
+			ck_pr_fence_store();
+			ck_pr_store_ptr(&entry->key, (void *)CK_HT_KEY_TOMBSTONE);
+		}
 
 		if (cycles == 0) {
+			if (probes_wr > maximum)
+				maximum = probes_wr;
+
 			if (probes_wr >= CK_HT_WORD_MAX)
 				probes_wr = CK_HT_WORD_MAX;
 
 			if (bounds != NULL && probes_wr > bounds[offset])
 				bounds[offset] = probes_wr;
-
-			if (probes_wr > maximum)
-				maximum = probes_wr;
 		} else if (--cycles == 0)
 			break;
 	}
 
-	if (bounds != NULL) {
-		for (i = 0; i < map->capacity; i++) {
-			if (bounds[i] == 0 && map->probe_bound[i] != 0)
-				continue;
+	if (maximum != map->probe_maximum)
+		ck_pr_store_64(&map->probe_maximum, maximum);
 
+	if (bounds != NULL) {
+		for (i = 0; i < map->capacity; i++)
 			CK_HT_STORE(&map->probe_bound[i], bounds[i]);
-		}
 
 		ht->m->free(bounds, size, false);
 	}
 
-	ck_pr_store_64(&map->probe_maximum, maximum);
 	return true;
 }
 
