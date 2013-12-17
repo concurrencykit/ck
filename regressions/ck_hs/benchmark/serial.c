@@ -434,6 +434,12 @@ run_test(const char *file, size_t r, unsigned int size, unsigned int mode)
 	}
 	su = a / (r * keys_length);
 
+	for (i = 0; i < keys_length; i++)
+		set_insert_unique(keys[i]);
+
+	for (i = 0; i < keys_length / 2; i++)
+		set_remove(keys[i]);
+
 	a = 0;
 	for (j = 0; j < r; j++) {
 		s = rdtsc();
