@@ -34,7 +34,7 @@ Concurrency Kit (libck, \-lck)
 .Sh SYNOPSIS
 .In ck_ring.h
 .Ft bool
-.Fn ck_ring_enqueue_spsc_size "ck_ring_t *ring" "void *entry" "unsigned int *size"
+.Fn ck_ring_enqueue_spsc_size "ck_ring_t *ring" "ck_ring_buffer_t *buffer" "void *entry" "unsigned int *size"
 .Sh DESCRIPTION
 The
 .Fn ck_ring_enqueue_spsc_size 3
@@ -43,6 +43,15 @@ function enqueues the pointer
 into the bounded buffer pointed to by
 .Fa ring
 in FIFO fashion. 
+The buffer pointed to by
+.Fa buffer
+must be unique to
+.Fa ring
+and point to an array of ck_ring_buffer_t of sufficient
+length (according to the power-of-2 elements in the buffer).
+The decoupling of the ring from the buffer serves
+to address use-cases involving multiple address spaces
+and DMA, among others.
 If you are on non-POSIX platforms or wish for strict
 compliance with C, then it is recommended to pass a
 pointer of type void ** for
@@ -59,6 +68,9 @@ guarantees.
 /* This ring was previously initialized with ck_ring_init. */
 ck_ring_t ring;
 
+/* The ring was initialized for 1023 elements. */
+ck_ring_buffer_t buffer[1024];
+
 void
 enqueue(void)
 {
@@ -66,7 +78,7 @@ enqueue(void)
 	unsigned int length;
 
 	/* Attempt to enqueue pointer to some_object into buffer. */
-	if (ck_ring_enqueue_spsc(&ring, &entry, &length) == false) {
+	if (ck_ring_enqueue_spsc(&ring, &buffer, &entry, &length) == false) {
 		/*
 		 * The buffer was full and the enqueue operation
 		 * has failed.

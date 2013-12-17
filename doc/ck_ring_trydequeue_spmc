@@ -34,7 +34,7 @@ Concurrency Kit (libck, \-lck)
 .Sh SYNOPSIS
 .In ck_ring.h
 .Ft bool
-.Fn ck_ring_trydequeue_spmc "ck_ring_t *ring" "void *result"
+.Fn ck_ring_trydequeue_spmc "ck_ring_t *ring" "ck_ring_buffer_t *buffer" "void *result"
 .Sh DESCRIPTION
 The
 .Fn ck_ring_trydequeue_spmc 3
@@ -44,6 +44,15 @@ pointed to by
 in FIFO fashion. The pointer is stored in the pointer
 pointed to by
 .Fa result .
+The buffer pointed to by
+.Fa buffer
+must be unique to
+.Fa ring
+and point to an array of ck_ring_buffer_t of sufficient
+length (according to the power-of-2 elements in the buffer).
+The decoupling of the ring from the buffer serves
+to address use-cases involving multiple address spaces
+and DMA, among others.
 If you are on non-POSIX platforms or wish for strict
 compliance with C, then it is recommended to pass a
 pointer of type void ** for
@@ -70,13 +79,16 @@ is non-empty. This
 /* This ring was previously initialized with ck_ring_init. */
 ck_ring_t ring;
 
+/* The ring was initialized for 1023 elements. */
+ck_ring_buffer_t buffer[1024];
+
 void
 dequeue(void)
 {
 	void *result;
 
 	/* Dequeue from ring until contention is actively observed. */
-	while (ck_ring_trydequeue_spmc(&ring, &result) == true) {
+	while (ck_ring_trydequeue_spmc(&ring, &buffer, &result) == true) {
 		/*
 		 * Results contains the oldest pointer in ring
 		 * since the dequeue operation returned true.
