@@ -77,8 +77,13 @@ main(void)
 	ck_ht_hash_t h;
 	ck_ht_iterator_t iterator = CK_HT_ITERATOR_INITIALIZER;
 	ck_ht_entry_t *cursor;
+	unsigned int mode = CK_HT_MODE_BYTESTRING;
 
-	if (ck_ht_init(&ht, CK_HT_MODE_BYTESTRING, NULL, &my_allocator, 8, 6602834) == false) {
+#ifdef HT_DELETE
+	mode |= CK_HT_WORKLOAD_DELETE;
+#endif
+
+	if (ck_ht_init(&ht, mode, NULL, &my_allocator, 16, 6602834) == false) {
 		perror("ck_ht_init");
 		exit(EXIT_FAILURE);
 	}
@@ -187,7 +192,7 @@ main(void)
 		}
 	}
 
-	if (ck_ht_gc(&ht, 0, 0) == false) {
+	if (ck_ht_gc(&ht, 0, 27) == false) {
 		ck_error("ck_ht_gc\n");
 	}
 

@@ -60,8 +60,27 @@
 #define CK_HT_PROBE_DEFAULT 64ULL
 #endif
 
+#if defined(CK_F_PR_LOAD_8) && defined(CK_F_PR_STORE_8)
+#define CK_HT_WORD	    uint8_t
+#define CK_HT_WORD_MAX	    UINT8_MAX
+#define CK_HT_STORE(x, y)   ck_pr_store_8(x, y)
+#define CK_HT_LOAD(x)	    ck_pr_load_8(x)
+#elif defined(CK_F_PR_LOAD_16) && defined(CK_F_PR_STORE_16)
+#define CK_HT_WORD	    uint16_t
+#define CK_HT_WORD_MAX	    UINT16_MAX
+#define CK_HT_STORE(x, y)   ck_pr_store_16(x, y)
+#define CK_HT_LOAD(x)	    ck_pr_load_16(x)
+#elif defined(CK_F_PR_LOAD_32) && defined(CK_F_PR_STORE_32)
+#define CK_HT_WORD	    uint32_t
+#define CK_HT_WORD_MAX	    UINT32_MAX
+#define CK_HT_STORE(x, y)   ck_pr_store_32(x, y)
+#define CK_HT_LOAD(x)	    ck_pr_load_32(x)
+#else
+#error "ck_ht is not supported on your platform."
+#endif
+
 struct ck_ht_map {
-	enum ck_ht_mode mode;
+	unsigned int mode;
 	uint64_t deletions;
 	uint64_t probe_maximum;
 	uint64_t probe_length;
@@ -71,6 +90,7 @@ struct ck_ht_map {
 	uint64_t mask;
 	uint64_t capacity;
 	uint64_t step;
+	CK_HT_WORD *probe_bound;
 	struct ck_ht_entry *entries;
 };
 
@@ -121,11 +141,21 @@ static struct ck_ht_map *
 ck_ht_map_create(struct ck_ht *table, uint64_t entries)
 {
 	struct ck_ht_map *map;
-	uint64_t size, n_entries;
+	uint64_t size, n_entries, prefix;
 
 	n_entries = ck_internal_power_2(entries);
+	if (n_entries < CK_HT_BUCKET_LENGTH)
+		return NULL;
+
 	size = sizeof(struct ck_ht_map) +
 		   (sizeof(struct ck_ht_entry) * n_entries + CK_MD_CACHELINE - 1);
+
+	if (table->mode & CK_HT_WORKLOAD_DELETE) {
+		prefix = sizeof(CK_HT_WORD) * n_entries;
+		size += prefix;
+	} else {
+		prefix = 0;
+	}
 
 	map = table->m->malloc(size);
 	if (map == NULL)
@@ -142,16 +172,57 @@ ck_ht_map_create(struct ck_ht *table, uint64_t entries)
 	map->step = ck_internal_bsf_64(map->capacity);
 	map->mask = map->capacity - 1;
 	map->n_entries = 0;
-	map->entries = (struct ck_ht_entry *)(((uintptr_t)(map + 1) +
+	map->entries = (struct ck_ht_entry *)(((uintptr_t)&map[1] + prefix +
 	    CK_MD_CACHELINE - 1) & ~(CK_MD_CACHELINE - 1));
 
-	if (map->entries == NULL) {
-		table->m->free(map, size, false);
-		return NULL;
+	if (table->mode & CK_HT_WORKLOAD_DELETE) {
+		map->probe_bound = (CK_HT_WORD *)&map[1];
+		memset(map->probe_bound, 0, prefix);
+	} else {
+		map->probe_bound = NULL;
 	}
 
 	memset(map->entries, 0, sizeof(struct ck_ht_entry) * n_entries);
+	ck_pr_fence_store();
 	return map;
+}
+
+static inline void
+ck_ht_map_bound_set(struct ck_ht_map *m,
+    struct ck_ht_hash h,
+    uint64_t n_probes)
+{
+	uint64_t offset = h.value & m->mask;
+
+	if (n_probes > m->probe_maximum)
+		ck_pr_store_64(&m->probe_maximum, n_probes);
+
+	if (m->probe_bound != NULL && m->probe_bound[offset] < n_probes) {
+		if (n_probes >= CK_HT_WORD_MAX)
+			n_probes = CK_HT_WORD_MAX;
+
+		CK_HT_STORE(&m->probe_bound[offset], n_probes);
+		ck_pr_fence_store();
+	}
+
+	return;
+}
+
+static inline uint64_t
+ck_ht_map_bound_get(struct ck_ht_map *m, struct ck_ht_hash h)
+{
+	uint64_t offset = h.value & m->mask;
+	uint64_t r = CK_HT_WORD_MAX;
+
+	if (m->probe_bound != NULL) {
+		r = CK_HT_LOAD(&m->probe_bound[offset]);
+		if (r == CK_HT_WORD_MAX)
+			r = ck_pr_load_64(&m->probe_maximum);
+	} else {
+		r = ck_pr_load_64(&m->probe_maximum);
+	}
+
+	return r;
 }
 
 static void
@@ -179,7 +250,7 @@ ck_ht_map_probe_next(struct ck_ht_map *map, size_t offset, ck_ht_hash_t h, size_
 
 bool
 ck_ht_init(struct ck_ht *table,
-    enum ck_ht_mode mode,
+    unsigned int mode,
     ck_ht_hash_cb_t *h,
     struct ck_malloc *m,
     uint64_t entries,
@@ -220,13 +291,13 @@ ck_ht_map_probe_wr(struct ck_ht_map *map,
 	uint64_t limit;
 
 	if (probe_limit == NULL) {
-		limit = map->probe_maximum;
+		limit = ck_ht_map_bound_get(map, h);
 	} else {
-		limit = map->probe_limit;
+		limit = UINT64_MAX;
 	}
 
 	offset = h.value & map->mask;
-	for (i = 0; i < limit; i++) {
+	for (i = 0; i < map->probe_limit; i++) {
 		/*
 		 * Probe on a complete cache line first. Scan forward and wrap around to
 		 * the beginning of the cache line. Only when the complete cache line has
@@ -238,7 +309,9 @@ ck_ht_map_probe_wr(struct ck_ht_map *map,
 		for (j = 0; j < CK_HT_BUCKET_LENGTH; j++) {
 			uint16_t k;
 
-			probes++;
+			if (probes++ > limit)
+				break;
+
 			cursor = bucket + ((j + offset) & (CK_HT_BUCKET_LENGTH - 1));
 
 			/*
@@ -261,7 +334,7 @@ ck_ht_map_probe_wr(struct ck_ht_map *map,
 			if (cursor->key == (uintptr_t)key)
 				goto leave;
 
-			if (map->mode == CK_HT_MODE_BYTESTRING) {
+			if (map->mode & CK_HT_MODE_BYTESTRING) {
 				void *pointer;
 
 				/*
@@ -294,6 +367,8 @@ ck_ht_map_probe_wr(struct ck_ht_map *map,
 leave:
 	if (probe_limit != NULL) {
 		*probe_limit = probes;
+	} else if (first == NULL) {
+		*probe_wr = probes;
 	}
 
 	*available = first;
@@ -308,35 +383,55 @@ leave:
 bool
 ck_ht_gc(struct ck_ht *ht, unsigned long cycles, unsigned long seed)
 {
+	CK_HT_WORD *bounds = NULL;
 	struct ck_ht_map *map = ht->map;
 	uint64_t maximum = map->probe_maximum;
 	uint64_t i;
+	uint64_t size = 0;
+
+	if (cycles == 0 && map->probe_bound != NULL) {
+		size = sizeof(CK_HT_WORD) * map->capacity;
+		bounds = ht->m->malloc(size);
+		if (bounds == NULL)
+			return false;
+
+		memset(bounds, 0, size);
+	}
 
 	for (i = 0; i < map->capacity; i++) {
 		struct ck_ht_entry *entry, *priority, snapshot;
 		struct ck_ht_hash h;
 		uint64_t probes_wr;
+		uint64_t offset = (i + seed) & map->mask;
 
-		entry = &map->entries[(i + seed) & map->mask];
+		entry = &map->entries[offset];
 		if (entry->key == CK_HT_KEY_EMPTY ||
 		    entry->key == CK_HT_KEY_TOMBSTONE) {
 			continue;
 		}
 
-		if (cycles != 0 && --cycles == 0)
-			break;
-
+		if (ht->mode & CK_HT_MODE_BYTESTRING) {
 #ifndef CK_HT_PP
-		h.value = entry->hash;
+			h.value = entry->hash;
 #else
-		ht->h(&h, ck_ht_entry_key(entry), ck_ht_entry_key_length(entry),
-		    ht->seed);
+			ht->h(&h, ck_ht_entry_key(entry), ck_ht_entry_key_length(entry),
+			    ht->seed);
 #endif
-
-		entry = ck_ht_map_probe_wr(map, h, &snapshot, &priority,
-		    ck_ht_entry_key(entry),
-		    ck_ht_entry_key_length(entry),
-		    NULL, &probes_wr);
+			ck_ht_map_probe_wr(map, h, &snapshot, &priority,
+			    ck_ht_entry_key(entry),
+			    ck_ht_entry_key_length(entry),
+			    NULL, &probes_wr);
+		} else {
+#ifndef CK_HT_PP
+			h.value = entry->hash;
+#else
+			ht->h(&h, &entry->key, sizeof(entry->key), ht->seed);
+#endif
+			ck_ht_map_probe_wr(map, h, &snapshot, &priority,
+			    &entry->key,
+			    sizeof(entry->key),
+			    NULL, &probes_wr);
+		}
 
 		if (priority == NULL)
 			continue;
@@ -353,10 +448,31 @@ ck_ht_gc(struct ck_ht *ht, unsigned long cycles, unsigned long seed)
 		ck_pr_fence_store();
 		ck_pr_store_ptr(&entry->key, (void *)CK_HT_KEY_TOMBSTONE);
 
-		if (probes_wr > maximum)
-			ck_pr_store_64(&map->probe_maximum, probes_wr);
+		if (cycles == 0) {
+			if (probes_wr >= CK_HT_WORD_MAX)
+				probes_wr = CK_HT_WORD_MAX;
+
+			if (bounds != NULL && probes_wr > bounds[offset])
+				bounds[offset] = probes_wr;
+
+			if (probes_wr > maximum)
+				maximum = probes_wr;
+		} else if (--cycles == 0)
+			break;
 	}
 
+	if (bounds != NULL) {
+		for (i = 0; i < map->capacity; i++) {
+			if (bounds[i] == 0 && map->probe_bound[i] != 0)
+				continue;
+
+			CK_HT_STORE(&map->probe_bound[i], bounds[i]);
+		}
+
+		ht->m->free(bounds, size, false);
+	}
+
+	ck_pr_store_64(&map->probe_maximum, maximum);
 	return true;
 }
 
@@ -378,7 +494,7 @@ ck_ht_map_probe_rd(struct ck_ht_map *map,
 retry:
 #endif
 
-	probe_maximum = ck_pr_load_64(&map->probe_maximum);
+	probe_maximum = ck_ht_map_bound_get(map, h);
 	offset = h.value & map->mask;
 
 	for (i = 0; i < map->probe_limit; i++) {
@@ -393,7 +509,9 @@ retry:
 		for (j = 0; j < CK_HT_BUCKET_LENGTH; j++) {
 			uint16_t k;
 
-			probes++;
+			if (probes++ > probe_maximum)
+				return NULL;
+
 			cursor = bucket + ((j + offset) & (CK_HT_BUCKET_LENGTH - 1));
 
 #ifdef CK_HT_PP
@@ -423,7 +541,7 @@ retry:
 			if (snapshot->key == (uintptr_t)key)
 				goto leave;
 
-			if (map->mode == CK_HT_MODE_BYTESTRING) {
+			if (map->mode & CK_HT_MODE_BYTESTRING) {
 				void *pointer;
 
 				/*
@@ -455,9 +573,6 @@ retry:
 					goto leave;
 			}
 		}
-
-		if (probes > probe_maximum)
-			return NULL;
 
 		offset = ck_ht_map_probe_next(map, offset, h, probes);
 	}
@@ -548,7 +663,7 @@ restart:
 		if (previous->key == CK_HT_KEY_EMPTY || previous->key == CK_HT_KEY_TOMBSTONE)
 			continue;
 
-		if (table->mode == CK_HT_MODE_BYTESTRING) {
+		if (table->mode & CK_HT_MODE_BYTESTRING) {
 #ifdef CK_HT_PP
 			void *key;
 			uint16_t key_length;
@@ -583,10 +698,7 @@ restart:
 				if (CK_CC_LIKELY(cursor->key == CK_HT_KEY_EMPTY)) {
 					*cursor = *previous;
 					update->n_entries++;
-
-					if (probes > update->probe_maximum)
-						update->probe_maximum = probes;
-
+					ck_ht_map_bound_set(update, h, probes);
 					break;
 				}
 			}
@@ -620,21 +732,18 @@ ck_ht_remove_spmc(struct ck_ht *table,
     ck_ht_entry_t *entry)
 {
 	struct ck_ht_map *map;
-	struct ck_ht_entry *candidate, *priority, snapshot;
-	uint64_t probes, probes_wr;
+	struct ck_ht_entry *candidate, snapshot;
 
 	map = table->map;
 
-	if (table->mode == CK_HT_MODE_BYTESTRING) {
-		candidate = ck_ht_map_probe_wr(map, h, &snapshot, &priority,
+	if (table->mode & CK_HT_MODE_BYTESTRING) {
+		candidate = ck_ht_map_probe_rd(map, h, &snapshot,
 		    ck_ht_entry_key(entry),
-		    ck_ht_entry_key_length(entry),
-		    &probes, &probes_wr);
+		    ck_ht_entry_key_length(entry));
 	} else {
-		candidate = ck_ht_map_probe_wr(map, h, &snapshot, &priority,
+		candidate = ck_ht_map_probe_rd(map, h, &snapshot,
 		    (void *)entry->key,
-		    sizeof(entry->key),
-		    &probes, &probes_wr);
+		    sizeof(entry->key));
 	}
 
 	/* No matching entry was found. */
@@ -687,7 +796,7 @@ restart:
 	 */
 	d = ck_pr_load_64(&map->deletions);
 
-	if (table->mode == CK_HT_MODE_BYTESTRING) {
+	if (table->mode & CK_HT_MODE_BYTESTRING) {
 		candidate = ck_ht_map_probe_rd(map, h, &snapshot,
 		    ck_ht_entry_key(entry), ck_ht_entry_key_length(entry));
 	} else {
@@ -725,7 +834,7 @@ ck_ht_set_spmc(struct ck_ht *table,
 	for (;;) {
 		map = table->map;
 
-		if (table->mode == CK_HT_MODE_BYTESTRING) {
+		if (table->mode & CK_HT_MODE_BYTESTRING) {
 			candidate = ck_ht_map_probe_wr(map, h, &snapshot, &priority,
 			    ck_ht_entry_key(entry),
 			    ck_ht_entry_key_length(entry),
@@ -749,9 +858,6 @@ ck_ht_set_spmc(struct ck_ht *table,
 			return false;
 	}
 
-	if (probes > map->probe_maximum)
-		ck_pr_store_64(&map->probe_maximum, probes);
-
 	if (candidate == NULL) {
 		candidate = priority;
 		empty = true;
@@ -768,6 +874,8 @@ ck_ht_set_spmc(struct ck_ht *table,
 		 * before transitioning from K to T. (K, B) implies (K, B, D')
 		 * so we will reprobe successfully from this transient state.
 		 */
+		probes = probes_wr;
+
 #ifndef CK_HT_PP
 		ck_pr_store_64(&priority->key_length, entry->key_length);
 		ck_pr_store_64(&priority->hash, entry->hash);
@@ -790,8 +898,10 @@ ck_ht_set_spmc(struct ck_ht *table,
 		bool replace = candidate->key != CK_HT_KEY_EMPTY &&
 		    candidate->key != CK_HT_KEY_TOMBSTONE;
 
-		if (priority != NULL)
+		if (priority != NULL) {
 			candidate = priority;
+			probes = probes_wr;
+		}
 
 #ifdef CK_HT_PP
 		ck_pr_store_ptr(&candidate->value, (void *)entry->value);
@@ -812,6 +922,8 @@ ck_ht_set_spmc(struct ck_ht *table,
 		if (replace == false)
 			ck_pr_store_64(&map->n_entries, map->n_entries + 1);
 	}
+
+	ck_ht_map_bound_set(map, h, probes);
 
 	/* Enforce a load factor of 0.5. */
 	if (map->n_entries * 2 > map->capacity)
@@ -838,7 +950,7 @@ ck_ht_put_spmc(struct ck_ht *table,
 	for (;;) {
 		map = table->map;
 
-		if (table->mode == CK_HT_MODE_BYTESTRING) {
+		if (table->mode & CK_HT_MODE_BYTESTRING) {
 			candidate = ck_ht_map_probe_wr(map, h, &snapshot, &priority,
 			    ck_ht_entry_key(entry),
 			    ck_ht_entry_key_length(entry),
@@ -871,8 +983,7 @@ ck_ht_put_spmc(struct ck_ht *table,
 		return false;
 	}
 
-	if (probes > map->probe_maximum)
-		ck_pr_store_64(&map->probe_maximum, probes);
+	ck_ht_map_bound_set(map, h, probes);
 
 #ifdef CK_HT_PP
 	ck_pr_store_ptr(&candidate->value, (void *)entry->value);

@@ -44,10 +44,9 @@ struct ck_ht_hash {
 };
 typedef struct ck_ht_hash ck_ht_hash_t;
 
-enum ck_ht_mode {
-	CK_HT_MODE_DIRECT,
-	CK_HT_MODE_BYTESTRING
-};
+#define CK_HT_MODE_DIRECT	1U
+#define CK_HT_MODE_BYTESTRING	2U
+#define CK_HT_WORKLOAD_DELETE	4U
 
 #if defined(CK_MD_POINTER_PACK_ENABLE) && defined(CK_MD_VMA_BITS)
 #define CK_HT_PP
@@ -93,7 +92,7 @@ struct ck_ht_map;
 struct ck_ht {
 	struct ck_malloc *m;
 	struct ck_ht_map *map;
-	enum ck_ht_mode mode;
+	unsigned int mode;
 	uint64_t seed;
 	ck_ht_hash_cb_t *h;
 };
@@ -245,7 +244,8 @@ bool ck_ht_next(ck_ht_t *, ck_ht_iterator_t *, ck_ht_entry_t **entry);
 void ck_ht_stat(ck_ht_t *, struct ck_ht_stat *);
 void ck_ht_hash(ck_ht_hash_t *, ck_ht_t *, const void *, uint16_t);
 void ck_ht_hash_direct(ck_ht_hash_t *, ck_ht_t *, uintptr_t);
-bool ck_ht_init(ck_ht_t *, enum ck_ht_mode, ck_ht_hash_cb_t *, struct ck_malloc *, uint64_t, uint64_t);
+bool ck_ht_init(ck_ht_t *, unsigned int, ck_ht_hash_cb_t *,
+    struct ck_malloc *, uint64_t, uint64_t);
 void ck_ht_destroy(ck_ht_t *);
 bool ck_ht_set_spmc(ck_ht_t *, ck_ht_hash_t, ck_ht_entry_t *);
 bool ck_ht_put_spmc(ck_ht_t *, ck_ht_hash_t, ck_ht_entry_t *);
