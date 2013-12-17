@@ -58,6 +58,10 @@
 .Nm ck_spinlock_fas_locked ,
 .Nm ck_spinlock_fas_trylock ,
 .Nm ck_spinlock_fas_unlock ,
+.Nm ck_spinlock_hclh_init ,
+.Nm ck_spinlock_hclh_locked ,
+.Nm ck_spinlock_hclh_lock ,
+.Nm ck_spinlock_hclh_unlock ,
 .Nm ck_spinlock_mcs_init ,
 .Nm ck_spinlock_mcs_locked ,
 .Nm ck_spinlock_mcs_lock ,
@@ -145,6 +149,15 @@ Concurrency Kit (libck, \-lck)
 .Ft void
 .Fn ck_spinlock_fas_unlock "ck_spinlock_fas_t *lock"
 .Pp
+.Ft void
+.Fn ck_spinlock_hclh_init "ck_spinlock_clh_t **lock" "ck_spinlock_clh_t *unowned"
+.Ft bool
+.Fn ck_spinlock_hclh_locked "ck_spinlock_clh_t **lock"
+.Ft void
+.Fn ck_spinlock_hclh_lock "ck_spinlock_clh_t **lock" "ck_spinlock_clh_t *node"
+.Ft void
+.Fn ck_spinlock_hclh_unlock "ck_spinlock_clh_t **node"
+.Pp
 .Dv ck_spinlock_mcs_t spinlock = CK_SPINLOCK_MCS_INITIALIZER;
 .Ft void
 .Fn ck_spinlock_mcs_init "ck_spinlock_mcs_t **lock"
@@ -182,9 +195,13 @@ provides a summary of the current implementations.
        ck_spinlock_clh   Craig, Landin and Hagersten   Queue           Lifetime requirements     Yes
        ck_spinlock_dec   Decrement (Linux kernel)      Centralized     UINT_MAX concurrency      No
        ck_spinlock_fas   Fetch-and-store               Centralized     None                      No
+       ck_spinlock_hclh  Hierarchical CLH              Queue           Lifetime requirements     Yes *
        ck_spinlock_mcs   Mellor-Crummey and Scott      Queue           None                      Yes
     ck_spinlock_ticket   Ticket                        Centralized     None                      Yes
 .Ed
+.Pp
+* Hierarchical CLH only offers a weak fairness for threads accross cluster 
+nodes.
 .Pp
 If contention is low and there is no hard requirement for starvation-freedom
 then a centralized greedy (unfair) spinlock is recommended. If contention is
