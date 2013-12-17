@@ -501,16 +501,22 @@ ck_hs_gc(struct ck_hs *hs, unsigned long cycles, unsigned long seed)
 	unsigned long size = 0;
 	unsigned long i;
 	struct ck_hs_map *map = hs->map;
-	unsigned int maximum = map->probe_maximum;
+	unsigned int maximum;
 	CK_HS_WORD *bounds = NULL;
 
-	if (cycles == 0 && map->probe_bound != NULL) {
-		size = sizeof(CK_HS_WORD) * map->capacity;
-		bounds = hs->m->malloc(size);
-		if (bounds == NULL)
-			return false;
+	if (cycles == 0) {
+		maximum = 0;
 
-		memset(bounds, 0, size);
+		if (map->probe_bound != NULL) {
+			size = sizeof(CK_HS_WORD) * map->capacity;
+			bounds = hs->m->malloc(size);
+			if (bounds == NULL)
+				return false;
+
+			memset(bounds, 0, size);
+		}
+	} else {
+		maximum = map->probe_maximum;
 	}
 
 	for (i = 0; i < map->capacity; i++) {
@@ -542,30 +548,32 @@ ck_hs_gc(struct ck_hs *hs, unsigned long cycles, unsigned long seed)
 		}
 
 		if (cycles == 0) {
+			if (n_probes > maximum)
+				maximum = n_probes;
+
 			if (n_probes > CK_HS_WORD_MAX)
 				n_probes = CK_HS_WORD_MAX;
 
 			if (bounds != NULL && n_probes > bounds[offset])
 				bounds[offset] = n_probes;
-
-			if (n_probes > maximum)
-				maximum = n_probes;
 		} else if (--cycles == 0)
 			break;
 	}
 
-	if (bounds != NULL) { 
-		for (i = 0; i < map->capacity; i++) {
-			if (bounds[i] == 0 && map->probe_bound[i] != 0)
-				continue;
+	/*
+	 * The following only apply to garbage collection involving
+	 * a full scan of all entries.
+	 */
+	if (maximum != map->probe_maximum)
+		ck_pr_store_uint(&map->probe_maximum, maximum);
 
+	if (bounds != NULL) { 
+		for (i = 0; i < map->capacity; i++)
 			CK_HS_STORE(&map->probe_bound[i], bounds[i]);
-		}
 
 		hs->m->free(bounds, size, false);
 	}
 
-	ck_pr_store_uint(&map->probe_maximum, maximum);
 	return true;
 }
 
