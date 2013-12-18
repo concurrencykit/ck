@@ -81,6 +81,11 @@ functions. Attempting a hash table operation with a key of value of 0 or
 UINTPTR_MAX will result in undefined behavior.
 .El
 .Pp
+In addition to this, the user may bitwise OR the mode flag with
+CK_HT_WORKLOAD_DELETE to indicate that the hash table will
+have to handle a delete heavy workload, in which case stronger
+bounds on latency can be provided at the cost of approximately
+13% higher memory usage.
 The argument
 .Fa hash_function
 is a pointer to a user-specified hash function. It is optional,
