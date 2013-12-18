@@ -67,6 +67,7 @@ failure.
 This function will only return false if there are internal memory allocation
 failures.
 .Sh SEE ALSO
+.Xr ck_ht_count 3 ,
 .Xr ck_ht_stat 3 ,
 .Xr ck_ht_init 3 ,
 .Xr ck_ht_destroy 3 ,
