@@ -67,6 +67,7 @@ OBJECTS=CK_ARRAY_FOREACH		\
 	ck_epoch_reclaim		\
 	ck_epoch_synchronize		\
 	ck_epoch_unregister		\
+	ck_hs_gc			\
 	ck_hs_init			\
 	ck_hs_destroy			\
 	CK_HS_HASH			\
