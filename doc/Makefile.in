@@ -21,6 +21,7 @@ OBJECTS=CK_ARRAY_FOREACH		\
 	ck_brlock			\
 	ck_ht_count 	  		\
 	ck_ht_destroy	  		\
+	ck_ht_gc			\
 	ck_ht_get_spmc	  		\
 	ck_ht_grow_spmc	  		\
 	ck_ht_hash	  		\
