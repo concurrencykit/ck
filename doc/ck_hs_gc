@@ -45,7 +45,7 @@ including defragmentation of probe sequences with respect to tombstones
 and in the case that the delete workload hint has been passed, recalculation
 of probe sequence bounds. The
 .Fa cycles
-argument is used to indicate how many hash table entries should be subject
+argument is used to indicate how many hash set entries should be subject
 to attempted maintenance. If
 .Fa cycles
 is 0, then maintenance is performed on the complete hash set. The
