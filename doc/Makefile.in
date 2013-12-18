@@ -132,6 +132,7 @@ OBJECTS=CK_ARRAY_FOREACH		\
 	ck_pr_btr			\
 	ck_pr_store			\
 	ck_pr_load			\
+	ck_pr_rtm			\
 	ck_queue			\
 	ck_ring_init			\
 	ck_ring_dequeue_spmc		\
