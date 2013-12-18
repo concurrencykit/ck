@@ -71,7 +71,7 @@ ck_spinlock_clh_lock(struct ck_spinlock_clh **queue, struct ck_spinlock_clh *thr
 
 	/* Indicate to the next thread on queue that they will have to block. */
 	thread->wait = true;
-	ck_pr_fence_store();
+	ck_pr_fence_store_atomic();
 
 	/* Mark current request as last request. Save reference to previous request. */
 	previous = ck_pr_fas_ptr(queue, thread);
