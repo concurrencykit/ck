@@ -155,6 +155,7 @@ was not found in the hash table.
 .Xr ck_ht_hash_direct 3 ,
 .Xr ck_ht_set_spmc 3 ,
 .Xr ck_ht_put_spmc 3 ,
+.Xr ck_ht_gc 3 ,
 .Xr ck_ht_grow_spmc 3 ,
 .Xr ck_ht_remove_spmc 3 ,
 .Xr ck_ht_reset_spmc 3 ,
