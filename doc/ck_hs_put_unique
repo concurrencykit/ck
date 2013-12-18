@@ -89,6 +89,7 @@ already inserted key value.
 .Xr ck_hs_remove 3 ,
 .Xr ck_hs_grow 3 ,
 .Xr ck_hs_rebuild 3 ,
+.Xr ck_hs_gc 3 ,
 .Xr ck_hs_count 3 ,
 .Xr ck_hs_reset 3 ,
 .Xr ck_hs_reset_size 3 ,

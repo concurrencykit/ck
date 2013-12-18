@@ -65,6 +65,8 @@ failures.
 .Xr ck_hs_put_unique 3 ,
 .Xr ck_hs_set 3 ,
 .Xr ck_hs_fas 3 ,
+.Xr ck_hs_gc 3 ,
+.Xr ck_hs_grow 3 ,
 .Xr ck_hs_remove 3 ,
 .Xr ck_hs_count 3 ,
 .Xr ck_hs_reset 3 ,

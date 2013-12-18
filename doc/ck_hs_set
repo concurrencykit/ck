@@ -92,6 +92,7 @@ to accomodate key insertion.
 .Xr ck_hs_fas 3 ,
 .Xr ck_hs_remove 3 ,
 .Xr ck_hs_grow 3 ,
+.Xr ck_hs_gc 3 ,
 .Xr ck_hs_rebuild 3 ,
 .Xr ck_hs_count 3 ,
 .Xr ck_hs_reset 3 ,
