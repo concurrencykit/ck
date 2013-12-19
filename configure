@@ -33,7 +33,7 @@ EXIT_FAILURE=1
 
 P_PWD=`pwd`
 MAINTAINER='sbahra@repnop.org'
-VERSION=${VERSION:-'0.3.2'}
+VERSION=${VERSION:-'0.3.3'}
 VERSION_MAJOR='0'
 BUILD="$PWD/build/ck.build"
 PREFIX=${PREFIX:-"/usr/local"}
