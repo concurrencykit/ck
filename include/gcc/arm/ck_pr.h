@@ -63,8 +63,7 @@ ck_pr_stall(void)
 #define _CK_DMB_ST __asm __volatile(".word 0xf57ff05e" : : "r" (0) : "memory")
 #else
 #define _CK_DMB_ST __asm __volatile("dmb st" : : "r" (0) : "memory")
-#endif
-
+#endif /* __FreeBSD__ */
 #else
 /* armv6 doesn't have dsb/dmb/isb, and no way to wait only for stores */
 #define _CK_ISB \
