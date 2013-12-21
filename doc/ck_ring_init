@@ -42,11 +42,7 @@ function initializes a bounded FIFO buffer pointed to by
 .Fa ring
 for the storage of up to
 .Fa size
-number of pointers. The
-.Fa buffer
-argument must be a pointer to an array of void * of
-length 
-.Fa size .
+number of pointers.
 The
 .Fa size
 argument must be a power-of-two greater than or equal to 4.
