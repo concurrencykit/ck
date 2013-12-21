@@ -34,7 +34,7 @@ Concurrency Kit (libck, \-lck)
 .Sh SYNOPSIS
 .In ck_ring.h
 .Ft void
-.Fn ck_ring_init "ck_ring_t *ring" "void *buffer" "unsigned int size"
+.Fn ck_ring_init "ck_ring_t *ring" "unsigned int size"
 .Sh DESCRIPTION
 The
 .Fn ck_ring_init
