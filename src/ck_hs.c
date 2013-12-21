@@ -588,7 +588,8 @@ ck_hs_fas(struct ck_hs *hs,
 	struct ck_hs_map *map = hs->map;
 
 	*previous = NULL;
-	slot = ck_hs_map_probe(hs, map, &n_probes, &first, h, key, &object, map->probe_maximum, CK_HS_PROBE);
+	slot = ck_hs_map_probe(hs, map, &n_probes, &first, h, key, &object,
+	    ck_hs_map_bound_get(map, h), CK_HS_PROBE);
 
 	/* Replacement semantics presume existence. */
 	if (object == NULL)
