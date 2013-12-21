@@ -76,7 +76,8 @@
 
 enum ck_hs_probe_behavior {
 	CK_HS_PROBE = 0,	/* Default behavior. */
-	CK_HS_PROBE_TOMBSTONE	/* Short-circuit on tombstone. */
+	CK_HS_PROBE_TOMBSTONE,	/* Short-circuit on tombstone. */
+	CK_HS_PROBE_INSERT	/* Short-circuit on probe bound if tombstone found. */
 };
 
 struct ck_hs_map {
@@ -305,7 +306,6 @@ ck_hs_grow(struct ck_hs *hs,
 
 restart:
 	map = hs->map;
-
 	if (map->capacity > capacity)
 		return false;
 
@@ -390,7 +390,7 @@ ck_hs_map_probe(struct ck_hs *hs,
 	void **bucket, **cursor, *k;
 	const void *compare;
 	void **pr = NULL;
-	unsigned long offset, j, i, probes;
+	unsigned long offset, j, i, probes, opl;
 
 #ifdef CK_HS_PP
 	/* If we are storing object pointers, then we may leverage pointer packing. */
@@ -410,6 +410,10 @@ ck_hs_map_probe(struct ck_hs *hs,
 	*object = NULL;
 	i = probes = 0;
 
+	opl = probe_limit;
+	if (behavior == CK_HS_PROBE_INSERT)
+		probe_limit = ck_hs_map_bound_get(map, h);
+
 	for (;;) {
 		bucket = (void **)((uintptr_t)&map->entries[offset] & ~(CK_MD_CACHELINE - 1));
 
@@ -417,6 +421,17 @@ ck_hs_map_probe(struct ck_hs *hs,
 			cursor = bucket + ((j + offset) & (CK_HS_PROBE_L1 - 1));
 
 			if (probes++ == probe_limit) {
+				if (probe_limit != opl && pr == NULL) {
+					/*
+					 * If no eligible slot has been found yet, continue probe
+					 * sequence with original probe limit.
+					 */
+					probe_limit = opl;
+					probes--;
+					j--;
+					continue;
+				}
+
 				k = CK_HS_EMPTY;
 				goto leave;
 			}
@@ -625,7 +640,7 @@ ck_hs_set(struct ck_hs *hs,
 restart:
 	map = hs->map;
 
-	slot = ck_hs_map_probe(hs, map, &n_probes, &first, h, key, &object, map->probe_limit, CK_HS_PROBE);
+	slot = ck_hs_map_probe(hs, map, &n_probes, &first, h, key, &object, map->probe_limit, CK_HS_PROBE_INSERT);
 	if (slot == NULL && first == NULL) {
 		if (ck_hs_grow(hs, map->capacity << 1) == false)
 			return false;
@@ -721,7 +736,7 @@ ck_hs_put(struct ck_hs *hs,
     const void *key)
 {
 
-	return ck_hs_put_internal(hs, h, key, CK_HS_PROBE);
+	return ck_hs_put_internal(hs, h, key, CK_HS_PROBE_INSERT);
 }
 
 bool
