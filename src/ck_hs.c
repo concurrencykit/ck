@@ -411,7 +411,7 @@ ck_hs_map_probe(struct ck_hs *hs,
 	i = probes = 0;
 
 	opl = probe_limit;
-	if (behavior == CK_HS_PROBE_INSERT)
+	if (behavior == CK_HS_PROBE_INSERT || behavior == CK_HS_PROBE_TOMBSTONE)
 		probe_limit = ck_hs_map_bound_get(map, h);
 
 	for (;;) {
