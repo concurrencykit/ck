@@ -117,7 +117,7 @@ run_test(unsigned int is, unsigned int ad)
 			h = test[i][0];
 			ck_hs_put(&hs[j], h, test[i]);
 			if (ck_hs_put(&hs[j], h, test[i]) == true) {
-				ck_error("ERROR [%u] [1]: put must fail on collision.\n", is);
+				ck_error("ERROR [%u] [1]: put must fail on collision (%s).\n", is, test[i]);
 			}
 			if (ck_hs_get(&hs[j], h, test[i]) == NULL) {
 				ck_error("ERROR [%u]: get must not fail after put\n", is);

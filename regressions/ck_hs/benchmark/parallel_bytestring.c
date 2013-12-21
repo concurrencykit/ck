@@ -140,11 +140,16 @@ static struct ck_malloc my_allocator = {
 static void
 set_init(void)
 {
+	unsigned int mode = CK_HS_MODE_OBJECT | CK_HS_MODE_SPMC;
+
+#ifdef HS_DELETE
+	mode |= CK_HS_MODE_DELETE;
+#endif 
 
 	ck_epoch_init(&epoch_hs);
 	ck_epoch_register(&epoch_hs, &epoch_wr);
 	common_srand48((long int)time(NULL));
-	if (ck_hs_init(&hs, CK_HS_MODE_OBJECT | CK_HS_MODE_SPMC, hs_hash, hs_compare, &my_allocator, 65536, common_lrand48()) == false) {
+	if (ck_hs_init(&hs, mode, hs_hash, hs_compare, &my_allocator, 65536, common_lrand48()) == false) {
 		perror("ck_hs_init");
 		exit(EXIT_FAILURE);
 	}
