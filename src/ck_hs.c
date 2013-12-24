@@ -421,19 +421,16 @@ ck_hs_map_probe(struct ck_hs *hs,
 			cursor = bucket + ((j + offset) & (CK_HS_PROBE_L1 - 1));
 
 			if (probes++ == probe_limit) {
-				if (probe_limit != opl && pr == NULL) {
-					/*
-					 * If no eligible slot has been found yet, continue probe
-					 * sequence with original probe limit.
-					 */
-					probe_limit = opl;
-					probes--;
-					j--;
-					continue;
+				if (probe_limit == opl || pr != NULL) {
+					k = CK_HS_EMPTY;
+					goto leave;
 				}
 
-				k = CK_HS_EMPTY;
-				goto leave;
+				/*
+				 * If no eligible slot has been found yet, continue probe
+				 * sequence with original probe limit.
+				 */
+				probe_limit = opl;
 			}
 
 			k = ck_pr_load_ptr(cursor);
