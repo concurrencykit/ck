@@ -349,5 +349,94 @@ ck_ring_init(struct ck_ring *ring, unsigned int size)
 	return;
 }
 
+#define CK_RING_PROTOTYPE(name, type)			\
+CK_CC_INLINE static bool				\
+ck_ring_enqueue_spsc_size_##name(struct ck_ring *a,	\
+    struct type *b,					\
+    struct type *c,					\
+    unsigned int *d)					\
+{							\
+							\
+	return _ck_ring_enqueue_spsc_size(a, b, c,	\
+	    sizeof(struct type), d);			\
+}							\
+							\
+CK_CC_INLINE static bool				\
+ck_ring_enqueue_spsc_##name(struct ck_ring *a,		\
+    struct type *b,					\
+    struct type *c)					\
+{							\
+							\
+	return _ck_ring_enqueue_spsc(a, b, c,		\
+	    sizeof(struct type));			\
+}							\
+							\
+CK_CC_INLINE static bool				\
+ck_ring_dequeue_spsc_##name(struct ck_ring *a,		\
+    struct type *b,					\
+    struct type *c)					\
+{							\
+							\
+	return _ck_ring_dequeue_spsc(a, b, c,		\
+	    sizeof(struct type));			\
+}							\
+							\
+CK_CC_INLINE static bool				\
+ck_ring_enqueue_spmc_size_##name(struct ck_ring *a,	\
+    struct type *b,					\
+    struct type *c,					\
+    unsigned int *d)					\
+{							\
+							\
+	return _ck_ring_enqueue_spsc_size(a, b, c,	\
+	    sizeof(struct type), d);			\
+}							\
+							\
+							\
+CK_CC_INLINE static bool				\
+ck_ring_enqueue_spmc_##name(struct ck_ring *a,		\
+    struct type *b,					\
+    struct type *c)					\
+{							\
+							\
+	return _ck_ring_enqueue_spsc(a, b, c,		\
+	    sizeof(struct type));			\
+}							\
+							\
+CK_CC_INLINE static bool				\
+ck_ring_trydequeue_spmc_##name(struct ck_ring *a,	\
+    struct type *b,					\
+    struct type *c)					\
+{							\
+							\
+	return _ck_ring_trydequeue_spmc(ring,		\
+	    b, c, sizeof(struct type));			\
+}							\
+							\
+CK_CC_INLINE static bool				\
+ck_ring_dequeue_spmc_##name(struct ck_ring *a,		\
+    struct type *b,					\
+    struct type *c)					\
+{							\
+							\
+	return _ck_ring_dequeue_spmc(a, b, c,		\
+	    sizeof(struct type));			\
+}
+
+#define CK_RING_ENQUEUE_SPSC(name, a, b, c)		\
+	ck_ring_enqueue_spsc_##name(a, b, c)
+#define CK_RING_ENQUEUE_SPSC_SIZE(name, a, b, c, d)	\
+	ck_ring_enqueue_spsc_size_##name(a, b, c, d)
+#define CK_RING_DEQUEUE_SPSC(name, a, b, c)		\
+	ck_ring_dequeue_spsc_##name(a, b, c)
+#define CK_RING_ENQUEUE_SPMC(name, a, b, c)		\
+	ck_ring_enqueue_spmc_##name(a, b, c)
+#define CK_RING_ENQUEUE_SPMC_SIZE(name, a, b, c, d)	\
+	ck_ring_enqueue_spmc_size_##name(a, b, c, d)
+#define CK_RING_TRYDEQUEUE_SPMC(name, a, b, c)		\
+	ck_ring_trydequeue_spmc_##name(a, b, c)
+#define CK_RING_DEQUEUE_SPMC(name, a, b, c)		\
+	ck_ring_dequeue_spmc_##name(a, b, c)
+
 #endif /* _CK_RING_H */
 
