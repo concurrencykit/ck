@@ -62,7 +62,8 @@ ck_pflock_init(struct ck_pflock *pf)
 	pf->rout = 0;
 	pf->win = 0;
 	pf->wout = 0;
-	ck_pr_fence_memory();
+	ck_pr_fence_store();
+
 	return;
 }
 
