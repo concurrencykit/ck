@@ -125,13 +125,14 @@
 		if (raised == true)							\
 			ck_pr_dec_uint(&rw_cohort->write_barrier);			\
 											\
+		ck_pr_fence_load();							\
 		return;									\
 	}										\
 	CK_CC_INLINE static void							\
 	ck_rwcohort_wp_##N##_read_unlock(CK_RWCOHORT_WP_INSTANCE(N) *cohort)		\
 	{										\
 											\
-		ck_pr_fence_memory();							\
+		ck_pr_fence_load_atomic();						\
 		ck_pr_dec_uint(&cohort->read_counter);					\
 		return;									\
 	}
@@ -232,7 +233,7 @@
 	ck_rwcohort_rp_##N##_read_unlock(CK_RWCOHORT_RP_INSTANCE(N) *cohort)		\
 	{										\
 											\
-		ck_pr_fence_memory();							\
+		ck_pr_fence_load_atomic();						\
 		ck_pr_dec_uint(&cohort->read_counter);					\
 		return;									\
 	}
@@ -304,7 +305,7 @@
 	ck_rwcohort_neutral_##N##_read_unlock(CK_RWCOHORT_NEUTRAL_INSTANCE(N) *cohort)	\
 	{										\
 											\
-		ck_pr_fence_memory();							\
+		ck_pr_fence_load_atomic();						\
 		ck_pr_dec_uint(&cohort->read_counter);					\
 		return;									\
 	}
