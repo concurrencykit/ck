@@ -271,7 +271,7 @@ CK_CC_INLINE static void
 ck_brlock_read_unlock(struct ck_brlock_reader *reader)
 {
 
-	ck_pr_fence_load();
+	ck_pr_fence_load_store();
 	ck_pr_store_uint(&reader->n_readers, reader->n_readers - 1);
 	return;
 }
