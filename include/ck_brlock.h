@@ -91,7 +91,7 @@ ck_brlock_write_lock(struct ck_brlock *br)
 			ck_pr_stall();
 	}
 
-	/* This branch should never be reached. */
+	/* Already acquired with respect to other writers. */
 	return;
 }
 
@@ -99,7 +99,7 @@ CK_CC_INLINE static void
 ck_brlock_write_unlock(struct ck_brlock *br)
 {
 
-	ck_pr_fence_memory();
+	ck_pr_fence_release();
 	ck_pr_store_uint(&br->writer, false);
 	return;
 }
@@ -134,6 +134,7 @@ ck_brlock_write_trylock(struct ck_brlock *br, unsigned int factor)
 		}
 	}
 
+	/* Already acquired with respect to other writers. */
 	return true;
 }
 
