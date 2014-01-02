@@ -77,6 +77,8 @@ CK_PR_FENCE(store_load, "sync")
 CK_PR_FENCE(load, "lwsync")
 CK_PR_FENCE(load_store, "lwsync")
 CK_PR_FENCE(memory, "sync")
+CK_PR_FENCE(acquire, "lwsync")
+CK_PR_FENCE(release, "lwsync")
 
 #undef CK_PR_FENCE
 

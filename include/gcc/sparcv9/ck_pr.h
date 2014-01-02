@@ -77,6 +77,8 @@ CK_PR_FENCE(store_load, "membar #StoreLoad")
 CK_PR_FENCE(load, "membar #LoadLoad")
 CK_PR_FENCE(load_store, "membar #LoadStore")
 CK_PR_FENCE(memory, "membar #LoadLoad | #LoadStore | #StoreStore | #StoreLoad")
+CK_PR_FENCE(acquire, "membar #LoadLoad | #LoadStore")
+CK_PR_FENCE(release, "membar #LoadStore | #StoreStore")
 
 #undef CK_PR_FENCE
 

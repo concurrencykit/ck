@@ -95,6 +95,8 @@ CK_PR_FENCE_EMIT(store_load)
 CK_PR_FENCE_EMIT(load)
 CK_PR_FENCE_EMIT(store)
 CK_PR_FENCE_EMIT(memory)
+CK_PR_FENCE_EMIT(acquire)
+CK_PR_FENCE_EMIT(release)
 #elif defined(CK_MD_PSO)
 /*
  * Anything can be re-ordered with respect to stores.
@@ -110,6 +112,8 @@ CK_PR_FENCE_EMIT(store_load)
 CK_PR_FENCE_NOOP(load)
 CK_PR_FENCE_EMIT(store)
 CK_PR_FENCE_EMIT(memory)
+CK_PR_FENCE_EMIT(acquire)
+CK_PR_FENCE_EMIT(release)
 #elif defined(CK_MD_TSO)
 /*
  * Only loads are re-ordered and only with respect to
@@ -125,6 +129,10 @@ CK_PR_FENCE_EMIT(store_load)
 CK_PR_FENCE_NOOP(load)
 CK_PR_FENCE_NOOP(store)
 CK_PR_FENCE_NOOP(memory)
+CK_PR_FENCE_NOOP(acquire)
+CK_PR_FENCE_NOOP(release)
+#elif
+#error "No memory model has been defined."
 #endif /* CK_MD_TSO */
 
 #undef CK_PR_FENCE_EMIT
