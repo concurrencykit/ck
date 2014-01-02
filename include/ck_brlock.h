@@ -67,7 +67,7 @@ ck_brlock_init(struct ck_brlock *br)
 
 	br->readers = NULL;
 	br->writer = false;
-	ck_pr_fence_memory();
+	ck_pr_fence_store();
 	return;
 }
 
