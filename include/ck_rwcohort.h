@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 Samy Al Bahra.
+ * Copyright 2013-2014 Samy Al Bahra.
  * Copyright 2013 Brendon Scheinman.
  * All rights reserved.
  *
@@ -30,7 +30,7 @@
 
 /*
  * This is an implementation of NUMA-aware reader-writer locks as described in:
- *     Calciu, I.; Dice, D.; Lev, Y.; Luchangco, V.; Marathe, V.; and Shavit, N. 2013.
+ *     Calciu, I.; Dice, D.; Lev, Y.; Luchangco, V.; Marathe, V.; and Shavit, N. 2014.
  *     NUMA-Aware Reader-Writer Locks
  */
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2013 Samy Al Bahra, John Wittrock.
+ * Copyright 2011-2014 Samy Al Bahra, John Wittrock.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without

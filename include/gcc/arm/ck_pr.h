@@ -1,6 +1,6 @@
 /*
- * Copyright 2009-2013 Samy Al Bahra.
- * Copyright 2013 Olivier Houchard.
+ * Copyright 2009-2014 Samy Al Bahra.
+ * Copyright 2013-2014 Olivier Houchard.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without

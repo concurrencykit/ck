@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2013 Samy Al Bahra.
+ * Copyright 2010-2014 Samy Al Bahra.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
