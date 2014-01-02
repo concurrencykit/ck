@@ -27,6 +27,12 @@
 #ifndef _CK_ELIDE_H
 #define _CK_ELIDE_H
 
+/*
+ * As RTM is currently only supported on TSO x86 architectures,
+ * fences have been omitted. They will be necessary for other
+ * non-TSO architectures with TM support.
+ */
+
 #include <ck_cc.h>
 #include <ck_pr.h>
 #include <string.h>
