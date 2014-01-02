@@ -70,7 +70,7 @@ CK_CC_INLINE static void
 ck_pflock_write_unlock(ck_pflock_t *pf)
 {
 
-	ck_pr_fence_memory();
+	ck_pr_fence_release();
 
 	/* Migrate from write phase to read phase. */
 	ck_pr_and_32(&pf->rin, CK_PFLOCK_LSB);
@@ -102,7 +102,7 @@ ck_pflock_write_lock(ck_pflock_t *pf)
 	while (ck_pr_load_32(&pf->rout) != ticket)
 		ck_pr_stall();
 
-	ck_pr_fence_memory();
+	ck_pr_fence_acquire();
 	return;
 }
 
@@ -133,7 +133,7 @@ ck_pflock_read_lock(ck_pflock_t *pf)
 		ck_pr_stall();
 
 leave:
-	/* Acquire semantics. */
+	/* Acquire semantics with respect to readers. */
 	ck_pr_fence_load();
 	return;
 }
