@@ -82,6 +82,7 @@ ck_spinlock_clh_lock(struct ck_spinlock_clh **queue, struct ck_spinlock_clh *thr
 	while (ck_pr_load_uint(&previous->wait) == true)
 		ck_pr_stall();
 
+	ck_pr_fence_load();
 	return;
 }
 
@@ -100,7 +101,7 @@ ck_spinlock_clh_unlock(struct ck_spinlock_clh **thread)
 	previous = thread[0]->previous;
 
 	/* We have to pay this cost anyways, use it as a compiler barrier too. */
-	ck_pr_fence_memory();
+	ck_pr_fence_release();
 	ck_pr_store_uint(&(*thread)->wait, false);
 
 	/*

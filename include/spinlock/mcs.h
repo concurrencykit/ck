@@ -61,7 +61,7 @@ ck_spinlock_mcs_trylock(struct ck_spinlock_mcs **queue, struct ck_spinlock_mcs *
 	ck_pr_fence_store_atomic();
 
 	if (ck_pr_cas_ptr(queue, NULL, node) == true) {
-		ck_pr_fence_load();
+		ck_pr_fence_acquire();
 		return true;
 	}
 
@@ -111,7 +111,7 @@ ck_spinlock_mcs_unlock(struct ck_spinlock_mcs **queue, struct ck_spinlock_mcs *n
 {
 	struct ck_spinlock_mcs *next;
 
-	ck_pr_fence_memory();
+	ck_pr_fence_release();
 
 	next = ck_pr_load_ptr(&node->next);
 	if (next == NULL) {

@@ -62,7 +62,7 @@ ck_spinlock_dec_trylock(struct ck_spinlock_dec *lock)
 
 	value = ck_pr_fas_uint(&lock->value, 0);
 	if (value == 1) {
-		ck_pr_fence_memory();
+		ck_pr_fence_acquire();
 		return true;
 	}
 
@@ -89,7 +89,6 @@ ck_spinlock_dec_lock(struct ck_spinlock_dec *lock)
 		 * UINT_MAX lock requests can happen while the lock is held.
 		 */
 		ck_pr_dec_uint_zero(&lock->value, &r);
-		ck_pr_fence_memory();
 		if (r == true)
 			break;
 
@@ -98,6 +97,7 @@ ck_spinlock_dec_lock(struct ck_spinlock_dec *lock)
 			ck_pr_stall();
 	}
 
+	ck_pr_fence_acquire();
 	return;
 }
 
@@ -115,7 +115,7 @@ ck_spinlock_dec_lock_eb(struct ck_spinlock_dec *lock)
 		ck_backoff_eb(&backoff);
 	}
 
-	ck_pr_fence_memory();
+	ck_pr_fence_acquire();
 	return;
 }
 
@@ -123,7 +123,7 @@ CK_CC_INLINE static void
 ck_spinlock_dec_unlock(struct ck_spinlock_dec *lock)
 {
 
-	ck_pr_fence_memory();
+	ck_pr_fence_release();
 
 	/* Unconditionally set lock value to 1 so someone can decrement lock to 0. */
 	ck_pr_store_uint(&lock->value, 1);

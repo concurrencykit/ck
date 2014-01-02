@@ -58,7 +58,7 @@ ck_spinlock_fas_trylock(struct ck_spinlock_fas *lock)
 
 	value = ck_pr_fas_uint(&lock->value, true);
 	if (value == false)
-		ck_pr_fence_memory();
+		ck_pr_fence_acquire();
 
 	return !value;
 }
@@ -80,7 +80,7 @@ ck_spinlock_fas_lock(struct ck_spinlock_fas *lock)
 			ck_pr_stall();
 	}
 
-	ck_pr_fence_memory();
+	ck_pr_fence_acquire();
 	return;
 }
 
@@ -92,7 +92,7 @@ ck_spinlock_fas_lock_eb(struct ck_spinlock_fas *lock)
 	while (ck_pr_fas_uint(&lock->value, true) == true)
 		ck_backoff_eb(&backoff);
 
-	ck_pr_fence_memory();
+	ck_pr_fence_acquire();
 	return;
 }
 
@@ -100,7 +100,7 @@ CK_CC_INLINE static void
 ck_spinlock_fas_unlock(struct ck_spinlock_fas *lock)
 {
 
-	ck_pr_fence_memory();
+	ck_pr_fence_release();
 	ck_pr_store_uint(&lock->value, false);
 	return;
 }

@@ -115,7 +115,7 @@ ck_spinlock_ticket_lock(struct ck_spinlock_ticket *ticket)
 		    CK_SPINLOCK_TICKET_MASK;
 	}
 
-	ck_pr_fence_memory();
+	ck_pr_fence_acquire();
 	return;
 }
 
@@ -142,7 +142,7 @@ ck_spinlock_ticket_lock_pb(struct ck_spinlock_ticket *ticket, unsigned int c)
 		ck_backoff_eb(&backoff);
 	}
 
-	ck_pr_fence_memory();
+	ck_pr_fence_acquire();
 	return;
 }
 
@@ -163,7 +163,7 @@ ck_spinlock_ticket_trylock(struct ck_spinlock_ticket *ticket)
 		return false;
 	}
 
-	ck_pr_fence_memory();
+	ck_pr_fence_acquire();
 	return true;
 }
 
@@ -171,7 +171,7 @@ CK_CC_INLINE static void
 ck_spinlock_ticket_unlock(struct ck_spinlock_ticket *ticket)
 {
 
-	ck_pr_fence_memory();
+	ck_pr_fence_release();
 	CK_SPINLOCK_TICKET_INC((CK_SPINLOCK_TICKET_TYPE_BASE *)(void *)&ticket->value);
 	return;
 }
@@ -235,7 +235,7 @@ ck_spinlock_ticket_lock(struct ck_spinlock_ticket *ticket)
 	while (ck_pr_load_uint(&ticket->position) != request)
 		ck_pr_stall();
 
-	ck_pr_fence_memory();
+	ck_pr_fence_acquire();
 	return;
 }
 
@@ -264,7 +264,7 @@ ck_spinlock_ticket_lock_pb(struct ck_spinlock_ticket *ticket, unsigned int c)
 		ck_backoff_eb(&backoff);
 	}
 
-	ck_pr_fence_memory();
+	ck_pr_fence_acquire();
 	return;
 }
 
@@ -273,7 +273,7 @@ ck_spinlock_ticket_unlock(struct ck_spinlock_ticket *ticket)
 {
 	unsigned int update;
 
-	ck_pr_fence_memory();
+	ck_pr_fence_release();
 
 	/*
 	 * Update current ticket value so next lock request can proceed.
