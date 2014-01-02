@@ -114,7 +114,7 @@ CK_CC_INLINE static void
 ck_bytelock_write_unlock(struct ck_bytelock *bytelock)
 {
 
-	ck_pr_fence_memory();
+	ck_pr_fence_release();
 	ck_pr_store_uint(&bytelock->owner, 0);
 	return;
 }
@@ -173,7 +173,7 @@ CK_CC_INLINE static void
 ck_bytelock_read_unlock(struct ck_bytelock *bytelock, unsigned int slot)
 {
 
-	ck_pr_fence_memory();
+	ck_pr_fence_release();
 
 	slot -= 1;
 	if (slot > sizeof bytelock->readers)
