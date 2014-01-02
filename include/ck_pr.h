@@ -131,7 +131,7 @@ CK_PR_FENCE_NOOP(store)
 CK_PR_FENCE_NOOP(memory)
 CK_PR_FENCE_NOOP(acquire)
 CK_PR_FENCE_NOOP(release)
-#elif
+#else
 #error "No memory model has been defined."
 #endif /* CK_MD_TSO */
 
