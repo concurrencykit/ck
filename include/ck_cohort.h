@@ -108,7 +108,7 @@ enum ck_cohort_state {
 			cohort->acquire_count = 0;				\
 		}								\
 										\
-		ck_pr_fence_memory();						\
+		ck_pr_fence_release();						\
 		LU(cohort->local_lock, local_context);				\
 										\
 		return;								\
