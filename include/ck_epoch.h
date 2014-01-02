@@ -118,7 +118,7 @@ ck_epoch_end(ck_epoch_t *global, ck_epoch_record_t *record)
 
 	(void)global;
 
-	ck_pr_fence_memory();
+	ck_pr_fence_release();
 	ck_pr_store_uint(&record->active, record->active - 1);
 	return;
 }
