@@ -16,6 +16,7 @@ OBJECTS=ck_barrier_centralized.o	\
 	ck_ht.o				\
 	ck_hp.o				\
 	ck_hs.o				\
+	ck_rhs.o			\
 	ck_array.o
 
 all: libck.so libck.a
