@@ -52,7 +52,7 @@
 	((void *)((uintptr_t)(x) & CK_RHS_VMA_MASK))
 
 #define CK_RHS_EMPTY     NULL
-#define CK_RHS_G		(2)
+#define CK_RHS_G		(1024)
 #define CK_RHS_G_MASK	(CK_RHS_G - 1)
 
 #if defined(CK_F_PR_LOAD_8) && defined(CK_F_PR_STORE_8)
