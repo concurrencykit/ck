@@ -516,6 +516,14 @@ ck_hs_gc(struct ck_hs *hs, unsigned long cycles, unsigned long seed)
 	unsigned int maximum;
 	CK_HS_WORD *bounds = NULL;
 
+	if (map->n_entries == 0) {
+		ck_pr_store_uint(&map->probe_maximum, 0);
+		if (map->probe_bound != NULL)
+			memset(map->probe_bound, 0, sizeof(CK_HS_WORD) * map->capacity);
+
+		return true;
+	}
+
 	if (cycles == 0) {
 		maximum = 0;
 
