@@ -388,6 +388,14 @@ ck_ht_gc(struct ck_ht *ht, unsigned long cycles, unsigned long seed)
 	uint64_t maximum, i;
 	uint64_t size = 0;
 
+	if (map->n_entries == 0) {
+		ck_pr_store_64(&map->probe_maximum, 0);
+		if (map->probe_bound != NULL)
+			memset(map->probe_bound, 0, sizeof(CK_HT_WORD) * map->capacity);
+
+		return true;
+	}
+	
 	if (cycles == 0) {
 		maximum = 0;
 
