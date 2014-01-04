@@ -113,6 +113,9 @@ run_test(unsigned int is, unsigned int ad)
 			break;
 		}
 
+		if (ck_hs_gc(&hs[j], 0, 0) == false)
+			ck_error("ERROR: Failed to GC empty set.\n");
+
 		for (i = 0; i < sizeof(test) / sizeof(*test); i++) {
 			h = test[i][0];
 			ck_hs_put(&hs[j], h, test[i]);
