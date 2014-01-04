@@ -589,11 +589,14 @@ ck_rhs_remove_wanted(struct ck_rhs *hs, struct ck_rhs_entry_desc *slot, long lim
 static long
 ck_rhs_get_first_offset(struct ck_rhs_map *map, unsigned long offset, unsigned int probes)
 {
-	while (probes > 1) {
-		probes--;
-		offset = ck_rhs_map_probe_prev(map, offset, probes);
+	while (probes > 4) {
+		offset -= ((probes - 1) &~ map->offset_mask);
+		offset &= map->mask;
+		offset = (offset &~ map->offset_mask) + 
+		    ((offset - map->offset_mask) & map->offset_mask);
+		probes -= map->offset_mask + 1;
 	}
-	return (offset);
+	return ((offset &~ map->offset_mask) + ((offset - (probes - 1)) & map->offset_mask));
 }
 
 #define CK_RHS_MAX_RH	512
@@ -670,9 +673,7 @@ restart:
 		h = ck_rhs_get_first_offset(map, orig_slot - map->descs, 
 		    orig_slot->probes);
 		ck_rhs_add_wanted(hs, orig_slot, &map->descs[prev], h);
-
 		ck_pr_inc_uint(&map->generation[h & CK_RHS_G_MASK]);
-
 		ck_pr_fence_atomic_store();
 		orig_slot = &map->descs[prev];
 
@@ -690,9 +691,10 @@ ck_rhs_do_backward_shift_delete(struct ck_rhs *hs, struct ck_rhs_entry_desc *slo
 	h = ck_rhs_remove_wanted(hs, slot, -1);
 		
 	while (slot->wanted > 0) {
-		unsigned long offset = 0;
+		unsigned long offset = 0, tmp_offset;
 		unsigned long wanted_probes = 1;
 		unsigned int probe = 0;
+		unsigned int max_probes;
 
 
 		/* Find a successor */
@@ -714,15 +716,41 @@ ck_rhs_do_backward_shift_delete(struct ck_rhs *hs, struct ck_rhs_entry_desc *slo
 			break;
 		}
 
-		if (slot->wanted < CK_RHS_MAX_WANTED)
-			slot->wanted--;
 		slot->probes = wanted_probes;
 
 		h = ck_rhs_remove_wanted(hs, &map->descs[offset], slot - map->descs);
-		//HASH_FOR_SLOT(slot) = map->rh[offset].hash;
 		ck_pr_store_ptr(&slot->entry, map->descs[offset].entry);
 		ck_pr_inc_uint(&map->generation[h & CK_RHS_G_MASK]);
 		ck_pr_fence_atomic_store();
+		if (wanted_probes < CK_RHS_WORD_MAX) {
+			if (map->descs[h].wanted == 1)
+				CK_RHS_STORE(&map->descs[h].probe_bound,
+				    wanted_probes);
+			else if (map->descs[h].probe_bound == CK_RHS_WORD_MAX ||
+			    map->descs[h].probe_bound == map->descs[offset].probes) {
+				probe++;
+				if (map->descs[h].probe_bound == CK_RHS_WORD_MAX)
+					max_probes = map->probe_maximum;
+				else {
+					max_probes = map->descs[h].probe_bound;
+					max_probes--;
+				}
+				tmp_offset = ck_rhs_map_probe_next(map, offset, probe);
+
+				while (probe < max_probes) {
+					if (h == (unsigned long)ck_rhs_get_first_offset(map, tmp_offset, probe))
+						break;
+					probe++;
+					tmp_offset = ck_rhs_map_probe_next(map, tmp_offset, probe);
+				}
+				if (probe >= max_probes)
+					CK_RHS_STORE(&map->descs[h].probe_bound,
+					    wanted_probes);
+			}
+		}
+		if (slot->wanted < CK_RHS_MAX_WANTED)
+			slot->wanted--;
+
 		slot = &map->descs[offset];
 	}
 	ck_pr_store_ptr(&slot->entry, CK_RHS_EMPTY);
