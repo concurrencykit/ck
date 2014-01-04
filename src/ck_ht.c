@@ -433,7 +433,7 @@ ck_ht_gc(struct ck_ht *ht, unsigned long cycles, unsigned long seed)
 			ht->h(&h, &entry->key, sizeof(entry->key), ht->seed);
 #endif
 			entry = ck_ht_map_probe_wr(map, h, &snapshot, &priority,
-			    &entry->key,
+			    (void *)entry->key,
 			    sizeof(entry->key),
 			    NULL, &probes_wr);
 		}
