@@ -874,16 +874,13 @@ restart:
 	    CK_RHS_PROBE_NO_RH : CK_RHS_PROBE_ROBIN_HOOD);
 
 	if (slot == -1 && first == -1) {
-		printf("prout!!\n");
 		if (ck_rhs_grow(hs, map->capacity << 1) == false) {
 			desc->in_rh = false;
 			for (unsigned int i = 0; i < prevs_nb; i++) {
 				CK_RHS_UNSET_RH(map, prevs[i]);
 			}
-			printf("lolol\n");
 			return -1;
 		}
-		printf("hehe\n");
 		return 1;
 	}
 
