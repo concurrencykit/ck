@@ -507,6 +507,7 @@ main(int argc, char *argv[])
 
 	global_seed = common_lrand48();
 	run_test(argv[1], r, size, 0);
+	run_test(argv[1], r, size, CK_RHS_MODE_READ_MOSTLY);
 	fprintf(stderr, "#    reverse_insertion serial_insertion random_insertion serial_swap "
 	    "serial_replace reverse_get serial_get random_get serial_remove negative_get tombstone "
 	    "set_unique gc rebuild\n\n");

@@ -55,6 +55,12 @@
  */
 #define CK_RHS_MODE_OBJECT	8
 
+/*
+ * Indicated that the load is read-mostly, so get should be optimized
+ * over put and delete
+ */
+#define CK_RHS_MODE_READ_MOSTLY	16
+
 /* Currently unsupported. */
 #define CK_RHS_MODE_MPMC    (void)
 
