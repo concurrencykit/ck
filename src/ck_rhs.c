@@ -90,16 +90,16 @@ struct ck_rhs_entry_desc {
 	CK_RHS_WORD probe_bound;
 	bool in_rh;
 	void *entry;
-} __attribute__ ((__aligned__(16)));
+} CK_CC_ALIGN(16);
 
 struct ck_rhs_no_entry_desc {
 	unsigned int probes;
 	unsigned short wanted;
 	CK_RHS_WORD probe_bound;
 	bool in_rh;
-} __attribute__ ((__aligned__(8)));
+} CK_CC_ALIGN(8);
 
-typedef long  (*probe_func) (struct ck_rhs *hs,
+typedef long ck_hs_probe_cb_t(struct ck_rhs *hs,
     struct ck_rhs_map *map,
     unsigned long *n_probes,
     long *priority,
@@ -127,7 +127,7 @@ struct ck_rhs_map {
 		} no_entries;
 	} entries;
 	bool read_mostly;
-	probe_func probe_func;
+	ck_hs_probe_cb_t *probe_func;
 };
 
 #define CK_RHS_ENTRY(map, offset) (map->read_mostly ? map->entries.no_entries.entries[offset] : map->entries.descs[offset].entry)
@@ -179,27 +179,8 @@ struct ck_rhs_map {
 
 #define CK_RHS_LOAD_FACTOR	50
 
-static long
-ck_rhs_map_probe(struct ck_rhs *hs,
-    struct ck_rhs_map *map,
-    unsigned long *n_probes,
-    long *priority,
-    unsigned long h,
-    const void *key,
-    void **object,
-    unsigned long probe_limit,
-    enum ck_rhs_probe_behavior behavior);
-
-static long
-ck_rhs_map_probe_rm(struct ck_rhs *hs,
-    struct ck_rhs_map *map,
-    unsigned long *n_probes,
-    long *priority,
-    unsigned long h,
-    const void *key,
-    void **object,
-    unsigned long probe_limit,
-    enum ck_rhs_probe_behavior behavior);
+static ck_hs_probe_cb_t *ck_rhs_map_probe;
+static ck_hs_probe_cb_t *ck_rhs_map_probe_rm;
 
 void
 ck_rhs_iterator_init(struct ck_rhs_iterator *iterator)
