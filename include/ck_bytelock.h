@@ -89,7 +89,7 @@ ck_bytelock_write_lock(struct ck_bytelock *bytelock, unsigned int slot)
 		ck_pr_stall();
 
 	/* If we are slotted, we might be upgrading from a read lock. */
-	if (slot < sizeof bytelock->readers)
+	if (slot <= sizeof bytelock->readers)
 		ck_pr_store_8(&bytelock->readers[slot - 1], false);
 
 	/* Wait for slotted readers to drain out. */
@@ -175,11 +175,10 @@ ck_bytelock_read_unlock(struct ck_bytelock *bytelock, unsigned int slot)
 
 	ck_pr_fence_release();
 
-	slot -= 1;
 	if (slot > sizeof bytelock->readers)
 		ck_pr_dec_uint(&bytelock->n_readers);
 	else
-		ck_pr_store_8(&bytelock->readers[slot], false);
+		ck_pr_store_8(&bytelock->readers[slot - 1], false);
 
 	return;
 }
