@@ -179,8 +179,8 @@ struct ck_rhs_map {
 
 #define CK_RHS_LOAD_FACTOR	50
 
-static ck_rhs_probe_cb_t *ck_rhs_map_probe;
-static ck_rhs_probe_cb_t *ck_rhs_map_probe_rm;
+static ck_rhs_probe_cb_t ck_rhs_map_probe;
+static ck_rhs_probe_cb_t ck_rhs_map_probe_rm;
 
 void
 ck_rhs_iterator_init(struct ck_rhs_iterator *iterator)
@@ -547,7 +547,7 @@ ck_rhs_map_probe_rm(struct ck_rhs *hs,
 		if (k == CK_RHS_EMPTY)
 			goto leave;
 
-		if ((behavior != CK_RHS_PROBE_NO_RH)) {
+		if (behavior != CK_RHS_PROBE_NO_RH) {
 			struct ck_rhs_entry_desc *desc = (void *)&map->entries.no_entries.descs[offset];
 
 			if (pr == -1 && 
