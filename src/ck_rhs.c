@@ -99,7 +99,7 @@ struct ck_rhs_no_entry_desc {
 	bool in_rh;
 } CK_CC_ALIGN(8);
 
-typedef long ck_hs_probe_cb_t(struct ck_rhs *hs,
+typedef long ck_rhs_probe_cb_t(struct ck_rhs *hs,
     struct ck_rhs_map *map,
     unsigned long *n_probes,
     long *priority,
@@ -127,7 +127,7 @@ struct ck_rhs_map {
 		} no_entries;
 	} entries;
 	bool read_mostly;
-	ck_hs_probe_cb_t *probe_func;
+	ck_rhs_probe_cb_t *probe_func;
 };
 
 #define CK_RHS_ENTRY(map, offset) (map->read_mostly ? map->entries.no_entries.entries[offset] : map->entries.descs[offset].entry)
@@ -179,8 +179,8 @@ struct ck_rhs_map {
 
 #define CK_RHS_LOAD_FACTOR	50
 
-static ck_hs_probe_cb_t *ck_rhs_map_probe;
-static ck_hs_probe_cb_t *ck_rhs_map_probe_rm;
+static ck_rhs_probe_cb_t *ck_rhs_map_probe;
+static ck_rhs_probe_cb_t *ck_rhs_map_probe_rm;
 
 void
 ck_rhs_iterator_init(struct ck_rhs_iterator *iterator)
