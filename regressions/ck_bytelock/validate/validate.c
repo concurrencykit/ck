@@ -65,6 +65,9 @@ thread(void *null)
                 exit(EXIT_FAILURE);
         }
 
+	if (context->tid == (unsigned int)nthr - 1)
+		context->tid = sizeof(lock.readers) + 1;
+
 	while (i--) {
 		ck_bytelock_write_lock(&lock, context->tid);
 		{
