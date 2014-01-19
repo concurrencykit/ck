@@ -130,52 +130,117 @@ struct ck_rhs_map {
 	ck_rhs_probe_cb_t *probe_func;
 };
 
-#define CK_RHS_ENTRY(map, offset) (map->read_mostly ? map->entries.no_entries.entries[offset] : map->entries.descs[offset].entry)
-#define CK_RHS_ENTRY_ADDR(map, offset) (map->read_mostly ? &map->entries.no_entries.entries[offset] : &map->entries.descs[offset].entry)
-#define CK_RHS_DESC(map, offset) (CK_CC_UNLIKELY(map->read_mostly) ? (struct ck_rhs_entry_desc *)(void *)&map->entries.no_entries.descs[offset] : &map->entries.descs[offset])
-#define CK_RHS_WANTED_INC(map, offset) do { \
-	if (CK_CC_UNLIKELY(map->read_mostly))			   \
-		map->entries.no_entries.descs[offset].wanted++; \
-	else					   \
-		map->entries.descs[offset].wanted++; \
-} while (0)
-#define CK_RHS_WANTED(map, offset) (CK_CC_UNLIKELY(map->read_mostly )? map->entries.no_entries.descs[offset].wanted : map->entries.descs[offset].wanted)
-#define CK_RHS_SET_WANTED(map, offset, value) do { \
-	if (CK_CC_UNLIKELY(map->read_mostly))			   \
-		map->entries.no_entries.descs[offset].wanted = value; \
-	else					   \
-		map->entries.descs[offset].probes = value; \
-} while (0)
+static CK_CC_INLINE void *
+ck_rhs_entry(struct ck_rhs_map *map, long offset)
+{
 
-#define CK_RHS_WANTED_DEC(map, offset) do { \
-	if (CK_CC_UNLIKELY(map->read_mostly))			   \
-		map->entries.no_entries.descs[offset].wanted--; \
-	else					   \
-		map->entries.descs[offset].wanted--; \
-} while (0)
+	if (map->read_mostly)
+		return (map->entries.no_entries.entries[offset]);
+	else
+		return (map->entries.descs[offset].entry);
+}
 
-#define CK_RHS_PROBES(map, offset) (CK_CC_UNLIKELY(map->read_mostly) ? map->entries.no_entries.descs[offset].probes : map->entries.descs[offset].probes)
-#define CK_RHS_SET_PROBES(map, offset, value) do { \
-	if (CK_CC_UNLIKELY(map->read_mostly))			   \
-		map->entries.no_entries.descs[offset].probes = value; \
-	else					   \
-		map->entries.descs[offset].probes = value; \
-} while (0)
-#define CK_RHS_PROBE_BOUND(map, offset) (CK_CC_UNLIKELY(map->read_mostly) ? map->entries.no_entries.descs[offset].probe_bound : map->entries.descs[offset].probe_bound)
-#define CK_RHS_PROBE_BOUND_ADDR(map, offset) (CK_CC_UNLIKELY(map->read_mostly) ? (&map->entries.no_entries.descs[offset].probe_bound) : (&map->entries.descs[offset].probe_bound))
-#define CK_RHS_IN_RH(map, offset) (CK_CC_UNLIKELY(map->read_mostly) ? map->entries.no_entries.descs[offset].in_rh : map->entries.descs[offset].in_rh)
-#define CK_RHS_SET_RH(map, offset) do { \
-	if (CK_CC_UNLIKELY(map->read_mostly))	\
-		map->entries.no_entries.descs[offset].in_rh = true; \
-	else		\
-		map->entries.descs[offset].in_rh = true; \
-} while (0)
-#define CK_RHS_UNSET_RH(map, offset) do { \
-	if (CK_CC_UNLIKELY(map->read_mostly))	\
-		map->entries.no_entries.descs[offset].in_rh = false; \
-	else		\
-		map->entries.descs[offset].in_rh = false; \
-} while (0)
+static CK_CC_INLINE void **
+ck_rhs_entry_addr(struct ck_rhs_map *map, long offset)
+{
+
+	if (map->read_mostly)
+		return (&map->entries.no_entries.entries[offset]);
+	else
+		return (&map->entries.descs[offset].entry);
+}
+
+static CK_CC_INLINE struct ck_rhs_entry_desc *
+ck_rhs_desc(struct ck_rhs_map *map, long offset)
+{
+
+	if (CK_CC_UNLIKELY(map->read_mostly))
+		return ((struct ck_rhs_entry_desc *)(void *)&map->entries.no_entries.descs[offset]);
+	else
+		return (&map->entries.descs[offset]);
+}
+
+static CK_CC_INLINE void
+ck_rhs_wanted_inc(struct ck_rhs_map *map, long offset)
+{
+
+	if (CK_CC_UNLIKELY(map->read_mostly))
+		map->entries.no_entries.descs[offset].wanted++;
+	else
+		map->entries.descs[offset].wanted++;
+}
+
+static CK_CC_INLINE unsigned int
+ck_rhs_probes(struct ck_rhs_map *map, long offset)
+{
+
+	if (CK_CC_UNLIKELY(map->read_mostly))
+		return (map->entries.no_entries.descs[offset].probes);
+	else
+		return (map->entries.descs[offset].probes);
+}
+
+static CK_CC_INLINE void
+ck_rhs_set_probes(struct ck_rhs_map *map, long offset, unsigned int value)
+{
+
+	if (CK_CC_UNLIKELY(map->read_mostly))
+		map->entries.no_entries.descs[offset].probes = value;
+	else
+		map->entries.descs[offset].probes = value;
+}
+
+static CK_CC_INLINE CK_RHS_WORD
+ck_rhs_probe_bound(struct ck_rhs_map *map, long offset)
+{
+
+	if (CK_CC_UNLIKELY(map->read_mostly))
+		return (map->entries.no_entries.descs[offset].probe_bound);
+	else
+		return (map->entries.descs[offset].probe_bound);
+}
+
+static CK_CC_INLINE CK_RHS_WORD *
+ck_rhs_probe_bound_addr(struct ck_rhs_map *map, long offset)
+{
+
+	if (CK_CC_UNLIKELY(map->read_mostly))
+		return (&map->entries.no_entries.descs[offset].probe_bound);
+	else
+		return (&map->entries.descs[offset].probe_bound);
+}
+
+
+static CK_CC_INLINE bool
+ck_rhs_in_rh(struct ck_rhs_map *map, long offset)
+{
+
+	if (CK_CC_UNLIKELY(map->read_mostly))
+		return (map->entries.no_entries.descs[offset].in_rh);
+	else
+		return (map->entries.descs[offset].in_rh);
+}
+
+static CK_CC_INLINE void
+ck_rhs_set_rh(struct ck_rhs_map *map, long offset)
+{
+
+	if (CK_CC_UNLIKELY(map->read_mostly))
+		map->entries.no_entries.descs[offset].in_rh = true;
+	else
+		map->entries.descs[offset].in_rh = true;
+}
+
+static CK_CC_INLINE void
+ck_rhs_unset_rh(struct ck_rhs_map *map, long offset)
+{
+
+	if (CK_CC_UNLIKELY(map->read_mostly))
+		map->entries.no_entries.descs[offset].in_rh = false;
+	else
+		map->entries.descs[offset].in_rh = false;
+}
+
 
 #define CK_RHS_LOAD_FACTOR	50
 
@@ -201,7 +266,7 @@ ck_rhs_next(struct ck_rhs *hs, struct ck_rhs_iterator *i, void **key)
 		return false;
 
 	do {
-		value = CK_RHS_ENTRY(map, i->offset);
+		value = ck_rhs_entry(map, i->offset);
 		if (value != CK_RHS_EMPTY) {
 #ifdef CK_RHS_PP
 			if (hs->mode & CK_RHS_MODE_OBJECT)
@@ -419,7 +484,7 @@ restart:
 	for (k = 0; k < map->capacity; k++) {
 		unsigned long h;
 
-		prev_saved = previous = CK_RHS_ENTRY(map, k);
+		prev_saved = previous = ck_rhs_entry(map, k);
 		if (previous == CK_RHS_EMPTY)
 			continue;
 
@@ -433,7 +498,7 @@ restart:
 		probes = 0;
 
 		for (;;) {
-			void **cursor = CK_RHS_ENTRY_ADDR(update, offset);
+			void **cursor = ck_rhs_entry_addr(update, offset);
 
 			if (probes++ == update->probe_limit) {
 				/*
@@ -447,10 +512,10 @@ restart:
 			if (CK_CC_LIKELY(*cursor == CK_RHS_EMPTY)) {
 				*cursor = prev_saved;
 				update->n_entries++;
-				CK_RHS_SET_PROBES(update, offset, probes);
+				ck_rhs_set_probes(update, offset, probes);
 				ck_rhs_map_bound_set(update, h, probes);
 				break;
-			} else if (CK_RHS_PROBES(update, offset) < probes) {
+			} else if (ck_rhs_probes(update, offset) < probes) {
 				void *tmp = prev_saved;
 				unsigned int old_probes;
 				prev_saved = previous = *cursor;
@@ -461,12 +526,12 @@ restart:
 				*cursor = tmp;
 				ck_rhs_map_bound_set(update, h, probes);
 				h = hs->hf(previous, hs->seed);
-				old_probes = CK_RHS_PROBES(update, offset);
-				CK_RHS_SET_PROBES(update, offset, probes);
+				old_probes = ck_rhs_probes(update, offset);
+				ck_rhs_set_probes(update, offset, probes);
 				probes = old_probes - 1;
 				continue;
 			}
-			CK_RHS_WANTED_INC(update, offset);
+			ck_rhs_wanted_inc(update, offset);
 
 			offset = ck_rhs_map_probe_next(update, offset,  probes);
 		}
@@ -752,8 +817,8 @@ ck_rhs_gc(struct ck_rhs *hs)
 
 	unsigned int max_probes = 0;
 	for (i = 0; i < map->capacity; i++) {
-		if (CK_RHS_PROBES(map, i) > max_probes)
-			max_probes = CK_RHS_PROBES(map, i);
+		if (ck_rhs_probes(map, i) > max_probes)
+			max_probes = ck_rhs_probes(map, i);
 	}
 	map->probe_maximum = max_probes;
 	return true;
@@ -777,7 +842,7 @@ ck_rhs_add_wanted(struct ck_rhs *hs, long end_offset, long old_slot,
 		if (offset == old_slot)
 			found_slot = true;
 		if (found_slot) {
-			desc = CK_RHS_DESC(map, offset);
+			desc = ck_rhs_desc(map, offset);
 			if (desc->wanted < CK_RHS_MAX_WANTED)
 				desc->wanted++;
 		}
@@ -790,7 +855,7 @@ static unsigned long
 ck_rhs_remove_wanted(struct ck_rhs *hs, long offset, long limit)
 {
 	struct ck_rhs_map *map = hs->map;
-	int probes = CK_RHS_PROBES(map, offset);
+	int probes = ck_rhs_probes(map, offset);
 	bool do_remove = true;
 	struct ck_rhs_entry_desc *desc;
 
@@ -800,7 +865,7 @@ ck_rhs_remove_wanted(struct ck_rhs *hs, long offset, long limit)
 		if (offset == limit)
 			do_remove = false;
 		if (do_remove) {
-			desc = CK_RHS_DESC(map, offset);
+			desc = ck_rhs_desc(map, offset);
 			if (desc->wanted != CK_RHS_MAX_WANTED)
 				desc->wanted--;
 		}
@@ -841,14 +906,14 @@ ck_rhs_put_robin_hood(struct ck_rhs *hs,
 	first = orig_slot;
 	n_probes = desc->probes;
 restart:
-	key = CK_RHS_ENTRY(map, first);
+	key = ck_rhs_entry(map, first);
 	insert = key;
 #ifdef CK_RHS_PP
 	if (hs->mode & CK_RHS_MODE_OBJECT)
 	    key = CK_RHS_VMA(key);
 #endif
 	orig_slot = first;
-	CK_RHS_SET_RH(map, orig_slot);
+	ck_rhs_set_rh(map, orig_slot);
 
 	slot = map->probe_func(hs, map, &n_probes, &first, h, key, &object,
 	    map->probe_limit, prevs_nb == CK_RHS_MAX_RH ?
@@ -857,16 +922,15 @@ restart:
 	if (slot == -1 && first == -1) {
 		if (ck_rhs_grow(hs, map->capacity << 1) == false) {
 			desc->in_rh = false;
-			for (unsigned int i = 0; i < prevs_nb; i++) {
-				CK_RHS_UNSET_RH(map, prevs[i]);
-			}
+			for (unsigned int i = 0; i < prevs_nb; i++)
+				ck_rhs_unset_rh(map, prevs[i]);
 			return -1;
 		}
 		return 1;
 	}
 
 	if (first != -1) {
-		desc = CK_RHS_DESC(map, first);
+		desc = ck_rhs_desc(map, first);
 		int old_probes = desc->probes;
 
 		desc->probes = n_probes;
@@ -880,17 +944,17 @@ restart:
 		/* An empty slot was found. */
 		h =  ck_rhs_get_first_offset(map, slot, n_probes);
 		ck_rhs_map_bound_set(map, h, n_probes);
-		ck_pr_store_ptr(CK_RHS_ENTRY_ADDR(map, slot), insert);
+		ck_pr_store_ptr(ck_rhs_entry_addr(map, slot), insert);
 		ck_pr_inc_uint(&map->generation[h & CK_RHS_G_MASK]);
 		ck_pr_fence_atomic_store();
-		CK_RHS_SET_PROBES(map, slot, n_probes);
+		ck_rhs_set_probes(map, slot, n_probes);
 		desc->in_rh = 0;
 		ck_rhs_add_wanted(hs, slot, orig_slot, h);
 	}
 	while (prevs_nb > 0) {
 		prev = prevs[--prevs_nb];
-		ck_pr_store_ptr(CK_RHS_ENTRY_ADDR(map, orig_slot),
-		    CK_RHS_ENTRY(map, prev));
+		ck_pr_store_ptr(ck_rhs_entry_addr(map, orig_slot),
+		    ck_rhs_entry(map, prev));
 		h = ck_rhs_get_first_offset(map, orig_slot, 
 		    desc->probes);
 		ck_rhs_add_wanted(hs, orig_slot, prev, h);
@@ -898,7 +962,7 @@ restart:
 		ck_pr_fence_atomic_store();
 		orig_slot = prev;
 		desc->in_rh = false;
-		desc = CK_RHS_DESC(map, orig_slot);
+		desc = ck_rhs_desc(map, orig_slot);
 	}
 	return 0;
 }
@@ -907,7 +971,7 @@ static void
 ck_rhs_do_backward_shift_delete(struct ck_rhs *hs, long slot)
 {
 	struct ck_rhs_map *map = hs->map;
-	struct ck_rhs_entry_desc *desc = CK_RHS_DESC(map, slot), *new_desc = NULL;
+	struct ck_rhs_entry_desc *desc = ck_rhs_desc(map, slot), *new_desc = NULL;
 	unsigned long h;
 	
 	h = ck_rhs_remove_wanted(hs, slot, -1);
@@ -924,7 +988,7 @@ ck_rhs_do_backward_shift_delete(struct ck_rhs *hs, long slot)
 			probe = wanted_probes;
 			offset = ck_rhs_map_probe_next(map, slot, probe);
 			while (probe < map->probe_maximum) {
-				new_desc = CK_RHS_DESC(map, offset);
+				new_desc = ck_rhs_desc(map, offset);
 				if (new_desc->probes == probe + 1)
 					break;
 				probe++;
@@ -942,12 +1006,12 @@ ck_rhs_do_backward_shift_delete(struct ck_rhs *hs, long slot)
 		desc->probes = wanted_probes;
 
 		h = ck_rhs_remove_wanted(hs, offset, slot);
-		ck_pr_store_ptr(CK_RHS_ENTRY_ADDR(map, slot),
-		    CK_RHS_ENTRY(map, offset));
+		ck_pr_store_ptr(ck_rhs_entry_addr(map, slot),
+		    ck_rhs_entry(map, offset));
 		ck_pr_inc_uint(&map->generation[h & CK_RHS_G_MASK]);
 		ck_pr_fence_atomic_store();
 		if (wanted_probes < CK_RHS_WORD_MAX) {
-			struct ck_rhs_entry_desc *hdesc = CK_RHS_DESC(map, h);
+			struct ck_rhs_entry_desc *hdesc = ck_rhs_desc(map, h);
 			if (hdesc->wanted == 1)
 				CK_RHS_STORE(&hdesc->probe_bound,
 				    wanted_probes);
@@ -979,9 +1043,9 @@ ck_rhs_do_backward_shift_delete(struct ck_rhs *hs, long slot)
 		slot = offset;
 		desc = new_desc;
 	}
-	ck_pr_store_ptr(CK_RHS_ENTRY_ADDR(map, slot), CK_RHS_EMPTY);
+	ck_pr_store_ptr(ck_rhs_entry_addr(map, slot), CK_RHS_EMPTY);
 	if ((desc->probes - 1) < CK_RHS_WORD_MAX)
-		CK_RHS_STORE(CK_RHS_PROBE_BOUND_ADDR(map, h),
+		CK_RHS_STORE(ck_rhs_probe_bound_addr(map, h),
 		    desc->probes - 1);
 	desc->probes = 0;
 }
@@ -1011,9 +1075,9 @@ restart:
 
 	if (first != -1) {
 		int ret;
-		desc = CK_RHS_DESC(map, slot);
 
-		desc2 = CK_RHS_DESC(map, first);
+		desc = ck_rhs_desc(map, slot);
+		desc2 = ck_rhs_desc(map, first);
 		desc->in_rh = true;
 		ret = ck_rhs_put_robin_hood(hs, first, desc2);
 		desc->in_rh = false;
@@ -1022,15 +1086,15 @@ restart:
 		else if (CK_CC_UNLIKELY(ret != 0))
 			return false;
 
-		ck_pr_store_ptr(CK_RHS_ENTRY_ADDR(map, first), insert);
+		ck_pr_store_ptr(ck_rhs_entry_addr(map, first), insert);
 		ck_pr_inc_uint(&map->generation[h & CK_RHS_G_MASK]);
 		ck_pr_fence_atomic_store();
 		desc2->probes = n_probes;
 		ck_rhs_add_wanted(hs, first, -1, h);
 		ck_rhs_do_backward_shift_delete(hs, slot);
 	} else {
-		ck_pr_store_ptr(CK_RHS_ENTRY_ADDR(map, slot), insert);
-		CK_RHS_SET_PROBES(map, slot, n_probes);
+		ck_pr_store_ptr(ck_rhs_entry_addr(map, slot), insert);
+		ck_rhs_set_probes(map, slot, n_probes);
 	}
 	*previous = object;
 	return true;
@@ -1066,20 +1130,20 @@ restart:
 	if (first != -1) {
 		struct ck_rhs_entry_desc *desc = NULL, *desc2;
 		if (slot != -1) {
-			desc = CK_RHS_DESC(map, slot);
+			desc = ck_rhs_desc(map, slot);
 			desc->in_rh = true;
 		}
-		desc2 = CK_RHS_DESC(map, first);
+		desc2 = ck_rhs_desc(map, first);
 		int ret = ck_rhs_put_robin_hood(hs, first, desc2);
 		if (slot != -1)
 			desc->in_rh = false;
 
-		if (CK_CC_LIKELY(ret == 1))
+		if (CK_CC_UNLIKELY(ret == 1))
 			goto restart;
-		if (CK_CC_LIKELY(ret == -1))
+		if (CK_CC_UNLIKELY(ret == -1))
 			return false;
 		/* If an earlier bucket was found, then store entry there. */
-		ck_pr_store_ptr(CK_RHS_ENTRY_ADDR(map, first), insert);
+		ck_pr_store_ptr(ck_rhs_entry_addr(map, first), insert);
 		desc2->probes = n_probes;
 		/*
 		 * If a duplicate key was found, then delete it after
@@ -1100,8 +1164,8 @@ restart:
 		 * If we are storing into same slot, then atomic store is sufficient
 		 * for replacement.
 		 */
-		ck_pr_store_ptr(CK_RHS_ENTRY_ADDR(map, slot), insert);
-		CK_RHS_SET_PROBES(map, slot, n_probes);
+		ck_pr_store_ptr(ck_rhs_entry_addr(map, slot), insert);
+		ck_rhs_set_probes(map, slot, n_probes);
 		if (object == NULL)
 			ck_rhs_add_wanted(hs, slot, -1, h); 
 	}
@@ -1148,20 +1212,20 @@ restart:
 	insert = ck_rhs_marshal(hs->mode, key, h);
 
 	if (first != -1) {
-		struct ck_rhs_entry_desc *desc = CK_RHS_DESC(map, first);
+		struct ck_rhs_entry_desc *desc = ck_rhs_desc(map, first);
 		int ret = ck_rhs_put_robin_hood(hs, first, desc);
 		if (CK_CC_UNLIKELY(ret == 1))
 			return ck_rhs_put_internal(hs, h, key, behavior);
 		else if (CK_CC_UNLIKELY(ret == -1))
 			return false;
 		/* Insert key into first bucket in probe sequence. */
-		ck_pr_store_ptr(CK_RHS_ENTRY_ADDR(map, first), insert);
+		ck_pr_store_ptr(ck_rhs_entry_addr(map, first), insert);
 		desc->probes = n_probes;
 		ck_rhs_add_wanted(hs, first, -1, h); 
 	} else {
 		/* An empty slot was found. */
-		ck_pr_store_ptr(CK_RHS_ENTRY_ADDR(map, slot), insert);
-		CK_RHS_SET_PROBES(map, slot, n_probes);
+		ck_pr_store_ptr(ck_rhs_entry_addr(map, slot), insert);
+		ck_rhs_set_probes(map, slot, n_probes);
 		ck_rhs_add_wanted(hs, slot, -1, h); 
 	}
 
