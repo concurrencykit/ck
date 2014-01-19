@@ -326,10 +326,13 @@ ck_rhs_map_create(struct ck_rhs *hs, unsigned long entries)
 
 	if (hs->mode & CK_RHS_MODE_READ_MOSTLY)
 		size = sizeof(struct ck_rhs_map) +
-		    (sizeof(void *) * n_entries + sizeof(struct ck_rhs_no_entry_desc) * n_entries + 2 * CK_MD_CACHELINE - 1);
+		    (sizeof(void *) * n_entries +
+		     sizeof(struct ck_rhs_no_entry_desc) * n_entries + 
+		     2 * CK_MD_CACHELINE - 1);
 	else
 		size = sizeof(struct ck_rhs_map) +
-		    (sizeof(struct ck_rhs_entry_desc) * n_entries + CK_MD_CACHELINE - 1);
+		    (sizeof(struct ck_rhs_entry_desc) * n_entries + 
+		     CK_MD_CACHELINE - 1);
 	map = hs->m->malloc(size);
 	if (map == NULL)
 		return NULL;
@@ -404,7 +407,8 @@ ck_rhs_map_probe_next(struct ck_rhs_map *map,
     unsigned long probes)
 {
 	if (probes & map->offset_mask) {
-		offset = (offset &~ map->offset_mask) + ((offset + 1) & map->offset_mask);
+		offset = (offset &~ map->offset_mask) + 
+		    ((offset + 1) & map->offset_mask);
 		return offset;
 	} else
 		return (offset + probes) & map->mask;
@@ -532,7 +536,6 @@ restart:
 				continue;
 			}
 			ck_rhs_wanted_inc(update, offset);
-
 			offset = ck_rhs_map_probe_next(update, offset,  probes);
 		}
 
@@ -562,7 +565,6 @@ ck_rhs_map_probe_rm(struct ck_rhs *hs,
     unsigned long probe_limit,
     enum ck_rhs_probe_behavior behavior)
 {
-
 	void *k;
 	const void *compare;
 	long pr = -1;
@@ -581,7 +583,6 @@ ck_rhs_map_probe_rm(struct ck_rhs *hs,
 #else
 	compare = key;
 #endif
-
  	*object = NULL;
 	if (behavior != CK_RHS_PROBE_ROBIN_HOOD) {
 		probes = 0;
@@ -593,7 +594,6 @@ ck_rhs_map_probe_rm(struct ck_rhs *hs,
 		    probes);
 	}
 	opl = probe_limit;
-
 
 	for (;;) {
 		if (probes++ == probe_limit) {
@@ -607,7 +607,6 @@ ck_rhs_map_probe_rm(struct ck_rhs *hs,
 			 */
 			probe_limit = opl;
 		}
-
 		k = ck_pr_load_ptr(&map->entries.no_entries.entries[offset]);
 		if (k == CK_RHS_EMPTY)
 			goto leave;
@@ -627,7 +626,6 @@ ck_rhs_map_probe_rm(struct ck_rhs *hs,
 				}
 			}
 		}
-
 
 		if (behavior != CK_RHS_PROBE_ROBIN_HOOD) {
 #ifdef CK_RHS_PP
@@ -654,7 +652,6 @@ ck_rhs_map_probe_rm(struct ck_rhs *hs,
 		}
 		offset = ck_rhs_map_probe_next(map, offset, probes);
 	}
-
 leave:
 	if (probes > probe_limit) {
 		offset = -1;
@@ -714,7 +711,6 @@ ck_rhs_map_probe(struct ck_rhs *hs,
 	if (behavior == CK_RHS_PROBE_INSERT)
 		probe_limit = ck_rhs_map_bound_get(map, h);
 
-
 	for (;;) {
 		if (probes++ == probe_limit) {
 			if (probe_limit == opl || pr != -1) {
@@ -727,13 +723,11 @@ ck_rhs_map_probe(struct ck_rhs *hs,
 			 */
 			probe_limit = opl;
 		}
-
 		k = ck_pr_load_ptr(&map->entries.descs[offset].entry);
 		if (k == CK_RHS_EMPTY)
 			goto leave;
-
 		if ((behavior != CK_RHS_PROBE_NO_RH)) {
-			struct ck_rhs_entry_desc *desc = &map->entries.descs[offset];;
+			struct ck_rhs_entry_desc *desc = &map->entries.descs[offset];
 
 			if (pr == -1 && 
 			    desc->in_rh == false && desc->probes < probes) {
@@ -747,7 +741,6 @@ ck_rhs_map_probe(struct ck_rhs *hs,
 				}
 			}
 		}
-
 
 		if (behavior != CK_RHS_PROBE_ROBIN_HOOD) {
 #ifdef CK_RHS_PP
@@ -774,7 +767,6 @@ ck_rhs_map_probe(struct ck_rhs *hs,
 		}
 		offset = ck_rhs_map_probe_next(map, offset, probes);
 	}
-
 leave:
 	if (probes > probe_limit) {
 		offset = -1;
@@ -971,17 +963,16 @@ static void
 ck_rhs_do_backward_shift_delete(struct ck_rhs *hs, long slot)
 {
 	struct ck_rhs_map *map = hs->map;
-	struct ck_rhs_entry_desc *desc = ck_rhs_desc(map, slot), *new_desc = NULL;
+	struct ck_rhs_entry_desc *desc, *new_desc = NULL;
 	unsigned long h;
 	
+	desc = ck_rhs_desc(map, slot);
 	h = ck_rhs_remove_wanted(hs, slot, -1);
-		
 	while (desc->wanted > 0) {
 		unsigned long offset = 0, tmp_offset;
 		unsigned long wanted_probes = 1;
 		unsigned int probe = 0;
 		unsigned int max_probes;
-
 
 		/* Find a successor */
 		while (wanted_probes < map->probe_maximum) {
@@ -992,7 +983,8 @@ ck_rhs_do_backward_shift_delete(struct ck_rhs *hs, long slot)
 				if (new_desc->probes == probe + 1)
 					break;
 				probe++;
-				offset = ck_rhs_map_probe_next(map, offset, probe);
+				offset = ck_rhs_map_probe_next(map, offset,
+				    probe);
 			}
 			if (probe < map->probe_maximum)
 				break;
@@ -1002,9 +994,7 @@ ck_rhs_do_backward_shift_delete(struct ck_rhs *hs, long slot)
 			desc->wanted = 0;
 			break;
 		}
-
 		desc->probes = wanted_probes;
-
 		h = ck_rhs_remove_wanted(hs, offset, slot);
 		ck_pr_store_ptr(ck_rhs_entry_addr(map, slot),
 		    ck_rhs_entry(map, offset));
@@ -1024,8 +1014,8 @@ ck_rhs_do_backward_shift_delete(struct ck_rhs *hs, long slot)
 					max_probes = hdesc->probe_bound;
 					max_probes--;
 				}
-				tmp_offset = ck_rhs_map_probe_next(map, offset, probe);
-
+				tmp_offset = ck_rhs_map_probe_next(map, offset,
+				    probe);
 				while (probe < max_probes) {
 					if (h == (unsigned long)ck_rhs_get_first_offset(map, tmp_offset, probe))
 						break;
@@ -1037,7 +1027,6 @@ ck_rhs_do_backward_shift_delete(struct ck_rhs *hs, long slot)
 					    wanted_probes);
 			}
 		}
-
 		if (desc->wanted < CK_RHS_MAX_WANTED)
 			desc->wanted--;
 		slot = offset;
@@ -1085,7 +1074,6 @@ restart:
 			goto restart;
 		else if (CK_CC_UNLIKELY(ret != 0))
 			return false;
-
 		ck_pr_store_ptr(ck_rhs_entry_addr(map, first), insert);
 		ck_pr_inc_uint(&map->generation[h & CK_RHS_G_MASK]);
 		ck_pr_fence_atomic_store();
@@ -1123,7 +1111,6 @@ restart:
 
 		goto restart;
 	}
-
 	ck_rhs_map_bound_set(map, h, n_probes);
 	insert = ck_rhs_marshal(hs->mode, key, h);
 
@@ -1230,7 +1217,6 @@ restart:
 	}
 
 	map->n_entries++;
-	
 	if ((map->n_entries ) > ((map->capacity * CK_RHS_LOAD_FACTOR) / 100))
 		ck_rhs_grow(hs, map->capacity << 1);
 	return true;
