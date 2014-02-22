@@ -9,6 +9,7 @@ DIR=array	\
     fifo	\
     hp		\
     hs		\
+    rhs		\
     ht		\
     pflock	\
     pr		\
@@ -40,6 +41,8 @@ all:
 	$(MAKE) -C ./ck_pr/benchmark all
 	$(MAKE) -C ./ck_hs/benchmark all
 	$(MAKE) -C ./ck_hs/validate all
+	$(MAKE) -C ./ck_rhs/benchmark all
+	$(MAKE) -C ./ck_rhs/validate all
 	$(MAKE) -C ./ck_barrier/validate all
 	$(MAKE) -C ./ck_barrier/benchmark all
 	$(MAKE) -C ./ck_bytelock/validate all
@@ -76,6 +79,8 @@ clean:
 	$(MAKE) -C ./ck_ht/benchmark clean
 	$(MAKE) -C ./ck_hs/validate clean
 	$(MAKE) -C ./ck_hs/benchmark clean
+	$(MAKE) -C ./ck_rhs/validate clean
+	$(MAKE) -C ./ck_rhs/benchmark clean
 	$(MAKE) -C ./ck_brlock/benchmark clean
 	$(MAKE) -C ./ck_spinlock/validate clean
 	$(MAKE) -C ./ck_spinlock/benchmark clean
