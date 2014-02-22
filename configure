@@ -37,6 +37,9 @@ VERSION=${VERSION:-'0.3.5'}
 VERSION_MAJOR='0'
 BUILD="$PWD/build/ck.build"
 PREFIX=${PREFIX:-"/usr/local"}
+LDNAME="libck.so"
+LDNAME_VERSION="libck.so.$VERSION"
+LDNAME_MAJOR="libck.so.$VERSION_MAJOR"
 
 export CFLAGS
 export PREFIX
@@ -100,6 +103,9 @@ generate()
 	    -e "s#@MM@#$MM#g"					\
 	    -e "s#@BUILD_DIR@#$P_PWD#g"				\
 	    -e "s#@SRC_DIR@#$BUILD_DIR#g"			\
+	    -e "s#@LDNAME@#$LDNAME#g"				\
+	    -e "s#@LDNAME_MAJOR@#$LDNAME_MAJOR#g"		\
+	    -e "s#@LDNAME_VERSION@#$LDNAME_VERSION#g"		\
 		$1 > $2
 }
 
@@ -117,6 +123,9 @@ generate_stdout()
 	echo "            CFLAGS = $CFLAGS"
 	echo "    PTHREAD_CFLAGS = $PTHREAD_CFLAGS"
 	echo "                LD = $LD"
+	echo "            LDNAME = $LDNAME"
+	echo "    LDNAME_VERSION = $LDNAME_VERSION"
+	echo "      LDNAME_MAJOR = $LDNAME_MAJOR"
 	echo "           LDFLAGS = $LDFLAGS"
 	echo "              GZIP = $GZIP"
 	echo "             CORES = $CORES"
@@ -524,10 +533,13 @@ elif test "$COMPILER" = "gcc" || test "$COMPILER" = "clang" || test "$COMPILER" 
 	LD=$CC
 	if test "$SYSTEM" = "darwin"; then
 		CC_WL_OPT="-install_name"
+		LDNAME="libck.dylib"
+		LDNAME_VERSION="libck.$VERSION.dylib"
+		LDNAME_MAJOR="libck.$VERSION_MAJOR.dylib"
 	else
 		CC_WL_OPT="-soname"
 	fi
-	LDFLAGS="-shared -fPIC -Wl,$CC_WL_OPT,libck.so.$VERSION_MAJOR $LDFLAGS"
+	LDFLAGS="-shared -fPIC -Wl,$CC_WL_OPT,$LDNAME_MAJOR $LDFLAGS"
 	CFLAGS="-D_XOPEN_SOURCE=600 -D_BSD_SOURCE -std=gnu99 -pedantic -Wall -W -Wundef -Wendif-labels -Wshadow -Wpointer-arith -Wcast-align -Wwrite-strings -Wstrict-prototypes -Wmissing-prototypes -Wnested-externs -Winline -Wdisabled-optimization -fstrict-aliasing -O2 -pipe -Wno-parentheses $CFLAGS"
 	PTHREAD_CFLAGS="-pthread"
 	if test "$COMPILER" = "mingw64"; then

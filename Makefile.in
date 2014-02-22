@@ -9,6 +9,9 @@ PREFIX=@PREFIX@
 LIBRARY=@LIBRARY@
 HEADERS=@HEADERS@
 PKGCONFIG_DATA=@LIBRARY@/pkgconfig
+LDNAME=@LDNAME@
+LDNAME_VERSION=@LDNAME_VERSION@
+LDNAME_MAJOR=@LDNAME_MAJOR@
 
 all: doc
 	$(MAKE) -C src all || exit
@@ -46,10 +49,12 @@ install-headers:
 install: all install-headers
 	$(MAKE) -C doc install
 	mkdir -p $(DESTDIR)/$(LIBRARY) || exit
-	cp src/libck.so $(DESTDIR)/$(LIBRARY)/libck.so.$(VERSION) || exit
-	ln -s libck.so.$(VERSION) $(DESTDIR)/$(LIBRARY)/libck.so
-	ln -s libck.so.$(VERSION) $(DESTDIR)/$(LIBRARY)/libck.so.$(VERSION_MAJOR)
-	chmod 744 $(DESTDIR)/$(LIBRARY)/libck.so* || exit
+	cp src/libck.so $(DESTDIR)/$(LIBRARY)/$(LDNAME_VERSION) || exit
+	ln -s $(LDNAME_VERSION) $(DESTDIR)/$(LIBRARY)/$(LDNAME)
+	ln -s $(LDNAME_VERSION) $(DESTDIR)/$(LIBRARY)/$(LDNAME_MAJOR)
+	chmod 744 $(DESTDIR)/$(LIBRARY)/$(LDNAME_VERSION)	\
+		  $(DESTDIR)/$(LIBRARY)/$(LDNAME)		\
+		  $(DESTDIR)/$(LIBRARY)/$(LDNAME_MAJOR)
 	mkdir -p $(DESTDIR)/$(PKGCONFIG_DATA) || exit
 	chmod 755 $(DESTDIR)/$(PKGCONFIG_DATA)
 	cp build/ck.pc $(DESTDIR)/$(PKGCONFIG_DATA)/ck.pc || exit
@@ -61,6 +66,9 @@ install: all install-headers
 
 uninstall:
 	$(MAKE) -C doc uninstall
+	rm -f $(DESTDIR)/$(LIBRARY)/$(LDNAME_VERSION)	\
+	      $(DESTDIR)/$(LIBRARY)/$(LDNAME)		\
+	      $(DESTDIR)/$(LIBRARY)/$(LDNAME_MAJOR)
 	rm -f $(DESTDIR)/$(LIBRARY)/libck.so*
 	rm -f $(DESTDIR)/$(LIBRARY)/libck.a
 	rm -f $(DESTDIR)/$(HEADERS)/ck_*.h
