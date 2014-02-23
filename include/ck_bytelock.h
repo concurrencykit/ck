@@ -67,11 +67,11 @@ ck_bytelock_init(struct ck_bytelock *bytelock)
 }
 
 #ifdef CK_F_PR_LOAD_64
-#define CK_BYTELOCK_LENGTH 8
+#define CK_BYTELOCK_LENGTH sizeof(uint64_t)
 #define CK_BYTELOCK_LOAD ck_pr_load_64
 #define CK_BYTELOCK_TYPE uint64_t
 #elif defined(CK_F_PR_LOAD_32)
-#define CK_BYTELOCK_LENGTH 16
+#define CK_BYTELOCK_LENGTH sizeof(uint32_t)
 #define CK_BYTELOCK_LOAD ck_pr_load_32
 #define CK_BYTELOCK_TYPE uint32_t
 #else
