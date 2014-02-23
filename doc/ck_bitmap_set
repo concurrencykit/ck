@@ -25,19 +25,19 @@
 .\"
 .\"
 .Dd April 22, 2012
-.Dt CK_BITMAP_SET_MPMC 3
+.Dt CK_BITMAP_SET 3
 .Sh NAME
-.Nm ck_bitmap_set_mpmc
+.Nm ck_bitmap_set
 .Nd set the bit at the specified index
 .Sh LIBRARY
 Concurrency Kit (libck, \-lck)
 .Sh SYNOPSIS
 .In ck_bitmap.h
 .Ft void
-.Fn ck_bitmap_set_mpmc "ck_bitmap_t *bitmap" "unsigned int n"
+.Fn ck_bitmap_set "ck_bitmap_t *bitmap" "unsigned int n"
 .Sh DESCRIPTION
 The
-.Fn ck_bitmap_set_mpmc
+.Fn ck_bitmap_set
 sets the bit at offset specified by the argument
 .Fa n
 to
@@ -48,7 +48,7 @@ This function has no return value.
 .Xr ck_bitmap_base 3 ,
 .Xr ck_bitmap_size 3 ,
 .Xr ck_bitmap_init 3 ,
-.Xr ck_bitmap_reset_mpmc 3 ,
+.Xr ck_bitmap_reset 3 ,
 .Xr ck_bitmap_clear 3 ,
 .Xr ck_bitmap_test 3 ,
 .Xr ck_bitmap_bits 3 ,

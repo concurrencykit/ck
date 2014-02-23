@@ -46,8 +46,8 @@ OBJECTS=CK_ARRAY_FOREACH		\
 	ck_ht_next			\
 	ck_ht_stat			\
 	ck_bitmap_init			\
-	ck_bitmap_reset_mpmc		\
-	ck_bitmap_set_mpmc		\
+	ck_bitmap_reset			\
+	ck_bitmap_set			\
 	ck_bitmap_test			\
 	ck_bitmap_base			\
 	ck_bitmap_size			\

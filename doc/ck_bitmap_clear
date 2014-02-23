@@ -47,8 +47,8 @@ This function has no return value.
 .Xr ck_bitmap_base 3 ,
 .Xr ck_bitmap_size 3 ,
 .Xr ck_bitmap_init 3 ,
-.Xr ck_bitmap_set_mpmc 3 ,
-.Xr ck_bitmap_reset_mpmc 3 ,
+.Xr ck_bitmap_set 3 ,
+.Xr ck_bitmap_reset 3 ,
 .Xr ck_bitmap_test 3 ,
 .Xr ck_bitmap_bits 3 ,
 .Xr ck_bitmap_buffer 3
