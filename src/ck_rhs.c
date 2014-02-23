@@ -406,6 +406,7 @@ ck_rhs_map_probe_next(struct ck_rhs_map *map,
     unsigned long offset,
     unsigned long probes)
 {
+
 	if (probes & map->offset_mask) {
 		offset = (offset &~ map->offset_mask) + 
 		    ((offset + 1) & map->offset_mask);
@@ -418,6 +419,7 @@ static inline unsigned long
 ck_rhs_map_probe_prev(struct ck_rhs_map *map, unsigned long offset,
     unsigned long probes)
 {
+
 	if (probes & map->offset_mask) {
 		offset = (offset &~ map->offset_mask) + ((offset - 1) & 
 		    map->offset_mask);
@@ -677,7 +679,6 @@ ck_rhs_map_probe(struct ck_rhs *hs,
     unsigned long probe_limit,
     enum ck_rhs_probe_behavior behavior)
 {
-
 	void *k;
 	const void *compare;
 	long pr = -1;
