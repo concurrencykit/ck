@@ -80,11 +80,14 @@
 #define CK_BITMAP_NEXT(a, b, c) \
 	ck_bitmap_next(&(a)->bitmap, (b), (c))
 
-#define CK_BITMAP_SET_MPMC(a, b) \
-	ck_bitmap_set_mpmc(&(a)->bitmap, (b))
+#define CK_BITMAP_SET(a, b) \
+	ck_bitmap_set(&(a)->bitmap, (b))
 
-#define CK_BITMAP_RESET_MPMC(a, b) \
-	ck_bitmap_reset_mpmc(&(a)->bitmap, (b))
+#define CK_BITMAP_UNION(a, b) \
+	ck_bitmap_union(&(a)->bitmap, &(b)->bitmap)
+
+#define CK_BITMAP_RESET(a, b) \
+	ck_bitmap_reset(&(a)->bitmap, (b))
 
 #define CK_BITMAP_CLEAR(a) \
 	ck_bitmap_clear(&(a)->bitmap)
@@ -137,7 +140,7 @@ ck_bitmap_size(unsigned int n_bits)
  * Sets the bit at the offset specified in the second argument.
  */
 CK_CC_INLINE static void
-ck_bitmap_set_mpmc(struct ck_bitmap *bitmap, unsigned int n)
+ck_bitmap_set(struct ck_bitmap *bitmap, unsigned int n)
 {
 	CK_BITMAP_WORD mask = 0x1ULL << (n & CK_BITMAP_MASK);
 
@@ -146,10 +149,30 @@ ck_bitmap_set_mpmc(struct ck_bitmap *bitmap, unsigned int n)
 }
 
 /*
+ * Combines bits from second bitmap into the first bitmap. This is not a
+ * linearized operation with respect to the complete bitmap.
+ */
+CK_CC_INLINE static void
+ck_bitmap_union(struct ck_bitmap *dst, struct ck_bitmap *src)
+{
+	unsigned int n;
+	unsigned int n_buckets = dst->n_bits;
+
+	if (src->n_bits < dst->n_bits)
+		n_buckets = src->n_bits;
+
+	n_buckets /= sizeof(CK_BITMAP_WORD);
+	for (n = 0; n < n_buckets; n++)
+		CK_BITMAP_OR(&dst->map[n], src->map[n]);
+
+	return;
+}
+
+/*
  * Resets the bit at the offset specified in the second argument.
  */
 CK_CC_INLINE static void
-ck_bitmap_reset_mpmc(struct ck_bitmap *bitmap, unsigned int n)
+ck_bitmap_reset(struct ck_bitmap *bitmap, unsigned int n)
 {
 	CK_BITMAP_WORD mask = ~(0x1ULL << (n & CK_BITMAP_MASK));
 

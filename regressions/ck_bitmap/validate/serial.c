@@ -73,6 +73,11 @@ static void
 test(ck_bitmap_t *bits, unsigned int n_length, bool initial)
 {
 	unsigned int i;
+	CK_BITMAP_INSTANCE(8) u;
+
+	CK_BITMAP_INIT(&u, 8, false);
+	CK_BITMAP_SET(&u, 1);
+	CK_BITMAP_SET(&u, 4);
 
 	for (i = 0; i < n_length; i++) {
 		if (ck_bitmap_test(bits, i) == !initial) {
@@ -82,16 +87,16 @@ test(ck_bitmap_t *bits, unsigned int n_length, bool initial)
 	}
 
 	for (i = 0; i < n_length; i++) {
-		ck_bitmap_set_mpmc(bits, i);
+		ck_bitmap_set(bits, i);
 		if (ck_bitmap_test(bits, i) == false) {
 			ck_error("[1] ERROR: Expected bit to be set: %u\n", i);
 		}
-		ck_bitmap_reset_mpmc(bits, i);
+		ck_bitmap_reset(bits, i);
 		if (ck_bitmap_test(bits, i) == true) {
 			ck_error("[2] ERROR: Expected bit to be cleared: %u\n", i);
 		}
 
-		ck_bitmap_set_mpmc(bits, i);
+		ck_bitmap_set(bits, i);
 		if (ck_bitmap_test(bits, i) == false) {
 			ck_error("[3] ERROR: Expected bit to be set: %u\n", i);
 		}
@@ -111,6 +116,12 @@ test(ck_bitmap_t *bits, unsigned int n_length, bool initial)
 		if (ck_bitmap_test(bits, i) == true) {
 			ck_error("[4] ERROR: Expected bit to be reset: %u\n", i);
 		}
+	}
+
+	ck_bitmap_union(bits, CK_BITMAP(&u));
+	if (ck_bitmap_test(bits, 1) == false ||
+	    ck_bitmap_test(bits, 4) == false) {
+		ck_error("ERROR: Expected union semantics.\n");
 	}
 
 	return;
@@ -156,15 +167,16 @@ main(int argc, char *argv[])
 		ck_error("ERROR: Expected bit to be reset.\n");
 	}
 
-	CK_BITMAP_SET_MPMC(&sb, 1);
+	CK_BITMAP_SET(&sb, 1);
 	if (CK_BITMAP_TEST(&sb, 1) == false) {
 		ck_error("ERROR: Expected bit to be set.\n");
 	}
 
-	CK_BITMAP_RESET_MPMC(&sb, 1);
+	CK_BITMAP_RESET(&sb, 1);
 	if (CK_BITMAP_TEST(&sb, 1) == true) {
 		ck_error("ERROR: Expected bit to be reset.\n");
 	}
 
 	return 0;
 }
+
