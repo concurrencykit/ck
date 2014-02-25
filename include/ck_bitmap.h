@@ -161,7 +161,7 @@ ck_bitmap_union(struct ck_bitmap *dst, struct ck_bitmap *src)
 	if (src->n_bits < dst->n_bits)
 		n_buckets = src->n_bits;
 
-	n_buckets /= sizeof(CK_BITMAP_WORD);
+	n_buckets = CK_BITMAP_BLOCKS(n_buckets);
 	for (n = 0; n < n_buckets; n++)
 		CK_BITMAP_OR(&dst->map[n], src->map[n]);
 
