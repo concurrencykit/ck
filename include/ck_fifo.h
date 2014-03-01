@@ -115,7 +115,7 @@ CK_CC_INLINE static void
 ck_fifo_spsc_deinit(struct ck_fifo_spsc *fifo, struct ck_fifo_spsc_entry **garbage)
 {
 
-	*garbage = fifo->garbage;
+	*garbage = fifo->head;
 	fifo->head = fifo->tail = NULL;
 	return;
 }
