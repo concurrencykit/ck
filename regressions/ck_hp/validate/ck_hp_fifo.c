@@ -166,6 +166,10 @@ main(int argc, char *argv[])
 
 	ck_hp_fifo_entry_t *entry;
 	ck_hp_fifo_deinit(&fifo, &entry);
+
+	if (entry == NULL)
+		ck_error("ERROR: Expected non-NULL stub node.\n");
+
 	free(entry);
 	ck_hp_fifo_init(&fifo, malloc(sizeof(ck_hp_fifo_entry_t)));
 
