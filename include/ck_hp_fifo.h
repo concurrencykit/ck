@@ -60,9 +60,8 @@ CK_CC_INLINE static void
 ck_hp_fifo_init(struct ck_hp_fifo *fifo, struct ck_hp_fifo_entry *stub)
 {
 
-	ck_pr_store_ptr(&stub->next, NULL);
-	ck_pr_store_ptr(&fifo->head, stub);
-	ck_pr_store_ptr(&fifo->tail, stub);
+	fifo->head = fifo->tail = stub;
+	stub->next = NULL;
 	return;
 }
 
