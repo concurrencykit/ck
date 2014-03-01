@@ -117,6 +117,7 @@ main(int argc, char *argv[])
 {
 	int i, r;
 	struct context *context;
+	ck_fifo_mpmc_entry_t *garbage;
 	pthread_t *thread;
 
 	if (argc != 4) {
@@ -139,6 +140,10 @@ main(int argc, char *argv[])
 	assert(thread);
 
 	ck_fifo_mpmc_init(&fifo, malloc(sizeof(ck_fifo_mpmc_entry_t)));
+	ck_fifo_mpmc_deinit(&fifo, &garbage);
+	free(garbage);
+	ck_fifo_mpmc_init(&fifo, malloc(sizeof(ck_fifo_mpmc_entry_t)));
+
 	for (i = 0; i < nthr; i++) {
 		context[i].tid = i;
 		r = pthread_create(thread + i, NULL, test, context + i);
