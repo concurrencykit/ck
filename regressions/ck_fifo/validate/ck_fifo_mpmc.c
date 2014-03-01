@@ -141,6 +141,8 @@ main(int argc, char *argv[])
 
 	ck_fifo_mpmc_init(&fifo, malloc(sizeof(ck_fifo_mpmc_entry_t)));
 	ck_fifo_mpmc_deinit(&fifo, &garbage);
+	if (garbage == NULL)
+		ck_error("ERROR: Expected non-NULL stub node on deinit.\n");
 	free(garbage);
 	ck_fifo_mpmc_init(&fifo, malloc(sizeof(ck_fifo_mpmc_entry_t)));
 

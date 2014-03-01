@@ -160,6 +160,9 @@ main(int argc, char *argv[])
 
 		ck_fifo_spsc_init(fifo + i, malloc(sizeof(ck_fifo_spsc_entry_t)));
 		ck_fifo_spsc_deinit(fifo + i, &garbage);
+		if (garbage == NULL)
+			ck_error("ERROR: Expected non-NULL stub node on deinit.\n");
+
 		free(garbage);
 		ck_fifo_spsc_init(fifo + i, malloc(sizeof(ck_fifo_spsc_entry_t)));
 		r = pthread_create(thread + i, NULL, test, context + i);
