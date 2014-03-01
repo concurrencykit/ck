@@ -66,6 +66,15 @@ ck_hp_fifo_init(struct ck_hp_fifo *fifo, struct ck_hp_fifo_entry *stub)
 }
 
 CK_CC_INLINE static void
+ck_hp_fifo_deinit(struct ck_hp_fifo *fifo, struct ck_hp_fifo_entry **stub)
+{
+
+	*stub = fifo->head;
+	fifo->head = fifo->tail = NULL;
+	return;
+}
+
+CK_CC_INLINE static void
 ck_hp_fifo_enqueue_mpmc(ck_hp_record_t *record,
 			struct ck_hp_fifo *fifo,
 			struct ck_hp_fifo_entry *entry,
