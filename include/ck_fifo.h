@@ -112,6 +112,15 @@ ck_fifo_spsc_init(struct ck_fifo_spsc *fifo, struct ck_fifo_spsc_entry *stub)
 }
 
 CK_CC_INLINE static void
+ck_fifo_spsc_deinit(struct ck_fifo_spsc *fifo, struct ck_fifo_spsc_entry **garbage)
+{
+
+	*garbage = fifo->garbage;
+	fifo->head = fifo->tail = NULL;
+	return;
+}
+
+CK_CC_INLINE static void
 ck_fifo_spsc_enqueue(struct ck_fifo_spsc *fifo,
 		     struct ck_fifo_spsc_entry *entry,
 		     void *value)
@@ -220,6 +229,15 @@ ck_fifo_mpmc_init(struct ck_fifo_mpmc *fifo, struct ck_fifo_mpmc_entry *stub)
 	stub->next.generation = NULL;
 	fifo->head.pointer = fifo->tail.pointer = stub;
 	fifo->head.generation = fifo->tail.generation = NULL;
+	return;
+}
+
+CK_CC_INLINE static void
+ck_fifo_mpmc_deinit(struct ck_fifo_mpmc *fifo, struct ck_fifo_mpmc_entry **garbage)
+{
+
+	*garbage = fifo->head.pointer;
+	fifo->head.pointer = fifo->tail.pointer = NULL;
 	return;
 }
 
