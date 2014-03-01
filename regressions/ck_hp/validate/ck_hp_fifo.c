@@ -163,6 +163,12 @@ main(int argc, char *argv[])
 
 	ck_hp_init(&fifo_hp, 2, threshold, destructor);
 	ck_hp_fifo_init(&fifo, malloc(sizeof(ck_hp_fifo_entry_t)));
+
+	ck_hp_fifo_entry_t *entry;
+	ck_hp_fifo_deinit(&fifo, &entry);
+	free(entry);
+	ck_hp_fifo_init(&fifo, malloc(sizeof(ck_hp_fifo_entry_t)));
+
 	for (i = 0; i < nthr; i++) {
 		context[i].tid = i;
 		r = pthread_create(thread + i, NULL, test, context + i);
