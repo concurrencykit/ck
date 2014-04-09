@@ -81,8 +81,8 @@ ck_bytelock_init(struct ck_bytelock *bytelock)
 CK_CC_INLINE static void
 ck_bytelock_write_lock(struct ck_bytelock *bytelock, unsigned int slot)
 {
+	CK_BYTELOCK_TYPE *readers = (void *)bytelock->readers;
 	unsigned int i;
-	uint64_t *readers = (void *)bytelock->readers;
 
 	/* Announce upcoming writer acquisition. */
 	while (ck_pr_cas_uint(&bytelock->owner, 0, slot) == false)
@@ -95,7 +95,7 @@ ck_bytelock_write_lock(struct ck_bytelock *bytelock, unsigned int slot)
 	/* Wait for slotted readers to drain out. */
 	ck_pr_fence_store_load();
 	for (i = 0; i < sizeof(bytelock->readers) / CK_BYTELOCK_LENGTH; i++) {
-		while (CK_BYTELOCK_LOAD((CK_BYTELOCK_TYPE *)&readers[i]) != false)
+		while (CK_BYTELOCK_LOAD(&readers[i]) != false)
 			ck_pr_stall();
 	}
 
