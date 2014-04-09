@@ -64,7 +64,7 @@ ck_barrier_tournament_init(struct ck_barrier_tournament *barrier,
 	unsigned int i, k, size, twok, twokm1, imod2k;
 
 	ck_pr_store_uint(&barrier->tid, 0);
-	size = ck_barrier_tournament_size(nthr);
+	barrier->size = size = ck_barrier_tournament_size(nthr);
 
 	for (i = 0; i < nthr; ++i) {
 		/* The first role is always CK_BARRIER_TOURNAMENT_DROPOUT. */
@@ -111,6 +111,9 @@ ck_barrier_tournament(struct ck_barrier_tournament *barrier,
 {
 	struct ck_barrier_tournament_round **rounds = ck_pr_load_ptr(&barrier->rounds);
 	int round = 1;
+
+	if (barrier->size == 1)
+		return;
 
 	for (;; ++round) {
 		switch (rounds[state->vpid][round].role) {
