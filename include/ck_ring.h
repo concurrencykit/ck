@@ -409,7 +409,7 @@ ck_ring_trydequeue_spmc_##name(struct ck_ring *a,	\
     struct type *c)					\
 {							\
 							\
-	return _ck_ring_trydequeue_spmc(ring,		\
+	return _ck_ring_trydequeue_spmc(a,		\
 	    b, c, sizeof(struct type));			\
 }							\
 							\
