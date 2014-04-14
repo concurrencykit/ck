@@ -308,13 +308,6 @@ _ck_ring_dequeue_spmc(struct ck_ring *ring,
 
 		ck_pr_fence_load();
 		
-		/*
-		 * Both LLVM and GCC have generated code which completely
-		 * ignores the semantics of the r load, despite it being
-		 * sandwiched between compiler barriers. We use an atomic
-		 * volatile load to force volatile semantics while allowing
-		 * for r itself to remain aliased across the loop.
-		 */
 		target = (char *)buffer + size * (consumer & mask);
 		memcpy(data, target, size);
 
