@@ -194,15 +194,15 @@ CK_PR_LOAD_2(8, 16, uint8_t)
 /*
  * Atomic store-to-memory operations.
  */
-#define CK_PR_STORE_IMM(S, M, T, C, I)				\
-	CK_CC_INLINE static void				\
-	ck_pr_store_##S(M *target, T v)				\
-	{							\
-		__asm__ __volatile__(I " %1, %0"		\
-					: "=m" (*(C *)target)	\
-					: CK_CC_IMM "q" (v)	\
-					: "memory");		\
-		return;						\
+#define CK_PR_STORE_IMM(S, M, T, C, I, K)				\
+	CK_CC_INLINE static void					\
+	ck_pr_store_##S(M *target, T v)					\
+	{								\
+		__asm__ __volatile__(I " %1, %0"			\
+					: "=m" (*(C *)target)		\
+					: K "q" (v)			\
+					: "memory");			\
+		return;							\
 	}
 
 #define CK_PR_STORE(S, M, T, C, I)				\
@@ -216,18 +216,18 @@ CK_PR_LOAD_2(8, 16, uint8_t)
 		return;						\
 	}
 
-CK_PR_STORE_IMM(ptr, void, const void *, char, "movq")
+CK_PR_STORE_IMM(ptr, void, const void *, char, "movq", CK_CC_IMM_U32)
 CK_PR_STORE(double, double, double, double, "movq")
 
-#define CK_PR_STORE_S(S, T, I) CK_PR_STORE_IMM(S, T, T, T, I)
+#define CK_PR_STORE_S(S, T, I, K) CK_PR_STORE_IMM(S, T, T, T, I, K)
 
-CK_PR_STORE_S(char, char, "movb")
-CK_PR_STORE_S(uint, unsigned int, "movl")
-CK_PR_STORE_S(int, int, "movl")
-CK_PR_STORE_S(64, uint64_t, "movq")
-CK_PR_STORE_S(32, uint32_t, "movl")
-CK_PR_STORE_S(16, uint16_t, "movw")
-CK_PR_STORE_S(8,  uint8_t, "movb")
+CK_PR_STORE_S(char, char, "movb", CK_CC_IMM_S32)
+CK_PR_STORE_S(int, int, "movl", CK_CC_IMM_S32)
+CK_PR_STORE_S(uint, unsigned int, "movl", CK_CC_IMM_U32)
+CK_PR_STORE_S(64, uint64_t, "movq", CK_CC_IMM_U32)
+CK_PR_STORE_S(32, uint32_t, "movl", CK_CC_IMM_U32)
+CK_PR_STORE_S(16, uint16_t, "movw", CK_CC_IMM_U32)
+CK_PR_STORE_S(8,  uint8_t, "movb", CK_CC_IMM_U32)
 
 #undef CK_PR_STORE_S
 #undef CK_PR_STORE_IMM
@@ -324,28 +324,28 @@ CK_PR_GENERATE(not)
 /*
  * Atomic store-only binary operations.
  */
-#define CK_PR_BINARY(K, S, M, T, C, I)					\
+#define CK_PR_BINARY(K, S, M, T, C, I, O)				\
 	CK_CC_INLINE static void					\
 	ck_pr_##K##_##S(M *target, T d)					\
 	{								\
 		__asm__ __volatile__(CK_PR_LOCK_PREFIX I " %1, %0"	\
 					: "+m" (*(C *)target)		\
-					: CK_CC_IMM "q" (d)		\
+					: O "q" (d)			\
 					: "memory", "cc");		\
 		return;							\
 	}
 
-#define CK_PR_BINARY_S(K, S, T, I) CK_PR_BINARY(K, S, T, T, T, I)
+#define CK_PR_BINARY_S(K, S, T, I, O) CK_PR_BINARY(K, S, T, T, T, I, O)
 
-#define CK_PR_GENERATE(K)					\
-	CK_PR_BINARY(K, ptr, void, uintptr_t, char, #K "q")	\
-	CK_PR_BINARY_S(K, char, char, #K "b")			\
-	CK_PR_BINARY_S(K, int, int, #K "l")			\
-	CK_PR_BINARY_S(K, uint, unsigned int, #K "l")		\
-	CK_PR_BINARY_S(K, 64, uint64_t, #K "q")			\
-	CK_PR_BINARY_S(K, 32, uint32_t, #K "l")			\
-	CK_PR_BINARY_S(K, 16, uint16_t, #K "w")			\
-	CK_PR_BINARY_S(K, 8, uint8_t, #K "b")
+#define CK_PR_GENERATE(K)							\
+	CK_PR_BINARY(K, ptr, void, uintptr_t, char, #K "q", CK_CC_IMM_U32)	\
+	CK_PR_BINARY_S(K, char, char, #K "b", CK_CC_IMM_S32)			\
+	CK_PR_BINARY_S(K, int, int, #K "l", CK_CC_IMM_S32)			\
+	CK_PR_BINARY_S(K, uint, unsigned int, #K "l", CK_CC_IMM_U32)		\
+	CK_PR_BINARY_S(K, 64, uint64_t, #K "q", CK_CC_IMM_U32)			\
+	CK_PR_BINARY_S(K, 32, uint32_t, #K "l", CK_CC_IMM_U32)			\
+	CK_PR_BINARY_S(K, 16, uint16_t, #K "w", CK_CC_IMM_U32)			\
+	CK_PR_BINARY_S(K, 8, uint8_t, #K "b", CK_CC_IMM_U32)
 
 CK_PR_GENERATE(add)
 CK_PR_GENERATE(sub)
