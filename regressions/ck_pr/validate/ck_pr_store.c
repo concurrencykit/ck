@@ -40,7 +40,8 @@
 
 #define CK_PR_STORE_B(w)								\
 	{										\
-		uint##w##_t t = (uint##w##_t)-1, a = 0;					\
+		uint##w##_t t = (uint##w##_t)-1, a = 0, b;				\
+		ck_pr_store_##w(&b, 1ULL << (w - 1));					\
 		unsigned int i;								\
 		printf("ck_pr_store_" #w ": ");						\
 		if (w < 10)								\
