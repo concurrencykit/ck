@@ -223,7 +223,6 @@ ck_rwlock_read_lock(ck_rwlock_t *rw)
 			 * fence operation. If writer is observed to 0, then
 			 * it is guaranteed that the latch will be visible.
 			 */
-			ck_pr_fence_load();
 			snapshot = ck_pr_load_32(&rw->n_readers);
 			if (snapshot >> CK_RWLOCK_LATCH_SHIFT)
 				continue;
@@ -234,6 +233,8 @@ ck_rwlock_read_lock(ck_rwlock_t *rw)
 		ck_pr_dec_32(&rw->n_readers);
 	}
 
+	/* Acquire semantics are necessary. */
+	ck_pr_fence_load();
 	return;
 }
 
