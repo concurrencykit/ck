@@ -214,21 +214,8 @@ ck_rwlock_read_lock(ck_rwlock_t *rw)
 		 */
 		ck_pr_fence_atomic_load();
 
-		if (ck_pr_load_32(&rw->writer) == 0) {
-			/*
-			 * It is possible that a latch operation has itself
-			 * gone unnoticed across a write-side critical section.
-			 * However, the write-side critical section itself
-			 * guarantees an ordering with respect to the previous
-			 * fence operation. If writer is observed to 0, then
-			 * it is guaranteed that the latch will be visible.
-			 */
-			snapshot = ck_pr_load_32(&rw->n_readers);
-			if (snapshot >> CK_RWLOCK_LATCH_SHIFT)
-				continue;
-
+		if (ck_pr_load_32(&rw->writer) == 0)
 			break;
-		}
 
 		ck_pr_dec_32(&rw->n_readers);
 	}
