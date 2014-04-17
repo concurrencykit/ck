@@ -334,55 +334,6 @@ thread_rtm(void *null CK_CC_UNUSED)
 #endif /* CK_F_PR_RTM */
 
 static void *
-thread_latch(void *null CK_CC_UNUSED)
-{
-	unsigned int i = ITERATE;
-	unsigned int l;
-
-        if (aff_iterate(&a)) {
-                perror("ERROR: Could not affine thread");
-                exit(EXIT_FAILURE);
-        }
-
-	while (i--) {
-		ck_rwlock_write_lock(&lock);
-		ck_rwlock_write_latch(&lock);
-		{
-			ck_pr_inc_uint(&locked);
-			ck_pr_inc_uint(&locked);
-			ck_pr_inc_uint(&locked);
-			ck_pr_inc_uint(&locked);
-			ck_pr_inc_uint(&locked);
-			ck_pr_inc_uint(&locked);
-			ck_pr_inc_uint(&locked);
-			ck_pr_inc_uint(&locked);
-
-			ck_pr_dec_uint(&locked);
-			ck_pr_dec_uint(&locked);
-			ck_pr_dec_uint(&locked);
-			ck_pr_dec_uint(&locked);
-			ck_pr_dec_uint(&locked);
-			ck_pr_dec_uint(&locked);
-			ck_pr_dec_uint(&locked);
-			ck_pr_dec_uint(&locked);
-		}
-		ck_rwlock_write_unlatch(&lock);
-		ck_rwlock_write_unlock(&lock);
-
-		ck_rwlock_read_latchlock(&lock);
-		{
-			l = ck_pr_load_uint(&locked);
-			if (l != 0) {
-				ck_error("ERROR [RD:%d]: %u != 0\n", __LINE__, l);
-			}
-		}
-		ck_rwlock_read_unlock(&lock);
-	}
-
-	return (NULL);
-}
-
-static void *
 thread(void *null CK_CC_UNUSED)
 {
 	unsigned int i = ITERATE;
@@ -485,7 +436,6 @@ main(int argc, char *argv[])
 	a.delta = atoi(argv[2]);
 
 	rwlock_test(threads, thread, "regular");
-	rwlock_test(threads, thread_latch, "latch");
 #ifdef CK_F_PR_RTM
 	rwlock_test(threads, thread_rtm, "rtm");
 	rwlock_test(threads, thread_rtm_mix, "rtm-mix");
