@@ -39,7 +39,7 @@ Concurrency Kit (libck, \-lck)
 The
 .Fn ck_array_commit 3
 function will commit any pending put or remove operations associated
-with the array. The function may end up requested the safe reclamation
+with the array. The function may end up requesting the safe reclamation
 of memory actively being iterated upon by other threads.
 .Sh RETURN VALUES
 This function returns true if the commit operation succeeded. It will

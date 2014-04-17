@@ -33,10 +33,18 @@
 #define CK_CC_UNUSED
 #define CK_CC_USED
 #define CK_CC_IMM
+#define CK_CC_IMM_U32
 #else
 #define CK_CC_UNUSED __attribute__((unused))
 #define CK_CC_USED   __attribute__((used))
 #define CK_CC_IMM "i"
+#if defined(__x86_64__) || defined(__x86__)
+#define CK_CC_IMM_U32 "Z"
+#define CK_CC_IMM_S32 "e"
+#else
+#define CK_CC_IMM_U32 CK_CC_IMM
+#define CK_CC_IMM_S32 CK_CC_IMM
+#endif /* __x86_64__ || __x86__ */
 #endif
 
 /*
