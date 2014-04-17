@@ -71,6 +71,15 @@ ck_rwlock_write_lock(ck_rwlock_t *rw)
 	return;
 }
 
+CK_CC_INLINE static void
+ck_rwlock_write_unlock(ck_rwlock_t *rw)
+{
+
+	ck_pr_fence_release();
+	ck_pr_store_32(&rw->writer, 0);
+	return;
+}
+
 CK_CC_INLINE static bool
 ck_rwlock_write_trylock(ck_rwlock_t *rw)
 {
@@ -86,15 +95,6 @@ ck_rwlock_write_trylock(ck_rwlock_t *rw)
 	}
 
 	return true;
-}
-
-CK_CC_INLINE static void
-ck_rwlock_write_unlock(ck_rwlock_t *rw)
-{
-
-	ck_pr_fence_release();
-	ck_pr_store_32(&rw->writer, 0);
-	return;
 }
 
 CK_CC_INLINE static bool
