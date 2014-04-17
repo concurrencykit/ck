@@ -29,6 +29,7 @@
 
 #include <ck_elide.h>
 #include <ck_pr.h>
+#include <ck_limits.h>
 #include <ck_stdint.h>
 #include <stdbool.h>
 #include <stddef.h>
@@ -41,6 +42,7 @@ typedef struct ck_rwlock ck_rwlock_t;
 
 #define CK_RWLOCK_INITIALIZER {0, 0}
 #define CK_RWLOCK_LATCH_SHIFT 16
+#define CK_RWLOCK_LATCH_MASK  (UINT16_MAX << CK_RWLOCK_LATCH_SHIFT)
 
 CK_CC_INLINE static void
 ck_rwlock_init(struct ck_rwlock *rw)
@@ -127,8 +129,16 @@ ck_rwlock_write_latch(ck_rwlock_t *rw)
 CK_CC_INLINE static void
 ck_rwlock_write_unlatch(ck_rwlock_t *rw)
 {
+	uint32_t snapshot = ck_pr_load_uint(&rw->n_readers);
+	uint32_t delta = (snapshot & CK_RWLOCK_LATCH_MASK) -
+	    (1UL << CK_RWLOCK_LATCH_SHIFT);
 
-	ck_pr_sub_32(&rw->n_readers, 1UL << CK_RWLOCK_LATCH_SHIFT);
+	while (ck_pr_cas_32_value(&rw->n_readers, snapshot, delta, &snapshot) == false) {
+		delta = (snapshot & CK_RWLOCK_LATCH_MASK) -
+		    (1UL << CK_RWLOCK_LATCH_SHIFT);
+		ck_pr_stall();
+	}
+
 	return;
 }
 
