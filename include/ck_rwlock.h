@@ -233,6 +233,7 @@ ck_rwlock_read_latchlock(ck_rwlock_t *rw)
 				snapshot = ck_pr_load_32(&rw->n_readers);
 			} while (snapshot >> CK_RWLOCK_LATCH_SHIFT);
 
+			ck_pr_cas_32(&rw->n_readers, snapshot + 1, snapshot);
 			continue;
 		} 
 
