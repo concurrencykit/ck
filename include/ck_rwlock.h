@@ -41,8 +41,10 @@ struct ck_rwlock {
 typedef struct ck_rwlock ck_rwlock_t;
 
 #define CK_RWLOCK_INITIALIZER {0, 0}
-#define CK_RWLOCK_LATCH_SHIFT 16
-#define CK_RWLOCK_LATCH_MASK  (UINT16_MAX << CK_RWLOCK_LATCH_SHIFT)
+
+#define CK_RWLOCK_LATCH_SHIFT		16
+#define CK_RWLOCK_LATCH_WRITE_MASK	(UINT16_MAX << CK_RWLOCK_LATCH_SHIFT)
+#define CK_RWLOCK_LATCH_READ_MASK	UINT16_MAX
 
 CK_CC_INLINE static void
 ck_rwlock_init(struct ck_rwlock *rw)
@@ -130,11 +132,11 @@ CK_CC_INLINE static void
 ck_rwlock_write_unlatch(ck_rwlock_t *rw)
 {
 	uint32_t snapshot = ck_pr_load_uint(&rw->n_readers);
-	uint32_t delta = (snapshot & CK_RWLOCK_LATCH_MASK) -
+	uint32_t delta = (snapshot & CK_RWLOCK_LATCH_WRITE_MASK) -
 	    (1UL << CK_RWLOCK_LATCH_SHIFT);
 
 	while (ck_pr_cas_32_value(&rw->n_readers, snapshot, delta, &snapshot) == false) {
-		delta = (snapshot & CK_RWLOCK_LATCH_MASK) -
+		delta = (snapshot & CK_RWLOCK_LATCH_WRITE_MASK) -
 		    (1UL << CK_RWLOCK_LATCH_SHIFT);
 		ck_pr_stall();
 	}
@@ -151,7 +153,7 @@ ck_rwlock_write_lock(ck_rwlock_t *rw)
 
 	ck_pr_fence_atomic_load();
 
-	while (ck_pr_load_32(&rw->n_readers) != 0)
+	while (ck_pr_load_32(&rw->n_readers) & CK_RWLOCK_LATCH_READ_MASK)
 		ck_pr_stall();
 
 	return;
@@ -377,5 +379,7 @@ ck_rwlock_recursive_read_unlock(ck_rwlock_recursive_t *rw)
 }
 
 #undef CK_RWLOCK_LATCH_SHIFT
+#undef CK_RWLOCK_LATCH_WRITE_MASK
+#undef CK_RWLOCK_LATCH_READ_MASK
 #endif /* _CK_RWLOCK_H */
 
