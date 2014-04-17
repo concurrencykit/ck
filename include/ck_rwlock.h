@@ -128,7 +128,7 @@ CK_CC_INLINE static void
 ck_rwlock_write_unlatch(ck_rwlock_t *rw)
 {
 
-	ck_pr_sub_32(&rw->n_readers, 1UL << CK_RWLOCK_LATCH_SHIFT);
+	ck_pr_add_32(&rw->n_readers, 1UL << CK_RWLOCK_LATCH_SHIFT);
 	return;
 }
 
