@@ -94,6 +94,21 @@ ck_rwlock_locked(ck_rwlock_t *rw)
 	return ck_pr_load_32(&rw->n_readers) | r;
 }
 
+CK_CC_INLINE static void
+ck_rwlock_write_lock(ck_rwlock_t *rw)
+{
+
+	while (ck_pr_fas_32(&rw->writer, 1) != 0)
+		ck_pr_stall();
+
+	ck_pr_fence_atomic_load();
+
+	while (ck_pr_load_32(&rw->n_readers) & CK_RWLOCK_LATCH_READ_MASK)
+		ck_pr_stall();
+
+	return;
+}
+
 CK_CC_INLINE static bool
 ck_rwlock_write_trylock(ck_rwlock_t *rw)
 {
@@ -103,7 +118,7 @@ ck_rwlock_write_trylock(ck_rwlock_t *rw)
 
 	ck_pr_fence_atomic_load();
 
-	if (ck_pr_load_32(&rw->n_readers) != 0) {
+	if (ck_pr_load_32(&rw->n_readers) & CK_RWLOCK_LATCH_READ_MASK) {
 		ck_rwlock_write_unlock(rw);
 		return false;
 	}
@@ -140,21 +155,6 @@ ck_rwlock_write_unlatch(ck_rwlock_t *rw)
 		    (1UL << CK_RWLOCK_LATCH_SHIFT);
 		ck_pr_stall();
 	}
-
-	return;
-}
-
-CK_CC_INLINE static void
-ck_rwlock_write_lock(ck_rwlock_t *rw)
-{
-
-	while (ck_pr_fas_32(&rw->writer, 1) != 0)
-		ck_pr_stall();
-
-	ck_pr_fence_atomic_load();
-
-	while (ck_pr_load_32(&rw->n_readers) & CK_RWLOCK_LATCH_READ_MASK)
-		ck_pr_stall();
 
 	return;
 }
