@@ -55,19 +55,6 @@ main(void)
 	e_b = rdtsc();
 	printf("                WRITE: rwlock   %15" PRIu64 "\n", (e_b - s_b) / STEPS);
 
-	for (i = 0; i < STEPS; i++) {
-		ck_rwlock_write_latch(&rwlock);
-		ck_rwlock_write_unlatch(&rwlock);
-	}
-
-	s_b = rdtsc();
-	for (i = 0; i < STEPS; i++) {
-		ck_rwlock_write_latch(&rwlock);
-		ck_rwlock_write_unlatch(&rwlock);
-	}
-	e_b = rdtsc();
-	printf("           LATCHWRITE: rwlock   %15" PRIu64 "\n", (e_b - s_b) / STEPS);
-
 #ifdef CK_F_PR_RTM
 	struct ck_elide_config config = CK_ELIDE_CONFIG_DEFAULT_INITIALIZER;
 	struct ck_elide_stat st = CK_ELIDE_STAT_INITIALIZER;
@@ -111,19 +98,6 @@ main(void)
 	}
 	e_b = rdtsc();
 	printf("                READ:  rwlock   %15" PRIu64 "\n", (e_b - s_b) / STEPS);
-
-	for (i = 0; i < STEPS; i++) {
-		ck_rwlock_read_latchlock(&rwlock);
-		ck_rwlock_read_unlock(&rwlock);
-	}
-
-	s_b = rdtsc();
-	for (i = 0; i < STEPS; i++) {
-		ck_rwlock_read_latchlock(&rwlock);
-		ck_rwlock_read_unlock(&rwlock);
-	}
-	e_b = rdtsc();
-	printf("           LATCHREAD:  rwlock   %15" PRIu64 "\n", (e_b - s_b) / STEPS);
 
 #ifdef CK_F_PR_RTM
 	ck_elide_stat_init(&st);
