@@ -191,6 +191,33 @@ CK_ELIDE_TRYLOCK_PROTOTYPE(ck_rwlock_read, ck_rwlock_t,
 CK_CC_INLINE static void
 ck_rwlock_read_lock(ck_rwlock_t *rw)
 {
+
+	for (;;) {
+		while (ck_pr_load_32(&rw->writer) != 0)
+			ck_pr_stall();
+
+		ck_pr_inc_32(&rw->n_readers);
+
+		/*
+		 * Serialize with respect to concurrent write
+		 * lock operation.
+		 */
+		ck_pr_fence_atomic_load();
+
+		if (ck_pr_load_32(&rw->writer) == 0)
+			break;
+
+		ck_pr_dec_32(&rw->n_readers);
+	}
+
+	/* Acquire semantics are necessary. */
+	ck_pr_fence_load();
+	return;
+}
+
+CK_CC_INLINE static void
+ck_rwlock_read_latchlock(ck_rwlock_t *rw)
+{
 	uint32_t snapshot;
 
 	for (;;) {
