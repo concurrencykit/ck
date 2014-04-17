@@ -162,20 +162,7 @@ ck_rwlock_read_lock(ck_rwlock_t *rw)
 		while (ck_pr_load_uint(&rw->writer) != 0)
 			ck_pr_stall();
 
-<<<<<<< HEAD
-		snapshot = ck_pr_faa_32(&rw->n_readers, 1);
-		if (snapshot >> CK_RWLOCK_LATCH_SHIFT) {
-			do {
-				ck_pr_stall();
-				snapshot = ck_pr_load_32(&rw->n_readers);
-			} while (snapshot >> CK_RWLOCK_LATCH_SHIFT);
-
-			ck_pr_cas_32(&rw->n_readers, snapshot + 1, snapshot);
-			continue;
-		} 
-=======
 		ck_pr_inc_uint(&rw->n_readers);
->>>>>>> parent of 210b724... ck_rwlock: Migrate to 32-bit primitives and add a write_latch operation.
 
 		/*
 		 * Serialize with respect to concurrent write
