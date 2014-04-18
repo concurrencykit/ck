@@ -336,7 +336,7 @@ thread_rtm(void *null CK_CC_UNUSED)
 #endif /* CK_F_PR_RTM */
 
 static void *
-thread(void *arg)
+thread_latch(void *arg)
 {
 	unsigned int i = ITERATE;
 	unsigned int l;
@@ -392,7 +392,73 @@ thread(void *arg)
 		{
 			l = ck_pr_load_uint(&locked);
 			if (l != 0) {
-				ck_error("ERROR [RD:%d]: %u != 0 r:%x w:%d\n", __LINE__, l, lock.n_readers, lock.writer);
+				ck_error("ERROR [RD:%d]: %u != 0\n", __LINE__, l);
+			}
+		}
+		ck_swlock_read_unlock(&lock);
+	}
+
+	return (NULL);
+}
+
+static void *
+thread(void *arg)
+{
+	unsigned int i = ITERATE;
+	unsigned int l;
+	int tid = ck_pr_load_int(arg);
+
+        if (aff_iterate(&a)) {
+                perror("ERROR: Could not affine thread");
+                exit(EXIT_FAILURE);
+        }
+
+	while (i--) {
+		if (tid == 0) {
+			/* Writer */
+			ck_swlock_write_lock(&lock);
+			{
+				l = ck_pr_load_uint(&locked);
+				if (l != 0) {
+					ck_error("ERROR [WR:%d]: %u != 0\n", __LINE__, l);
+				}
+
+				ck_pr_inc_uint(&locked);
+				ck_pr_inc_uint(&locked);
+				ck_pr_inc_uint(&locked);
+				ck_pr_inc_uint(&locked);
+				ck_pr_inc_uint(&locked);
+				ck_pr_inc_uint(&locked);
+				ck_pr_inc_uint(&locked);
+				ck_pr_inc_uint(&locked);
+
+				l = ck_pr_load_uint(&locked);
+				if (l != 8) {
+					ck_error("ERROR [WR:%d]: %u != 2\n", __LINE__, l);
+				}
+
+				ck_pr_dec_uint(&locked);
+				ck_pr_dec_uint(&locked);
+				ck_pr_dec_uint(&locked);
+				ck_pr_dec_uint(&locked);
+				ck_pr_dec_uint(&locked);
+				ck_pr_dec_uint(&locked);
+				ck_pr_dec_uint(&locked);
+				ck_pr_dec_uint(&locked);
+
+				l = ck_pr_load_uint(&locked);
+				if (l != 0) {
+					ck_error("ERROR [WR:%d]: %u != 0\n", __LINE__, l);
+				}
+			}
+			ck_swlock_write_unlock(&lock);
+		}
+
+		ck_swlock_read_lock(&lock);
+		{
+			l = ck_pr_load_uint(&locked);
+			if (l != 0) {
+				ck_error("ERROR [RD:%d]: %u != 0\n", __LINE__, l);
 			}
 		}
 		ck_swlock_read_unlock(&lock);
@@ -443,7 +509,7 @@ main(int argc, char *argv[])
 	a.delta = atoi(argv[2]);
 
 	swlock_test(threads, thread, "regular");
-
+	swlock_test(threads, thread_latch, "latch");
 #ifdef CK_F_PR_RTM
 	swlock_test(threads, thread_rtm, "rtm");
 	swlock_test(threads, thread_rtm_mix, "rtm-mix");
