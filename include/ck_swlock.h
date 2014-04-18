@@ -297,7 +297,7 @@ ck_swlock_recursive_write_latch(ck_swlock_recursive_t *rw)
 	while (ck_pr_cas_32(&rw->rw.n_readers, 0, CK_SWLOCK_LATCH_BIT) == false) {
 		do {
 			ck_pr_stall();
-		} while (ck_pr_load_uint(&rw->n_readers) != 0);
+		} while (ck_pr_load_uint(&rw->rw.n_readers) != 0);
 	}
 
 	rw->wc++;
