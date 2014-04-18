@@ -91,7 +91,6 @@ ck_swlock_write_trylock(ck_swlock_t *rw)
 {
 
 	ck_pr_store_32(&rw->writer, 1);
-
 	ck_pr_fence_atomic_load();
 
 	if (ck_pr_load_32(&rw->n_readers) != 0) {
@@ -110,7 +109,6 @@ ck_swlock_write_lock(ck_swlock_t *rw)
 {
 
 	ck_pr_store_32(&rw->writer, 1);
-	
 	ck_pr_fence_atomic_load();
 
 	while (ck_pr_load_32(&rw->n_readers) != 0)
