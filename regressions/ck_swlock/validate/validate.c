@@ -55,7 +55,7 @@ thread_recursive(void *arg)
 {
 	int i = ITERATE;
 	unsigned int l;
-	unsigned int tid = *(int *) arg;
+	int tid = ck_pr_load_int(arg);
 
         if (aff_iterate(&a)) {
                 perror("ERROR: Could not affine thread");
@@ -127,10 +127,12 @@ thread_recursive(void *arg)
 
 #ifdef CK_F_PR_RTM
 static void *
-thread_rtm_adaptive(void *null CK_CC_UNUSED)
+thread_rtm_adaptive(void *arg)
 {
 	unsigned int i = ITERATE;
 	unsigned int l;
+	int tid = ck_pr_load_int(arg);
+
 	struct ck_elide_config config = CK_ELIDE_CONFIG_DEFAULT_INITIALIZER;
 	struct ck_elide_stat st = CK_ELIDE_STAT_INITIALIZER;
 
@@ -140,42 +142,44 @@ thread_rtm_adaptive(void *null CK_CC_UNUSED)
         }
 
 	while (i--) {
-		CK_ELIDE_LOCK_ADAPTIVE(ck_swlock_write, &st, &config, &lock);
-		{
-			l = ck_pr_load_uint(&locked);
-			if (l != 0) {
-				ck_error("ERROR [WR:%d]: %u != 0\n", __LINE__, l);
+		if (tid == 0) {
+			CK_ELIDE_LOCK_ADAPTIVE(ck_swlock_write, &st, &config, &lock);
+			{
+				l = ck_pr_load_uint(&locked);
+				if (l != 0) {
+					ck_error("ERROR [WR:%d]: %u != 0\n", __LINE__, l);
+				}
+
+				ck_pr_inc_uint(&locked);
+				ck_pr_inc_uint(&locked);
+				ck_pr_inc_uint(&locked);
+				ck_pr_inc_uint(&locked);
+				ck_pr_inc_uint(&locked);
+				ck_pr_inc_uint(&locked);
+				ck_pr_inc_uint(&locked);
+				ck_pr_inc_uint(&locked);
+
+				l = ck_pr_load_uint(&locked);
+				if (l != 8) {
+					ck_error("ERROR [WR:%d]: %u != 2\n", __LINE__, l);
+				}
+
+				ck_pr_dec_uint(&locked);
+				ck_pr_dec_uint(&locked);
+				ck_pr_dec_uint(&locked);
+				ck_pr_dec_uint(&locked);
+				ck_pr_dec_uint(&locked);
+				ck_pr_dec_uint(&locked);
+				ck_pr_dec_uint(&locked);
+				ck_pr_dec_uint(&locked);
+
+				l = ck_pr_load_uint(&locked);
+				if (l != 0) {
+					ck_error("ERROR [WR:%d]: %u != 0\n", __LINE__, l);
+				}
 			}
-
-			ck_pr_inc_uint(&locked);
-			ck_pr_inc_uint(&locked);
-			ck_pr_inc_uint(&locked);
-			ck_pr_inc_uint(&locked);
-			ck_pr_inc_uint(&locked);
-			ck_pr_inc_uint(&locked);
-			ck_pr_inc_uint(&locked);
-			ck_pr_inc_uint(&locked);
-
-			l = ck_pr_load_uint(&locked);
-			if (l != 8) {
-				ck_error("ERROR [WR:%d]: %u != 2\n", __LINE__, l);
-			}
-
-			ck_pr_dec_uint(&locked);
-			ck_pr_dec_uint(&locked);
-			ck_pr_dec_uint(&locked);
-			ck_pr_dec_uint(&locked);
-			ck_pr_dec_uint(&locked);
-			ck_pr_dec_uint(&locked);
-			ck_pr_dec_uint(&locked);
-			ck_pr_dec_uint(&locked);
-
-			l = ck_pr_load_uint(&locked);
-			if (l != 0) {
-				ck_error("ERROR [WR:%d]: %u != 0\n", __LINE__, l);
-			}
+			CK_ELIDE_UNLOCK_ADAPTIVE(ck_swlock_write, &st, &lock);
 		}
-		CK_ELIDE_UNLOCK_ADAPTIVE(ck_swlock_write, &st, &lock);
 
 		CK_ELIDE_LOCK(ck_swlock_read, &lock);
 		{
@@ -191,10 +195,11 @@ thread_rtm_adaptive(void *null CK_CC_UNUSED)
 }
 
 static void *
-thread_rtm_mix(void *null CK_CC_UNUSED)
+thread_rtm_mix(void *arg)
 {
 	unsigned int i = ITERATE;
 	unsigned int l;
+	int tid = ck_pr_load_int(arg);
 
         if (aff_iterate(&a)) {
                 perror("ERROR: Could not affine thread");
@@ -202,53 +207,54 @@ thread_rtm_mix(void *null CK_CC_UNUSED)
         }
 
 	while (i--) {
-		if (i & 1) {
-			CK_ELIDE_LOCK(ck_swlock_write, &lock);
-		} else {
-			ck_swlock_write_lock(&lock);
-		}
-
-		{
-			l = ck_pr_load_uint(&locked);
-			if (l != 0) {
-				ck_error("ERROR [WR:%d]: %u != 0\n", __LINE__, l);
+		if (tid == 0) {
+			if (i & 1) {
+				CK_ELIDE_LOCK(ck_swlock_write, &lock);
+			} else {
+				ck_swlock_write_lock(&lock);
 			}
 
-			ck_pr_inc_uint(&locked);
-			ck_pr_inc_uint(&locked);
-			ck_pr_inc_uint(&locked);
-			ck_pr_inc_uint(&locked);
-			ck_pr_inc_uint(&locked);
-			ck_pr_inc_uint(&locked);
-			ck_pr_inc_uint(&locked);
-			ck_pr_inc_uint(&locked);
+			{
+				l = ck_pr_load_uint(&locked);
+				if (l != 0) {
+					ck_error("ERROR [WR:%d]: %u != 0\n", __LINE__, l);
+				}
 
-			l = ck_pr_load_uint(&locked);
-			if (l != 8) {
-				ck_error("ERROR [WR:%d]: %u != 2\n", __LINE__, l);
+				ck_pr_inc_uint(&locked);
+				ck_pr_inc_uint(&locked);
+				ck_pr_inc_uint(&locked);
+				ck_pr_inc_uint(&locked);
+				ck_pr_inc_uint(&locked);
+				ck_pr_inc_uint(&locked);
+				ck_pr_inc_uint(&locked);
+				ck_pr_inc_uint(&locked);
+
+				l = ck_pr_load_uint(&locked);
+				if (l != 8) {
+					ck_error("ERROR [WR:%d]: %u != 2\n", __LINE__, l);
+				}
+
+				ck_pr_dec_uint(&locked);
+				ck_pr_dec_uint(&locked);
+				ck_pr_dec_uint(&locked);
+				ck_pr_dec_uint(&locked);
+				ck_pr_dec_uint(&locked);
+				ck_pr_dec_uint(&locked);
+				ck_pr_dec_uint(&locked);
+				ck_pr_dec_uint(&locked);
+
+				l = ck_pr_load_uint(&locked);
+				if (l != 0) {
+					ck_error("ERROR [WR:%d]: %u != 0\n", __LINE__, l);
+				}
 			}
 
-			ck_pr_dec_uint(&locked);
-			ck_pr_dec_uint(&locked);
-			ck_pr_dec_uint(&locked);
-			ck_pr_dec_uint(&locked);
-			ck_pr_dec_uint(&locked);
-			ck_pr_dec_uint(&locked);
-			ck_pr_dec_uint(&locked);
-			ck_pr_dec_uint(&locked);
-
-			l = ck_pr_load_uint(&locked);
-			if (l != 0) {
-				ck_error("ERROR [WR:%d]: %u != 0\n", __LINE__, l);
+			if (i & 1) {
+				CK_ELIDE_UNLOCK(ck_swlock_write, &lock);
+			} else {
+				ck_swlock_write_unlock(&lock);
 			}
 		}
-
-		if (i & 1) {
-			CK_ELIDE_UNLOCK(ck_swlock_write, &lock);
-		} else {
-			ck_swlock_write_unlock(&lock);
-		}
-
 		if (i & 1) {
 			CK_ELIDE_LOCK(ck_swlock_read, &lock);
 		} else {
@@ -273,10 +279,11 @@ thread_rtm_mix(void *null CK_CC_UNUSED)
 }
 
 static void *
-thread_rtm(void *null CK_CC_UNUSED)
+thread_rtm(void *arg)
 {
 	unsigned int i = ITERATE;
 	unsigned int l;
+	int tid = ck_pr_load_int(arg);
 
         if (aff_iterate(&a)) {
                 perror("ERROR: Could not affine thread");
@@ -284,42 +291,44 @@ thread_rtm(void *null CK_CC_UNUSED)
         }
 
 	while (i--) {
-		CK_ELIDE_LOCK(ck_swlock_write, &lock);
-		{
-			l = ck_pr_load_uint(&locked);
-			if (l != 0) {
-				ck_error("ERROR [WR:%d]: %u != 0\n", __LINE__, l);
+		if (tid == 0) {
+			CK_ELIDE_LOCK(ck_swlock_write, &lock);
+			{
+				l = ck_pr_load_uint(&locked);
+				if (l != 0) {
+					ck_error("ERROR [WR:%d]: %u != 0\n", __LINE__, l);
+				}
+
+				ck_pr_inc_uint(&locked);
+				ck_pr_inc_uint(&locked);
+				ck_pr_inc_uint(&locked);
+				ck_pr_inc_uint(&locked);
+				ck_pr_inc_uint(&locked);
+				ck_pr_inc_uint(&locked);
+				ck_pr_inc_uint(&locked);
+				ck_pr_inc_uint(&locked);
+
+				l = ck_pr_load_uint(&locked);
+				if (l != 8) {
+					ck_error("ERROR [WR:%d]: %u != 2\n", __LINE__, l);
+				}
+
+				ck_pr_dec_uint(&locked);
+				ck_pr_dec_uint(&locked);
+				ck_pr_dec_uint(&locked);
+				ck_pr_dec_uint(&locked);
+				ck_pr_dec_uint(&locked);
+				ck_pr_dec_uint(&locked);
+				ck_pr_dec_uint(&locked);
+				ck_pr_dec_uint(&locked);
+
+				l = ck_pr_load_uint(&locked);
+				if (l != 0) {
+					ck_error("ERROR [WR:%d]: %u != 0\n", __LINE__, l);
+				}
 			}
-
-			ck_pr_inc_uint(&locked);
-			ck_pr_inc_uint(&locked);
-			ck_pr_inc_uint(&locked);
-			ck_pr_inc_uint(&locked);
-			ck_pr_inc_uint(&locked);
-			ck_pr_inc_uint(&locked);
-			ck_pr_inc_uint(&locked);
-			ck_pr_inc_uint(&locked);
-
-			l = ck_pr_load_uint(&locked);
-			if (l != 8) {
-				ck_error("ERROR [WR:%d]: %u != 2\n", __LINE__, l);
-			}
-
-			ck_pr_dec_uint(&locked);
-			ck_pr_dec_uint(&locked);
-			ck_pr_dec_uint(&locked);
-			ck_pr_dec_uint(&locked);
-			ck_pr_dec_uint(&locked);
-			ck_pr_dec_uint(&locked);
-			ck_pr_dec_uint(&locked);
-			ck_pr_dec_uint(&locked);
-
-			l = ck_pr_load_uint(&locked);
-			if (l != 0) {
-				ck_error("ERROR [WR:%d]: %u != 0\n", __LINE__, l);
-			}
+			CK_ELIDE_UNLOCK(ck_swlock_write, &lock);
 		}
-		CK_ELIDE_UNLOCK(ck_swlock_write, &lock);
 
 		CK_ELIDE_LOCK(ck_swlock_read, &lock);
 		{
