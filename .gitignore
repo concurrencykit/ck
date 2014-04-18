@@ -15,6 +15,10 @@ build/Makefile
 *.so
 *.dSYM
 .*.sw[op]
+GPATH
+GRTAGS
+GTAGS
+ID
 regressions/ck_array/validate/serial
 regressions/ck_cohort/benchmark/ck_cohort.LATENCY
 regressions/ck_cohort/benchmark/ck_cohort.THROUGHPUT
@@ -156,3 +160,16 @@ regressions/ck_rwcohort/benchmark/ck_rp.LATENCY
 regressions/ck_rwcohort/benchmark/ck_rp.THROUGHPUT
 regressions/ck_rwcohort/benchmark/ck_wp.LATENCY
 regressions/ck_rwcohort/benchmark/ck_wp.THROUGHPUT
+regressions/ck_hs/benchmark/parallel_bytestring.delete
+regressions/ck_ht/benchmark/parallel_bytestring.delete
+regressions/ck_ht/benchmark/serial.delete
+regressions/ck_ht/validate/serial.delete
+regressions/ck_rhs/benchmark/parallel_bytestring
+regressions/ck_rhs/benchmark/serial
+regressions/ck_rhs/validate/serial
+regressions/ck_spinlock/benchmark/ck_hclh.LATENCY
+regressions/ck_spinlock/benchmark/ck_hclh.THROUGHPUT
+regressions/ck_spinlock/validate/ck_hclh
+regressions/ck_swlock/benchmark/latency
+regressions/ck_swlock/benchmark/throughput
+regressions/ck_swlock/validate/validate
