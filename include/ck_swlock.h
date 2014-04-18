@@ -188,6 +188,7 @@ CK_CC_INLINE static void
 ck_swlock_read_lock(ck_swlock_t *rw)
 {
 
+	ck_pr_fence_atomic_load();
 	for (;;) {
 		while (ck_pr_load_32(&rw->writer) != 0)
 			ck_pr_stall();
@@ -214,6 +215,8 @@ ck_swlock_read_lock(ck_swlock_t *rw)
 CK_CC_INLINE static void
 ck_swlock_read_latchlock(ck_swlock_t *rw)
 {
+
+	ck_pr_fence_atomic_load();
 	for (;;) {
 		while (ck_pr_load_32(&rw->writer) != 0)
 			ck_pr_stall();
