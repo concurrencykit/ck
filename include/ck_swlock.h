@@ -124,12 +124,14 @@ ck_swlock_write_latch(ck_swlock_t *rw)
 {
 
 	ck_pr_store_32(&rw->writer, 1);
-	
 	ck_pr_fence_atomic_load();
 	
 	/* Stall until readers have seen the latch and cleared. */
-	while (ck_pr_cas_32(&rw->n_readers, 0, CK_SWLOCK_LATCH_BIT) == false)
-		ck_pr_stall();
+	while (ck_pr_cas_32(&rw->n_readers, 0, CK_SWLOCK_LATCH_BIT) == false) {
+		do {
+			ck_pr_stall();
+		} while (ck_pr_load_uint(&rw->n_readers) != 0);
+	}
 
 	return;
 }
@@ -292,8 +294,11 @@ ck_swlock_recursive_write_latch(ck_swlock_recursive_t *rw)
 	ck_pr_store_32(&rw->rw.writer, 1);
 	ck_pr_fence_store_load();
 
-	while (ck_pr_cas_32(&rw->rw.n_readers, 0, CK_SWLOCK_LATCH_BIT) == false)
-		ck_pr_stall();
+	while (ck_pr_cas_32(&rw->rw.n_readers, 0, CK_SWLOCK_LATCH_BIT) == false) {
+		do {
+			ck_pr_stall();
+		} while (ck_pr_load_uint(&rw->n_readers) != 0);
+	}
 
 	rw->wc++;
 	return;
