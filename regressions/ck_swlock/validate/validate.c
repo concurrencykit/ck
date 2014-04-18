@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2014 Samy Al Bahra.
+ * Copyright 2014 Jaidev Sridhar.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -131,7 +131,7 @@ thread(void *arg)
 {
 	unsigned int i = ITERATE;
 	unsigned int l;
-	int tid = *(int *) arg;
+	int tid = *(int *)arg;
 
         if (aff_iterate(&a)) {
                 perror("ERROR: Could not affine thread");
