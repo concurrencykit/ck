@@ -1,6 +1,6 @@
 /*
- * Copyright 2014 Samy Al Bahra.
  * Copyright 2014 Jaidev Sridhar.
+ * Copyright 2014 Samy Al Bahra.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
