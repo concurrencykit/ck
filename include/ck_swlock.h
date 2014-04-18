@@ -220,6 +220,7 @@ ck_swlock_read_latchlock(ck_swlock_t *rw)
 
 		/* Writer has latched, stall the reader */
 		if (ck_pr_faa_32(&rw->n_readers, 1) & CK_SWLOCK_LATCH_BIT) {
+			ck_pr_dec_32(&rw->n_readers);			
 			do {
 				ck_pr_stall();
 			} while (ck_pr_load_32(&rw->n_readers) & CK_SWLOCK_LATCH_BIT);
