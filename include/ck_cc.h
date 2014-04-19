@@ -1,5 +1,6 @@
 /*
  * Copyright 2009-2014 Samy Al Bahra.
+ * Copyright 2014 Paul Khuong.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -85,5 +86,70 @@
 #define CK_CC_UNLIKELY(x) x
 #endif
 
-#endif /* _CK_CC_H */
+#ifndef CK_F_CC_FFS
+#define CK_F_CC_FFS
+CK_CC_INLINE static int
+ck_cc_ffs(unsigned int x)
+{
+	unsigned int i;
 
+	if (x == 0)
+		return 0;
+
+	for (i = 1; (x & 1) == 0; i++, x >>= 1);
+
+	return i;
+}
+#endif
+
+#ifndef CK_F_CC_CLZ
+#define CK_F_CC_CLZ
+#include <ck_limits.h>
+
+CK_CC_INLINE static int
+ck_cc_clz(unsigned int x)
+{
+	unsigned int count, i;
+
+	for (count = 0, i = sizeof(unsigned int) * CHAR_BIT; i > 0; count++) {
+		unsigned int bit = 1U << --i;
+
+		if (x & bit)
+			break;
+	}
+
+	return count;
+}
+#endif
+
+#ifndef CK_F_CC_CTZ
+#define CK_F_CC_CTZ
+CK_CC_INLINE static int
+ck_cc_ctz(unsigned int x)
+{
+	unsigned int i;
+
+	if (x == 0)
+		return 0;
+
+	for (i = 0; (x & 1) == 0; i++, x >>= 1);
+
+	return i;
+}
+#endif
+
+#ifndef CK_F_CC_POPCOUNT
+#define CK_F_CC_POPCOUNT
+CK_CC_INLINE static int
+ck_cc_popcount(unsigned int x)
+{
+	unsigned int acc;
+
+	for (acc = 0; x != 0; x >>= 1)
+		acc += x & 1;
+
+	return acc;
+}
+#endif
+
+#endif /* _CK_CC_H */

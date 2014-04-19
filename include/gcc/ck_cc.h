@@ -1,5 +1,6 @@
 /*
  * Copyright 2009-2014 Samy Al Bahra.
+ * Copyright 2014 Paul Khuong.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -96,5 +97,41 @@
  */
 #define CK_CC_ALIASED __attribute__((__may_alias__))
 
-#endif /* _CK_GCC_CC_H */
+/*
+ * Portability wrappers for bitwise ops.
+ */
 
+#define CK_F_CC_FFS
+#define CK_F_CC_CLZ
+#define CK_F_CC_CTZ
+#define CK_F_CC_POPCOUNT
+
+CK_CC_INLINE static int
+ck_cc_ffs(unsigned int x)
+{
+
+	return __builtin_ffs(x);
+}
+
+CK_CC_INLINE static int
+ck_cc_clz(unsigned int x)
+{
+
+	return __builtin_clz(x);
+}
+
+CK_CC_INLINE static int
+ck_cc_ctz(unsigned int x)
+{
+
+	return __builtin_ctz(x);
+}
+
+CK_CC_INLINE static int
+ck_cc_popcount(unsigned int x)
+{
+
+	return __builtin_popcount(x);
+}
+
+#endif /* _CK_GCC_CC_H */

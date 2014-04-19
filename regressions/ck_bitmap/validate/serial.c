@@ -2,6 +2,7 @@
  * Copyright 2012-2014 Samy Al Bahra.
  * Copyright 2012-2014 AppNexus, Inc.
  * Copyright 2012 Shreyas Prasad.
+ * Copyright 2014 Paul Khuong.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -127,10 +128,171 @@ test(ck_bitmap_t *bits, unsigned int n_length, bool initial)
 	return;
 }
 
+static void
+test_init(bool init)
+{
+	ck_bitmap_t *bitmap;
+	size_t bytes;
+	unsigned int i;
+
+	bytes = ck_bitmap_size(length);
+	bitmap = malloc(bytes);
+	memset(bitmap, random(), bytes);
+
+	ck_bitmap_init(bitmap, length, init);
+
+	if (ck_bitmap_bits(bitmap) != length) {
+		ck_error("ERROR: Expected length %u got %u\n",
+		    length, ck_bitmap_bits(bitmap));
+	}
+
+	for (i = 0; i < length; i++) {
+		if (ck_bitmap_test(bitmap, i) != init) {
+			ck_error("ERROR: Expected bit %i at index %u, got %i\n",
+			    (int)init, i, (int)(!init));
+		}
+	}
+
+	free(bitmap);
+}
+
+static ck_bitmap_t *
+random_init()
+{
+	ck_bitmap_t *bitmap;
+	unsigned int i;
+
+	bitmap = malloc(ck_bitmap_size(length));
+	ck_bitmap_init(bitmap, length, false);
+
+	for (i = 0; i < length; i++) {
+		if (random() & 1) {
+			ck_bitmap_set(bitmap, i);
+		}
+	}
+
+	return bitmap;
+}
+
+static ck_bitmap_t *
+copy(const ck_bitmap_t *src)
+{
+	ck_bitmap_t *bitmap;
+	size_t bytes = ck_bitmap_size(ck_bitmap_bits(src));
+
+	bitmap = malloc(bytes);
+	memcpy(bitmap, src, bytes);
+	return bitmap;
+}
+
+static void
+test_counts(const ck_bitmap_t *x, const ck_bitmap_t *y)
+{
+	unsigned int count = 0;
+	unsigned int count_intersect = 0;
+	unsigned int i;
+
+	for (i = 0; i <= length * 2; i++) {
+		unsigned actual_limit = i;
+		unsigned int r;
+		bool check;
+
+		if (actual_limit > ck_bitmap_bits(x))
+			actual_limit = ck_bitmap_bits(x);
+
+		check = ck_bitmap_empty(x, i);
+		if (check != (count == 0)) {
+			ck_error("ck_bitmap_empty(%u): got %i expected %i\n",
+			    i, (int)check, (int)(count == 0));
+		}
+
+		check = ck_bitmap_full(x, i);
+		if (check != (count == actual_limit)) {
+			ck_error("ck_bitmap_full(%u): got %i expected %i\n",
+			    i, (int)check, (int)(count == i));
+		}
+
+		r = ck_bitmap_count(x, i);
+		if (r != count) {
+			ck_error("ck_bitmap_count(%u): got %u expected %u\n",
+			    i, r, count);
+		}
+
+		r = ck_bitmap_count_intersect(x, y, i);
+		if (r != count_intersect) {
+			ck_error("ck_bitmap_count_intersect(%u): got %u expected %u\n",
+			    i, r, count_intersect);
+		}
+
+		if (i < length) {
+			count += ck_bitmap_test(x, i);
+			count_intersect += ck_bitmap_test(x, i) & ck_bitmap_test(y, i);
+		}
+	}
+}
+
+static void
+random_test(unsigned int seed)
+{
+	ck_bitmap_t *x, *x_copy, *y;
+	unsigned int i;
+
+	srandom(seed);
+
+	test_init(false);
+	test_init(true);
+
+	x = random_init();
+	y = random_init();
+
+#define TEST(routine, expected) do {					\
+		x_copy = copy(x);					\
+		routine(x_copy, y);					\
+		for (i = 0; i < length; i++) {				\
+			bool xi = ck_bitmap_test(x, i);			\
+			bool yi = ck_bitmap_test(y, i);			\
+			bool ri = ck_bitmap_test(x_copy, i);		\
+			bool wanted = expected(xi, yi);			\
+									\
+			if (ri != wanted) {				\
+				ck_error("In " #routine " at %u: "	\
+				    "got %i expected %i\n",		\
+				    i, ri, wanted);			\
+			}						\
+		}							\
+		free(x_copy);						\
+	} while (0)
+
+#define OR(x, y) (x | y)
+#define AND(x, y) (x & y)
+#define ANDC2(x, y) (x & (~y))
+
+	TEST(ck_bitmap_union, OR);
+	TEST(ck_bitmap_intersection, AND);
+	TEST(ck_bitmap_intersection_negate, ANDC2);
+
+#undef ANDC2
+#undef AND
+#undef OR
+#undef TEST
+
+	test_counts(x, y);
+
+	for (i = 0; i < 4; i++) {
+		ck_bitmap_init(x, length, i & 1);
+		ck_bitmap_init(y, length, i >> 1);
+		test_counts(x, y);
+	}
+
+	free(y);
+	free(x);
+}
+
 int
 main(int argc, char *argv[])
 {
 	unsigned int bytes, base;
+	size_t i, j;
 
 	if (argc >= 2) {
 		length = atoi(argv[1]);
@@ -177,6 +339,12 @@ main(int argc, char *argv[])
 		ck_error("ERROR: Expected bit to be reset.\n");
 	}
 
+	for (i = 0; i < 4 * sizeof(unsigned int) * CHAR_BIT; i++) {
+		length = i;
+		for (j = 0; j < 10; j++) {
+			random_test(i * 10 + j);
+		}
+	}
+
 	return 0;
 }
-
