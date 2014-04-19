@@ -30,6 +30,7 @@ REQUIRE_HEADER="stdbool.h stddef.h stdint.h string.h"
 
 EXIT_SUCCESS=0
 EXIT_FAILURE=1
+WANT_PIC=yes
 
 P_PWD=`pwd`
 MAINTAINER='sbahra@repnop.org'
@@ -90,6 +91,8 @@ generate()
 	    -e "s#@LIBRARY@#$LIBRARY#g"				\
 	    -e "s#@PREFIX@#$PREFIX#g"				\
 	    -e "s#@CORES@#$CORES#g"				\
+	    -e "s#@ALL_LIBS@#$ALL_LIBS#g"			\
+	    -e "s#@INSTALL_LIBS@#$INSTALL_LIBS#g"		\
 	    -e "s#@LD@#$LD#g"					\
 	    -e "s#@LDFLAGS@#$LDFLAGS#g"				\
 	    -e "s#@PTHREAD_CFLAGS@#$PTHREAD_CFLAGS#g"		\
@@ -215,6 +218,23 @@ for option in $*; do
 	--mandir=*)
 		MANDIR=$value
 		;;
+	--with-pic)
+		WANT_PIC=yes
+		;;
+	--without-pic)
+		WANT_PIC=no
+		;;
+	--build=*|--host=*|--target=*|--exec-prefix=*|--bindir=*|--sbindir=*|\
+	--sysconfdir=*|--datadir=*|--libexecdir=*|--localstatedir=*|\
+	--enable-static|\
+	--sharedstatedir=*|--infodir=*|--enable-shared|--disable-shared)
+		# ignore for compat with regular configure
+		;;
+	--*)
+		echo "$0 [--help]"
+		echo "Unknown option $option"
+		exit $EXIT_FAILURE
+		;;
 	*=*)
 		NAME=`expr "$option" : '\([^=]*\)='`
 		VALUE=`echo "$value" | sed "s/'/'\\\\\\\\''/g"`
@@ -223,6 +243,7 @@ for option in $*; do
 		;;
 	*)
 		echo "$0 [--help]"
+		echo "Unknown option $option"
 		exit $EXIT_FAILURE
 		;;
 	esac
@@ -541,7 +562,20 @@ elif test "$COMPILER" = "gcc" || test "$COMPILER" = "clang" || test "$COMPILER" 
 	else
 		CC_WL_OPT="-soname"
 	fi
-	LDFLAGS="-shared -fPIC -Wl,$CC_WL_OPT,$SONAME $LDFLAGS"
+
+	LDFLAGS="-Wl,$CC_WL_OPT,$SONAME $LDFLAGS"
+	if test "$WANT_PIC" = "yes"; then
+		LDFLAGS="$LDFLAGS -shared -fPIC"
+		CFLAGS="$CFLAGS -fPIC"
+		ALL_LIBS="libck.so libck.a"
+		INSTALL_LIBS="install-so install-lib"
+	else
+		LDFLAGS="$LDFLAGS -fno-PIC"
+		CFLAGS="$CFLAGS -fno-PIC"
+		ALL_LIBS="libck.a"
+		INSTALL_LIBS="install-lib"
+	fi
+
 	CFLAGS="-D_XOPEN_SOURCE=600 -D_BSD_SOURCE -std=gnu99 -pedantic -Wall -W -Wundef -Wendif-labels -Wshadow -Wpointer-arith -Wcast-align -Wwrite-strings -Wstrict-prototypes -Wmissing-prototypes -Wnested-externs -Winline -Wdisabled-optimization -fstrict-aliasing -O2 -pipe -Wno-parentheses $CFLAGS"
 	PTHREAD_CFLAGS="-pthread"
 	if test "$COMPILER" = "mingw64"; then

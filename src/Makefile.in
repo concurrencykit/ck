@@ -1,7 +1,6 @@
 .PHONY: clean distribution
 
 include @BUILD_DIR@/build/ck.build
-CFLAGS+=-fPIC
 
 TARGET_DIR=$(BUILD_DIR)/src
 SDIR=$(SRC_DIR)/src
@@ -19,7 +18,7 @@ OBJECTS=ck_barrier_centralized.o	\
 	ck_rhs.o			\
 	ck_array.o
 
-all: libck.so libck.a
+all: $(ALL_LIBS)
 
 libck.so: $(OBJECTS)
 	$(LD) $(LDFLAGS) -o $(TARGET_DIR)/libck.so $(OBJECTS)
