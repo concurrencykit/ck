@@ -157,7 +157,7 @@ test_init(bool init)
 }
 
 static ck_bitmap_t *
-random_init()
+random_init(void)
 {
 	ck_bitmap_t *bitmap;
 	unsigned int i;
