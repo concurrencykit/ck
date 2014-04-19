@@ -122,8 +122,8 @@ ck_swlock_write_latch(ck_swlock_t *rw)
 {
 
 	ck_pr_fas_32(&rw->writer, 1);
-	ck_pr_fence_atomic_load();
-	
+	ck_pr_fence_atomic();
+
 	/* Stall until readers have seen the latch and cleared. */
 	while (ck_pr_cas_32(&rw->n_readers, 0, CK_SWLOCK_LATCH_BIT) == false) {
 		do {
@@ -138,14 +138,7 @@ CK_CC_INLINE static void
 ck_swlock_write_unlatch(ck_swlock_t *rw)
 {
 
-	uint32_t snapshot = ck_pr_load_32(&rw->n_readers);
-	uint32_t delta = snapshot & CK_SWLOCK_READER_BITS;
-
-	while (ck_pr_cas_32_value(&rw->n_readers, snapshot, delta, &snapshot) == false) {
-		delta = snapshot & CK_SWLOCK_READER_BITS;		
-		ck_pr_stall();
-	}
-	
+	ck_pr_and_32(&rw->n_readers, CK_SWLOCK_READER_BITS);
 	ck_swlock_write_unlock(rw);
 	return;
 }
@@ -222,6 +215,7 @@ ck_swlock_read_latchlock(ck_swlock_t *rw)
 		/* Writer has latched, stall the reader */
 		if (ck_pr_faa_32(&rw->n_readers, 1) & CK_SWLOCK_LATCH_BIT) {
 			ck_pr_dec_32(&rw->n_readers);			
+
 			do {
 				ck_pr_stall();
 			} while (ck_pr_load_32(&rw->n_readers) & CK_SWLOCK_LATCH_BIT);
