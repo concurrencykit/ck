@@ -334,14 +334,8 @@ ck_swlock_recursive_write_unlock(ck_swlock_recursive_t *rw)
 CK_CC_INLINE static void
 ck_swlock_recursive_write_unlatch(ck_swlock_recursive_t *rw)
 {
-	uint32_t snapshot = ck_pr_load_32(&rw->rw.n_readers);
-	uint32_t delta = snapshot & CK_SWLOCK_READER_BITS;
 
-	while (ck_pr_cas_32_value(&rw->rw.n_readers, snapshot, delta, &snapshot) == false) {
-		delta = snapshot & CK_SWLOCK_READER_BITS;
-		ck_pr_stall();
-	}
-
+	ck_pr_and_32(&rw->rw.n_readers, CK_SWLOCK_READER_BITS);
 	ck_swlock_recursive_write_unlock(rw);
 	return;
 }
