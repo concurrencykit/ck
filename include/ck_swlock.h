@@ -122,7 +122,7 @@ ck_swlock_write_latch(ck_swlock_t *rw)
 	    CK_SWLOCK_WRITER_MASK) == false)  {
 		do {
 			ck_pr_stall();
-		} while (ck_pr_load_32(&rw->value) != 0);
+		} while (ck_pr_load_32(&rw->value) != CK_SWLOCK_WRITER_BIT);
 	}
 
 	ck_pr_fence_acquire();
