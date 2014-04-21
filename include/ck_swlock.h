@@ -43,7 +43,8 @@ typedef struct ck_swlock ck_swlock_t;
 #define CK_SWLOCK_WRITER_BIT	(1UL << 31)
 #define CK_SWLOCK_LATCH_BIT	(1UL << 30)
 #define CK_SWLOCK_WRITER_MASK	(CK_SWLOCK_LATCH_BIT | CK_SWLOCK_WRITER_BIT)
-#define CK_SWLOCK_READER_BITS	(UINT32_MAX ^ CK_SWLOCK_WRITER_MASK)
+#define CK_SWLOCK_READER_MASK   (UINT32_MAX ^ CK_SWLOCK_WRITER_MASK)
+
 
 CK_CC_INLINE static void
 ck_swlock_init(struct ck_swlock *rw)
@@ -59,7 +60,7 @@ ck_swlock_write_unlock(ck_swlock_t *rw)
 {
 
 	ck_pr_fence_release();
-	ck_pr_and_32(&rw->value, CK_SWLOCK_READER_BITS);
+	ck_pr_and_32(&rw->value, CK_SWLOCK_READER_MASK);
 	return;
 }
 
@@ -103,7 +104,7 @@ ck_swlock_write_lock(ck_swlock_t *rw)
 {
 
 	ck_pr_or_32(&rw->value, CK_SWLOCK_WRITER_BIT);
-	while (ck_pr_load_32(&rw->value) & CK_SWLOCK_READER_BITS)
+	while (ck_pr_load_32(&rw->value) & CK_SWLOCK_READER_MASK)
 		ck_pr_stall();
 
 	ck_pr_fence_acquire();
@@ -179,7 +180,7 @@ ck_swlock_read_lock(ck_swlock_t *rw)
 			break;
 
 		/*
-		 * If the latch bit has not been sent, then the writer would
+		 * If the latch bit has not been set, then the writer would
 		 * have observed the reader and will wait to completion of
 		 * read-side critical section.
 		 */
@@ -197,7 +198,7 @@ ck_swlock_locked_reader(ck_swlock_t *rw)
 {
 
 	ck_pr_fence_load();
-	return ck_pr_load_32(&rw->value) & CK_SWLOCK_READER_BITS;
+	return ck_pr_load_32(&rw->value) & CK_SWLOCK_READER_MASK;
 }
 
 CK_CC_INLINE static void
