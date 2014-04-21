@@ -328,7 +328,7 @@ thread_latch(void *arg)
 				ck_error("ERROR [RD:%d]: %u != 0\n", __LINE__, l);
 			}
 		}
-		ck_swlock_read_lock(&lock);
+		ck_swlock_read_unlock(&lock);
 	}
 
 	return (NULL);
