@@ -275,10 +275,6 @@ ck_swlock_recursive_write_lock(ck_swlock_recursive_t *rw)
 	return;
 }
 
-/* 
- * In recursive mode, latch must be the inner-most acquisition
- */
-
 CK_CC_INLINE static void
 ck_swlock_recursive_write_latch(ck_swlock_recursive_t *rw)
 {
