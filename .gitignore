@@ -15,6 +15,10 @@ build/Makefile
 *.so
 *.dSYM
 .*.sw[op]
+GPATH
+GRTAGS
+GTAGS
+ID
 regressions/ck_array/validate/serial
 regressions/ck_backoff/validate/validate
 regressions/ck_bag/validate/order
@@ -52,12 +56,16 @@ regressions/ck_hp/validate/ck_hp_stack
 regressions/ck_hp/validate/nbds_haz_test
 regressions/ck_hp/validate/serial
 regressions/ck_hs/benchmark/parallel_bytestring
+regressions/ck_hs/benchmark/parallel_bytestring.delete
 regressions/ck_hs/benchmark/serial
 regressions/ck_hs/validate/serial
 regressions/ck_ht/benchmark/parallel_bytestring
+regressions/ck_ht/benchmark/parallel_bytestring.delete
 regressions/ck_ht/benchmark/parallel_direct
 regressions/ck_ht/benchmark/serial
+regressions/ck_ht/benchmark/serial.delete
 regressions/ck_ht/validate/serial
+regressions/ck_ht/validate/serial.delete
 regressions/ck_pflock/benchmark/latency
 regressions/ck_pflock/benchmark/throughput
 regressions/ck_pflock/validate/validate
@@ -87,6 +95,9 @@ regressions/ck_pr/validate/ck_pr_xor
 regressions/ck_queue/validate/ck_list
 regressions/ck_queue/validate/ck_slist
 regressions/ck_queue/validate/ck_stailq
+regressions/ck_rhs/benchmark/parallel_bytestring
+regressions/ck_rhs/benchmark/serial
+regressions/ck_rhs/validate/serial
 regressions/ck_ring/benchmark/latency
 regressions/ck_ring/validate/ck_ring_spmc
 regressions/ck_ring/validate/ck_ring_spmc_template
@@ -116,6 +127,8 @@ regressions/ck_spinlock/benchmark/ck_dec.LATENCY
 regressions/ck_spinlock/benchmark/ck_dec.THROUGHPUT
 regressions/ck_spinlock/benchmark/ck_fas.LATENCY
 regressions/ck_spinlock/benchmark/ck_fas.THROUGHPUT
+regressions/ck_spinlock/benchmark/ck_hclh.LATENCY
+regressions/ck_spinlock/benchmark/ck_hclh.THROUGHPUT
 regressions/ck_spinlock/benchmark/ck_mcs.LATENCY
 regressions/ck_spinlock/benchmark/ck_mcs.THROUGHPUT
 regressions/ck_spinlock/benchmark/ck_spinlock.LATENCY
@@ -157,3 +170,6 @@ regressions/ck_stack/validate/upmc_pop
 regressions/ck_stack/validate/upmc_push
 regressions/ck_stack/validate/upmc_trypop
 regressions/ck_stack/validate/upmc_trypush
+regressions/ck_swlock/benchmark/latency
+regressions/ck_swlock/benchmark/throughput
+regressions/ck_swlock/validate/validate
