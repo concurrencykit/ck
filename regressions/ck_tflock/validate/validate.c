@@ -152,6 +152,7 @@ main(int argc, char *argv[])
 	a.delta = atoi(argv[2]);
 
 	tflock_ticket_test(threads, thread, "regular");
+	ck_tflock_ticket_init(&lock);
 	return 0;
 }
 
