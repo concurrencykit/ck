@@ -49,7 +49,8 @@ CK_CC_INLINE static void
 ck_spinlock_cas_init(struct ck_spinlock_cas *lock)
 {
 
-	ck_pr_store_uint(&lock->value, false);
+	lock->value = false;
+	ck_pr_barrier();
 	return;
 }
 

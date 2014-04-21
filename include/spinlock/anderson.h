@@ -83,7 +83,7 @@ ck_spinlock_anderson_init(struct ck_spinlock_anderson *lock,
 	else
 		lock->wrap = 0;
 
-	ck_pr_fence_store();
+	ck_pr_barrier();
 	return;
 }
 

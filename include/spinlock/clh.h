@@ -46,10 +46,10 @@ CK_CC_INLINE static void
 ck_spinlock_clh_init(struct ck_spinlock_clh **lock, struct ck_spinlock_clh *unowned)
 {
 
-	ck_pr_store_ptr(&unowned->previous, NULL);
-	ck_pr_store_uint(&unowned->wait, false);
-	ck_pr_store_ptr(lock, unowned);
-	ck_pr_fence_store();
+	unowned->previous = NULL;
+	unowned->wait = false;
+	*lock = unowned;
+	ck_pr_barrier();
 	return;
 }
 

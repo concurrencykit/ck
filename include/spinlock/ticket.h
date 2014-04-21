@@ -79,7 +79,7 @@ ck_spinlock_ticket_init(struct ck_spinlock_ticket *ticket)
 {
 
 	ticket->value = 0;
-	ck_pr_fence_store();
+	ck_pr_barrier();
 	return;
 }
 
@@ -203,7 +203,7 @@ ck_spinlock_ticket_init(struct ck_spinlock_ticket *ticket)
 
 	ticket->next = 0;
 	ticket->position = 0;
-	ck_pr_fence_store();
+	ck_pr_barrier();
 
 	return;
 }

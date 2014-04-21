@@ -48,7 +48,8 @@ CK_CC_INLINE static void
 ck_spinlock_mcs_init(struct ck_spinlock_mcs **queue)
 {
 
-	ck_pr_store_ptr(queue, NULL);
+	*queue = NULL;
+	ck_pr_barrier();
 	return;
 }
 

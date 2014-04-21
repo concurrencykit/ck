@@ -49,12 +49,12 @@ ck_spinlock_hclh_init(struct ck_spinlock_hclh **lock,
     int cluster_id)
 {
 
-	ck_pr_store_ptr(&unowned->previous, NULL);
-	ck_pr_store_uint(&unowned->wait, false);
-	ck_pr_store_uint(&unowned->splice, false);
-	ck_pr_store_int(&unowned->cluster_id, cluster_id);
-	ck_pr_store_ptr(lock, unowned);
-	ck_pr_fence_store();
+	unowned->previous = NULL;
+	unowned->wait = false;
+	unowned->splice = false;
+	unowned->cluster_id = cluster_id;
+	*lock = unowned;
+	ck_pr_barrier();
 	return;
 }
 
