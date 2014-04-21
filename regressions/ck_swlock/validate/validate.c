@@ -69,8 +69,8 @@ thread_recursive(void *arg)
 				ck_pr_stall();
 
 			ck_swlock_recursive_write_lock(&r_lock);
-			ck_swlock_recursive_write_latch(&r_lock);
 			ck_swlock_recursive_write_lock(&r_lock);
+			ck_swlock_recursive_write_latch(&r_lock);
 
 			{
 				l = ck_pr_load_uint(&locked);
@@ -106,8 +106,8 @@ thread_recursive(void *arg)
 					ck_error("ERROR [WR:%d]: %u != 0\n", __LINE__, l);
 				}
 			}
-			ck_swlock_recursive_write_unlock(&r_lock);
 			ck_swlock_recursive_write_unlatch(&r_lock);
+			ck_swlock_recursive_write_unlock(&r_lock);
 			ck_swlock_recursive_write_unlock(&r_lock);
 			ck_swlock_recursive_write_unlock(&r_lock);
 		}

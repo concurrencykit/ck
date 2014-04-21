@@ -242,7 +242,7 @@ main(int argc, char *argv[])
 
 	d = atoi(argv[1]);
 	swlock_test(p, d, latency, thread_lock, "swlock");
-	swlock_test(p, d, latency, thread_latchlock, "swlock");
+	swlock_test(p, d, latency, thread_latchlock, "swlock_latchlock");
 
 	return 0;
 }
