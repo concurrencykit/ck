@@ -91,16 +91,8 @@ ck_swlock_locked(ck_swlock_t *rw)
 CK_CC_INLINE static bool
 ck_swlock_write_trylock(ck_swlock_t *rw)
 {
-
-	ck_pr_or_32(&rw->value, CK_SWLOCK_WRITER_BIT);
-
-	if (ck_pr_load_32(&rw->value) & CK_SWLOCK_READER_BITS) {
-		ck_swlock_write_unlock(rw);
-		return false;
-	}
-
 	ck_pr_fence_acquire();
-	return true;
+	return ck_pr_cas_32(&rw->value, 0, CK_SWLOCK_WRITER_BIT);
 }
 
 CK_ELIDE_TRYLOCK_PROTOTYPE(ck_swlock_write, ck_swlock_t,
@@ -150,47 +142,11 @@ CK_ELIDE_PROTOTYPE(ck_swlock_write, ck_swlock_t,
     ck_swlock_locked, ck_swlock_write_lock,
     ck_swlock_locked_writer, ck_swlock_write_unlock)
 
-CK_CC_INLINE static bool
-ck_swlock_read_trylock(ck_swlock_t *rw)
-{
-
-	if (ck_pr_faa_32(&rw->value, 1) & CK_SWLOCK_WRITER_BIT) {
-		ck_pr_dec_32(&rw->value);
-		return false;
-	} 
-
-	ck_pr_fence_acquire();
-	return true;
-}
-
 CK_ELIDE_TRYLOCK_PROTOTYPE(ck_swlock_read, ck_swlock_t,
     ck_swlock_locked_writer, ck_swlock_read_trylock)
 
-CK_CC_INLINE static void
-ck_swlock_read_lock(ck_swlock_t *rw)
-{
-	uint32_t l;
-
-	for (;;) {
-		while (ck_pr_load_32(&rw->value) & CK_SWLOCK_WRITER_BIT)
-			ck_pr_stall();
-
-		l = ck_pr_faa_32(&rw->value, 1);
-
-		if (l & CK_SWLOCK_WRITER_BIT) {
-			ck_pr_dec_32(&rw->value);
-			continue;
-		}
-
-		break;
-	}
-
-	ck_pr_fence_acquire();
-	return;
-}
-
 CK_CC_INLINE static bool
-ck_swlock_read_trylatchlock(ck_swlock_t *rw)
+ck_swlock_read_trylock(ck_swlock_t *rw)
 {
 	uint32_t l = ck_pr_load_32(&rw->value);
 
@@ -210,7 +166,7 @@ ck_swlock_read_trylatchlock(ck_swlock_t *rw)
 }
 
 CK_CC_INLINE static void
-ck_swlock_read_latchlock(ck_swlock_t *rw)
+ck_swlock_read_lock(ck_swlock_t *rw)
 {
 	uint32_t l;
 
