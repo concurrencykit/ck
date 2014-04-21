@@ -321,14 +321,14 @@ thread_latch(void *arg)
 			ck_swlock_write_unlatch(&lock);
 		}
 
-		ck_swlock_read_latchlock(&lock);
+		ck_swlock_read_lock(&lock);
 		{
 			l = ck_pr_load_uint(&locked);
 			if (l != 0) {
 				ck_error("ERROR [RD:%d]: %u != 0\n", __LINE__, l);
 			}
 		}
-		ck_swlock_read_unlock(&lock);
+		ck_swlock_read_lock(&lock);
 	}
 
 	return (NULL);
