@@ -48,82 +48,6 @@ static struct affinity a;
 static unsigned int locked;
 static int nthr;
 static ck_swlock_t lock = CK_SWLOCK_INITIALIZER;
-static ck_swlock_recursive_t r_lock = CK_SWLOCK_RECURSIVE_INITIALIZER;
-
-static void *
-thread_recursive(void *arg)
-{
-	int i = ITERATE;
-	unsigned int l;
-	int tid = ck_pr_load_int(arg);
-
-        if (aff_iterate(&a)) {
-                perror("ERROR: Could not affine thread");
-                exit(EXIT_FAILURE);
-        }
-
-	while (i--) {
-		if (tid == 0) {
-			/* Writer */
-			while (ck_swlock_recursive_write_trylock(&r_lock) == false)
-				ck_pr_stall();
-
-			ck_swlock_recursive_write_lock(&r_lock);
-			ck_swlock_recursive_write_lock(&r_lock);
-			ck_swlock_recursive_write_latch(&r_lock);
-
-			{
-				l = ck_pr_load_uint(&locked);
-				if (l != 0) {
-					ck_error("ERROR [WR:%d]: %u != 0\n", __LINE__, l);
-				}
-
-				ck_pr_inc_uint(&locked);
-				ck_pr_inc_uint(&locked);
-				ck_pr_inc_uint(&locked);
-				ck_pr_inc_uint(&locked);
-				ck_pr_inc_uint(&locked);
-				ck_pr_inc_uint(&locked);
-				ck_pr_inc_uint(&locked);
-				ck_pr_inc_uint(&locked);
-
-				l = ck_pr_load_uint(&locked);
-				if (l != 8) {
-					ck_error("ERROR [WR:%d]: %u != 2\n", __LINE__, l);
-				}
-
-				ck_pr_dec_uint(&locked);
-				ck_pr_dec_uint(&locked);
-				ck_pr_dec_uint(&locked);
-				ck_pr_dec_uint(&locked);
-				ck_pr_dec_uint(&locked);
-				ck_pr_dec_uint(&locked);
-				ck_pr_dec_uint(&locked);
-				ck_pr_dec_uint(&locked);
-
-				l = ck_pr_load_uint(&locked);
-				if (l != 0) {
-					ck_error("ERROR [WR:%d]: %u != 0\n", __LINE__, l);
-				}
-			}
-			ck_swlock_recursive_write_unlatch(&r_lock);
-			ck_swlock_recursive_write_unlock(&r_lock);
-			ck_swlock_recursive_write_unlock(&r_lock);
-			ck_swlock_recursive_write_unlock(&r_lock);
-		}
-		
-		ck_swlock_recursive_read_latchlock(&r_lock);
-		{
-			l = ck_pr_load_uint(&locked);
-			if (l != 0) {
-				ck_error("ERROR [RD:%d]: %u != 0\n", __LINE__, l);
-			}
-		}
-		ck_swlock_recursive_read_unlock(&r_lock);
-	}
-
-	return (NULL);
-}
 
 #ifdef CK_F_PR_RTM
 static void *
@@ -524,7 +448,6 @@ main(int argc, char *argv[])
 	swlock_test(threads, thread_rtm_mix, "rtm-mix");
 	swlock_test(threads, thread_rtm_adaptive, "rtm-adaptive");
 #endif
-	swlock_test(threads, thread_recursive, "recursive");
 	return 0;
 }
 
