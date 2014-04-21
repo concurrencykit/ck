@@ -114,71 +114,6 @@ thread_lock(void *pun)
 	return NULL;
 }
 
-static void *
-thread_latchlock(void *pun)
-{
-	uint64_t s_b, e_b, a, i;
-	uint64_t *value = pun;
-
-	if (aff_iterate(&affinity) != 0) {
-		perror("ERROR: Could not affine thread");
-		exit(EXIT_FAILURE);
-	}
-
-	ck_pr_inc_int(&barrier);
-	while (ck_pr_load_int(&barrier) != threads)
-		ck_pr_stall();
-
-	for (i = 1, a = 0;; i++) {
-		s_b = rdtsc();
-		ck_swlock_read_latchlock(&rw.lock);
-		ck_swlock_read_unlock(&rw.lock);
-		ck_swlock_read_latchlock(&rw.lock);
-		ck_swlock_read_unlock(&rw.lock);
-		ck_swlock_read_latchlock(&rw.lock);
-		ck_swlock_read_unlock(&rw.lock);
-		ck_swlock_read_latchlock(&rw.lock);
-		ck_swlock_read_unlock(&rw.lock);
-		ck_swlock_read_latchlock(&rw.lock);
-		ck_swlock_read_unlock(&rw.lock);
-		ck_swlock_read_latchlock(&rw.lock);
-		ck_swlock_read_unlock(&rw.lock);
-		ck_swlock_read_latchlock(&rw.lock);
-		ck_swlock_read_unlock(&rw.lock);
-		ck_swlock_read_latchlock(&rw.lock);
-		ck_swlock_read_unlock(&rw.lock);
-		ck_swlock_read_latchlock(&rw.lock);
-		ck_swlock_read_unlock(&rw.lock);
-		ck_swlock_read_latchlock(&rw.lock);
-		ck_swlock_read_unlock(&rw.lock);
-		ck_swlock_read_latchlock(&rw.lock);
-		ck_swlock_read_unlock(&rw.lock);
-		ck_swlock_read_latchlock(&rw.lock);
-		ck_swlock_read_unlock(&rw.lock);
-		ck_swlock_read_latchlock(&rw.lock);
-		ck_swlock_read_unlock(&rw.lock);
-		ck_swlock_read_latchlock(&rw.lock);
-		ck_swlock_read_unlock(&rw.lock);
-		ck_swlock_read_latchlock(&rw.lock);
-		ck_swlock_read_unlock(&rw.lock);
-		ck_swlock_read_latchlock(&rw.lock);
-		ck_swlock_read_unlock(&rw.lock);
-		e_b = rdtsc();
-
-		a += (e_b - s_b) >> 4;
-
-		if (ck_pr_load_uint(&flag) == 1)
-			break;
-	}
-
-	ck_pr_inc_int(&barrier);
-	while (ck_pr_load_int(&barrier) != threads * 2)
-		ck_pr_stall();
-
-	*value = (a / i);
-	return NULL;
-}
-
 static void
 swlock_test(pthread_t *p, int d, uint64_t *latency, void *(*f)(void *), const char *label)
 {
@@ -242,7 +177,6 @@ main(int argc, char *argv[])
 
 	d = atoi(argv[1]);
 	swlock_test(p, d, latency, thread_lock, "swlock");
-	swlock_test(p, d, latency, thread_latchlock, "swlock_latchlock");
 
 	return 0;
 }

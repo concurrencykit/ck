@@ -81,20 +81,6 @@ main(void)
 	e_b = rdtsc();
 	printf("                LATCH: swlock             %15" PRIu64 "\n", (e_b - s_b) / STEPS);
 
-	for (i = 0; i < STEPS; i++) {
-		ck_swlock_read_latchlock(&swlock);
-		ck_swlock_read_unlock(&swlock);
-	}
-
-	s_b = rdtsc();
-	for (i = 0; i < STEPS; i++) {
-		ck_swlock_read_latchlock(&swlock);
-		ck_swlock_read_unlock(&swlock);
-	}
-	e_b = rdtsc();
-	printf("                READ_LATCHLOCK:  swlock   %15" PRIu64 "\n", (e_b - s_b) / STEPS);
-
-
 	return 0;
 }
 
