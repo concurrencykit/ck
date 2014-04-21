@@ -62,7 +62,7 @@ ck_bytelock_init(struct ck_bytelock *bytelock)
 	for (i = 0; i < sizeof bytelock->readers; i++)
 		bytelock->readers[i] = false;
 
-	ck_pr_fence_store();
+	ck_pr_barrier();
 	return;
 }
 

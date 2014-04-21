@@ -46,7 +46,7 @@ ck_rwlock_init(struct ck_rwlock *rw)
 
 	rw->writer = 0;
 	rw->n_readers = 0;
-	ck_pr_fence_store();
+	ck_pr_barrier();
 	return;
 }
 

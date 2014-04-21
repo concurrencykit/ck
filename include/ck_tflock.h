@@ -74,6 +74,7 @@ ck_tflock_ticket_init(struct ck_tflock_ticket *pf)
 {
 
 	pf->request = pf->completion = 0;
+	ck_pr_barrier();
 	return;
 }
 
