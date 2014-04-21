@@ -122,7 +122,10 @@ CK_CC_INLINE static void
 ck_swlock_write_latch(ck_swlock_t *rw)
 {
 
-	/* Stall until readers have seen the latch and cleared. */
+	/* Publish intent to acquire lock. */
+	ck_pr_or_32(&rw->value, CK_SWLOCK_WRITER_BIT);
+
+	/* Stall until readers have seen the seen writer and cleared. */
 	while (ck_pr_cas_32(&rw->value, 0, CK_SWLOCK_WRITER_MASK) == false)  {
 		do {
 			ck_pr_stall();
