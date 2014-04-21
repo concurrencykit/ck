@@ -126,10 +126,11 @@ ck_swlock_write_latch(ck_swlock_t *rw)
 	ck_pr_or_32(&rw->value, CK_SWLOCK_WRITER_BIT);
 
 	/* Stall until readers have seen the seen writer and cleared. */
-	while (ck_pr_cas_32(&rw->value, 0, CK_SWLOCK_WRITER_MASK) == false)  {
+	while (ck_pr_cas_32(&rw->value, CK_SWLOCK_WRITER_BIT,
+	    CK_SWLOCK_WRITER_MASK) == false)  {
 		do {
 			ck_pr_stall();
-		} while (ck_pr_load_uint(&rw->value) != 0);
+		} while (ck_pr_load_32(&rw->value) != 0);
 	}
 
 	ck_pr_fence_acquire();
