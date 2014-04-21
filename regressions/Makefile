@@ -18,7 +18,8 @@ DIR=array	\
     rwlock	\
     sequence	\
     spinlock	\
-    stack
+    stack	\
+    tflock
 
 .PHONY: all clean check
 
