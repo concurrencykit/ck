@@ -35,7 +35,7 @@
 #include <stddef.h>
 
 struct ck_swlock {
-	uint32_t lock_bits;
+	uint32_t value;
 };
 typedef struct ck_swlock ck_swlock_t;
 
@@ -48,7 +48,7 @@ CK_CC_INLINE static void
 ck_swlock_init(struct ck_swlock *rw)
 {
 
-	rw->lock_bits = 0;
+	rw->value = 0;
 	return;
 }
 
@@ -56,7 +56,7 @@ CK_CC_INLINE static void
 ck_swlock_write_unlock(ck_swlock_t *rw)
 {
 
-	ck_pr_and_32(&rw->lock_bits, CK_SWLOCK_READER_BITS);
+	ck_pr_and_32(&rw->value, CK_SWLOCK_READER_BITS);
 	return;
 }
 
@@ -64,14 +64,14 @@ CK_CC_INLINE static bool
 ck_swlock_locked_writer(ck_swlock_t *rw)
 {
 
-	return (ck_pr_load_32(&rw->lock_bits) & CK_SWLOCK_WRITER_BIT);
+	return (ck_pr_load_32(&rw->value) & CK_SWLOCK_WRITER_BIT);
 }
 
 CK_CC_INLINE static void
 ck_swlock_write_downgrade(ck_swlock_t *rw)
 {
 
-	ck_pr_inc_32(&rw->lock_bits);
+	ck_pr_inc_32(&rw->value);
 	ck_swlock_write_unlock(rw);
 	return;
 }
@@ -80,16 +80,16 @@ CK_CC_INLINE static bool
 ck_swlock_locked(ck_swlock_t *rw)
 {
 
-	return ck_pr_load_32(&rw->lock_bits);
+	return ck_pr_load_32(&rw->value);
 }
 
 CK_CC_INLINE static bool
 ck_swlock_write_trylock(ck_swlock_t *rw)
 {
 
-	ck_pr_or_32(&rw->lock_bits, CK_SWLOCK_WRITER_BIT);
+	ck_pr_or_32(&rw->value, CK_SWLOCK_WRITER_BIT);
 
-	if ((ck_pr_load_32(&rw->lock_bits) & CK_SWLOCK_READER_BITS) != 0) {
+	if ((ck_pr_load_32(&rw->value) & CK_SWLOCK_READER_BITS) != 0) {
 		ck_swlock_write_unlock(rw);
 		return false;
 	}
@@ -104,9 +104,9 @@ CK_CC_INLINE static void
 ck_swlock_write_lock(ck_swlock_t *rw)
 {
 
-	ck_pr_or_32(&rw->lock_bits, CK_SWLOCK_WRITER_BIT);
+	ck_pr_or_32(&rw->value, CK_SWLOCK_WRITER_BIT);
 
-	while ((ck_pr_load_32(&rw->lock_bits) & CK_SWLOCK_READER_BITS) != 0)
+	while ((ck_pr_load_32(&rw->value) & CK_SWLOCK_READER_BITS) != 0)
 		ck_pr_stall();
 
 	return;
@@ -116,13 +116,13 @@ CK_CC_INLINE static void
 ck_swlock_write_latch(ck_swlock_t *rw)
 {
 
-	ck_pr_or_32(&rw->lock_bits, CK_SWLOCK_WRITER_BIT);
+	ck_pr_or_32(&rw->value, CK_SWLOCK_WRITER_BIT);
 	
 	/* Stall until readers have seen the latch and cleared. */
-	while (ck_pr_cas_32(&rw->lock_bits, CK_SWLOCK_WRITER_BIT, (CK_SWLOCK_WRITER_BIT | CK_SWLOCK_LATCH_BIT)) == false) {
+	while (ck_pr_cas_32(&rw->value, CK_SWLOCK_WRITER_BIT, (CK_SWLOCK_WRITER_BIT | CK_SWLOCK_LATCH_BIT)) == false) {
 		do {
 			ck_pr_stall();
-		} while (ck_pr_load_uint(&rw->lock_bits) != CK_SWLOCK_WRITER_BIT);
+		} while (ck_pr_load_uint(&rw->value) != CK_SWLOCK_WRITER_BIT);
 	}
 
 	return;
@@ -132,7 +132,7 @@ CK_CC_INLINE static void
 ck_swlock_write_unlatch(ck_swlock_t *rw)
 {
 
-	ck_pr_store_32(&rw->lock_bits, 0);
+	ck_pr_store_32(&rw->value, 0);
 	return;
 }
 
@@ -144,8 +144,8 @@ CK_CC_INLINE static bool
 ck_swlock_read_trylock(ck_swlock_t *rw)
 {
 
-	if (ck_pr_faa_32(&rw->lock_bits, 1) & CK_SWLOCK_WRITER_BIT) {
-		ck_pr_dec_32(&rw->lock_bits);
+	if (ck_pr_faa_32(&rw->value, 1) & CK_SWLOCK_WRITER_BIT) {
+		ck_pr_dec_32(&rw->value);
 		return false;
 	} 
 	
@@ -161,15 +161,15 @@ ck_swlock_read_lock(ck_swlock_t *rw)
 
 	uint32_t l;
 	for (;;) {
-		while (ck_pr_load_32(&rw->lock_bits) & CK_SWLOCK_WRITER_BIT)
+		while (ck_pr_load_32(&rw->value) & CK_SWLOCK_WRITER_BIT)
 			ck_pr_stall();
 
-		l = ck_pr_faa_32(&rw->lock_bits, 1);
+		l = ck_pr_faa_32(&rw->value, 1);
 
 		if (!(l & CK_SWLOCK_WRITER_BIT))
 			return;
 		
-		ck_pr_dec_32(&rw->lock_bits);
+		ck_pr_dec_32(&rw->value);
 	}
 
 	return;
@@ -179,18 +179,18 @@ CK_CC_INLINE static bool
 ck_swlock_read_trylatchlock(ck_swlock_t *rw)
 {
 
-	uint32_t l = ck_pr_load_32(&rw->lock_bits);
+	uint32_t l = ck_pr_load_32(&rw->value);
 
 	if (l & CK_SWLOCK_WRITER_BIT)
 		return false;
 
-	l = ck_pr_faa_32(&rw->lock_bits, 1);
+	l = ck_pr_faa_32(&rw->value, 1);
 
 	if (!(l & CK_SWLOCK_WRITER_BIT))
 		return true;
 
 	if (!(l & CK_SWLOCK_LATCH_BIT))
-		ck_pr_dec_32(&rw->lock_bits);
+		ck_pr_dec_32(&rw->value);
 	
 	return false;
 }
@@ -202,16 +202,16 @@ ck_swlock_read_latchlock(ck_swlock_t *rw)
 
 	uint32_t l;
 	for (;;) {
-		while (ck_pr_load_32(&rw->lock_bits) & CK_SWLOCK_WRITER_BIT)
+		while (ck_pr_load_32(&rw->value) & CK_SWLOCK_WRITER_BIT)
 			ck_pr_stall();
 
-		l = ck_pr_faa_32(&rw->lock_bits, 1);
+		l = ck_pr_faa_32(&rw->value, 1);
 		
 		if (!(l & (CK_SWLOCK_LATCH_BIT | CK_SWLOCK_WRITER_BIT)))
 			return;
 		
 		if (!(l & CK_SWLOCK_LATCH_BIT))
-			ck_pr_dec_32(&rw->lock_bits);
+			ck_pr_dec_32(&rw->value);
 	}
 
 	return;
@@ -222,14 +222,14 @@ CK_CC_INLINE static bool
 ck_swlock_locked_reader(ck_swlock_t *rw)
 {
 
-	return ck_pr_load_32(&rw->lock_bits) & CK_SWLOCK_READER_BITS;
+	return ck_pr_load_32(&rw->value) & CK_SWLOCK_READER_BITS;
 }
 
 CK_CC_INLINE static void
 ck_swlock_read_unlock(ck_swlock_t *rw)
 {
 
-	ck_pr_dec_32(&rw->lock_bits);
+	ck_pr_dec_32(&rw->value);
 	return;
 }
 
@@ -301,11 +301,11 @@ ck_swlock_recursive_write_unlatch(ck_swlock_recursive_t *rw)
 {
 
 	if (--rw->wc != 0) {
-		ck_pr_store_32(&rw->rw.lock_bits, CK_SWLOCK_WRITER_BIT);
+		ck_pr_store_32(&rw->rw.value, CK_SWLOCK_WRITER_BIT);
 		return;
 	}
 
-	ck_pr_store_32(&rw->rw.lock_bits, 0);
+	ck_pr_store_32(&rw->rw.value, 0);
 	return;
 }
 
