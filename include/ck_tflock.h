@@ -130,4 +130,3 @@ ck_tflock_ticket_read_unlock(struct ck_tflock_ticket *lock)
 }
 
 #endif /* _CK_TFLOCK_TICKET_H */
-
