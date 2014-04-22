@@ -48,7 +48,7 @@ static struct affinity a;
 static unsigned int locked;
 static int nthr;
 static ck_swlock_t lock = CK_SWLOCK_INITIALIZER;
-
+static ck_swlock_t copy;
 #ifdef CK_F_PR_RTM
 static void *
 thread_rtm_adaptive(void *arg)
@@ -285,6 +285,7 @@ thread_latch(void *arg)
 			/* Writer */
 			ck_swlock_write_latch(&lock);
 			{
+				memcpy(&copy, &lock, sizeof(ck_swlock_t));
 				l = ck_pr_load_uint(&locked);
 				if (l != 0) {
 					ck_error("ERROR [WR:%d]: %u != 0\n", __LINE__, l);
@@ -317,6 +318,7 @@ thread_latch(void *arg)
 				if (l != 0) {
 					ck_error("ERROR [WR:%d]: %u != 0\n", __LINE__, l);
 				}
+				memcpy(&lock, &copy, sizeof(ck_swlock_t));
 			}
 			ck_swlock_write_unlatch(&lock);
 		}
