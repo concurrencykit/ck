@@ -16,6 +16,7 @@ DIR=array	\
     queue	\
     ring	\
     rwlock	\
+    swlock	\
     sequence	\
     spinlock	\
     stack	\
@@ -61,6 +62,8 @@ all:
 	$(MAKE) -C ./ck_rwlock/benchmark all
 	$(MAKE) -C ./ck_tflock/validate all
 	$(MAKE) -C ./ck_tflock/benchmark all
+	$(MAKE) -C ./ck_swlock/validate all
+	$(MAKE) -C ./ck_swlock/benchmark all
 	$(MAKE) -C ./ck_pflock/validate all
 	$(MAKE) -C ./ck_pflock/benchmark all
 	$(MAKE) -C ./ck_hp/validate all
@@ -106,6 +109,8 @@ clean:
 	$(MAKE) -C ./ck_ring/benchmark clean
 	$(MAKE) -C ./ck_rwlock/validate clean
 	$(MAKE) -C ./ck_rwlock/benchmark clean
+	$(MAKE) -C ./ck_swlock/validate clean
+	$(MAKE) -C ./ck_swlock/benchmark clean
 	$(MAKE) -C ./ck_pflock/validate clean
 	$(MAKE) -C ./ck_pflock/benchmark clean
 	$(MAKE) -C ./ck_hp/validate clean
