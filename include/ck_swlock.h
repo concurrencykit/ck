@@ -45,7 +45,6 @@ typedef struct ck_swlock ck_swlock_t;
 #define CK_SWLOCK_WRITER_MASK	(CK_SWLOCK_LATCH_BIT | CK_SWLOCK_WRITER_BIT)
 #define CK_SWLOCK_READER_MASK   (UINT32_MAX ^ CK_SWLOCK_WRITER_MASK)
 
-
 CK_CC_INLINE static void
 ck_swlock_init(struct ck_swlock *rw)
 {
@@ -92,6 +91,7 @@ ck_swlock_locked(ck_swlock_t *rw)
 CK_CC_INLINE static bool
 ck_swlock_write_trylock(ck_swlock_t *rw)
 {
+
 	ck_pr_fence_acquire();
 	return ck_pr_cas_32(&rw->value, 0, CK_SWLOCK_WRITER_BIT);
 }
