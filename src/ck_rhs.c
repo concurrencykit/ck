@@ -1168,7 +1168,7 @@ restart:
 	return true;
 }
 
-CK_CC_INLINE static bool
+static bool
 ck_rhs_put_internal(struct ck_rhs *hs,
     unsigned long h,
     const void *key,
