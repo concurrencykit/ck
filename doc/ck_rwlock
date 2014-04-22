@@ -42,8 +42,7 @@
 .Nm ck_rwlock_recurisve_write_unlock ,
 .Nm ck_rwlock_recursive_read_lock ,
 .Nm ck_rwlock_recursive_read_trylock ,
-.Nm ck_rwlock_recursive_read_unlock ,
-.Nm ck_rwlock_write_downgrade
+.Nm ck_rwlock_recursive_read_unlock
 .Nd centralized write-biased reader-writer locks
 .Sh LIBRARY
 Concurrency Kit (libck, \-lck)
