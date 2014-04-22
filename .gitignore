@@ -173,3 +173,6 @@ regressions/ck_stack/validate/upmc_trypush
 regressions/ck_swlock/benchmark/latency
 regressions/ck_swlock/benchmark/throughput
 regressions/ck_swlock/validate/validate
+regressions/ck_tflock/benchmark/latency
+regressions/ck_tflock/benchmark/throughput
+regressions/ck_tflock/validate/validate
