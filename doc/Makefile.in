@@ -150,6 +150,7 @@ OBJECTS=CK_ARRAY_FOREACH		\
 	ck_ring_capacity		\
 	ck_tflock			\
 	ck_rwlock			\
+	ck_pflock			\
 	ck_swlock			\
 	ck_sequence			\
 	ck_spinlock
