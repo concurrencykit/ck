@@ -120,8 +120,8 @@ writer(void)
 		/* Write-side critical section. */
 
 		/* This is safe to do with-in a latch. */
-		*contrived = *lock;
-		*lock = *contrived;
+		contrived = lock;
+		lock = contrived;
 		ck_swlock_write_unlatch(&lock);
 	}
 
