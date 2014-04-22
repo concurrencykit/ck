@@ -111,7 +111,7 @@ CK_CC_INLINE static void
 ck_pflock_read_unlock(ck_pflock_t *pf)
 {
 
-	ck_pr_fence_load_atomic();
+	ck_pr_fence_release();
 	ck_pr_faa_32(&pf->rout, CK_PFLOCK_RINC);
 	return;
 }
@@ -135,7 +135,7 @@ ck_pflock_read_lock(ck_pflock_t *pf)
 
 leave:
 	/* Acquire semantics with respect to readers. */
-	ck_pr_fence_load();
+	ck_pr_fence_acquire();
 	return;
 }
 
