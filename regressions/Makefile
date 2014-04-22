@@ -20,6 +20,7 @@ DIR=array	\
     sequence	\
     spinlock	\
     stack	\
+    swlock	\
     tflock
 
 .PHONY: all clean check
