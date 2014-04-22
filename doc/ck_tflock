@@ -88,7 +88,6 @@ writer(void)
 .Ed
 .Sh SEE ALSO
 .Xr ck_brlock 3 ,
-.Xr ck_elide 3 ,
 .Xr ck_rwlock 3 ,
 .Xr ck_pflock 3 ,
 .Xr ck_swlock 3
