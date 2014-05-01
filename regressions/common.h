@@ -378,17 +378,19 @@ rdtsc(void)
 	return (((uint64_t)edx << 32) | eax);
 #else
 
-        __asm__ __volatile__("cpuid;"
+        __asm__ __volatile__("pushl %%ebx;"
+                             "cpuid;"
                              "rdtsc;"
                                 : "+a" (eax), "=d" (edx)
                                 :
-                                : "%ecx", "%ebx", "memory");
+                                : "%ecx", "memory");
 
         __asm__ __volatile__("xorl %%eax, %%eax;"
                              "cpuid;"
+                             "popl %%ebx;"
                                 :
                                 :
-                                : "%eax", "%ebx", "%ecx", "%edx", "memory");
+                                : "%eax", "%ecx", "%edx", "memory");
 
         return (((uint64_t)edx << 32) | eax);
 #endif /* !CK_MD_RDTSCP */
