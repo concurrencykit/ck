@@ -43,8 +43,6 @@
 .Nm ck_pr_cas_64_2_value ,
 .Nm ck_pr_cas_64 ,
 .Nm ck_pr_cas_64_value ,
-.Nm ck_pr_cas_64_2 ,
-.Nm ck_pr_cas_64_2_value ,
 .Nm ck_pr_cas_32 ,
 .Nm ck_pr_cas_32_value ,
 .Nm ck_pr_cas_16 ,
@@ -88,10 +86,6 @@ Concurrency Kit (libck, \-lck)
 .Fn ck_pr_cas_64 "uint64_t *target" "uint64_t old_value" "uint64_t new_value"
 .Ft bool
 .Fn ck_pr_cas_64_value "uint64_t *target" "uint64_t old_value" "uint64_t new_value" "uint64_t *original_value"
-.Ft bool
-.Fn ck_pr_cas_64_2 "uint64_t target[static 2]" "uint64_t old_value[static 2]" "uint64_t new_value[static 2]"
-.Ft bool
-.Fn ck_pr_cas_64_2_value "uint64_t target[static 2]" "uint64_t old_value[static 2]" "uint64_t new_value[static 2]" "uint64_t original_value[static 2]"
 .Ft bool
 .Fn ck_pr_cas_32 "uint32_t *target" "uint32_t old_value" "uint32_t new_value"
 .Ft bool
