@@ -42,6 +42,8 @@ LDNAME="libck.so"
 LDNAME_VERSION="libck.so.$VERSION"
 LDNAME_MAJOR="libck.so.$VERSION_MAJOR"
 
+OPTION_CHECKING=1
+
 export CFLAGS
 export PREFIX
 LC_ALL=C
@@ -224,16 +226,22 @@ for option in $*; do
 	--without-pic)
 		WANT_PIC=no
 		;;
+	--disable-option-checking)
+		OPTION_CHECKING=0
+		;;
 	--build=*|--host=*|--target=*|--exec-prefix=*|--bindir=*|--sbindir=*|\
 	--sysconfdir=*|--datadir=*|--libexecdir=*|--localstatedir=*|\
 	--enable-static|\
-	--sharedstatedir=*|--infodir=*|--enable-shared|--disable-shared)
+	--sharedstatedir=*|--infodir=*|--enable-shared|--disable-shared|\
+	--cache-file=*|--srcdir=*)
 		# ignore for compat with regular configure
 		;;
 	--*)
-		echo "$0 [--help]"
-		echo "Unknown option $option"
-		exit $EXIT_FAILURE
+		if test "$OPTION_CHECKING" -eq 1; then
+			echo "$0 [--help]"
+			echo "Unknown option $option"
+			exit $EXIT_FAILURE
+		fi
 		;;
 	*=*)
 		NAME=`expr "$option" : '\([^=]*\)='`
