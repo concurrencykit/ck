@@ -35,6 +35,9 @@ ck_epoch.o: $(INCLUDE_DIR)/ck_epoch.h $(SDIR)/ck_epoch.c
 ck_hs.o: $(INCLUDE_DIR)/ck_hs.h $(SDIR)/ck_hs.c
 	$(CC) $(CFLAGS) -c -o $(TARGET_DIR)/ck_hs.o $(SDIR)/ck_hs.c
 
+ck_rhs.o: $(INCLUDE_DIR)/ck_rhs.h $(SDIR)/ck_rhs.c
+	$(CC) $(CFLAGS) -c -o $(TARGET_DIR)/ck_rhs.o $(SDIR)/ck_rhs.c
+
 ck_ht.o: $(INCLUDE_DIR)/ck_ht.h $(SDIR)/ck_ht.c
 	$(CC) $(CFLAGS) -c -o $(TARGET_DIR)/ck_ht.o $(SDIR)/ck_ht.c
 
