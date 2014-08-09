@@ -991,7 +991,7 @@ ck_rhs_do_backward_shift_delete(struct ck_rhs *hs, long slot)
 				break;
 			wanted_probes++;
 		}
-		if (wanted_probes == map->probe_maximum) {
+		if (!(wanted_probes < map->probe_maximum)) {
 			desc->wanted = 0;
 			break;
 		}
