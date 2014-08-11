@@ -144,8 +144,18 @@ generate_stdout()
 	echo "Documentation will be installed in $MANDIR"
 }
 
-for option in $*; do
-	value=`echo "$option" | sed -e 's/^[^=]*=\(.*\)/\1/'`
+for option; do
+	case "$option" in
+	*=?*)
+		value=`expr -- "$option" : '[^=]*=\(.*\)'`
+		;;
+	*=)
+		value=
+		;;
+	*)
+		value=yes
+		;;
+	esac
 
 	case "$option" in
 	--help)
@@ -244,9 +254,8 @@ for option in $*; do
 		fi
 		;;
 	*=*)
-		NAME=`expr "$option" : '\([^=]*\)='`
-		VALUE=`echo "$value" | sed "s/'/'\\\\\\\\''/g"`
-		eval "$NAME='$VALUE'"
+		NAME=`expr -- "$option" : '\([^=]*\)='`
+		eval "$NAME='$value'"
 		export $NAME
 		;;
 	*)
