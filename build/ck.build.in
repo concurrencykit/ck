@@ -1,5 +1,5 @@
-CC=@CC@
-MAKE=make
+CC?=@CC@
+MAKE?=make
 SRC_DIR=@SRC_DIR@
 BUILD_DIR=@BUILD_DIR@
 CFLAGS+=@CFLAGS@ -I$(SRC_DIR)/include -I$(BUILD_DIR)/include
