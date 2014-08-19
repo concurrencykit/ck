@@ -44,6 +44,7 @@
 #endif
 
 #define CK_BITMAP_BLOCK 	(sizeof(unsigned int) * CHAR_BIT)
+#define CK_BITMAP_OFFSET(i)	((i) % CK_BITMAP_BLOCK)
 #define CK_BITMAP_BIT(i)	(1U << ((i) % CK_BITMAP_BLOCK))
 #define CK_BITMAP_PTR(x, i)	((x) + ((i) / CK_BITMAP_BLOCK))
 #define CK_BITMAP_BLOCKS(n)	(((n) + CK_BITMAP_BLOCK - 1) / CK_BITMAP_BLOCK)
@@ -68,6 +69,9 @@
 
 #define CK_BITMAP_SET(a, b) \
 	ck_bitmap_set(&(a)->bitmap, (b))
+
+#define CK_BITMAP_BTS(a, b) \
+	ck_bitmap_bts(&(a)->bitmap, (b))
 
 #define CK_BITMAP_RESET(a, b) \
 	ck_bitmap_reset(&(a)->bitmap, (b))
@@ -169,6 +173,19 @@ ck_bitmap_set(struct ck_bitmap *bitmap, unsigned int n)
 
 	ck_pr_or_uint(CK_BITMAP_PTR(bitmap->map, n), CK_BITMAP_BIT(n));
 	return;
+}
+
+/*
+ * Performs a test-and-set operation at the offset specified in the
+ * second argument.
+ * Returns true if the bit at the specified offset was already set,
+ * false otherwise.
+ */
+CK_CC_INLINE static bool
+ck_bitmap_bts(struct ck_bitmap *bitmap, unsigned int n)
+{
+
+	return ck_pr_bts_uint(CK_BITMAP_PTR(bitmap->map, n), CK_BITMAP_OFFSET(n));
 }
 
 /*
