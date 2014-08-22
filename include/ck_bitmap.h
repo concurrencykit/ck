@@ -185,7 +185,8 @@ CK_CC_INLINE static bool
 ck_bitmap_bts(struct ck_bitmap *bitmap, unsigned int n)
 {
 
-	return ck_pr_bts_uint(CK_BITMAP_PTR(bitmap->map, n), CK_BITMAP_OFFSET(n));
+	return ck_pr_bts_uint(CK_BITMAP_PTR(bitmap->map, n),
+	    CK_BITMAP_OFFSET(n));
 }
 
 /*
@@ -268,7 +269,8 @@ ck_bitmap_intersection(struct ck_bitmap *dst, const struct ck_bitmap *src)
  * complete bitmap.  Any trailing bit in dst is left as is.
  */
 CK_CC_INLINE static void
-ck_bitmap_intersection_negate(struct ck_bitmap *dst, const struct ck_bitmap *src)
+ck_bitmap_intersection_negate(struct ck_bitmap *dst,
+    const struct ck_bitmap *src)
 {
 	unsigned int n;
 	unsigned int n_intersect = dst->n_bits;
@@ -292,8 +294,9 @@ ck_bitmap_intersection_negate(struct ck_bitmap *dst, const struct ck_bitmap *src
 CK_CC_INLINE static void
 ck_bitmap_clear(struct ck_bitmap *bitmap)
 {
-	unsigned int n_buckets = ck_bitmap_base(bitmap->n_bits) / sizeof(unsigned int);
 	unsigned int i;
+	unsigned int n_buckets = ck_bitmap_base(bitmap->n_bits) /
+	    sizeof(unsigned int);
 
 	for (i = 0; i < n_buckets; i++)
 		ck_pr_store_uint(&bitmap->map[i], 0);
@@ -396,7 +399,8 @@ ck_bitmap_count(const ck_bitmap_t *bitmap, unsigned int limit)
  * size, it is truncated to the smallest.
  */
 CK_CC_INLINE static unsigned int
-ck_bitmap_count_intersect(const ck_bitmap_t *x, const ck_bitmap_t *y, unsigned int limit)
+ck_bitmap_count_intersect(const ck_bitmap_t *x, const ck_bitmap_t *y,
+    unsigned int limit)
 {
 	unsigned int count, i, slop, words;
 
@@ -458,7 +462,8 @@ ck_bitmap_init(struct ck_bitmap *bitmap,
  * Initialize iterator for use with provided bitmap.
  */
 CK_CC_INLINE static void
-ck_bitmap_iterator_init(struct ck_bitmap_iterator *i, const struct ck_bitmap *bitmap)
+ck_bitmap_iterator_init(struct ck_bitmap_iterator *i,
+    const struct ck_bitmap *bitmap)
 {
 
 	i->n_block = 0;
