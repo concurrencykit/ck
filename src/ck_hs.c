@@ -630,6 +630,91 @@ ck_hs_fas(struct ck_hs *hs,
 	return true;
 }
 
+/*
+ * An apply function takes two arguments. The first argument is a pointer to a
+ * pre-existing object. The second argument is a pointer to the fifth argument
+ * passed to ck_hs_apply. If a non-NULL pointer is passed to the first argument
+ * and the return value of the apply function is NULL, then the pre-existing
+ * value is deleted. If the return pointer is the same as the one passed to the
+ * apply function then no changes are made to the hash table.  If the first
+ * argument is non-NULL and the return pointer is different than that passed to
+ * the apply function, then the pre-existing value is replaced. For
+ * replacement, it is required that the value itself is identical to the
+ * previous value.
+ */
+bool
+ck_hs_apply(struct ck_hs *hs,
+    unsigned long h,
+    const void *key,
+    ck_hs_apply_fn_t *fn,
+    void *cl)
+{
+	void **slot, **first, *object, *insert, *delta;
+	unsigned long n_probes;
+	struct ck_hs_map *map;
+
+restart:
+	map = hs->map;
+
+	slot = ck_hs_map_probe(hs, map, &n_probes, &first, h, key, &object, map->probe_limit, CK_HS_PROBE_INSERT);
+	if (slot == NULL && first == NULL) {
+		if (ck_hs_grow(hs, map->capacity << 1) == false)
+			return false;
+
+		goto restart;
+	}
+
+	delta = fn(object, cl);
+	if (delta == NULL) {
+		/*
+		 * The apply function has requested deletion. If the object doesn't exist,
+		 * then exit early.
+		 */
+		if (CK_CC_UNLIKELY(object == NULL))
+			return true;
+
+		/* Otherwise, mark slot as deleted. */
+		ck_pr_store_ptr(slot, CK_HS_TOMBSTONE);
+		return true;
+	}
+
+	/* The apply function has not requested hash set modification so exit early. */
+	if (delta == object)
+		return true;
+
+	/* A modification or insertion has been requested. */
+	ck_hs_map_bound_set(map, h, n_probes);
+
+	insert = ck_hs_marshal(hs->mode, delta, h);
+	if (first != NULL) {
+		/*
+		 * This follows the same semantics as ck_hs_set, please refer to that
+		 * function for documentation.
+		 */
+		ck_pr_store_ptr(first, insert);
+
+		if (object != NULL) {
+			ck_pr_inc_uint(&map->generation[h & CK_HS_G_MASK]);
+			ck_pr_fence_atomic_store();
+			ck_pr_store_ptr(slot, CK_HS_TOMBSTONE);
+		}
+	} else {
+		/*
+		 * If we are storing into same slot, then atomic store is sufficient
+		 * for replacement.
+		 */
+		ck_pr_store_ptr(slot, insert);
+	}
+
+	if (object == NULL) {
+		map->n_entries++;
+		if ((map->n_entries << 1) > map->capacity)
+			ck_hs_grow(hs, map->capacity << 1);
+	}
+
+	return true;
+}
+
 bool
 ck_hs_set(struct ck_hs *hs,
     unsigned long h,
