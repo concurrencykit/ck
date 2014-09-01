@@ -327,11 +327,11 @@ ck_rhs_map_create(struct ck_rhs *hs, unsigned long entries)
 	if (hs->mode & CK_RHS_MODE_READ_MOSTLY)
 		size = sizeof(struct ck_rhs_map) +
 		    (sizeof(void *) * n_entries +
-		     sizeof(struct ck_rhs_no_entry_desc) * n_entries + 
+		     sizeof(struct ck_rhs_no_entry_desc) * n_entries +
 		     2 * CK_MD_CACHELINE - 1);
 	else
 		size = sizeof(struct ck_rhs_map) +
-		    (sizeof(struct ck_rhs_entry_desc) * n_entries + 
+		    (sizeof(struct ck_rhs_entry_desc) * n_entries +
 		     CK_MD_CACHELINE - 1);
 	map = hs->m->malloc(size);
 	if (map == NULL)
@@ -408,7 +408,7 @@ ck_rhs_map_probe_next(struct ck_rhs_map *map,
 {
 
 	if (probes & map->offset_mask) {
-		offset = (offset &~ map->offset_mask) + 
+		offset = (offset &~ map->offset_mask) +
 		    ((offset + 1) & map->offset_mask);
 		return offset;
 	} else
@@ -421,10 +421,10 @@ ck_rhs_map_probe_prev(struct ck_rhs_map *map, unsigned long offset,
 {
 
 	if (probes & map->offset_mask) {
-		offset = (offset &~ map->offset_mask) + ((offset - 1) & 
+		offset = (offset &~ map->offset_mask) + ((offset - 1) &
 		    map->offset_mask);
 		return offset;
-	} else 
+	} else
 		return ((offset - probes) & map->mask);
 }
 
@@ -616,7 +616,7 @@ ck_rhs_map_probe_rm(struct ck_rhs *hs,
 		if (behavior != CK_RHS_PROBE_NO_RH) {
 			struct ck_rhs_entry_desc *desc = (void *)&map->entries.no_entries.descs[offset];
 
-			if (pr == -1 && 
+			if (pr == -1 &&
 			    desc->in_rh == false && desc->probes < probes) {
 				pr = offset;
 				*n_probes = probes;
@@ -730,7 +730,7 @@ ck_rhs_map_probe(struct ck_rhs *hs,
 		if ((behavior != CK_RHS_PROBE_NO_RH)) {
 			struct ck_rhs_entry_desc *desc = &map->entries.descs[offset];
 
-			if (pr == -1 && 
+			if (pr == -1 &&
 			    desc->in_rh == false && desc->probes < probes) {
 				pr = offset;
 				*n_probes = probes;
@@ -818,7 +818,7 @@ ck_rhs_gc(struct ck_rhs *hs)
 }
 
 static void
-ck_rhs_add_wanted(struct ck_rhs *hs, long end_offset, long old_slot, 
+ck_rhs_add_wanted(struct ck_rhs *hs, long end_offset, long old_slot,
 	unsigned long h)
 {
 	struct ck_rhs_map *map = hs->map;
@@ -872,7 +872,7 @@ ck_rhs_get_first_offset(struct ck_rhs_map *map, unsigned long offset, unsigned i
 	while (probes > (unsigned long)map->offset_mask + 1) {
 		offset -= ((probes - 1) &~ map->offset_mask);
 		offset &= map->mask;
-		offset = (offset &~ map->offset_mask) + 
+		offset = (offset &~ map->offset_mask) +
 		    ((offset - map->offset_mask) & map->offset_mask);
 		probes -= map->offset_mask + 1;
 	}
@@ -948,7 +948,7 @@ restart:
 		prev = prevs[--prevs_nb];
 		ck_pr_store_ptr(ck_rhs_entry_addr(map, orig_slot),
 		    ck_rhs_entry(map, prev));
-		h = ck_rhs_get_first_offset(map, orig_slot, 
+		h = ck_rhs_get_first_offset(map, orig_slot,
 		    desc->probes);
 		ck_rhs_add_wanted(hs, orig_slot, prev, h);
 		ck_pr_inc_uint(&map->generation[h & CK_RHS_G_MASK]);
@@ -966,7 +966,7 @@ ck_rhs_do_backward_shift_delete(struct ck_rhs *hs, long slot)
 	struct ck_rhs_map *map = hs->map;
 	struct ck_rhs_entry_desc *desc, *new_desc = NULL;
 	unsigned long h;
-	
+
 	desc = ck_rhs_desc(map, slot);
 	h = ck_rhs_remove_wanted(hs, slot, -1);
 	while (desc->wanted > 0) {
@@ -1140,7 +1140,7 @@ restart:
 		 * period if we can guarantee earlier position of
 		 * duplicate key.
 		 */
-		ck_rhs_add_wanted(hs, first, -1, h); 
+		ck_rhs_add_wanted(hs, first, -1, h);
 		if (object != NULL) {
 			ck_pr_inc_uint(&map->generation[h & CK_RHS_G_MASK]);
 			ck_pr_fence_atomic_store();
@@ -1155,7 +1155,7 @@ restart:
 		ck_pr_store_ptr(ck_rhs_entry_addr(map, slot), insert);
 		ck_rhs_set_probes(map, slot, n_probes);
 		if (object == NULL)
-			ck_rhs_add_wanted(hs, slot, -1, h); 
+			ck_rhs_add_wanted(hs, slot, -1, h);
 	}
 
 	if (object == NULL) {
@@ -1209,12 +1209,12 @@ restart:
 		/* Insert key into first bucket in probe sequence. */
 		ck_pr_store_ptr(ck_rhs_entry_addr(map, first), insert);
 		desc->probes = n_probes;
-		ck_rhs_add_wanted(hs, first, -1, h); 
+		ck_rhs_add_wanted(hs, first, -1, h);
 	} else {
 		/* An empty slot was found. */
 		ck_pr_store_ptr(ck_rhs_entry_addr(map, slot), insert);
 		ck_rhs_set_probes(map, slot, n_probes);
-		ck_rhs_add_wanted(hs, slot, -1, h); 
+		ck_rhs_add_wanted(hs, slot, -1, h);
 	}
 
 	map->n_entries++;
@@ -1253,7 +1253,7 @@ ck_rhs_get(struct ck_rhs *hs,
 	unsigned int g, g_p, probe;
 	unsigned int *generation;
 
-	do { 
+	do {
 		map = ck_pr_load_ptr(&hs->map);
 		generation = &map->generation[h & CK_RHS_G_MASK];
 		g = ck_pr_load_uint(generation);

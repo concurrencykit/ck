@@ -48,7 +48,7 @@
  */
 #define CK_RHS_MODE_DIRECT	2
 
-/* 
+/*
  * Indicates that the values to be stored are pointers.
  * Allows for space optimizations in the presence of pointer
  * packing. Mutually exclusive with CK_RHS_MODE_DIRECT.

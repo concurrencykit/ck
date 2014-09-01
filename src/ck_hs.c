@@ -598,7 +598,7 @@ ck_hs_gc(struct ck_hs *hs, unsigned long cycles, unsigned long seed)
 	if (maximum != map->probe_maximum)
 		ck_pr_store_uint(&map->probe_maximum, maximum);
 
-	if (bounds != NULL) { 
+	if (bounds != NULL) {
 		for (i = 0; i < map->capacity; i++)
 			CK_HS_STORE(&map->probe_bound[i], bounds[i]);
 
@@ -851,7 +851,7 @@ ck_hs_get(struct ck_hs *hs,
 	unsigned int g, g_p, probe;
 	unsigned int *generation;
 
-	do { 
+	do {
 		map = ck_pr_load_ptr(&hs->map);
 		generation = &map->generation[h & CK_HS_G_MASK];
 		g = ck_pr_load_uint(generation);

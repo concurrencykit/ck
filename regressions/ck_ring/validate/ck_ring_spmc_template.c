@@ -200,7 +200,7 @@ test(void *c)
 		for (j = 0; j < size; j++) {
 			buffer = _context[context->previous].buffer;
 			while (CK_RING_DEQUEUE_SPMC(entry,
-			    ring + context->previous, 
+			    ring + context->previous,
 			    buffer, &entry) == false);
 
 			if (context->previous != (unsigned int)entry->tid) {

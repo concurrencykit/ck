@@ -135,7 +135,7 @@ ck_pr_load_64(const uint64_t *target)
 	register uint64_t ret asm("r0");
 
 	__asm __volatile("ldrd %0, [%1]" : "+r" (ret)
-	    				 : "r" (target) 
+	    				 : "r" (target)
 					 : "memory", "cc");
 	return (ret);
 }
@@ -262,7 +262,7 @@ ck_pr_cas_ptr_value(void *target, void *compare, void *set, void *value)
 				  "=&r" (tmp)
 		  		: "r"   (target),
 				  "r"   (set),
-				  "r"   (compare)	
+				  "r"   (compare)
 				: "memory", "cc");
 	*(void **)value = previous;
 	return (previous == compare);
@@ -283,7 +283,7 @@ ck_pr_cas_ptr(void *target, void *compare, void *set)
 				  "=&r" (tmp)
 		  		: "r"   (target),
 				  "r"   (set),
-				  "r"   (compare)	
+				  "r"   (compare)
 				: "memory", "cc");
 	return (previous == compare);
 }

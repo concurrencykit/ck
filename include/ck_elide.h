@@ -303,7 +303,7 @@ _ck_elide_fallback(int *retry,
  * semantics. In environments where jitter is low, this may yield a tighter
  * fast path.
  */
-#define CK_ELIDE_LOCK(NAME, LOCK)	ck_elide_##NAME##_lock(LOCK)	
+#define CK_ELIDE_LOCK(NAME, LOCK)	ck_elide_##NAME##_lock(LOCK)
 #define CK_ELIDE_UNLOCK(NAME, LOCK)	ck_elide_##NAME##_unlock(LOCK)
 #define CK_ELIDE_TRYLOCK(NAME, LOCK)	ck_elide_##NAME##_trylock(LOCK)
 
@@ -319,4 +319,3 @@ _ck_elide_fallback(int *retry,
 	ck_elide_##NAME##_unlock_adaptive(STAT, LOCK)
 
 #endif /* _CK_ELIDE_H */
-

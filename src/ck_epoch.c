@@ -87,7 +87,7 @@
  * at e_g - 1 to still be accessed at e_g as threads are "active"
  * at the same time (real-world time) mutating shared objects.
  *
- * Now, if the epoch counter is ticked to e_g + 1, then no new 
+ * Now, if the epoch counter is ticked to e_g + 1, then no new
  * hazardous references could exist to objects logically deleted at
  * e_g - 1. The reason for this is that at e_g + 1, all epoch read-side
  * critical sections started at e_g - 1 must have been completed. If
@@ -118,7 +118,7 @@
  * sufficient to represent e_g using only the values 0, 1 or 2. Every time
  * a thread re-visits a e_g (which can be determined with a non-empty deferral
  * list) it can assume objects in the e_g deferral list involved at least
- * three e_g transitions and are thus, safe, for physical deletion. 
+ * three e_g transitions and are thus, safe, for physical deletion.
  *
  * Blocking semantics for epoch reclamation have additional restrictions.
  * Though we only require three deferral lists, reasonable blocking semantics

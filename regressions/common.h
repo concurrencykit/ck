@@ -289,7 +289,7 @@ CK_CC_UNUSED static int
 aff_iterate_core(struct affinity *acb, unsigned int *core)
 {
 	cpu_set_t s;
-	
+
 	*core = ck_pr_faa_uint(&acb->request, acb->delta);
 	CPU_ZERO(&s);
 	CPU_SET((*core) % CORES, &s);
@@ -454,4 +454,3 @@ ck_error(const char *message, ...)
 	va_end(ap);
 	exit(EXIT_FAILURE);
 }
-

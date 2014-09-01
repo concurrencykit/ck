@@ -48,7 +48,7 @@
  */
 #define CK_HS_MODE_DIRECT	2
 
-/* 
+/*
  * Indicates that the values to be stored are pointers.
  * Allows for space optimizations in the presence of pointer
  * packing. Mutually exclusive with CK_HS_MODE_DIRECT.
@@ -132,4 +132,3 @@ bool ck_hs_reset_size(ck_hs_t *, unsigned long);
 void ck_hs_stat(ck_hs_t *, struct ck_hs_stat *);
 
 #endif /* _CK_HS_H */
-

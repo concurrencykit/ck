@@ -295,4 +295,3 @@ ck_rwlock_recursive_read_unlock(ck_rwlock_recursive_t *rw)
 }
 
 #endif /* _CK_RWLOCK_H */
-
