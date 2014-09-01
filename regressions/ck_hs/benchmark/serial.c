@@ -133,7 +133,7 @@ set_replace(const char *value)
 
 	h = CK_HS_HASH(&hs, hs_hash, value);
 	ck_hs_set(&hs, h, value, &previous);
-	return previous != NULL;
+	return previous == value;
 }
 
 static void *
