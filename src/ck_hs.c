@@ -369,6 +369,17 @@ restart:
 	return true;
 }
 
+static void
+ck_hs_map_postinsert(struct ck_hs *hs, struct ck_hs_map *map)
+{
+
+	map->n_entries++;
+	if ((map->n_entries << 1) > map->capacity)
+		ck_hs_grow(hs, map->capacity << 1);
+
+	return;
+}
+
 bool
 ck_hs_rebuild(struct ck_hs *hs)
 {
@@ -706,11 +717,8 @@ restart:
 		ck_pr_store_ptr(slot, insert);
 	}
 
-	if (object == NULL) {
-		map->n_entries++;
-		if ((map->n_entries << 1) > map->capacity)
-			ck_hs_grow(hs, map->capacity << 1);
-	}
+	if (object == NULL)
+		ck_hs_map_postinsert(hs, map);
 
 	return true;
 }
@@ -765,11 +773,8 @@ restart:
 		ck_pr_store_ptr(slot, insert);
 	}
 
-	if (object == NULL) {
-		map->n_entries++;
-		if ((map->n_entries << 1) > map->capacity)
-			ck_hs_grow(hs, map->capacity << 1);
-	}
+	if (object == NULL)
+		ck_hs_map_postinsert(hs, map);
 
 	*previous = object;
 	return true;
@@ -813,10 +818,7 @@ restart:
 		ck_pr_store_ptr(slot, insert);
 	}
 
-	map->n_entries++;
-	if ((map->n_entries << 1) > map->capacity)
-		ck_hs_grow(hs, map->capacity << 1);
-
+	ck_hs_map_postinsert(hs, map);
 	return true;
 }
 
