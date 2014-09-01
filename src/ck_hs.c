@@ -929,4 +929,3 @@ ck_hs_init(struct ck_hs *hs,
 	hs->map = ck_hs_map_create(hs, n_entries);
 	return hs->map != NULL;
 }
-
