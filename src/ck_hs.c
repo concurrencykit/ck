@@ -686,6 +686,8 @@ restart:
 
 		/* Otherwise, mark slot as deleted. */
 		ck_pr_store_ptr(slot, CK_HS_TOMBSTONE);
+		map->n_entries--;
+		map->tombstones++;
 		return true;
 	}
 
