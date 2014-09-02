@@ -118,6 +118,16 @@ test_unique(void *key, void *closure)
 	return closure;
 }
 
+static void *
+test_remove(void *key, void *closure)
+{
+
+	(void)key;
+	(void)closure;
+
+	return NULL;
+}
+
 static void
 run_test(unsigned int is, unsigned int ad)
 {
@@ -144,8 +154,12 @@ run_test(unsigned int is, unsigned int ad)
 				ck_error("ERROR: Failed to apply for insertion.\n");
 			}
 
-			if (ck_hs_remove(&hs[j], h, test[i]) == false)
-				ck_error("ERROR [%zu]: Failed to remove unique (%s)\n", j, test[i]);
+			if (i & 1) {
+				if (ck_hs_remove(&hs[j], h, test[i]) == false)
+					ck_error("ERROR [%zu]: Failed to remove unique (%s)\n", j, test[i]);
+			} else if (ck_hs_apply(&hs[j], h, test[i], test_remove, NULL) == false) {
+				ck_error("ERROR: Failed to remove apply.\n");
+			}
 
 			if (ck_hs_apply(&hs[j], h, test[i], test_negative, (char *)test[i]) == false)
 				ck_error("ERROR: Failed to apply.\n");
