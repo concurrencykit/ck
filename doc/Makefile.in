@@ -74,6 +74,7 @@ OBJECTS=CK_ARRAY_FOREACH		\
 	ck_hs_init			\
 	ck_hs_destroy			\
 	CK_HS_HASH			\
+	ck_hs_apply			\
 	ck_hs_iterator_init		\
 	ck_hs_next			\
 	ck_hs_get			\
