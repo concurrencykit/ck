@@ -205,4 +205,3 @@ ck_barrier_combining(struct ck_barrier_combining *barrier,
 	state->sense = ~state->sense;
 	return;
 }
-

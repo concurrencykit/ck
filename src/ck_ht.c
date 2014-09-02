@@ -1027,4 +1027,3 @@ ck_ht_destroy(struct ck_ht *table)
 }
 
 #endif /* CK_F_HT */
-

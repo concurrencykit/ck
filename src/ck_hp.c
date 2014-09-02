@@ -321,4 +321,3 @@ ck_hp_purge(struct ck_hp_record *thread)
 
 	return;
 }
-

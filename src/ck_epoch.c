@@ -426,4 +426,3 @@ ck_epoch_poll(struct ck_epoch *global, struct ck_epoch_record *record)
 	ck_epoch_dispatch(record, epoch + 1);
 	return true;
 }
-

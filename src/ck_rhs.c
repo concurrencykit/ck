@@ -1332,4 +1332,3 @@ ck_rhs_init(struct ck_rhs *hs,
 	hs->map = ck_rhs_map_create(hs, n_entries);
 	return hs->map != NULL;
 }
-
