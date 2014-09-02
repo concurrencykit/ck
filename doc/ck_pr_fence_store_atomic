@@ -38,13 +38,13 @@ Concurrency Kit (libck, \-lck)
 .Ft void
 .Fn ck_pr_fence_strict_store_atomic void
 .Sh DESCRIPTION
-The 
+The
 .Fn ck_pr_fence_store_atomic
 function enfores the ordering of any memory store,
 .Fn ck_pr_store
 and atomic read-modify-write operations to atomic read-modify-write
 operations relative to the invocation of the function. This function
-always serve as an implicit compiler barrier. 
+always serve as an implicit compiler barrier.
 This functions will emit a fence for PSO and RMO
 targets. In order to force the emission of a fence use the
 .Fn ck_pr_fence_strict_store_atomic
@@ -93,7 +93,7 @@ This function has no return value.
 .Xr ck_pr_faa 3 ,
 .Xr ck_pr_inc 3 ,
 .Xr ck_pr_dec 3 ,
-.Xr ck_pr_neg 3 , 
+.Xr ck_pr_neg 3 ,
 .Xr ck_pr_not 3 ,
 .Xr ck_pr_add 3 ,
 .Xr ck_pr_sub 3 ,

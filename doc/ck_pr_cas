@@ -99,9 +99,9 @@ Concurrency Kit (libck, \-lck)
 .Ft bool
 .Fn ck_pr_cas_8_value "uint8_t *target" "uint8_t old_value" "uint8_t new_value" "uint8_t *original_value"
 .Sh DESCRIPTION
-The 
+The
 .Fn ck_pr_cas 3
-family of functions atomically compare the value in 
+family of functions atomically compare the value in
 .Fa target
 for equality with
 .Fa old_value
@@ -133,7 +133,7 @@ return false.
 .Xr ck_pr_faa 3 ,
 .Xr ck_pr_inc 3 ,
 .Xr ck_pr_dec 3 ,
-.Xr ck_pr_neg 3 , 
+.Xr ck_pr_neg 3 ,
 .Xr ck_pr_not 3 ,
 .Xr ck_pr_sub 3 ,
 .Xr ck_pr_and 3 ,

@@ -41,9 +41,9 @@ The ck_rwcohort.h header file does not define any cohort types.  Instead, the us
 the CK_RWCOHORT_PROTOTYPE macro to define any types they want to use.
 This macro takes a single argument which corresponds to the type of the cohort lock that
 the reader-writer lock should use.  A cohort type must have already been defined with that name
-using the 
+using the
 .Xr CK_COHORT_PROTOTYPE 3
-or 
+or
 .Xr CK_COHORT_TRYLOCK_PROTOTYPE 3
 macros.
 .Pp

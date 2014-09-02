@@ -33,24 +33,24 @@
 Concurrency Kit (libck, \-lck)
 .Sh SYNOPSIS
 .In ck_cohort.h
-.Fn CK_RWCOHORT_NEUTRAL_WRITE_LOCK "COHORT_NAME cohort_name" "LOCK *lock" "COHORT *cohort"\ 
+.Fn CK_RWCOHORT_NEUTRAL_WRITE_LOCK "COHORT_NAME cohort_name" "LOCK *lock" "COHORT *cohort"\
 "void *global_context" "void *local_context"
-.Fn CK_RWCOHORT_RP_WRITE_LOCK "COHORT_NAME cohort_name" "LOCK *lock" "COHORT *cohort"\ 
+.Fn CK_RWCOHORT_RP_WRITE_LOCK "COHORT_NAME cohort_name" "LOCK *lock" "COHORT *cohort"\
 "void *global_context" "void *local_context"
-.Fn CK_RWCOHORT_WP_WRITE_LOCK "COHORT_NAME cohort_name" "LOCK *lock" "COHORT *cohort"\ 
+.Fn CK_RWCOHORT_WP_WRITE_LOCK "COHORT_NAME cohort_name" "LOCK *lock" "COHORT *cohort"\
 "void *global_context" "void *local_context"
 .Sh DESCRIPTION
 This call will acquire write permission for
 .Fa lock .
-The call will block until this permission has been acquired.  
-.Fa cohort 
-must point to a cohort whose global lock is the same as all other cohorts used with 
+The call will block until this permission has been acquired.
+.Fa cohort
+must point to a cohort whose global lock is the same as all other cohorts used with
 .Fa lock .
 The
-.Fa global_context 
+.Fa global_context
 and
-.Fa local_context 
-arguments will be passed along as the context arguments to any calls to 
+.Fa local_context
+arguments will be passed along as the context arguments to any calls to
 .Fa cohort .
 .
 .Sh SEE ALSO

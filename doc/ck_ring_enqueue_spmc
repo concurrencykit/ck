@@ -42,7 +42,7 @@ function enqueues the pointer
 .Fa entry
 into the bounded buffer pointed to by
 .Fa ring
-in FIFO fashion. 
+in FIFO fashion.
 The buffer pointed to by
 .Fa buffer
 must be unique to
@@ -88,11 +88,11 @@ enqueue(void)
 	}
 
 	/* Enqueue operation completed successfully. */
-	return; 
+	return;
 }
 .Ed
 .Sh RETURN VALUES
-The function returns true if the value of 
+The function returns true if the value of
 .Fa entry
 was successfully enqueued into
 .Fa ring .

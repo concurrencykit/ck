@@ -91,7 +91,7 @@ dequeue(void)
 	}
 
 	/* An empty ring was encountered, leave. */
-	return; 
+	return;
 }
 .Ed
 .Sh RETURN VALUES

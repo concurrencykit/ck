@@ -57,7 +57,7 @@ was successful then the key specified by
 was successfully stored in the hash set pointed to by
 .Fa hs .
 The key must already exist in the hash set, and is
-replaced by 
+replaced by
 .Fa key
 and the previous value is stored into the void pointer
 pointed to by the
@@ -75,7 +75,7 @@ Behavior is undefined if
 .Fa key
 or
 .Fa hs
-are uninitialized. 
+are uninitialized.
 .Sh SEE ALSO
 .Xr ck_hs_init 3 ,
 .Xr ck_hs_move 3 ,

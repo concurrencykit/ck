@@ -38,7 +38,7 @@ Concurrency Kit (libck, \-lck)
 .Sh DESCRIPTION
 The
 .Fn ck_hs_move 3
-function will initialize 
+function will initialize
 .Fa source
 from
 .Fa destination .
