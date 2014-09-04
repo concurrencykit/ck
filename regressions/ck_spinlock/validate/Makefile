@@ -50,7 +50,7 @@ ck_dec: ck_dec.c
 
 clean:
 	rm -rf ck_ticket ck_mcs ck_dec ck_cas ck_fas ck_clh linux_spinlock ck_ticket_pb \
-		ck_anderson ck_spinlock *.dSYM *.exe
+		ck_anderson ck_spinlock ck_hclh *.dSYM *.exe
 
 include ../../../build/regressions.build
 CFLAGS+=$(PTHREAD_CFLAGS) -D_GNU_SOURCE -lm
