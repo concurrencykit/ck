@@ -1089,6 +1089,121 @@ restart:
 	return true;
 }
 
+/*
+ * An apply function takes two arguments. The first argument is a pointer to a
+ * pre-existing object. The second argument is a pointer to the fifth argument
+ * passed to ck_hs_apply. If a non-NULL pointer is passed to the first argument
+ * and the return value of the apply function is NULL, then the pre-existing
+ * value is deleted. If the return pointer is the same as the one passed to the
+ * apply function then no changes are made to the hash table.  If the first
+ * argument is non-NULL and the return pointer is different than that passed to
+ * the apply function, then the pre-existing value is replaced. For
+ * replacement, it is required that the value itself is identical to the
+ * previous value.
+ */
+bool
+ck_rhs_apply(struct ck_rhs *hs,
+    unsigned long h,
+    const void *key,
+    ck_rhs_apply_fn_t *fn,
+    void *cl)
+{
+	void  *object, *insert, *delta = false;
+	unsigned long n_probes;
+	long slot, first;
+	struct ck_rhs_map *map;
+	bool delta_set = false;
+
+restart:
+	map = hs->map;
+
+	slot = map->probe_func(hs, map, &n_probes, &first, h, key, &object, map->probe_limit, CK_RHS_PROBE_INSERT);
+	if (slot == -1 && first == -1) {
+		if (ck_rhs_grow(hs, map->capacity << 1) == false)
+			return false;
+
+		goto restart;
+	}
+	if (!delta_set) {
+		delta = fn(object, cl);
+		delta_set = true;
+	}
+
+	if (delta == NULL) {
+		/*
+		 * The apply function has requested deletion. If the object doesn't exist,
+		 * then exit early.
+		 */
+		if (CK_CC_UNLIKELY(object == NULL))
+			return true;
+
+		/* Otherwise, delete it. */
+		ck_rhs_do_backward_shift_delete(hs, slot);
+		return true;
+	}
+
+	/* The apply function has not requested hash set modification so exit early. */
+	if (delta == object)
+		return true;
+
+	/* A modification or insertion has been requested. */
+	ck_rhs_map_bound_set(map, h, n_probes);
+
+	insert = ck_rhs_marshal(hs->mode, delta, h);
+	if (first != -1) {
+		/*
+		 * This follows the same semantics as ck_hs_set, please refer to that
+		 * function for documentation.
+		 */
+		struct ck_rhs_entry_desc *desc = NULL, *desc2;
+		if (slot != -1) {
+			desc = ck_rhs_desc(map, slot);
+			desc->in_rh = true;
+		}
+		desc2 = ck_rhs_desc(map, first);
+		int ret = ck_rhs_put_robin_hood(hs, first, desc2);
+		if (slot != -1)
+			desc->in_rh = false;
+
+		if (CK_CC_UNLIKELY(ret == 1))
+			goto restart;
+		if (CK_CC_UNLIKELY(ret == -1))
+			return false;
+		/* If an earlier bucket was found, then store entry there. */
+		ck_pr_store_ptr(ck_rhs_entry_addr(map, first), insert);
+		desc2->probes = n_probes;
+		/*
+		 * If a duplicate key was found, then delete it after
+		 * signaling concurrent probes to restart. Optionally,
+		 * it is possible to install tombstone after grace
+		 * period if we can guarantee earlier position of
+		 * duplicate key.
+		 */
+		ck_rhs_add_wanted(hs, first, -1, h);
+		if (object != NULL) {
+			ck_pr_inc_uint(&map->generation[h & CK_RHS_G_MASK]);
+			ck_pr_fence_atomic_store();
+			ck_rhs_do_backward_shift_delete(hs, slot);
+		}
+	} else {
+		/*
+		 * If we are storing into same slot, then atomic store is sufficient
+		 * for replacement.
+		 */
+		ck_pr_store_ptr(ck_rhs_entry_addr(map, slot), insert);
+		ck_rhs_set_probes(map, slot, n_probes);
+		if (object == NULL)
+			ck_rhs_add_wanted(hs, slot, -1, h);
+	}
+
+	if (object == NULL) {
+		map->n_entries++;
+		if ((map->n_entries ) > ((map->capacity * CK_RHS_LOAD_FACTOR) / 100))
+			ck_rhs_grow(hs, map->capacity << 1);
+	}
+	return true;
+}
+
 bool
 ck_rhs_set(struct ck_rhs *hs,
     unsigned long h,
