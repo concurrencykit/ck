@@ -171,12 +171,12 @@ html:
 	done
 
 install:
-	mkdir -p $(DESTDIR)/$(MANDIR)/man3 || exit
-	cp *$(GZIP_SUFFIX) $(DESTDIR)/$(MANDIR)/man3 || exit
+	mkdir -p $(DESTDIR)$(MANDIR)/man3 || exit
+	cp *$(GZIP_SUFFIX) $(DESTDIR)$(MANDIR)/man3 || exit
 
 uninstall:
 	for target in $(OBJECTS); do 			  \
-		rm -f $(DESTDIR)/$(MANDIR)/man3/$$target$(GZIP_SUFFIX); \
+		rm -f $(DESTDIR)$(MANDIR)/man3/$$target$(GZIP_SUFFIX); \
 	done
 
 clean:
