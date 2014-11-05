@@ -257,12 +257,16 @@ static void
 ck_epoch_dispatch(struct ck_epoch_record *record, unsigned int e)
 {
 	unsigned int epoch = e & (CK_EPOCH_LENGTH - 1);
-	ck_stack_entry_t *next, *cursor;
+	ck_stack_entry_t *head, *next, *cursor;
 	unsigned int i = 0;
 
-	CK_STACK_FOREACH_SAFE(&record->pending[epoch], cursor, next) {
+	head = CK_STACK_FIRST(&record->pending[epoch]);
+	ck_stack_init(&record->pending[epoch]);
+
+	for (cursor = head; cursor != NULL; cursor = next) {
 		struct ck_epoch_entry *entry = ck_epoch_entry_container(cursor);
 
+		next = CK_STACK_NEXT(cursor);
 		entry->function(entry);
 		i++;
 	}
@@ -272,7 +276,6 @@ ck_epoch_dispatch(struct ck_epoch_record *record, unsigned int e)
 
 	record->n_dispatch += i;
 	record->n_pending -= i;
-	ck_stack_init(&record->pending[epoch]);
 	return;
 }
 
