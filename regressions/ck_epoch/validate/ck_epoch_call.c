@@ -49,7 +49,7 @@ cb(ck_epoch_entry_t *p)
 int
 main(void)
 {
-	static ck_epoch_entry_t entry;
+	ck_epoch_entry_t entry;
 
 	ck_epoch_register(&epoch, &record[0]);
 	ck_epoch_register(&epoch, &record[1]);
