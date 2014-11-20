@@ -1,0 +1,1 @@
+CFLAGS+=-maix64 -D__powerpc__

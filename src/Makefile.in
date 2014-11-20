@@ -5,6 +5,13 @@ include @BUILD_DIR@/build/ck.build
 TARGET_DIR=$(BUILD_DIR)/src
 SDIR=$(SRC_DIR)/src
 INCLUDE_DIR=$(SRC_DIR)/include
+OS=$(shell uname)
+
+ifeq ($(OS),AIX)
+AR=ar -c -r -X64 -o 
+else
+AR = ar rcs
+endif
 
 OBJECTS=ck_barrier_centralized.o	\
 	ck_barrier_combining.o		\
@@ -24,7 +31,7 @@ libck.so: $(OBJECTS)
 	$(LD) $(LDFLAGS) -o $(TARGET_DIR)/libck.so $(OBJECTS)
 
 libck.a: $(OBJECTS)
-	ar rcs $(TARGET_DIR)/libck.a $(OBJECTS)
+	$(AR) $(TARGET_DIR)/libck.a $(OBJECTS)
 
 ck_array.o: $(INCLUDE_DIR)/ck_array.h $(SDIR)/ck_array.c
 	$(CC) $(CFLAGS) -c -o $(TARGET_DIR)/ck_array.o $(SDIR)/ck_array.c

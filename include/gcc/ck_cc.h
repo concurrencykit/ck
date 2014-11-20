@@ -54,7 +54,7 @@
 #ifdef __OPTIMIZE__
 #define CK_CC_INLINE CK_CC_UNUSED inline
 #else
-#define CK_CC_INLINE CK_CC_UNUSED
+#define CK_CC_INLINE CK_CC_UNUSED inline
 #endif
 
 /*

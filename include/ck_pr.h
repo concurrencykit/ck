@@ -40,9 +40,9 @@
 #include "gcc/x86/ck_pr.h"
 #elif defined(__sparcv9__)
 #include "gcc/sparcv9/ck_pr.h"
-#elif defined(__ppc64__)
+#elif defined(__ppc64__) || defined(_ARCH_PPC64_XXX)
 #include "gcc/ppc64/ck_pr.h"
-#elif defined(__ppc__)
+#elif defined(__ppc__) || defined(_ARCH_PPC_XXX)
 #include "gcc/ppc/ck_pr.h"
 #elif defined(__arm__)
 #include "gcc/arm/ck_pr.h"
@@ -53,6 +53,16 @@
 #if defined(__GNUC__)
 #include "gcc/ck_pr.h"
 #endif
+
+CK_CC_INLINE static void ck_pr_fence_strict_acquire()
+{
+  __asm__ __volatile__("lwsync" ::: "memory");
+}
+CK_CC_INLINE static void ck_pr_fence_strict_release()
+{
+  __asm__ __volatile__("lwsync" ::: "memory");
+}
+
 
 #define CK_PR_FENCE_EMIT(T)			\
 	CK_CC_INLINE static void		\

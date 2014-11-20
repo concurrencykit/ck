@@ -321,6 +321,9 @@ case "$SYSTEM" in
 		SYSTEM=mingw32
 		LDFLAGS="-mthreads $LDFLAGS"
 		;;
+	"AIX")
+		SYSTEM=aix
+                ;;
 	*)
 		SYSTEM=
 		;;
@@ -329,8 +332,14 @@ esac
 assert "$SYSTEM" "$SYSTEM" "unsupported"
 
 CORES=${CORES:-${DCORES}}
+
 printf "Detecting machine architecture..."
+if test "$SYSTEM" == "aix"; then
+PLATFORM=AIX_`uname -p 2> /dev/null`
+else
 PLATFORM=`uname -m 2> /dev/null`
+fi
+
 case $PLATFORM in
 	"macppc"|"Power Macintosh"|"powerpc")
 		RTM_ENABLE="CK_MD_RTM_DISABLE"
@@ -420,6 +429,13 @@ case $PLATFORM in
 		MM="${MM:-"CK_MD_RMO"}"
 		PLATFORM=ppc64
 		ENVIRONMENT=64
+		;;
+	"AIX_powerpc")
+		RTM_ENABLE="CK_MD_RTM_DISABLE"
+		MM="${MM:-"CK_MD_RMO"}"
+		PLATFORM=powerpc
+		ENVIRONMENT=64
+		LDFLAGS="-maix64"
 		;;
 	arm|armv6l|armv7l)
 		RTM_ENABLE="CK_MD_RTM_DISABLE"
@@ -563,7 +579,12 @@ elif test "$COMPILER" = "gcc" || test "$COMPILER" = "clang" || test "$COMPILER" 
 		CC_WL_OPT="-soname"
 	fi
 
-	LDFLAGS="-Wl,$CC_WL_OPT,$SONAME $LDFLAGS"
+	if test "$SYSTEM" = "aix"; then
+		LDFLAGS="$LDFLAGS"
+	else
+		LDFLAGS="-Wl,$CC_WL_OPT,$SONAME $LDFLAGS"
+	fi
+
 	if test "$WANT_PIC" = "yes"; then
 		LDFLAGS="$LDFLAGS -shared -fPIC"
 		CFLAGS="$CFLAGS -fPIC"
