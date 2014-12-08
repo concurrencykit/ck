@@ -40,9 +40,9 @@
 #include "gcc/x86/ck_pr.h"
 #elif defined(__sparcv9__)
 #include "gcc/sparcv9/ck_pr.h"
-#elif defined(__ppc64__)
+#elif defined(__ppc64__) 
 #include "gcc/ppc64/ck_pr.h"
-#elif defined(__ppc__)
+#elif defined(__ppc__) 
 #include "gcc/ppc/ck_pr.h"
 #elif defined(__arm__)
 #include "gcc/arm/ck_pr.h"
