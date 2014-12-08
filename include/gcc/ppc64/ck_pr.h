@@ -54,8 +54,8 @@ CK_CC_INLINE static void
 ck_pr_stall(void)
 {
 
-	__asm__ __volatile__("or 1, 1, 1;"
-			     "or 2, 2, 2;" ::: "memory");
+	__asm__ __volatile__("or 1, 1, 1\n\t"
+			     "or 2, 2, 2\n\t" ::: "memory");
 	return;
 }
 
@@ -147,13 +147,13 @@ ck_pr_cas_64_value(uint64_t *target, uint64_t compare, uint64_t set, uint64_t *v
 {
 	uint64_t previous;
 
-        __asm__ __volatile__("1:"
-			     "ldarx %0, 0, %1;"
-			     "cmpd  0, %0, %3;"
-			     "bne-  2f;"
-			     "stdcx. %2, 0, %1;"
-			     "bne-  1b;"
-			     "2:"
+        __asm__ __volatile__("\n.L1_ck_pr_cas_64_value_%=:\n\r"
+			     "ldarx %0, 0, %1\n\t"
+			     "cmpd  0, %0, %3\n\t"
+			     "bne-  .L2_ck_pr_cas_64_value_%=\n\t"
+			     "stdcx. %2, 0, %1\n\t"
+			     "bne-  .L1_ck_pr_cas_64_value_%=\n\t"
+			     ".L2_ck_pr_cas_64_value_%=:"
                                 : "=&r" (previous)
                                 : "r"   (target),
 				  "r"   (set),
@@ -169,13 +169,13 @@ ck_pr_cas_ptr_value(void *target, void *compare, void *set, void *value)
 {
 	void *previous;
 
-        __asm__ __volatile__("1:"
-			     "ldarx %0, 0, %1;"
-			     "cmpd  0, %0, %3;"
-			     "bne-  2f;"
-			     "stdcx. %2, 0, %1;"
-			     "bne-  1b;"
-			     "2:"
+        __asm__ __volatile__("\n.L1_ck_pr_cas_ptr_value_%=:\n\t"
+			     "ldarx %0, 0, %1\n\t"
+			     "cmpd  0, %0, %3\n\t"
+			     "bne-  .L2_ck_pr_cas_ptr_value_%=\n\t"
+			     "stdcx. %2, 0, %1\n\t"
+			     "bne-  .L1_ck_pr_cas_ptr_value_%=\n\t"
+			     ".L2_ck_pr_cas_ptr_value_%=:"
                                 : "=&r" (previous)
                                 : "r"   (target),
 				  "r"   (set),
@@ -191,13 +191,13 @@ ck_pr_cas_64(uint64_t *target, uint64_t compare, uint64_t set)
 {
 	uint64_t previous;
 
-        __asm__ __volatile__("1:"
-			     "ldarx %0, 0, %1;"
-			     "cmpd  0, %0, %3;"
-			     "bne-  2f;"
-			     "stdcx. %2, 0, %1;"
-			     "bne-  1b;"
-			     "2:"
+        __asm__ __volatile__("\n.L1_ck_pr_cas_64_%=:\n\t"
+			     "ldarx %0, 0, %1\n\t"
+			     "cmpd  0, %0, %3\n\t"
+			     "bne-  .L2_ck_pr_cas_64_%=\n\t"
+			     "stdcx. %2, 0, %1\n\t"
+			     "bne-  .L1_ck_pr_cas_64_%=\n\t"
+			     ".L2_ck_pr_cas_64_%=:"
                                 : "=&r" (previous)
                                 : "r"   (target),
 				  "r"   (set),
@@ -212,13 +212,13 @@ ck_pr_cas_ptr(void *target, void *compare, void *set)
 {
 	void *previous;
 
-        __asm__ __volatile__("1:"
-			     "ldarx %0, 0, %1;"
-			     "cmpd  0, %0, %3;"
-			     "bne-  2f;"
-			     "stdcx. %2, 0, %1;"
-			     "bne-  1b;"
-			     "2:"
+        __asm__ __volatile__("\n.L1_ck_pr_cas_ptr_%=:\n\t"
+			     "ldarx %0, 0, %1\n\t"
+			     "cmpd  0, %0, %3\n\t"
+			     "bne-  .L2_ck_pr_cas_ptr_\n\t"
+			     "stdcx. %2, 0, %1\n\t"
+			     "bne-  .L1_ck_pr_cas_ptr_%=\n\t"
+			     ".L2_ck_pr_cas_ptr_%=:"
                                 : "=&r" (previous)
                                 : "r"   (target),
 				  "r"   (set),
@@ -233,13 +233,13 @@ ck_pr_cas_ptr(void *target, void *compare, void *set)
 	ck_pr_cas_##N##_value(T *target, T compare, T set, T *value)	\
 	{								\
 		T previous;						\
-		__asm__ __volatile__("1:"				\
-				     "lwarx %0, 0, %1;"			\
-				     "cmpw  0, %0, %3;"			\
-				     "bne-  2f;"			\
-				     "stwcx. %2, 0, %1;"		\
-				     "bne-  1b;"			\
-				     "2:"				\
+		__asm__ __volatile__(".L1_ck_pr_cas_value%=:\n\t"				\
+				     "lwarx %0, 0, %1\n\t"			\
+				     "cmpw  0, %0, %3\n\t"			\
+				     "bne-  .L2_ck_pr_cas_value%=\n\t"			\
+				     "stwcx. %2, 0, %1\n\t"		\
+				     "bne-  .L1_ck_pr_cas_value%=\n\t"			\
+				     ".L2_ck_pr_cas_value%=:"				\
 					: "=&r" (previous)		\
 					: "r"   (target),		\
 					  "r"   (set),			\
@@ -252,13 +252,13 @@ ck_pr_cas_ptr(void *target, void *compare, void *set)
 	ck_pr_cas_##N(T *target, T compare, T set)			\
 	{								\
 		T previous;						\
-		__asm__ __volatile__("1:"				\
-				     "lwarx %0, 0, %1;"			\
-				     "cmpw  0, %0, %3;"			\
-				     "bne-  2f;"			\
-				     "stwcx. %2, 0, %1;"		\
-				     "bne-  1b;"			\
-				     "2:"				\
+		__asm__ __volatile__(".L1_ck_pr_cas_%=:\n\t"				\
+				     "lwarx %0, 0, %1\n\t"			\
+				     "cmpw  0, %0, %3\n\t"			\
+				     "bne-  .L2_ck_pr_cas_%=\n\t"			\
+				     "stwcx. %2, 0, %1\n\t"		\
+				     "bne-  .L1_ck_pr_cas_%=\n\t"			\
+				     ".L2_ck_pr_cas_%=:"				\
 					: "=&r" (previous)		\
 					: "r"   (target),		\
 					  "r"   (set),			\
@@ -278,10 +278,10 @@ CK_PR_CAS(int, int)
 	ck_pr_fas_##N(M *target, T v)				\
 	{							\
 		T previous;					\
-		__asm__ __volatile__("1:"			\
-				     "l" W "arx %0, 0, %1;"	\
-				     "st" W "cx. %2, 0, %1;"	\
-				     "bne- 1b;"			\
+		__asm__ __volatile__(".L1_ck_pr_fas_%=:\n\t"			\
+				     "l" W "arx %0, 0, %1\n\t"	\
+				     "st" W "cx. %2, 0, %1\n\t"	\
+				     "bne- .L1_ck_pr_fas_%=\n\t"			\
 					: "=&r" (previous)	\
 					: "r"   (target),	\
 					  "r"   (v)		\
@@ -303,11 +303,11 @@ CK_PR_FAS(uint, unsigned int, unsigned int, "w")
 	ck_pr_##O##_##N(M *target)				\
 	{							\
 		T previous;					\
-		__asm__ __volatile__("1:"			\
-				     "l" W "arx %0, 0, %1;"	\
-				      I ";"			\
-				     "st" W "cx. %0, 0, %1;"	\
-				     "bne-  1b;"		\
+		__asm__ __volatile__(".L1_ck_pr_unary_%=:\n\t"			\
+				     "l" W "arx %0, 0, %1\n\t"	\
+				      I "\n\t"			\
+				     "st" W "cx. %0, 0, %1\n\t"	\
+				     "bne-  .L1_ck_pr_unary_%=\n\t"		\
 					: "=&r" (previous)	\
 					: "r"   (target)	\
 					: "memory", "cc");	\
@@ -338,11 +338,11 @@ CK_PR_UNARY_S(int, int, "w")
 	ck_pr_##O##_##N(M *target, T delta)			\
 	{							\
 		T previous;					\
-		__asm__ __volatile__("1:"			\
-				     "l" W "arx %0, 0, %1;"	\
-				      I " %0, %2, %0;"		\
-				     "st" W "cx. %0, 0, %1;"	\
-				     "bne-  1b;"		\
+		__asm__ __volatile__(".L1_ck_pr_binary_%=:\n\t"			\
+				     "l" W "arx %0, 0, %1\n\t"	\
+				      I " %0, %2, %0\n\t"		\
+				     "st" W "cx. %0, 0, %1\n\t"	\
+				     "bne-  .L1_ck_pr_binary_%=\n\t"		\
 					: "=&r" (previous)	\
 					: "r"   (target),	\
 					  "r"   (delta)		\
@@ -376,11 +376,11 @@ ck_pr_faa_ptr(void *target, uintptr_t delta)
 {
 	uintptr_t previous, r;
 
-	__asm__ __volatile__("1:"
-			     "ldarx %0, 0, %2;"
-			     "add %1, %3, %0;"
-			     "stdcx. %1, 0, %2;"
-			     "bne-  1b;"
+	__asm__ __volatile__(".L1_ck_pr_faa_ptr_%=:\n\t"
+			     "ldarx %0, 0, %2\n\t"
+			     "add %1, %3, %0\n\t"
+			     "stdcx. %1, 0, %2\n\t"
+			     "bne-  .L1_ck_pr_faa_ptr_%=\n\t"
 				: "=&r" (previous),
 				  "=&r" (r)
 				: "r"   (target),
@@ -395,11 +395,11 @@ ck_pr_faa_ptr(void *target, uintptr_t delta)
 	ck_pr_faa_##S(T *target, T delta)				\
 	{								\
 		T previous, r;						\
-		__asm__ __volatile__("1:"				\
-				     "l" W "arx %0, 0, %2;"		\
-				     "add %1, %3, %0;"			\
-				     "st" W "cx. %1, 0, %2;"		\
-				     "bne-  1b;"			\
+		__asm__ __volatile__(".L1_ck_pr_faa_%=:\n\t"				\
+				     "l" W "arx %0, 0, %2\n\t"		\
+				     "add %1, %3, %0\n\t"			\
+				     "st" W "cx. %1, 0, %2\n\t"		\
+				     "bne-  .L1_ck_pr_faa_%=\n\t"			\
 					: "=&r" (previous),		\
 					  "=&r" (r)			\
 					: "r"   (target),		\

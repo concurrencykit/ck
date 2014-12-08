@@ -95,6 +95,8 @@ generate()
 	    -e "s#@INSTALL_LIBS@#$INSTALL_LIBS#g"		\
 	    -e "s#@LD@#$LD#g"					\
 	    -e "s#@LDFLAGS@#$LDFLAGS#g"				\
+	    -e "s#@AR@#$AR#g"					\
+	    -e "s#@ARFLAGS@#$ARFLAGS#g"				\
 	    -e "s#@PTHREAD_CFLAGS@#$PTHREAD_CFLAGS#g"		\
 	    -e "s#@MANDIR@#$MANDIR#g"				\
 	    -e "s#@GZIP@#$GZIP#g"				\
@@ -130,6 +132,8 @@ generate_stdout()
 	echo "    LDNAME_VERSION = $LDNAME_VERSION"
 	echo "      LDNAME_MAJOR = $LDNAME_MAJOR"
 	echo "           LDFLAGS = $LDFLAGS"
+	echo "                AR = $AR"
+	echo "           ARFLAGS = $ARFLAGS"
 	echo "              GZIP = $GZIP"
 	echo "             CORES = $CORES"
 	echo "      POINTER_PACK = $POINTER_PACK_ENABLE"
@@ -321,6 +325,10 @@ case "$SYSTEM" in
 		SYSTEM=mingw32
 		LDFLAGS="-mthreads $LDFLAGS"
 		;;
+        "AIX")
+		SYSTEM=aix
+		LDFLAGS="-maix64 $LDFLAGS"
+		;;
 	*)
 		SYSTEM=
 		;;
@@ -330,9 +338,13 @@ assert "$SYSTEM" "$SYSTEM" "unsupported"
 
 CORES=${CORES:-${DCORES}}
 printf "Detecting machine architecture..."
+if test "$SYSTEM" == "aix"; then
+PLATFORM=`uname -p 2> /dev/null`
+else
 PLATFORM=`uname -m 2> /dev/null`
+fi
 case $PLATFORM in
-	"macppc"|"Power Macintosh"|"powerpc")
+	"macppc"|"Power Macintosh")
 		RTM_ENABLE="CK_MD_RTM_DISABLE"
 		MM="${MM:-"CK_MD_RMO"}"
 		PLATFORM=ppc
@@ -426,6 +438,24 @@ case $PLATFORM in
 		MM="${MM:-"CK_MD_RMO"}"
 		PLATFORM=arm
 		ENVIRONMENT=32
+		;;
+	"powerpc")
+ 		case "$SYSTEM" in
+			"aix")
+				RTM_ENABLE="CK_MD_RTM_DISABLE"
+				MM="${MM:-"CK_MD_RMO"}"
+				PLATFORM=aix_powerpc
+				ENVIRONMENT=64
+				CFLAGS="-maix64 $CFLAGS"
+				;;
+			*)
+				RTM_ENABLE="CK_MD_RTM_DISABLE"
+				MM="${MM:-"CK_MD_RMO"}"
+				PLATFORM=ppc
+				ENVIRONMENT=32
+				LDFLAGS="-m32 $LDFLAGS"
+				;;
+		esac
 		;;
 	*)
 		RTM_ENABLE="CK_MD_RTM_DISABLE"
@@ -548,10 +578,12 @@ fi
 if test "$COMPILER" = "suncc"; then
 	LD=/bin/ld
 	LDFLAGS="-G -z text -h libck.so.$VERSION_MAJOR $LDFLAGS"
+	ARFLAGS="rcs"
 	CFLAGS="-xO5 $CFLAGS"
 	PTHREAD_CFLAGS="-mt -lpthread"
 elif test "$COMPILER" = "gcc" || test "$COMPILER" = "clang" || test "$COMPILER" = "mingw32" || test "$COMPILER" = "mingw64"; then
 	LD=$CC
+	AR=ar
 	SONAME="$LDNAME_MAJOR"
 	if test "$SYSTEM" = "darwin"; then
 		CC_WL_OPT="-install_name"
@@ -563,7 +595,13 @@ elif test "$COMPILER" = "gcc" || test "$COMPILER" = "clang" || test "$COMPILER" 
 		CC_WL_OPT="-soname"
 	fi
 
-	LDFLAGS="-Wl,$CC_WL_OPT,$SONAME $LDFLAGS"
+	if test "$SYSTEM" == "aix"; then
+		LDFLAGS=$LDFLAGS
+		ARFLAGS="-c -r -X64 -o"
+	else
+		LDFLAGS="-Wl,$CC_WL_OPT,$SONAME $LDFLAGS"
+		ARFLAGS="rcs"
+	fi
 	if test "$WANT_PIC" = "yes"; then
 		LDFLAGS="$LDFLAGS -shared -fPIC"
 		CFLAGS="$CFLAGS -fPIC"
@@ -576,7 +614,7 @@ elif test "$COMPILER" = "gcc" || test "$COMPILER" = "clang" || test "$COMPILER" 
 		INSTALL_LIBS="install-lib"
 	fi
 
-	CFLAGS="-D_XOPEN_SOURCE=600 -D_BSD_SOURCE -std=gnu99 -pedantic -Wall -W -Wundef -Wendif-labels -Wshadow -Wpointer-arith -Wcast-align -Wwrite-strings -Wstrict-prototypes -Wmissing-prototypes -Wnested-externs -Winline -Wdisabled-optimization -fstrict-aliasing -O2 -pipe -Wno-parentheses $CFLAGS"
+	CFLAGS="-D_XOPEN_SOURCE=600 -std=gnu99 -pedantic -Wall -W -Wundef -Wendif-labels -Wshadow -Wpointer-arith -Wcast-align -Wwrite-strings -Wstrict-prototypes -Wmissing-prototypes -Wnested-externs -Winline -Wdisabled-optimization -fstrict-aliasing -O2 -pipe -Wno-parentheses $CFLAGS"
 	PTHREAD_CFLAGS="-pthread"
 	if test "$COMPILER" = "mingw64"; then
 		ENVIRONMENT=64

@@ -30,3 +30,22 @@
 #include <limits.h>
 #endif /* __linux__ && __KERNEL__ */
 
+#if defined(__ppc__) || defined(__ppc64__)
+
+#if !defined(UINT8_MAX)
+#define UINT8_MAX (0xFF)
+#endif
+
+#if !defined(UINT16_MAX)
+#define UINT16_MAX (0xFFFF)
+#endif
+
+#if !defined(UINT32_MAX)
+#define UINT32_MAX (0xFFFFFFFF)
+#endif
+
+#if !defined(UINT64_MAX)
+#define UINT64_MAX (0xFFFFFFFFFFFFFFFFll)
+#endif
+
+#endif /* __ppc__ || __ppc64__ */
