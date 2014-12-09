@@ -24,8 +24,6 @@
  * SUCH DAMAGE.
  */
 
-#include <stdint.h>
-
 #if defined(__linux__) && defined(__KERNEL__)
 #include <linux/kernel.h>
 #include <linux/types.h>
