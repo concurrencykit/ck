@@ -325,16 +325,10 @@ case "$SYSTEM" in
 		SYSTEM=mingw32
 		LDFLAGS="-mthreads $LDFLAGS"
 		;;
-<<<<<<< HEAD
         "AIX")
 		SYSTEM=aix
 		LDFLAGS="-maix64 $LDFLAGS"
 		;;
-=======
-	"AIX")
-		SYSTEM=aix
-                ;;
->>>>>>> 209912fce9a8a12cb52c3282d453b8c3ce0a4245
 	*)
 		SYSTEM=
 		;;
@@ -346,18 +340,10 @@ CORES=${CORES:-${DCORES}}
 
 printf "Detecting machine architecture..."
 if test "$SYSTEM" == "aix"; then
-<<<<<<< HEAD
 PLATFORM=`uname -p 2> /dev/null`
 else
 PLATFORM=`uname -m 2> /dev/null`
 fi
-=======
-PLATFORM=AIX_`uname -p 2> /dev/null`
-else
-PLATFORM=`uname -m 2> /dev/null`
-fi
-
->>>>>>> 209912fce9a8a12cb52c3282d453b8c3ce0a4245
 case $PLATFORM in
 	"macppc"|"Power Macintosh")
 		RTM_ENABLE="CK_MD_RTM_DISABLE"
@@ -447,13 +433,6 @@ case $PLATFORM in
 		MM="${MM:-"CK_MD_RMO"}"
 		PLATFORM=ppc64
 		ENVIRONMENT=64
-		;;
-	"AIX_powerpc")
-		RTM_ENABLE="CK_MD_RTM_DISABLE"
-		MM="${MM:-"CK_MD_RMO"}"
-		PLATFORM=powerpc
-		ENVIRONMENT=64
-		LDFLAGS="-maix64"
 		;;
 	arm|armv6l|armv7l)
 		RTM_ENABLE="CK_MD_RTM_DISABLE"
@@ -617,7 +596,6 @@ elif test "$COMPILER" = "gcc" || test "$COMPILER" = "clang" || test "$COMPILER" 
 		CC_WL_OPT="-soname"
 	fi
 
-<<<<<<< HEAD
 	if test "$SYSTEM" == "aix"; then
 		LDFLAGS=$LDFLAGS
 		ARFLAGS="-c -r -X64 -o"
@@ -625,14 +603,6 @@ elif test "$COMPILER" = "gcc" || test "$COMPILER" = "clang" || test "$COMPILER" 
 		LDFLAGS="-Wl,$CC_WL_OPT,$SONAME $LDFLAGS"
 		ARFLAGS="rcs"
 	fi
-=======
-	if test "$SYSTEM" = "aix"; then
-		LDFLAGS="$LDFLAGS"
-	else
-		LDFLAGS="-Wl,$CC_WL_OPT,$SONAME $LDFLAGS"
-	fi
-
->>>>>>> 209912fce9a8a12cb52c3282d453b8c3ce0a4245
 	if test "$WANT_PIC" = "yes"; then
 		LDFLAGS="$LDFLAGS -shared -fPIC"
 		CFLAGS="$CFLAGS -fPIC"
