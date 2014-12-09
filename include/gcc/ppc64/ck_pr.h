@@ -152,7 +152,7 @@ ck_pr_cas_64_value(uint64_t *target, uint64_t compare, uint64_t set, uint64_t *v
 	uint64_t previous;
 
 #if defined(_AIX)
-        __asm__ __volatile__("\n.L1_ck_pr_cas_64_value_%=:\n\r"
+        __asm__ __volatile__("\n.L1_ck_pr_cas_64_value_%=:\n\t"
 			     "ldarx %0, 0, %1\n\t"
 			     "cmpd  0, %0, %3\n\t"
 			     "bne-  .L2_ck_pr_cas_64_value_%=\n\t"
