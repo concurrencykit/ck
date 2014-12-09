@@ -53,9 +53,13 @@
 CK_CC_INLINE static void
 ck_pr_stall(void)
 {
-
+#if defined(_AIX)
 	__asm__ __volatile__("or 1, 1, 1\n\t"
 			     "or 2, 2, 2\n\t" ::: "memory");
+#else
+	__asm__ __volatile__("or 1, 1, 1;"
+			     "or 2, 2, 2;" ::: "memory");
+#endif
 	return;
 }
 
@@ -147,6 +151,7 @@ ck_pr_cas_64_value(uint64_t *target, uint64_t compare, uint64_t set, uint64_t *v
 {
 	uint64_t previous;
 
+#if defined(_AIX)
         __asm__ __volatile__("\n.L1_ck_pr_cas_64_value_%=:\n\r"
 			     "ldarx %0, 0, %1\n\t"
 			     "cmpd  0, %0, %3\n\t"
@@ -159,7 +164,20 @@ ck_pr_cas_64_value(uint64_t *target, uint64_t compare, uint64_t set, uint64_t *v
 				  "r"   (set),
                                   "r"   (compare)
                                 : "memory", "cc");
-
+#else
+        __asm__ __volatile__("1:"
+                             "ldarx %0, 0, %1;"
+                             "cmpd  0, %0, %3;"
+                             "bne-  2f;"
+                             "stdcx. %2, 0, %1;"
+                             "bne-  1b;"
+                             "2:"
+                                : "=&r" (previous)
+                                : "r"   (target),
+                                  "r"   (set),
+                                  "r"   (compare)
+                                : "memory", "cc");
+#endif
         *value = previous;
         return (previous == compare);
 }
@@ -169,6 +187,7 @@ ck_pr_cas_ptr_value(void *target, void *compare, void *set, void *value)
 {
 	void *previous;
 
+#if defined(_AIX)
         __asm__ __volatile__("\n.L1_ck_pr_cas_ptr_value_%=:\n\t"
 			     "ldarx %0, 0, %1\n\t"
 			     "cmpd  0, %0, %3\n\t"
@@ -181,7 +200,20 @@ ck_pr_cas_ptr_value(void *target, void *compare, void *set, void *value)
 				  "r"   (set),
                                   "r"   (compare)
                                 : "memory", "cc");
-
+#else
+        __asm__ __volatile__("1:"
+                             "ldarx %0, 0, %1;"
+                             "cmpd  0, %0, %3;"
+                             "bne-  2f;"
+                             "stdcx. %2, 0, %1;"
+                             "bne-  1b;"
+                             "2:"
+                                : "=&r" (previous)
+                                : "r"   (target),
+                                  "r"   (set),
+                                  "r"   (compare)
+                                : "memory", "cc");
+#endif
         ck_pr_store_ptr(value, previous);
         return (previous == compare);
 }
@@ -191,6 +223,7 @@ ck_pr_cas_64(uint64_t *target, uint64_t compare, uint64_t set)
 {
 	uint64_t previous;
 
+#if defined(_AIX)
         __asm__ __volatile__("\n.L1_ck_pr_cas_64_%=:\n\t"
 			     "ldarx %0, 0, %1\n\t"
 			     "cmpd  0, %0, %3\n\t"
@@ -203,6 +236,20 @@ ck_pr_cas_64(uint64_t *target, uint64_t compare, uint64_t set)
 				  "r"   (set),
                                   "r"   (compare)
                                 : "memory", "cc");
+#else
+        __asm__ __volatile__("1:"
+                             "ldarx %0, 0, %1;"
+                             "cmpd  0, %0, %3;"
+                             "bne-  2f;"
+                             "stdcx. %2, 0, %1;"
+                             "bne-  1b;"
+                             "2:"
+                                : "=&r" (previous)
+                                : "r"   (target),
+                                  "r"   (set),
+                                  "r"   (compare)
+                                : "memory", "cc");
+#endif
 
         return (previous == compare);
 }
@@ -212,6 +259,7 @@ ck_pr_cas_ptr(void *target, void *compare, void *set)
 {
 	void *previous;
 
+#if defined(_AIX)
         __asm__ __volatile__("\n.L1_ck_pr_cas_ptr_%=:\n\t"
 			     "ldarx %0, 0, %1\n\t"
 			     "cmpd  0, %0, %3\n\t"
@@ -224,22 +272,37 @@ ck_pr_cas_ptr(void *target, void *compare, void *set)
 				  "r"   (set),
                                   "r"   (compare)
                                 : "memory", "cc");
+#else
+        __asm__ __volatile__("1:"
+                             "ldarx %0, 0, %1;"
+                             "cmpd  0, %0, %3;"
+                             "bne-  2f;"
+                             "stdcx. %2, 0, %1;"
+                             "bne-  1b;"
+                             "2:"
+                                : "=&r" (previous)
+                                : "r"   (target),
+                                  "r"   (set),
+                                  "r"   (compare)
+                                : "memory", "cc");
+#endif
 
         return (previous == compare);
 }
 
+#if defined(_AIX)
 #define CK_PR_CAS(N, T)							\
 	CK_CC_INLINE static bool					\
 	ck_pr_cas_##N##_value(T *target, T compare, T set, T *value)	\
 	{								\
 		T previous;						\
-		__asm__ __volatile__(".L1_ck_pr_cas_value%=:\n\t"				\
-				     "lwarx %0, 0, %1\n\t"			\
-				     "cmpw  0, %0, %3\n\t"			\
-				     "bne-  .L2_ck_pr_cas_value%=\n\t"			\
+		__asm__ __volatile__(".L1_ck_pr_cas_value%=:\n\t"	\
+				     "lwarx %0, 0, %1\n\t"		\
+				     "cmpw  0, %0, %3\n\t"		\
+				     "bne-  .L2_ck_pr_cas_value%=\n\t"	\
 				     "stwcx. %2, 0, %1\n\t"		\
-				     "bne-  .L1_ck_pr_cas_value%=\n\t"			\
-				     ".L2_ck_pr_cas_value%=:"				\
+				     "bne-  .L1_ck_pr_cas_value%=\n\t"	\
+				     ".L2_ck_pr_cas_value%=:"		\
 					: "=&r" (previous)		\
 					: "r"   (target),		\
 					  "r"   (set),			\
@@ -252,13 +315,13 @@ ck_pr_cas_ptr(void *target, void *compare, void *set)
 	ck_pr_cas_##N(T *target, T compare, T set)			\
 	{								\
 		T previous;						\
-		__asm__ __volatile__(".L1_ck_pr_cas_%=:\n\t"				\
-				     "lwarx %0, 0, %1\n\t"			\
-				     "cmpw  0, %0, %3\n\t"			\
-				     "bne-  .L2_ck_pr_cas_%=\n\t"			\
+		__asm__ __volatile__(".L1_ck_pr_cas_%=:\n\t"		\
+				     "lwarx %0, 0, %1\n\t"		\
+				     "cmpw  0, %0, %3\n\t"		\
+				     "bne-  .L2_ck_pr_cas_%=\n\t"	\
 				     "stwcx. %2, 0, %1\n\t"		\
-				     "bne-  .L1_ck_pr_cas_%=\n\t"			\
-				     ".L2_ck_pr_cas_%=:"				\
+				     "bne-  .L1_ck_pr_cas_%=\n\t"	\
+				     ".L2_ck_pr_cas_%=:"		\
 					: "=&r" (previous)		\
 					: "r"   (target),		\
 					  "r"   (set),			\
@@ -266,6 +329,46 @@ ck_pr_cas_ptr(void *target, void *compare, void *set)
 					: "memory", "cc");		\
 		return (previous == compare);				\
 	}
+#else /* !defined(_AIX) */
+#define CK_PR_CAS(N, T)                                                 \
+        CK_CC_INLINE static bool                                        \
+        ck_pr_cas_##N##_value(T *target, T compare, T set, T *value)    \
+        {                                                               \
+                T previous;                                             \
+                __asm__ __volatile__("1:"			        \
+                                     "lwarx %0, 0, %1;"         	\
+                                     "cmpw  0, %0, %3;"		        \
+                                     "bne-  2f;"  			\
+                                     "stwcx. %2, 0, %1;"             	\
+                                     "bne-  1b;"			\
+                                     "2:"           			\
+                                        : "=&r" (previous)              \
+                                        : "r"   (target),               \
+                                          "r"   (set),                  \
+                                          "r"   (compare)               \
+                                        : "memory", "cc");              \
+                *value = previous;                                      \
+                return (previous == compare);                           \
+        }                                                               \
+        CK_CC_INLINE static bool                                        \
+        ck_pr_cas_##N(T *target, T compare, T set)                      \
+        {                                                               \
+                T previous;                                             \
+                __asm__ __volatile__("1:"				\
+                                     "lwarx %0, 0, %1;"             	\
+                                     "cmpw  0, %0, %3;"			\
+                                     "bne-  2f;"			\
+                                     "stwcx. %2, 0, %1;"		\
+                                     "bne-  1b;"			\
+                                     "2:" 				\
+                                        : "=&r" (previous)              \
+                                        : "r"   (target),               \
+                                          "r"   (set),                  \
+                                          "r"   (compare)               \
+                                        : "memory", "cc");              \
+                return (previous == compare);                           \
+        }
+#endif /* defined(_AIX) */
 
 CK_PR_CAS(32, uint32_t)
 CK_PR_CAS(uint, unsigned int)
@@ -273,21 +376,39 @@ CK_PR_CAS(int, int)
 
 #undef CK_PR_CAS
 
+#if defined(_AIX)
 #define CK_PR_FAS(N, M, T, W)					\
 	CK_CC_INLINE static T					\
 	ck_pr_fas_##N(M *target, T v)				\
 	{							\
 		T previous;					\
-		__asm__ __volatile__(".L1_ck_pr_fas_%=:\n\t"			\
+		__asm__ __volatile__(".L1_ck_pr_fas_%=:\n\t"	\
 				     "l" W "arx %0, 0, %1\n\t"	\
 				     "st" W "cx. %2, 0, %1\n\t"	\
-				     "bne- .L1_ck_pr_fas_%=\n\t"			\
+				     "bne- .L1_ck_pr_fas_%=\n\t"\
 					: "=&r" (previous)	\
 					: "r"   (target),	\
 					  "r"   (v)		\
 					: "memory", "cc");	\
 		return (previous);				\
 	}
+#else /* !defined(_AIX) */
+#define CK_PR_FAS(N, M, T, W)                                   \
+        CK_CC_INLINE static T                                   \
+        ck_pr_fas_##N(M *target, T v)                           \
+        {                                                       \
+                T previous;                                     \
+                __asm__ __volatile__("1:"			\
+                                     "l" W "arx %0, 0, %1;"	\
+                                     "st" W "cx. %2, 0, %1;"	\
+                                     "bne- 1b;"			\
+                                        : "=&r" (previous)      \
+                                        : "r"   (target),       \
+                                          "r"   (v)             \
+                                        : "memory", "cc");      \
+                return (previous);                              \
+        }
+#endif /* defined (_AIX) */
 
 CK_PR_FAS(64, uint64_t, uint64_t, "d")
 CK_PR_FAS(32, uint32_t, uint32_t, "w")
@@ -298,21 +419,39 @@ CK_PR_FAS(uint, unsigned int, unsigned int, "w")
 
 #undef CK_PR_FAS
 
+#if defined(_AIX)
 #define CK_PR_UNARY(O, N, M, T, I, W)				\
 	CK_CC_INLINE static void				\
 	ck_pr_##O##_##N(M *target)				\
 	{							\
 		T previous;					\
-		__asm__ __volatile__(".L1_ck_pr_unary_%=:\n\t"			\
+		__asm__ __volatile__(".L1_ck_pr_unary_%=:\n\t"	\
 				     "l" W "arx %0, 0, %1\n\t"	\
 				      I "\n\t"			\
 				     "st" W "cx. %0, 0, %1\n\t"	\
-				     "bne-  .L1_ck_pr_unary_%=\n\t"		\
+				     "bne-  .L1_ck_pr_unary_%=\n\t"\
 					: "=&r" (previous)	\
 					: "r"   (target)	\
 					: "memory", "cc");	\
 		return;						\
 	}
+#else /* !defined(_AIX) */
+#define CK_PR_UNARY(O, N, M, T, I, W)                           \
+        CK_CC_INLINE static void                                \
+        ck_pr_##O##_##N(M *target)                              \
+        {                                                       \
+                T previous;                                     \
+                __asm__ __volatile__("1:"			\
+                                     "l" W "arx %0, 0, %1;"	\
+                                      I ";"  	                \
+                                     "st" W "cx. %0, 0, %1;"	\
+                                     "bne- 1b;"			\
+                                        : "=&r" (previous)      \
+                                        : "r"   (target)        \
+                                        : "memory", "cc");      \
+                return;                                         \
+        }
+#endif /* defined(_AIX) */
 
 CK_PR_UNARY(inc, ptr, void, void *, "addic %0, %0, 1", "d")
 CK_PR_UNARY(dec, ptr, void, void *, "addic %0, %0, -1", "d")
@@ -333,22 +472,41 @@ CK_PR_UNARY_S(int, int, "w")
 #undef CK_PR_UNARY_S
 #undef CK_PR_UNARY
 
-#define CK_PR_BINARY(O, N, M, T, I, W)				\
-	CK_CC_INLINE static void				\
-	ck_pr_##O##_##N(M *target, T delta)			\
-	{							\
-		T previous;					\
-		__asm__ __volatile__(".L1_ck_pr_binary_%=:\n\t"			\
-				     "l" W "arx %0, 0, %1\n\t"	\
+#if defined(_AIX)
+#define CK_PR_BINARY(O, N, M, T, I, W)					\
+	CK_CC_INLINE static void					\
+	ck_pr_##O##_##N(M *target, T delta)				\
+	{								\
+		T previous;						\
+		__asm__ __volatile__(".L1_ck_pr_binary_%=:\n\t"		\
+				     "l" W "arx %0, 0, %1\n\t"		\
 				      I " %0, %2, %0\n\t"		\
-				     "st" W "cx. %0, 0, %1\n\t"	\
-				     "bne-  .L1_ck_pr_binary_%=\n\t"		\
-					: "=&r" (previous)	\
-					: "r"   (target),	\
-					  "r"   (delta)		\
-					: "memory", "cc");	\
-		return;						\
+				     "st" W "cx. %0, 0, %1\n\t"		\
+				     "bne-  .L1_ck_pr_binary_%=\n\t"	\
+					: "=&r" (previous)		\
+					: "r"   (target),		\
+					  "r"   (delta)			\
+					: "memory", "cc");		\
+		return;							\
 	}
+#else /* !defined(_AIX) */
+#define CK_PR_BINARY(O, N, M, T, I, W)                                  \
+        CK_CC_INLINE static void                                        \
+        ck_pr_##O##_##N(M *target, T delta)                             \
+        {                                                               \
+                T previous;                                             \
+                __asm__ __volatile__("1:"				\
+                                     "l" W "arx %0, 0, %1;"		\
+                                      I " %0, %2, %0;"    		\
+                                     "st" W "cx. %0, 0, %1;"         	\
+                                     "bne-  1b;"    			\
+                                        : "=&r" (previous)              \
+                                        : "r"   (target),               \
+                                          "r"   (delta)                 \
+                                        : "memory", "cc");              \
+                return;                                                 \
+        }
+#endif /* defined_AIX) */
 
 CK_PR_BINARY(and, ptr, void, uintptr_t, "and", "d")
 CK_PR_BINARY(add, ptr, void, uintptr_t, "add", "d")
@@ -371,6 +529,7 @@ CK_PR_BINARY_S(int, int, "w")
 #undef CK_PR_BINARY_S
 #undef CK_PR_BINARY
 
+#if defined(_AIX)
 CK_CC_INLINE static void *
 ck_pr_faa_ptr(void *target, uintptr_t delta)
 {
@@ -395,11 +554,11 @@ ck_pr_faa_ptr(void *target, uintptr_t delta)
 	ck_pr_faa_##S(T *target, T delta)				\
 	{								\
 		T previous, r;						\
-		__asm__ __volatile__(".L1_ck_pr_faa_%=:\n\t"				\
+		__asm__ __volatile__(".L1_ck_pr_faa_%=:\n\t"		\
 				     "l" W "arx %0, 0, %2\n\t"		\
-				     "add %1, %3, %0\n\t"			\
+				     "add %1, %3, %0\n\t"		\
 				     "st" W "cx. %1, 0, %2\n\t"		\
-				     "bne-  .L1_ck_pr_faa_%=\n\t"			\
+				     "bne-  .L1_ck_pr_faa_%=\n\t"	\
 					: "=&r" (previous),		\
 					  "=&r" (r)			\
 					: "r"   (target),		\
@@ -407,6 +566,44 @@ ck_pr_faa_ptr(void *target, uintptr_t delta)
 					: "memory", "cc");		\
 		return (previous);					\
 	}
+#else /* !defined(_AIX) */
+CK_CC_INLINE static void *
+ck_pr_faa_ptr(void *target, uintptr_t delta)
+{
+        uintptr_t previous, r;
+
+        __asm__ __volatile__("1:"
+                             "ldarx %0, 0, %2;"
+                             "add %1, %3, %0;"
+                             "stdcx. %1, 0, %2;"
+                             "bne-  1b;"
+                                : "=&r" (previous),
+                                  "=&r" (r)
+                                : "r"   (target),
+                                  "r"   (delta)
+                                : "memory", "cc");
+
+        return (void *)(previous);
+}
+
+#define CK_PR_FAA(S, T, W)                                              \
+        CK_CC_INLINE static T                                           \
+        ck_pr_faa_##S(T *target, T delta)                               \
+        {                                                               \
+                T previous, r;                                          \
+                __asm__ __volatile__("1:"				\
+                                     "l" W "arx %0, 0, %2;"          	\
+                                     "add %1, %3, %0;"               	\
+                                     "st" W "cx. %1, 0, %2;"         	\
+                                     "bne-  1b;"       			\
+                                        : "=&r" (previous),             \
+                                          "=&r" (r)                     \
+                                        : "r"   (target),               \
+                                          "r"   (delta)                 \
+                                        : "memory", "cc");              \
+                return (previous);                                      \
+        }
+#endif /* defined(_AIX_) */
 
 CK_PR_FAA(64, uint64_t, "d")
 CK_PR_FAA(32, uint32_t, "w")
