@@ -30,8 +30,10 @@
 #include <limits.h>
 #endif /* __linux__ && __KERNEL__ */
 
-#if defined(__ppc__) || defined(__ppc64__)
+#if defined(_AIX)
 
+// For whatever reason the definitions in stdint.h are not evaluated
+// on AIX. So I'am adding the missing defines here.
 #if !defined(UINT8_MAX)
 #define UINT8_MAX (0xFF)
 #endif
@@ -48,4 +50,4 @@
 #define UINT64_MAX (0xFFFFFFFFFFFFFFFFll)
 #endif
 
-#endif /* __ppc__ || __ppc64__ */
+#endif /* _AIX */
