@@ -38,7 +38,7 @@ ck_pr.h provides an interface to volatile atomic instructions,
 memory barriers and busy-wait facilities as provided by the
 underlying processor. The presence of an atomic operation
 is detected by the presence of a corresponding CK_F_PR macro.
-For example, the availability of 
+For example, the availability of
 .Xr ck_pr_add_16 3
 would be determined by the presence of CK_F_PR_ADD_16.
 .Sh SEE ALSO
@@ -56,7 +56,7 @@ would be determined by the presence of CK_F_PR_ADD_16.
 .Xr ck_pr_faa 3 ,
 .Xr ck_pr_inc 3 ,
 .Xr ck_pr_dec 3 ,
-.Xr ck_pr_neg 3 , 
+.Xr ck_pr_neg 3 ,
 .Xr ck_pr_not 3 ,
 .Xr ck_pr_add 3 ,
 .Xr ck_pr_sub 3 ,

@@ -43,7 +43,7 @@ struct context {
 	unsigned int tid;
 	unsigned int previous;
 	unsigned int next;
-	struct entry *buffer;
+	struct entry **buffer;
 };
 
 struct entry {
@@ -54,7 +54,7 @@ struct entry {
 	int value;
 };
 
-CK_RING_PROTOTYPE(entry, entry)
+CK_RING_PROTOTYPE(entry, entry *)
 
 static int nthr;
 static ck_ring_t *ring;
@@ -73,7 +73,7 @@ test_spmc(void *c)
 	unsigned int seed;
 	int i, k, j, tid;
 	struct context *context = c;
-	struct entry *buffer;
+	struct entry **buffer;
 
 	buffer = context->buffer;
         if (aff_iterate(&a)) {
@@ -136,11 +136,11 @@ static void *
 test(void *c)
 {
 	struct context *context = c;
-	struct entry entry;
+	struct entry *entry;
 	unsigned int s;
 	int i, j;
 	bool r;
-	ck_ring_buffer_t *buffer = context->buffer;
+	struct entry **buffer = context->buffer;
 	ck_barrier_centralized_state_t sense =
 	    CK_BARRIER_CENTRALIZED_STATE_INITIALIZER;
 
@@ -150,9 +150,9 @@ test(void *c)
         }
 
 	if (context->tid == 0) {
-		struct entry *entries;
+		struct entry **entries;
 
-		entries = malloc(sizeof(struct entry) * size);
+		entries = malloc(sizeof(struct entry *) * size);
 		assert(entries != NULL);
 
 		if (ck_ring_size(ring) != 0) {
@@ -161,15 +161,18 @@ test(void *c)
 		}
 
 		for (i = 0; i < size; i++) {
-			entries[i].value = i;
-			entries[i].tid = 0;
+			entries[i] = malloc(sizeof(struct entry));
+			assert(entries[i] != NULL);
+
+			entries[i]->value = i;
+			entries[i]->tid = 0;
 
 			if (i & 1) {
 				r = CK_RING_ENQUEUE_SPMC(entry, ring, buffer,
-				    entries + i);
+				    &entries[i]);
 			} else {
 				r = CK_RING_ENQUEUE_SPMC_SIZE(entry, ring,
-					buffer, entries + i, &s);
+					buffer, &entries[i], &s);
 
 				if ((int)s != i) {
 					ck_error("Size is %u, expected %d.\n",
@@ -200,7 +203,7 @@ test(void *c)
 		for (j = 0; j < size; j++) {
 			buffer = _context[context->previous].buffer;
 			while (CK_RING_DEQUEUE_SPMC(entry,
-			    ring + context->previous, 
+			    ring + context->previous,
 			    buffer, &entry) == false);
 
 			if (context->previous != (unsigned int)entry->tid) {
@@ -245,7 +248,7 @@ main(int argc, char *argv[])
 	int i, r;
 	unsigned long l;
 	pthread_t *thread;
-	struct entry *buffer;
+	struct entry **buffer;
 
 	if (argc != 4) {
 		ck_error("Usage: validate <threads> <affinity delta> <size>\n");
@@ -284,9 +287,9 @@ main(int argc, char *argv[])
 			_context[i].previous = i - 1;
 		}
 
-		buffer = malloc(sizeof(struct entry) * (size + 1));
+		buffer = malloc(sizeof(struct entry *) * (size + 1));
 		assert(buffer);
-		memset(buffer, 0, sizeof(struct entry) * (size + 1));
+		memset(buffer, 0, sizeof(struct entry *) * (size + 1));
 		_context[i].buffer = buffer;
 		ck_ring_init(ring + i, size + 1);
 		r = pthread_create(thread + i, NULL, test, _context + i);
@@ -299,9 +302,9 @@ main(int argc, char *argv[])
 	fprintf(stderr, " done\n");
 
 	fprintf(stderr, "SPMC test:\n");
-	buffer = malloc(sizeof(ck_ring_buffer_t) * (size + 1));
+	buffer = malloc(sizeof(struct entry *) * (size + 1));
 	assert(buffer);
-	memset(buffer, 0, sizeof(void *) * (size + 1));
+	memset(buffer, 0, sizeof(struct entry *) * (size + 1));
 	ck_ring_init(&ring_spmc, size + 1);
 	for (i = 0; i < nthr - 1; i++) {
 		_context[i].buffer = buffer;
@@ -322,14 +325,14 @@ main(int argc, char *argv[])
 		/* Wait until queue is not full. */
 		if (l & 1) {
 			while (CK_RING_ENQUEUE_SPMC(entry, &ring_spmc,
-			    buffer, entry) == false) {
+			    buffer, &entry) == false) {
 				ck_pr_stall();
 			}
 		} else {
 			unsigned int s;
 
 			while (CK_RING_ENQUEUE_SPMC_SIZE(entry, &ring_spmc,
-			    buffer, entry, &s) == false) {
+			    buffer, &entry, &s) == false) {
 				ck_pr_stall();
 			}
 
@@ -342,6 +345,6 @@ main(int argc, char *argv[])
 	for (i = 0; i < nthr - 1; i++)
 		pthread_join(thread[i], NULL);
 
-	return (0);
+	return 0;
 }
 

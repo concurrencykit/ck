@@ -135,7 +135,7 @@ ck_pr_load_64(const uint64_t *target)
 	register uint64_t ret asm("r0");
 
 	__asm __volatile("ldrd %0, [%1]" : "+r" (ret)
-	    				 : "r" (target) 
+	    				 : "r" (target)
 					 : "memory", "cc");
 	return (ret);
 }
@@ -170,33 +170,32 @@ CK_PR_STORE_S(char, char, "strb")
 CK_CC_INLINE static void
 ck_pr_store_64(const uint64_t *target, uint64_t value)
 {
-	register uint64_t tmp asm("r0") = value;
 
 	__asm __volatile("strd %0, [%1]"
 				:
-				: "r" (tmp), "r" (target)
+				: "r" (value), "r" (target)
 				: "memory", "cc");
 }
 
 CK_CC_INLINE static bool
 ck_pr_cas_64_value(uint64_t *target, uint64_t compare, uint64_t set, uint64_t *value)
 {
-	register uint64_t __compare asm("r0") = compare;
-	register uint64_t __set asm("r2") = set;
+        uint64_t previous;
+        int tmp;
 
 	__asm__ __volatile__("1:"
-			     "ldrexd r4, [%3];"
-			     "cmp    r4, r0;"
+			     "ldrexd %0, [%4];"
+			     "cmp    %Q0, %Q2;"
 			     "ittt eq;"
-			     "cmpeq  r5, r1;"
-			     "strexdeq r6, r2, [%3];"
-			     "cmpeq  r6, #1;"
+			     "cmpeq  %R0, %R2;"
+			     "strexdeq %1, %3, [%4];"
+			     "cmpeq  %1, #1;"
 			     "beq 1b;"
-			     "strd r4, [%0];"
-				: "+r" (value)
-				: "r" (__compare), "r" (__set) ,
+				:"=&r" (previous), "=&r" (tmp)
+				: "r" (compare), "r" (set) ,
 				  "r"(target)
 				: "memory", "cc", "r4", "r5", "r6");
+        *value = previous;
 	return (*value == compare);
 }
 
@@ -215,22 +214,21 @@ ck_pr_cas_ptr_2_value(void *target, void *compare, void *set, void *value)
 CK_CC_INLINE static bool
 ck_pr_cas_64(uint64_t *target, uint64_t compare, uint64_t set)
 {
-	register uint64_t __compare asm("r0") = compare;
-	register uint64_t __set asm("r2") = set;
 	int ret;
+        uint64_t tmp;
 
 	__asm__ __volatile__("1:"
 			     "mov %0, #0;"
-			     "ldrexd r4, [%3];"
-			     "cmp    r4, r0;"
+			     "ldrexd %1, [%4];"
+			     "cmp    %Q1, %Q2;"
 			     "itttt eq;"
-			     "cmpeq  r5, r1;"
-			     "strexdeq r6, r2, [%3];"
+			     "cmpeq  %R1, %R2;"
+			     "strexdeq %1, %3, [%4];"
 			     "moveq %0, #1;"
-			     "cmpeq  r6, #1;"
+			     "cmpeq  %1, #1;"
 			     "beq 1b;"
-			     : "=&r" (ret)
-			     : "r" (__compare), "r" (__set) ,
+			     : "=&r" (ret), "=&r" (tmp)
+			     : "r" (compare), "r" (set) ,
 			       "r"(target)
 			     : "memory", "cc", "r4", "r5", "r6");
 
@@ -262,7 +260,7 @@ ck_pr_cas_ptr_value(void *target, void *compare, void *set, void *value)
 				  "=&r" (tmp)
 		  		: "r"   (target),
 				  "r"   (set),
-				  "r"   (compare)	
+				  "r"   (compare)
 				: "memory", "cc");
 	*(void **)value = previous;
 	return (previous == compare);
@@ -283,7 +281,7 @@ ck_pr_cas_ptr(void *target, void *compare, void *set)
 				  "=&r" (tmp)
 		  		: "r"   (target),
 				  "r"   (set),
-				  "r"   (compare)	
+				  "r"   (compare)
 				: "memory", "cc");
 	return (previous == compare);
 }

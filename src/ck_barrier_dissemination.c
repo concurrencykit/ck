@@ -121,4 +121,3 @@ ck_barrier_dissemination(struct ck_barrier_dissemination *barrier,
 	state->parity = 1 - state->parity;
 	return;
 }
-

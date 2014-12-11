@@ -46,7 +46,7 @@ function will defer the execution of the function pointed to by
 until a grace-period has been detected in
 .Fa epoch .
 The function will be provided
-the pointer specified by 
+the pointer specified by
 .Fa entry .
 The function will execute at some time in the future via calls to
 .Fn ck_epoch_reclaim 3 ,

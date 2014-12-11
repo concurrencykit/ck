@@ -111,4 +111,3 @@ leave:
 }
 
 #endif /* _CK_HP_STACK_H */
-

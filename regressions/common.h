@@ -289,7 +289,7 @@ CK_CC_UNUSED static int
 aff_iterate_core(struct affinity *acb, unsigned int *core)
 {
 	cpu_set_t s;
-	
+
 	*core = ck_pr_faa_uint(&acb->request, acb->delta);
 	CPU_ZERO(&s);
 	CPU_SET((*core) % CORES, &s);
@@ -367,7 +367,7 @@ aff_iterate_core(struct affinity *acb CK_CC_UNUSED, unsigned int *core)
 CK_CC_INLINE static uint64_t
 rdtsc(void)
 {
-#if defined(__x86_64__) || defined(__x86__)
+#if defined(__x86_64__)
 	uint32_t eax = 0, edx;
 #if defined(CK_MD_RDTSCP)
 	__asm__ __volatile__("rdtscp"
@@ -377,9 +377,32 @@ rdtsc(void)
 
 	return (((uint64_t)edx << 32) | eax);
 #else
+        __asm__ __volatile__("cpuid;"
+                             "rdtsc;"
+                                : "+a" (eax), "=d" (edx)
+                                :
+                                : "%ebx", "%ecx", "memory");
 
-        __asm__ __volatile__("pushl %%ebx;"
+        __asm__ __volatile__("xorl %%eax, %%eax;"
                              "cpuid;"
+                                :
+                                :
+                                : "%eax", "%ebx", "%ecx", "%edx", "memory");
+
+        return (((uint64_t)edx << 32) | eax);
+#endif /* !CK_MD_RDTSCP */
+#elif defined(__x86__)
+	uint32_t eax = 0, edx;
+#if defined(CK_MD_RDTSCP)
+	__asm__ __volatile__("rdtscp"
+				: "+a" (eax), "=d" (edx)
+				:
+				: "%ecx", "memory");
+
+	return (((uint64_t)edx << 32) | eax);
+#else
+        __asm__ __volatile__("pushl %%ebx;"
+			     "cpuid;"
                              "rdtsc;"
                                 : "+a" (eax), "=d" (edx)
                                 :
@@ -387,7 +410,7 @@ rdtsc(void)
 
         __asm__ __volatile__("xorl %%eax, %%eax;"
                              "cpuid;"
-                             "popl %%ebx;"
+			     "popl %%ebx;"
                                 :
                                 :
                                 : "%eax", "%ecx", "%edx", "memory");
@@ -431,4 +454,3 @@ ck_error(const char *message, ...)
 	va_end(ap);
 	exit(EXIT_FAILURE);
 }
-

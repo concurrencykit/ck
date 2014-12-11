@@ -307,7 +307,7 @@ _ck_ring_dequeue_spmc(struct ck_ring *ring,
 			return false;
 
 		ck_pr_fence_load();
-		
+
 		target = (char *)buffer + size * (consumer & mask);
 		memcpy(data, target, size);
 
@@ -432,4 +432,3 @@ ck_ring_dequeue_spmc_##name(struct ck_ring *a,		\
 	ck_ring_dequeue_spmc_##name(a, b, c)
 
 #endif /* _CK_RING_H */
-

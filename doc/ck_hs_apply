@@ -1,5 +1,6 @@
 .\"
-.\" Copyright 2013 Samy Al Bahra.
+.\" Copyright 2014 Samy Al Bahra.
+.\" Copyright 2014 Backtrace I/O, Inc.
 .\" All rights reserved.
 .\"
 .\" Redistribution and use in source and binary forms, with or without
@@ -24,52 +25,62 @@
 .\" SUCH DAMAGE.
 .\"
 .\"
-.Dd April 7, 2013
-.Dt ck_pr_fence_load_depends 3
+.Dd September 1, 2014
+.Dt CK_HS_APPLY 3
 .Sh NAME
-.Nm ck_pr_fence_load_depends
-.Nd data dependency barrier
+.Nm ck_hs_apply
+.Nd apply a function to hash set value
 .Sh LIBRARY
 Concurrency Kit (libck, \-lck)
 .Sh SYNOPSIS
-.In ck_pr.h
-.Ft void
-.Fn ck_pr_fence_load_depends void
+.In ck_hs.h
+.Ft void *
+.Fn ck_hs_apply_fn_t "void *key" "void *closure"
+.Ft bool
+.Fn ck_hs_apply "ck_hs_t *hs" "unsigned long hash" "const void *key" "ck_hs_apply_fn_t *function" "void *argument"
 .Sh DESCRIPTION
 The
-.Fn ck_pr_fence_load_depends 3
-emits necessary fences for pure data-dependent loads. It currently only serves as a compiler
-barrier for Concurrency Kit's supported platforms. Unless you're on architecture
-which re-orders data-dependent loads (such as the defunct Alpha), this function is unnecessary.
+.Fn ck_hs_apply 3
+function will lookup the hash set slot associated with
+.Fa key
+and pass it to function pointed to by
+.Fa function
+for further action. This callback may remove or replace
+the value by respectively returning NULL or a pointer to
+another object with an identical key. The first argument
+passed to
+.Fa function
+is a pointer to the object found in the hash set and
+the second argument is the
+.Fa argument
+pointer passed to
+.Fn ck_hs_apply 3 .
+If the pointer returned by
+.Fa function
+is equivalent to the first argument then no modification
+is made to the hash set.
 .Sh RETURN VALUES
-This function has no return value.
+Upon successful completion,
+.Fn ck_hs_apply 3
+returns true and otherwise returns false on failure.
 .Sh SEE ALSO
-.Xr ck_pr_stall 3 ,
-.Xr ck_pr_fence_atomic 3 ,
-.Xr ck_pr_fence_atomic_store 3 ,
-.Xr ck_pr_fence_atomic_load 3 ,
-.Xr ck_pr_fence_load 3 ,
-.Xr ck_pr_fence_load_atomic 3 ,
-.Xr ck_pr_fence_load_store 3 ,
-.Xr ck_pr_fence_store 3 ,
-.Xr ck_pr_fence_memory 3 ,
-.Xr ck_pr_barrier 3 ,
-.Xr ck_pr_fas 3 ,
-.Xr ck_pr_load 3 ,
-.Xr ck_pr_store 3 ,
-.Xr ck_pr_faa 3 ,
-.Xr ck_pr_inc 3 ,
-.Xr ck_pr_dec 3 ,
-.Xr ck_pr_neg 3 ,
-.Xr ck_pr_not 3 ,
-.Xr ck_pr_add 3 ,
-.Xr ck_pr_sub 3 ,
-.Xr ck_pr_and 3 ,
-.Xr ck_pr_or 3 ,
-.Xr ck_pr_xor 3 ,
-.Xr ck_pr_cas 3 ,
-.Xr ck_pr_btc 3 ,
-.Xr ck_pr_bts 3 ,
-.Xr ck_pr_btr 3
+.Xr ck_hs_init 3 ,
+.Xr ck_hs_move 3 ,
+.Xr ck_hs_destroy 3 ,
+.Xr ck_hs_fas 3 ,
+.Xr CK_HS_HASH 3 ,
+.Xr ck_hs_iterator_init 3 ,
+.Xr ck_hs_next 3 ,
+.Xr ck_hs_get 3 ,
+.Xr ck_hs_put 3 ,
+.Xr ck_hs_put_unique 3 ,
+.Xr ck_hs_remove 3 ,
+.Xr ck_hs_grow 3 ,
+.Xr ck_hs_rebuild 3 ,
+.Xr ck_hs_gc 3 ,
+.Xr ck_hs_count 3 ,
+.Xr ck_hs_reset 3 ,
+.Xr ck_hs_reset_size 3 ,
+.Xr ck_hs_stat 3
 .Pp
 Additional information available at http://concurrencykit.org/

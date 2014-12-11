@@ -51,13 +51,13 @@ Concurrency Kit (libck, \-lck)
 .Ft bool
 .Fn ck_pr_bts_16 "uint16_t *target" "unsigned int bit_index"
 .Sh DESCRIPTION
-The 
+The
 .Fn ck_pr_bts 3
 family of functions atomically fetch the value
 of the bit in
 .Fa target
 at index
-.Fa bit_index 
+.Fa bit_index
 and set that bit to 1.
 .Sh RETURN VALUES
 This family of functions returns the original value of
@@ -76,7 +76,7 @@ that is in the value pointed to by
 .Xr ck_pr_faa 3 ,
 .Xr ck_pr_inc 3 ,
 .Xr ck_pr_dec 3 ,
-.Xr ck_pr_neg 3 , 
+.Xr ck_pr_neg 3 ,
 .Xr ck_pr_not 3 ,
 .Xr ck_pr_sub 3 ,
 .Xr ck_pr_and 3 ,

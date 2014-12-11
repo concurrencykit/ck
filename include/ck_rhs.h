@@ -48,7 +48,7 @@
  */
 #define CK_RHS_MODE_DIRECT	2
 
-/* 
+/*
  * Indicates that the values to be stored are pointers.
  * Allows for space optimizations in the presence of pointer
  * packing. Mutually exclusive with CK_RHS_MODE_DIRECT.
@@ -106,6 +106,8 @@ typedef struct ck_rhs_iterator ck_rhs_iterator_t;
 /* Convenience wrapper to table hash function. */
 #define CK_RHS_HASH(T, F, K) F((K), (T)->seed)
 
+typedef void *ck_rhs_apply_fn_t(void *, void *);
+bool ck_rhs_apply(ck_rhs_t *, unsigned long, const void *, ck_rhs_apply_fn_t *, void *);
 void ck_rhs_iterator_init(ck_rhs_iterator_t *);
 bool ck_rhs_next(ck_rhs_t *, ck_rhs_iterator_t *, void **);
 bool ck_rhs_move(ck_rhs_t *, ck_rhs_t *, ck_rhs_hash_cb_t *,

@@ -57,9 +57,9 @@ Concurrency Kit (libck, \-lck)
 .Ft void
 .Fn ck_pr_xor_8 "uint8_t *target" "uint8_t delta"
 .Sh DESCRIPTION
-The 
+The
 .Fn ck_pr_xor 3
-family of functions atomically compute and store the 
+family of functions atomically compute and store the
 result of a bitwise-xor of the value pointed to by
 .Fa target
 and
@@ -79,7 +79,7 @@ This family of functions does not have a return value.
 .Xr ck_pr_faa 3 ,
 .Xr ck_pr_inc 3 ,
 .Xr ck_pr_dec 3 ,
-.Xr ck_pr_neg 3 , 
+.Xr ck_pr_neg 3 ,
 .Xr ck_pr_not 3 ,
 .Xr ck_pr_add 3 ,
 .Xr ck_pr_sub 3 ,

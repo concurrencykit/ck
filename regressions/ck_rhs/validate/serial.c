@@ -85,6 +85,49 @@ hs_compare(const void *previous, const void *compare)
 	return strcmp(previous, compare) == 0;
 }
 
+static void *
+test_ip(void *key, void *closure)
+{
+	const char *a = key;
+	const char *b = closure;
+
+	if (strcmp(a, b) != 0)
+		ck_error("Mismatch: %s != %s\n", a, b);
+
+	return closure;
+}
+
+static void *
+test_negative(void *key, void *closure)
+{
+
+	(void)closure;
+	if (key != NULL)
+		ck_error("ERROR: Apply callback expects NULL argument instead of [%s]\n", key);
+
+	return NULL;
+}
+
+static void *
+test_unique(void *key, void *closure)
+{
+
+	if (key != NULL)
+		ck_error("ERROR: Apply callback expects NULL argument instead of [%s]\n", key);
+
+	return closure;
+}
+
+static void *
+test_remove(void *key, void *closure)
+{
+
+	(void)key;
+	(void)closure;
+
+	return NULL;
+}
+
 static void
 run_test(unsigned int is, unsigned int ad)
 {
@@ -104,11 +147,22 @@ run_test(unsigned int is, unsigned int ad)
 				continue;
 			}
 
-			if (ck_rhs_put_unique(&hs[j], h, test[i]) == false)
-				ck_error("ERROR [%zu]: Failed to insert unique (%s)\n", j, test[i]);
+			if (i & 1) {
+				if (ck_rhs_put_unique(&hs[j], h, test[i]) == false)
+					ck_error("ERROR [%zu]: Failed to insert unique (%s)\n", j, test[i]);
+			} else if (ck_rhs_apply(&hs[j], h, test[i], test_unique, (char *)test[i]) == false) {
+				ck_error("ERROR: Failed to apply for insertion.\n");
+			}
 
-			if (ck_rhs_remove(&hs[j], h, test[i]) == false)
-				ck_error("ERROR [%zu]: Failed to remove unique (%s)\n", j, test[i]);
+			if (i & 1) {
+				if (ck_rhs_remove(&hs[j], h, test[i]) == false)
+					ck_error("ERROR [%zu]: Failed to remove unique (%s)\n", j, test[i]);
+			} else if (ck_rhs_apply(&hs[j], h, test[i], test_remove, NULL) == false) {
+				ck_error("ERROR: Failed to remove apply.\n");
+			}
+
+			if (ck_rhs_apply(&hs[j], h, test[i], test_negative, (char *)test[i]) == false)
+				ck_error("ERROR: Failed to apply.\n");
 
 			break;
 		}
@@ -213,6 +267,13 @@ run_test(unsigned int is, unsigned int ad)
 			if (strcmp(r, test[i]) != 0) {
 				ck_error("ERROR [%u]: Invalid &hs[j]: %s != %s\n", (char *)r, test[i], is);
 			}
+			/* Attempt in-place mutation. */
+			if (ck_rhs_apply(&hs[j], h, test[i], test_ip, (void *)test[i]) == false)
+				ck_error("ERROR [%u]: Failed to apply: %s != %s\n", is, (char *)r, test[i]);
+
+			d = ck_rhs_get(&hs[j], h, test[i]) != NULL;
+			if (d == false)
+				ck_error("ERROR [%u]: Expected [%s] to exist.\n", is, test[i]);
 		}
 
 		if (j == size - 1)

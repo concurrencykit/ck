@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2014 Samy Al Bahra.
+ * Copyright 2014 Samy Al Bahra.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -24,38 +24,41 @@
  * SUCH DAMAGE.
  */
 
-#ifndef _CK_SPINLOCK_H
-#define _CK_SPINLOCK_H
+#include <stdio.h>
+#include <ck_epoch.h>
 
-#include "spinlock/anderson.h"
-#include "spinlock/cas.h"
-#include "spinlock/clh.h"
-#include "spinlock/dec.h"
-#include "spinlock/fas.h"
-#include "spinlock/hclh.h"
-#include "spinlock/mcs.h"
-#include "spinlock/ticket.h"
+#include "../../common.h"
 
-/*
- * On tested x86, x86_64, PPC64 and SPARC64 targets,
- * ck_spinlock_fas proved to have lowest latency
- * in fast path testing or negligible degradation
- * from faster but less robust implementations.
- */
-#define CK_SPINLOCK_INITIALIZER CK_SPINLOCK_FAS_INITIALIZER
-#define ck_spinlock_t		ck_spinlock_fas_t
-#define ck_spinlock_init(x)	ck_spinlock_fas_init(x)
-#define ck_spinlock_lock(x)	ck_spinlock_fas_lock(x)
-#define ck_spinlock_lock_eb(x)	ck_spinlock_fas_lock_eb(x)
-#define ck_spinlock_unlock(x)	ck_spinlock_fas_unlock(x)
-#define ck_spinlock_locked(x)	ck_spinlock_fas_locked(x)
-#define ck_spinlock_trylock(x)	ck_spinlock_fas_trylock(x)
+static ck_epoch_t epoch;
+static unsigned int counter;
+static ck_epoch_record_t record[2];
 
-CK_ELIDE_PROTOTYPE(ck_spinlock, ck_spinlock_t,
-    ck_spinlock_locked, ck_spinlock_lock,
-    ck_spinlock_locked, ck_spinlock_unlock)
+static void
+cb(ck_epoch_entry_t *p)
+{
 
-CK_ELIDE_TRYLOCK_PROTOTYPE(ck_spinlock, ck_spinlock_t,
-    ck_spinlock_locked, ck_spinlock_trylock)
+	if (counter == 0)
+		ck_epoch_call(&epoch, &record[1], p, cb);
 
-#endif /* _CK_SPINLOCK_H */
+	printf("Counter value: %u -> %u\n",
+	    counter, counter + 1);
+	counter++;
+	return;
+}
+
+int
+main(void)
+{
+	ck_epoch_entry_t entry;
+
+	ck_epoch_register(&epoch, &record[0]);
+	ck_epoch_register(&epoch, &record[1]);
+
+	ck_epoch_call(&epoch, &record[1], &entry, cb);
+	ck_epoch_barrier(&epoch, &record[1]);
+	ck_epoch_barrier(&epoch, &record[1]);
+	if (counter != 2)
+		ck_error("Expected counter value 2, read %u.\n", counter);
+
+	return 0;
+}

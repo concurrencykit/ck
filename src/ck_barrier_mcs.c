@@ -138,4 +138,3 @@ ck_barrier_mcs(struct ck_barrier_mcs *barrier,
 	state->sense = ~state->sense;
 	return;
 }
-

@@ -60,7 +60,7 @@ Concurrency Kit (libck, \-lck)
 .Ft uint8_t
 .Fn ck_pr_fas_8 "uint8_t *target" "uint8_t new_value"
 .Sh DESCRIPTION
-The 
+The
 .Fn ck_pr_fas 3
 family of functions atomically fetch the value pointed to
 by
@@ -85,7 +85,7 @@ atomically replaced with
 .Xr ck_pr_faa 3 ,
 .Xr ck_pr_inc 3 ,
 .Xr ck_pr_dec 3 ,
-.Xr ck_pr_neg 3 , 
+.Xr ck_pr_neg 3 ,
 .Xr ck_pr_not 3 ,
 .Xr ck_pr_add 3 ,
 .Xr ck_pr_sub 3 ,

@@ -98,7 +98,7 @@ This function has no return value.
 .Xr ck_pr_faa 3 ,
 .Xr ck_pr_inc 3 ,
 .Xr ck_pr_dec 3 ,
-.Xr ck_pr_neg 3 , 
+.Xr ck_pr_neg 3 ,
 .Xr ck_pr_not 3 ,
 .Xr ck_pr_add 3 ,
 .Xr ck_pr_sub 3 ,

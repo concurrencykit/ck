@@ -60,7 +60,7 @@ Concurrency Kit (libck, \-lck)
 .Ft void
 .Fn ck_pr_not_8 "uint8_t *target"
 .Sh DESCRIPTION
-The 
+The
 .Fn ck_pr_not 3
 family of functions atomically complement the value pointed to
 by
@@ -78,7 +78,7 @@ These functions have no return value.
 .Xr ck_pr_faa 3 ,
 .Xr ck_pr_inc 3 ,
 .Xr ck_pr_not 3 ,
-.Xr ck_pr_neg 3 , 
+.Xr ck_pr_neg 3 ,
 .Xr ck_pr_add 3 ,
 .Xr ck_pr_sub 3 ,
 .Xr ck_pr_and 3 ,

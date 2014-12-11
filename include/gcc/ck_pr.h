@@ -128,6 +128,8 @@ CK_PR_FENCE(store)
 CK_PR_FENCE(store_store)
 CK_PR_FENCE(store_load)
 CK_PR_FENCE(memory)
+CK_PR_FENCE(acquire)
+CK_PR_FENCE(release)
 
 #undef CK_PR_FENCE
 

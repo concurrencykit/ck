@@ -259,4 +259,3 @@ uint64_t ck_ht_count(ck_ht_t *);
 
 #endif /* CK_F_PR_LOAD_64 && CK_F_PR_STORE_64 */
 #endif /* _CK_HT_H */
-

@@ -47,7 +47,7 @@ ck_sequence_init(struct ck_sequence *sq)
 }
 
 CK_CC_INLINE static unsigned int
-ck_sequence_read_begin(struct ck_sequence *sq)
+ck_sequence_read_begin(const struct ck_sequence *sq)
 {
 	unsigned int version;
 
@@ -74,7 +74,7 @@ ck_sequence_read_begin(struct ck_sequence *sq)
 }
 
 CK_CC_INLINE static bool
-ck_sequence_read_retry(struct ck_sequence *sq, unsigned int version)
+ck_sequence_read_retry(const struct ck_sequence *sq, unsigned int version)
 {
 
 	/*
@@ -123,4 +123,3 @@ ck_sequence_write_end(struct ck_sequence *sq)
 }
 
 #endif /* _CK_SEQUENCE_H */
-

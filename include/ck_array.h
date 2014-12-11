@@ -98,4 +98,3 @@ ck_array_initialized(struct ck_array *array)
 	    _ck_i++)
 
 #endif /* _CK_ARRAY_H */
-

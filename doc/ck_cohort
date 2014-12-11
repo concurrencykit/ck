@@ -57,7 +57,7 @@ BOOL_LOCK_FXN refers to a method with the signature
 bool(void *lock, void *context)
 .Pp
 The
-.Fa context 
+.Fa context
 argument in each signature is used to pass along any additional information that
 the lock might need for its lock, unlock and trylock methods.  The values for this
 argument are provided to each call to
@@ -94,7 +94,7 @@ man pages for more details.
 #include <ck_cohort.h>
 #include <ck_spinlock.h>
 
-/* 
+/*
  * Create cohort methods with signatures that match
  * the required signature
  */
@@ -169,7 +169,7 @@ main(void)
 	    calloc(n_cohorts, sizeof(CK_COHORT_INSTANCE(test_cohort)));
 
 	/* create local locks to use with each cohort */
-	ck_spinlock_t *local_locks = 
+	ck_spinlock_t *local_locks =
 		calloc(n_cohorts, sizeof(ck_spinlock_t));
 
 	pthread_t *threads =

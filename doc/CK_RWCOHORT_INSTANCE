@@ -38,9 +38,9 @@ Concurrency Kit (libck, \-lck)
 .Fn CK_RWCOHORT_WP_INSTANCE "COHORT_NAME cohort_name"
 .Sh DESCRIPTION
 The user must use this macro to declare instances of lock types that they have
-defined using the 
+defined using the
 .Xr CK_RWCOHORT_PROTOTYPE 3
-macro.  The cohort_name must be the same as the one used in the prototype macro.  
+macro.  The cohort_name must be the same as the one used in the prototype macro.
 For instance, if CK_RWCOHORT_PROTOTYPE was called with the name "foo", the
 CK_RWCOHORT_INSTANCE macro should be called as
 .br

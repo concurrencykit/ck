@@ -77,7 +77,7 @@ serial(ck_stack_t *stack)
 int
 main(void)
 {
-	ck_stack_t stack;
+	ck_stack_t stack CK_CC_CACHELINE;
 
 	serial(&stack);
 	return (0);

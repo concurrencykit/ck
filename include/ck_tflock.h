@@ -32,7 +32,7 @@
  * described in:
  *	John M. Mellor-Crummey and Michael L. Scott. 1991.
  *	Scalable reader-writer synchronization for shared-memory
- *	multiprocessors. SIGPLAN Not. 26, 7 (April 1991), 106-113. 
+ *	multiprocessors. SIGPLAN Not. 26, 7 (April 1991), 106-113.
  */
 
 #include <ck_cc.h>
@@ -65,7 +65,7 @@ ck_tflock_ticket_fca_32(uint32_t *target, uint32_t mask, uint32_t delta)
 
 		ck_pr_stall();
 	}
-	
+
 	return snapshot;
 }
 

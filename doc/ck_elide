@@ -100,7 +100,7 @@ returns true, then the
 .Fa UNLOCK_FUNCTION
 is executed. If RTM is unsupported (no CK_F_PR_RTM macro) then
 .Fn CK_ELIDE_LOCK
-and 
+and
 .Fn CK_ELIDE_LOCK_ADAPTIVE
 will immediately call
 .Fn LOCK_FUNCTION .
@@ -118,7 +118,7 @@ Elision is attempted if the
 .Fa LOCK_PREDICATE
 function returns false. If
 .Fa LOCK_PREDICATE
-returns true or if elision fails then the 
+returns true or if elision fails then the
 operation is aborted. If RTM is unsupported
 (no CK_F_PR_RTM macro) then
 .Fn CK_ELIDE_TRYLOCK

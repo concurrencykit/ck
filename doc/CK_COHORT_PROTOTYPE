@@ -37,7 +37,7 @@ Concurrency Kit (libck, \-lck)
 "LOCK_FXN global_unlock_method" "LOCK_FXN local_lock_method" "LOCK_FXN local_unlock_method"
 .Sh DESCRIPTION
 The ck_cohort.h header file does not define any cohort types.  Instead, the user must use
-the CK_COHORT_PROTOTYPE or 
+the CK_COHORT_PROTOTYPE or
 .Xr CK_COHORT_TRYLOCK_PROTOTYPE 3
 macros to define any types they want to use.  They must use CK_COHORT_TRYLOCK_PROTOTYPE
 if they want their cohort type to support trylock operations.
