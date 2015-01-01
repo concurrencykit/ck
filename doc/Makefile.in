@@ -89,6 +89,25 @@ OBJECTS=CK_ARRAY_FOREACH		\
 	ck_hs_reset			\
 	ck_hs_reset_size		\
 	ck_hs_stat			\
+	ck_rhs_gc			\
+	ck_rhs_init			\
+	ck_rhs_destroy			\
+	CK_RHS_HASH			\
+	ck_rhs_apply			\
+	ck_rhs_iterator_init		\
+	ck_rhs_next			\
+	ck_rhs_get			\
+	ck_rhs_put			\
+	ck_rhs_set			\
+	ck_rhs_fas			\
+	ck_rhs_remove			\
+	ck_rhs_move			\
+	ck_rhs_grow			\
+	ck_rhs_rebuild			\
+	ck_rhs_count			\
+	ck_rhs_reset			\
+	ck_rhs_reset_size		\
+	ck_rhs_stat			\
 	ck_rwcohort			\
 	CK_RWCOHORT_INIT		\
 	CK_RWCOHORT_INSTANCE		\
