@@ -28,6 +28,7 @@
 #define _CK_BACKOFF_H
 
 #include <ck_cc.h>
+#include <ck_pr.h>
 
 #ifndef CK_BACKOFF_CEILING
 #define CK_BACKOFF_CEILING ((1 << 20) - 1)
@@ -48,7 +49,8 @@ ck_backoff_eb(volatile unsigned int *c)
 
 	ceiling = *c;
 
-	for (i = 0; i < ceiling; i++);
+	for (i = 0; i < ceiling; i++)
+		ck_pr_stall();
 
 	*c = ceiling <<= ceiling < CK_BACKOFF_CEILING;
 	return;
