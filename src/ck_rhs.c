@@ -892,7 +892,7 @@ ck_rhs_put_robin_hood(struct ck_rhs *hs,
 	unsigned long h = 0;
 	long prev;
 	void *key;
-	long prevs[512];
+	long prevs[CK_RHS_MAX_RH];
 	unsigned int prevs_nb = 0;
 
 	map = hs->map;
