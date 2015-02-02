@@ -78,10 +78,10 @@
 
 enum ck_rhs_probe_behavior {
 	CK_RHS_PROBE = 0,	/* Default behavior. */
-	CK_RHS_PROBE_RH,		/* Short-circuit if RH slot found. */
+	CK_RHS_PROBE_RH,	/* Short-circuit if RH slot found. */
 	CK_RHS_PROBE_INSERT,	/* Short-circuit on probe bound if tombstone found. */
 
-	CK_RHS_PROBE_ROBIN_HOOD,	/* Look for the first slot available for the entry we are about to replace, only used to internally implement Robin Hood */
+	CK_RHS_PROBE_ROBIN_HOOD,/* Look for the first slot available for the entry we are about to replace, only used to internally implement Robin Hood */
 	CK_RHS_PROBE_NO_RH,	/* Don't do the RH dance */
 };
 struct ck_rhs_entry_desc {
