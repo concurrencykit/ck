@@ -5,7 +5,7 @@ have been tested on recent Ubuntu (14.04) and Debian 7.
 
   # /bin/bash
   # sudo su -
-  # apt-get -y install build-essential checkinstall git-core
+  # apt-get -y install build-essential checkinstall git-core debhelper autoconf libtool
   # git clone https://github.com/concurrencykit/ck.git
   # cd ck
   # build/build-debian.sh
