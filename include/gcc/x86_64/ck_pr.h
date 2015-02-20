@@ -131,9 +131,9 @@ CK_PR_FAS_S(8,  uint8_t,  "xchgb")
 	{							\
 		T r;						\
 		__asm__ __volatile__(I " %1, %0"		\
-					: "=q" (r)		\
-					: "m"  (*(C *)target)	\
-					: "memory");		\
+		    : "=q" (r)					\
+		    : "m"  (*(const C *)target)			\
+		    : "memory");				\
 		return (r);					\
 	}
 
