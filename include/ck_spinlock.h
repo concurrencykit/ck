@@ -59,4 +59,3 @@ CK_ELIDE_TRYLOCK_PROTOTYPE(ck_spinlock, ck_spinlock_t,
     ck_spinlock_locked, ck_spinlock_trylock)
 
 #endif /* _CK_SPINLOCK_H */
-

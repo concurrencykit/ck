@@ -38,18 +38,18 @@ Concurrency Kit (libck, \-lck)
 .Sh DESCRIPTION
 This call attempts to acquire both the local and global (if necessary) locks from
 .Fa cohort .
-It can only be used with cohort types that were defined using the 
+It can only be used with cohort types that were defined using the
 .Xr CK_COHORT_TRYLOCK_PROTOTYPE 3
 macro.  The call will not block and will return a bool that will evaluate to true iff
-the cohort was successfully acquired.  
+the cohort was successfully acquired.
 .Fa global_trylock_context
-will be passed as the second argument to the function that was provided as the 
+will be passed as the second argument to the function that was provided as the
 .Fa global_trylock_method
-argument to CK_COHORT_TRYLOCK_PROTOTYPE if that method is called, and 
+argument to CK_COHORT_TRYLOCK_PROTOTYPE if that method is called, and
 .Fa local_trylock_context
 will be passed to the function specified by
 .Fa local_trylock_method .
-If the global lock acquisition fails, then the cohort will immediately release its 
+If the global lock acquisition fails, then the cohort will immediately release its
 local lock as well, and
 .Fa local_unlock_context
 will be passed to the function specified by

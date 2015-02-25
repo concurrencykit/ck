@@ -33,7 +33,7 @@
 Concurrency Kit (libck, \-lck)
 .Sh SYNOPSIS
 .In ck_hs.h
-.Ft bool 
+.Ft bool
 .Fn ck_hs_next "ck_hs_t *hs" "ck_hs_iterator_t *iterator" "void **entry"
 .Sh DESCRIPTION
 The

@@ -238,4 +238,3 @@ ck_array_deinit(struct ck_array *array, bool defer)
 	array->transaction = array->active = NULL;
 	return;
 }
-

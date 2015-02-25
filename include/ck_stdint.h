@@ -30,4 +30,3 @@
 #else
 #include <stdint.h>
 #endif /* __linux__ && __KERNEL__ */
-

@@ -415,4 +415,3 @@ struct {									\
 } while (0)
 
 #endif /* _CK_QUEUE_H */
-

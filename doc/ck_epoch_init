@@ -52,7 +52,7 @@ is undefined if
 .Fa epoch
 is not a pointer to a
 .Tn ck_epoch_t
-object. 
+object.
 .El
 .Sh SEE ALSO
 .Xr ck_epoch_register 3 ,

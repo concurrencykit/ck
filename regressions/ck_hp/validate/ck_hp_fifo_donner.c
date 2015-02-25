@@ -43,7 +43,7 @@ static ck_hp_fifo_t fifo;
 static ck_hp_t fifo_hp;
 
 /* thread local element count */
-static unsigned long *count; 
+static unsigned long *count;
 
 static unsigned long thread_count;
 
@@ -77,10 +77,10 @@ queue_50_50(void *elements)
 
 	record = malloc(sizeof(ck_hp_record_t));
 	assert(record);
-	
+
 	slots = malloc(CK_HP_FIFO_SLOTS_SIZE);
 	assert(slots);
-	
+
         /* different seed for each thread */
 	seed = 1337; /*(unsigned int) pthread_self(); */
 
@@ -166,7 +166,7 @@ main(int argc, char** argv)
 
 	/* array for local operation count */
 	count = malloc(sizeof(unsigned long *) * thread_count);
-	
+
         /*
          * Initialize global hazard pointer safe memory reclamation to execute free()
          * when a fifo_entry is safe to be deleted.

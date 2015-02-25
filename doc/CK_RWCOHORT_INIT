@@ -40,11 +40,11 @@ Concurrency Kit (libck, \-lck)
 This macro initializes the lock instance pointed to by the
 .Fa lock
 argument.  Until a lock instance is initialized using the CK_RWCOHORT_INIT macro, any operations
-involving it will have undefined behavior.  Note that the 
+involving it will have undefined behavior.  Note that the
 .Fa wait_limit
 argument should only be used with reader-preference or writer-preference locks.  For neutral
 locks, this argument should be excluded.
-If you are unsure of a value to use for the 
+If you are unsure of a value to use for the
 .Fa wait_limit
 argument, you should use CK_RWCOHORT_STRATEGY_DEFAULT_LOCAL_WAIT_LIMIT.
 .Sh SEE ALSO

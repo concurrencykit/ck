@@ -87,7 +87,7 @@
  * at e_g - 1 to still be accessed at e_g as threads are "active"
  * at the same time (real-world time) mutating shared objects.
  *
- * Now, if the epoch counter is ticked to e_g + 1, then no new 
+ * Now, if the epoch counter is ticked to e_g + 1, then no new
  * hazardous references could exist to objects logically deleted at
  * e_g - 1. The reason for this is that at e_g + 1, all epoch read-side
  * critical sections started at e_g - 1 must have been completed. If
@@ -118,7 +118,7 @@
  * sufficient to represent e_g using only the values 0, 1 or 2. Every time
  * a thread re-visits a e_g (which can be determined with a non-empty deferral
  * list) it can assume objects in the e_g deferral list involved at least
- * three e_g transitions and are thus, safe, for physical deletion. 
+ * three e_g transitions and are thus, safe, for physical deletion.
  *
  * Blocking semantics for epoch reclamation have additional restrictions.
  * Though we only require three deferral lists, reasonable blocking semantics
@@ -257,12 +257,16 @@ static void
 ck_epoch_dispatch(struct ck_epoch_record *record, unsigned int e)
 {
 	unsigned int epoch = e & (CK_EPOCH_LENGTH - 1);
-	ck_stack_entry_t *next, *cursor;
+	ck_stack_entry_t *head, *next, *cursor;
 	unsigned int i = 0;
 
-	CK_STACK_FOREACH_SAFE(&record->pending[epoch], cursor, next) {
+	head = CK_STACK_FIRST(&record->pending[epoch]);
+	ck_stack_init(&record->pending[epoch]);
+
+	for (cursor = head; cursor != NULL; cursor = next) {
 		struct ck_epoch_entry *entry = ck_epoch_entry_container(cursor);
 
+		next = CK_STACK_NEXT(cursor);
 		entry->function(entry);
 		i++;
 	}
@@ -272,7 +276,6 @@ ck_epoch_dispatch(struct ck_epoch_record *record, unsigned int e)
 
 	record->n_dispatch += i;
 	record->n_pending -= i;
-	ck_stack_init(&record->pending[epoch]);
 	return;
 }
 
@@ -426,4 +429,3 @@ ck_epoch_poll(struct ck_epoch *global, struct ck_epoch_record *record)
 	ck_epoch_dispatch(record, epoch + 1);
 	return true;
 }
-

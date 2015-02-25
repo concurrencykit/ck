@@ -197,7 +197,7 @@ test(void *c)
 	for (i = 0; i < ITERATIONS; i++) {
 		for (j = 0; j < size; j++) {
 			buffer = _context[context->previous].buffer;
-			while (ck_ring_dequeue_spmc(ring + context->previous, 
+			while (ck_ring_dequeue_spmc(ring + context->previous,
 			    buffer, &entry) == false);
 
 			if (context->previous != (unsigned int)entry->tid) {
@@ -315,7 +315,7 @@ main(int argc, char *argv[])
 		/* Wait until queue is not full. */
 		if (l & 1) {
 			while (ck_ring_enqueue_spmc(&ring_spmc,
-			    buffer, 
+			    buffer,
 			    entry) == false)
 				ck_pr_stall();
 		} else {

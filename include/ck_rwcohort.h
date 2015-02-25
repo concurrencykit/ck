@@ -315,4 +315,3 @@
 }
 
 #endif /* _CK_RWCOHORT_H */
-

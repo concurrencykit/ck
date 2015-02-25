@@ -159,4 +159,3 @@ enum ck_cohort_state {
 }
 
 #endif /* _CK_COHORT_H */
-

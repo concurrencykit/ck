@@ -144,7 +144,7 @@ set_init(void)
 
 #ifdef HS_DELETE
 	mode |= CK_HS_MODE_DELETE;
-#endif 
+#endif
 
 	ck_epoch_init(&epoch_hs);
 	ck_epoch_register(&epoch_hs, &epoch_wr);

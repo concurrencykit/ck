@@ -57,7 +57,7 @@ of the other CK_COHORT macros.
 : This method should return true iff the global lock is acquired by a thread.
 .br
 .Fa global_trylock_method
-: The method that should be called to try to acquire the global lock.  
+: The method that should be called to try to acquire the global lock.
 It should not block and return true iff the lock was successfully acquired.
 .br
 .Fa local_lock_method
@@ -70,7 +70,7 @@ It should not block and return true iff the lock was successfully acquired.
 : This method should return true iff the global lock is acquired by a thread.
 .br
 .Fa local_trylock_method
-: The method that should be called to try to acquire the local lock.  
+: The method that should be called to try to acquire the local lock.
 It should not block and return true iff the lock was successfully acquired.
 .Pp
 Instances of the defined cohort type can be declared as:

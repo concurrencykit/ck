@@ -43,9 +43,9 @@ Concurrency Kit (libck, \-lck)
 .Ft void
 .Fn ck_sequence_init "ck_sequence_t *sq"
 .Ft unsigned int
-.Fn ck_sequence_read_begin "ck_sequence_t *sq"
+.Fn ck_sequence_read_begin "const ck_sequence_t *sq"
 .Ft bool
-.Fn ck_sequence_read_retry "ck_sequence_t *sq" "unsigned int version"
+.Fn ck_sequence_read_retry "const ck_sequence_t *sq" "unsigned int version"
 .Ft void
 .Fn ck_sequence_write_begin "ck_sequence_t *sq"
 .Ft void

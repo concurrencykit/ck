@@ -200,7 +200,7 @@ provides a summary of the current implementations.
     ck_spinlock_ticket   Ticket                        Centralized     None                      Yes
 .Ed
 .Pp
-* Hierarchical CLH only offers weak fairness for threads accross cluster 
+* Hierarchical CLH only offers weak fairness for threads accross cluster
 nodes.
 .Pp
 If contention is low and there is no hard requirement for starvation-freedom

@@ -57,7 +57,7 @@ was successful then the key specified by
 was successfully stored in the hash set pointed to by
 .Fa hs .
 If the key already exists in the hash set, then it is
-replaced by 
+replaced by
 .Fa key
 and the previous value is stored into the void pointer
 pointed to by the

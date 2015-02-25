@@ -1149,4 +1149,3 @@ CK_PR_FAS_S(8, uint8_t)
 #undef CK_PR_FAS
 
 #endif /* _CK_PR_H */
-

@@ -395,7 +395,7 @@ ck_ht_gc(struct ck_ht *ht, unsigned long cycles, unsigned long seed)
 
 		return true;
 	}
-	
+
 	if (cycles == 0) {
 		maximum = 0;
 
@@ -1027,4 +1027,3 @@ ck_ht_destroy(struct ck_ht *table)
 }
 
 #endif /* CK_F_HT */
-

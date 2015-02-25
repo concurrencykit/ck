@@ -184,4 +184,3 @@ ck_bytelock_read_unlock(struct ck_bytelock *bytelock, unsigned int slot)
 }
 
 #endif /* _CK_BYTELOCK_H */
-

@@ -57,4 +57,3 @@ ck_barrier_centralized(struct ck_barrier_centralized *barrier,
 	ck_pr_fence_memory();
 	return;
 }
-

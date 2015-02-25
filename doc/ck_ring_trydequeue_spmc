@@ -71,7 +71,7 @@ in a bounded number of steps. It is
 possible for the function to return false even
 if
 .Fa ring
-is non-empty. This 
+is non-empty. This
 .Sh EXAMPLE
 .Bd -literal -offset indent
 #include <ck_ring.h>
@@ -97,7 +97,7 @@ dequeue(void)
 	}
 
 	/* An empty ring was encountered, leave. */
-	return; 
+	return;
 }
 .Ed
 .Sh RETURN VALUES

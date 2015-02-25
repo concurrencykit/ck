@@ -215,4 +215,3 @@ CK_ELIDE_PROTOTYPE(ck_swlock_read, ck_swlock_t,
     ck_swlock_locked_reader, ck_swlock_read_unlock)
 
 #endif /* _CK_SWLOCK_H */
-

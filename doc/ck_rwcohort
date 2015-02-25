@@ -69,7 +69,7 @@ either the
 .Xr CK_COHORT_PROTOTYPE 3
 or the
 .Xr CK_COHORT_TRYLOCK_PROTOTYPE 3
-macros, and define a reader-writer lock type using the 
+macros, and define a reader-writer lock type using the
 .Xr CK_RWCOHORT_PROTOTYPE 3
 macro.
 .Pp
@@ -161,7 +161,7 @@ main(void)
 	    calloc(n_cohorts, sizeof(CK_COHORT_INSTANCE(test_cohort)));
 
 	/* create local locks to use with each cohort */
-	ck_spinlock_t *local_locks = 
+	ck_spinlock_t *local_locks =
 		calloc(n_cohorts, sizeof(ck_spinlock_t));
 
 	pthread_t *threads =

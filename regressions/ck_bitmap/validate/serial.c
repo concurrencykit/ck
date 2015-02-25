@@ -73,6 +73,7 @@ check_iteration(ck_bitmap_t *bits, unsigned int len, bool initial)
 static void
 test(ck_bitmap_t *bits, unsigned int n_length, bool initial)
 {
+	bool r;
 	unsigned int i;
 	CK_BITMAP_INSTANCE(8) u;
 
@@ -92,14 +93,35 @@ test(ck_bitmap_t *bits, unsigned int n_length, bool initial)
 		if (ck_bitmap_test(bits, i) == false) {
 			ck_error("[1] ERROR: Expected bit to be set: %u\n", i);
 		}
+
 		ck_bitmap_reset(bits, i);
 		if (ck_bitmap_test(bits, i) == true) {
 			ck_error("[2] ERROR: Expected bit to be cleared: %u\n", i);
 		}
 
+		r = ck_bitmap_bts(bits, i);
+		if (r == true) {
+			ck_error("[3] ERROR: Expected bit to be cleared before 1st bts: %u\n", i);
+		}
+		if (ck_bitmap_test(bits, i) == false) {
+			ck_error("[4] ERROR: Expected bit to be set: %u\n", i);
+		}
+		r = ck_bitmap_bts(bits, i);
+		if (r == false) {
+			ck_error("[5] ERROR: Expected bit to be set before 2nd bts: %u\n", i);
+		}
+		if (ck_bitmap_test(bits, i) == false) {
+			ck_error("[6] ERROR: Expected bit to be set: %u\n", i);
+		}
+
+		ck_bitmap_reset(bits, i);
+		if (ck_bitmap_test(bits, i) == true) {
+			ck_error("[7] ERROR: Expected bit to be cleared: %u\n", i);
+		}
+
 		ck_bitmap_set(bits, i);
 		if (ck_bitmap_test(bits, i) == false) {
-			ck_error("[3] ERROR: Expected bit to be set: %u\n", i);
+			ck_error("[8] ERROR: Expected bit to be set: %u\n", i);
 		}
 
 		check_iteration(bits, i, initial);
@@ -107,7 +129,7 @@ test(ck_bitmap_t *bits, unsigned int n_length, bool initial)
 
 	for (i = 0; i < n_length; i++) {
 		if (ck_bitmap_test(bits, i) == false) {
-			ck_error("[4] ERROR: Expected bit to be set: %u\n", i);
+			ck_error("[9] ERROR: Expected bit to be set: %u\n", i);
 		}
 	}
 
@@ -115,7 +137,7 @@ test(ck_bitmap_t *bits, unsigned int n_length, bool initial)
 
 	for (i = 0; i < n_length; i++) {
 		if (ck_bitmap_test(bits, i) == true) {
-			ck_error("[4] ERROR: Expected bit to be reset: %u\n", i);
+			ck_error("[10] ERROR: Expected bit to be reset: %u\n", i);
 		}
 	}
 

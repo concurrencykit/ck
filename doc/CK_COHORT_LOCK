@@ -38,11 +38,11 @@ Concurrency Kit (libck, \-lck)
 .Sh DESCRIPTION
 This call attempts to acquire both the local and global (if necessary) locks from
 .Fa cohort .
-The call will block until both locks have been acquired.  
+The call will block until both locks have been acquired.
 .Fa global_context
-will be passed as the second argument to the function that was provided as the 
+will be passed as the second argument to the function that was provided as the
 .Fa global_lock_method
-argument to CK_COHORT_PROTOTYPE if that method is called, and 
+argument to CK_COHORT_PROTOTYPE if that method is called, and
 .Fa local_context
 will be passed to the function specified by
 .Fa local_lock_method

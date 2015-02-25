@@ -28,6 +28,7 @@
 #define _CK_BACKOFF_H
 
 #include <ck_cc.h>
+#include <ck_pr.h>
 
 #ifndef CK_BACKOFF_CEILING
 #define CK_BACKOFF_CEILING ((1 << 20) - 1)
@@ -35,24 +36,22 @@
 
 #define CK_BACKOFF_INITIALIZER (1 << 9)
 
-typedef volatile unsigned int ck_backoff_t;
+typedef unsigned int ck_backoff_t;
 
 /*
  * This is a exponential back-off implementation.
  */
 CK_CC_INLINE static void
-ck_backoff_eb(volatile unsigned int *c)
+ck_backoff_eb(unsigned int *c)
 {
-	volatile unsigned int i;
-	unsigned int ceiling;
+	unsigned int i, ceiling;
 
 	ceiling = *c;
-
-	for (i = 0; i < ceiling; i++);
+	for (i = 0; i < ceiling; i++)
+		ck_pr_barrier();
 
 	*c = ceiling <<= ceiling < CK_BACKOFF_CEILING;
 	return;
 }
 
 #endif /* _CK_BACKOFF_H */
-
