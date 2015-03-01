@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2014 Samy Al Bahra.
+ * Copyright 2009-2015 Samy Al Bahra.
  * Copyright 2014 Paul Khuong.
  * All rights reserved.
  *
