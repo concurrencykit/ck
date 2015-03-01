@@ -167,7 +167,7 @@ ck_pr_load_64_2(const uint64_t target[2], uint64_t v[2])
 }
 
 CK_CC_INLINE static void
-ck_pr_load_ptr_2(void *t, void *v)
+ck_pr_load_ptr_2(const void *t, void *v)
 {
 	ck_pr_load_64_2(t, v);
 	return;
