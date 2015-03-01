@@ -40,7 +40,7 @@
 	CK_CC_INLINE static T *							\
 	N(F *p)									\
 	{									\
-		const F *n = p;							\
+		F *n = p;							\
 		return (T *)(void *)(((char *)n) - ((size_t)&((T *)0)->M));	\
 	}
 
