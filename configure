@@ -418,7 +418,7 @@ case $PLATFORM in
 	"i86pc")
 		RTM_ENABLE="CK_MD_RTM_DISABLE"
 		MM="${MM:-"CK_MD_TSO"}"
-		ISA=`isainfo -n 2> /dev/null || echo i386`
+		if test -z "$ISA"; then ISA=`isainfo -n 2> /dev/null || echo i386` ; fi
 		case "$ISA" in
 			"amd64")
 				RTM_ENABLE=${RTM_ENABLE_SET:-"CK_MD_RTM_DISABLE"}
