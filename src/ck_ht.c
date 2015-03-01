@@ -141,7 +141,9 @@ static struct ck_ht_map *
 ck_ht_map_create(struct ck_ht *table, uint64_t entries)
 {
 	struct ck_ht_map *map;
-	uint64_t size, n_entries, prefix;
+	uint64_t size;
+	uintptr_t prefix;
+	uint32_t n_entries;
 
 	n_entries = ck_internal_power_2(entries);
 	if (n_entries < CK_HT_BUCKET_LENGTH)
