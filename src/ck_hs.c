@@ -94,6 +94,17 @@ struct ck_hs_map {
 	void **entries;
 };
 
+static inline void
+ck_hs_map_signal(struct ck_hs_map *map, unsigned long h)
+{
+
+	h &= CK_HS_G_MASK;
+	ck_pr_store_uint(&map->generation[h],
+	    map->generation[h] + 1);
+	ck_pr_fence_store();
+	return;
+}
+
 void
 ck_hs_iterator_init(struct ck_hs_iterator *iterator)
 {
@@ -575,8 +586,7 @@ ck_hs_gc(struct ck_hs *hs, unsigned long cycles, unsigned long seed)
 			const void *insert = ck_hs_marshal(hs->mode, entry, h);
 
 			ck_pr_store_ptr(first, insert);
-			ck_pr_inc_uint(&map->generation[h & CK_HS_G_MASK]);
-			ck_pr_fence_atomic_store();
+			ck_hs_map_signal(map, h);
 			ck_pr_store_ptr(slot, CK_HS_TOMBSTONE);
 		}
 
@@ -633,8 +643,7 @@ ck_hs_fas(struct ck_hs *hs,
 
 	if (first != NULL) {
 		ck_pr_store_ptr(first, insert);
-		ck_pr_inc_uint(&map->generation[h & CK_HS_G_MASK]);
-		ck_pr_fence_atomic_store();
+		ck_hs_map_signal(map, h);
 		ck_pr_store_ptr(slot, CK_HS_TOMBSTONE);
 	} else {
 		ck_pr_store_ptr(slot, insert);
@@ -711,8 +720,7 @@ restart:
 		ck_pr_store_ptr(first, insert);
 
 		if (object != NULL) {
-			ck_pr_inc_uint(&map->generation[h & CK_HS_G_MASK]);
-			ck_pr_fence_atomic_store();
+			ck_hs_map_signal(map, h);
 			ck_pr_store_ptr(slot, CK_HS_TOMBSTONE);
 		}
 	} else {
@@ -768,8 +776,7 @@ restart:
 		 * duplicate key.
 		 */
 		if (object != NULL) {
-			ck_pr_inc_uint(&map->generation[h & CK_HS_G_MASK]);
-			ck_pr_fence_atomic_store();
+			ck_hs_map_signal(map, h);
 			ck_pr_store_ptr(slot, CK_HS_TOMBSTONE);
 		}
 	} else {
