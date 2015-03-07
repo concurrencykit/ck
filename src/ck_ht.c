@@ -462,6 +462,9 @@ ck_ht_gc(struct ck_ht *ht, unsigned long cycles, unsigned long seed)
 			ck_pr_store_64(&map->deletions, map->deletions + 1);
 			ck_pr_fence_store();
 			ck_pr_store_ptr(&entry->key, (void *)CK_HT_KEY_TOMBSTONE);
+			ck_pr_fence_store();
+			ck_pr_store_64(&map->deletions, map->deletions + 1);
+			ck_pr_fence_store();
 		}
 
 		if (cycles == 0) {
@@ -786,6 +789,7 @@ ck_ht_remove_spmc(struct ck_ht *table,
 	 * states should be (T, V') or (K', V'). The latter is guaranteed
 	 * through memory fencing.
 	 */
+	ck_pr_fence_store();
 	ck_pr_store_64(&map->deletions, map->deletions + 1);
 	ck_pr_fence_store();
 	ck_pr_store_64(&map->n_entries, map->n_entries - 1);
@@ -901,6 +905,9 @@ ck_ht_set_spmc(struct ck_ht *table,
 		ck_pr_store_64(&map->deletions, map->deletions + 1);
 		ck_pr_fence_store();
 		ck_pr_store_ptr(&candidate->key, (void *)CK_HT_KEY_TOMBSTONE);
+		ck_pr_fence_store();
+		ck_pr_store_64(&map->deletions, map->deletions + 1);
+		ck_pr_fence_store();
 	} else {
 		/*
 		 * In this case we are inserting a new entry or replacing
