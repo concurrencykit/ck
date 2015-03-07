@@ -147,7 +147,7 @@ ck_ht_map_create(struct ck_ht *table, uint64_t entries)
 
 	n_entries = ck_internal_power_2(entries);
 	if (n_entries < CK_HT_BUCKET_LENGTH)
-		return NULL;
+		n_entries = CK_HT_BUCKET_LENGTH;
 
 	size = sizeof(struct ck_ht_map) +
 		   (sizeof(struct ck_ht_entry) * n_entries + CK_MD_CACHELINE - 1);
