@@ -322,7 +322,7 @@ ck_rhs_map_create(struct ck_rhs *hs, unsigned long entries)
 
 	n_entries = ck_internal_power_2(entries);
 	if (n_entries < CK_RHS_PROBE_L1)
-		return NULL;
+		n_entries = CK_RHS_PROBE_L1;
 
 	if (hs->mode & CK_RHS_MODE_READ_MOSTLY)
 		size = sizeof(struct ck_rhs_map) +
