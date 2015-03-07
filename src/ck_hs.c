@@ -170,7 +170,7 @@ ck_hs_map_create(struct ck_hs *hs, unsigned long entries)
 
 	n_entries = ck_internal_power_2(entries);
 	if (n_entries < CK_HS_PROBE_L1)
-		return NULL;
+		n_entries = CK_HS_PROBE_L1;
 
 	size = sizeof(struct ck_hs_map) + (sizeof(void *) * n_entries + CK_MD_CACHELINE - 1);
 
