@@ -34,7 +34,7 @@ WANT_PIC=yes
 
 P_PWD=`pwd`
 MAINTAINER='sbahra@repnop.org'
-VERSION=${VERSION:-'0.4.5'}
+VERSION=${VERSION:-'0.4.6'}
 VERSION_MAJOR='0'
 BUILD="$PWD/build/ck.build"
 PREFIX=${PREFIX:-"/usr/local"}
@@ -418,7 +418,7 @@ case $PLATFORM in
 	"i86pc")
 		RTM_ENABLE="CK_MD_RTM_DISABLE"
 		MM="${MM:-"CK_MD_TSO"}"
-		ISA=`isainfo -n 2> /dev/null || echo i386`
+		if test -z "$ISA"; then ISA=`isainfo -n 2> /dev/null || echo i386` ; fi
 		case "$ISA" in
 			"amd64")
 				RTM_ENABLE=${RTM_ENABLE_SET:-"CK_MD_RTM_DISABLE"}
@@ -599,7 +599,7 @@ elif test "$COMPILER" = "gcc" || test "$COMPILER" = "clang" || test "$COMPILER" 
 		INSTALL_LIBS="install-lib"
 	fi
 
-	CFLAGS="-D_XOPEN_SOURCE=600 -D_BSD_SOURCE -D_DEFAULT_SOURCE -std=gnu99 -pedantic -Wall -W -Wundef -Wendif-labels -Wshadow -Wpointer-arith -Wcast-align -Wwrite-strings -Wstrict-prototypes -Wmissing-prototypes -Wnested-externs -Winline -Wdisabled-optimization -fstrict-aliasing -O2 -pipe -Wno-parentheses $CFLAGS"
+	CFLAGS="-D_XOPEN_SOURCE=600 -D_BSD_SOURCE -D_DEFAULT_SOURCE -std=gnu99 -pedantic -Wall -W -Wundef -Wendif-labels -Wshadow -Wpointer-arith -Wcast-align -Wcast-qual -Wwrite-strings -Wstrict-prototypes -Wmissing-prototypes -Wnested-externs -Winline -Wdisabled-optimization -fstrict-aliasing -O2 -pipe -Wno-parentheses $CFLAGS"
 	PTHREAD_CFLAGS="-pthread"
 	if test "$COMPILER" = "mingw64"; then
 		ENVIRONMENT=64

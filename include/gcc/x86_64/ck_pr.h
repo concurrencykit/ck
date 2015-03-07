@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2014 Samy Al Bahra.
+ * Copyright 2009-2015 Samy Al Bahra.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -131,9 +131,9 @@ CK_PR_FAS_S(8,  uint8_t,  "xchgb")
 	{							\
 		T r;						\
 		__asm__ __volatile__(I " %1, %0"		\
-					: "=q" (r)		\
-					: "m"  (*(C *)target)	\
-					: "memory");		\
+		    : "=q" (r)					\
+		    : "m"  (*(const C *)target)			\
+		    : "memory");				\
 		return (r);					\
 	}
 
@@ -167,7 +167,7 @@ ck_pr_load_64_2(const uint64_t target[2], uint64_t v[2])
 }
 
 CK_CC_INLINE static void
-ck_pr_load_ptr_2(void *t, void *v)
+ck_pr_load_ptr_2(const void *t, void *v)
 {
 	ck_pr_load_64_2(t, v);
 	return;

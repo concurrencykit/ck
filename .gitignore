@@ -8,6 +8,8 @@ src/Makefile
 doc/Makefile
 build/Makefile
 .DS_Store
+LOG
+*.log
 *.html
 *.gz
 *.o
@@ -35,10 +37,9 @@ regressions/ck_brlock/validate/validate
 regressions/ck_bytelock/benchmark/latency
 regressions/ck_bytelock/validate/validate
 regressions/ck_cohort/benchmark/ck_cohort.LATENCY
-regressions/ck_cohort/benchmark/ck_cohort.LATENCY
-regressions/ck_cohort/benchmark/ck_cohort.THROUGHPUT
 regressions/ck_cohort/benchmark/ck_cohort.THROUGHPUT
 regressions/ck_cohort/validate/validate
+regressions/ck_epoch/validate/ck_epoch_call
 regressions/ck_epoch/validate/ck_epoch_poll
 regressions/ck_epoch/validate/ck_epoch_synchronize
 regressions/ck_epoch/validate/ck_stack
@@ -55,6 +56,7 @@ regressions/ck_hp/validate/ck_hp_fifo_donner
 regressions/ck_hp/validate/ck_hp_stack
 regressions/ck_hp/validate/nbds_haz_test
 regressions/ck_hp/validate/serial
+regressions/ck_hs/benchmark/apply
 regressions/ck_hs/benchmark/parallel_bytestring
 regressions/ck_hs/benchmark/parallel_bytestring.delete
 regressions/ck_hs/benchmark/serial

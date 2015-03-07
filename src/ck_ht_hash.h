@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2014 Samy Al Bahra
+ * Copyright 2012-2015 Samy Al Bahra
  * Copyright 2011-2014 AppNexus, Inc.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -122,7 +122,7 @@ static inline void MurmurHash3_x86_32 ( const void * key, int len,
   //----------
   // body
 
-  const uint32_t * blocks = (const uint32_t *)(void *)(data + nblocks*4);
+  const uint32_t * blocks = (const uint32_t *)(const void *)(data + nblocks*4);
 
   for(i = -nblocks; i; i++)
   {
@@ -179,7 +179,7 @@ static inline uint64_t MurmurHash64A ( const void * key, int len, uint64_t seed 
     if (!((uintptr_t)data & 0x7))
 	    k = *data++;
     else {
-	    memcpy(&k, (void *)data, sizeof(k));
+	    memcpy(&k, data, sizeof(k));
 	    data++;
     }
 
@@ -248,9 +248,9 @@ static inline uint64_t MurmurHash64B ( const void * key, int len, uint64_t seed 
 
   switch(len)
   {
-  case 3: h2 ^= ((unsigned char*)data)[2] << 16;
-  case 2: h2 ^= ((unsigned char*)data)[1] << 8;
-  case 1: h2 ^= ((unsigned char*)data)[0];
+  case 3: h2 ^= ((const unsigned char*)data)[2] << 16;
+  case 2: h2 ^= ((const unsigned char*)data)[1] << 8;
+  case 1: h2 ^= ((const unsigned char*)data)[0];
       h2 *= m;
   };
 

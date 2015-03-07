@@ -1,6 +1,6 @@
 /*
- * Copyright 2014 Olivier Houchard
- * Copyright 2012-2014 Samy Al Bahra.
+ * Copyright 2014-2015 Olivier Houchard.
+ * Copyright 2012-2015 Samy Al Bahra.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -782,24 +782,25 @@ leave:
 	return offset;
 }
 
-static inline void *
+static inline const void *
 ck_rhs_marshal(unsigned int mode, const void *key, unsigned long h)
 {
-	void *insert;
-
 #ifdef CK_RHS_PP
+	const void *insert;
+
 	if (mode & CK_RHS_MODE_OBJECT) {
 		insert = (void *)((uintptr_t)CK_RHS_VMA(key) | ((h >> 25) << CK_MD_VMA_BITS));
 	} else {
-		insert = (void *)key;
+		insert = key;
 	}
+
+	return insert;
 #else
 	(void)mode;
 	(void)h;
-	insert = (void *)key;
-#endif
 
-	return insert;
+	return key;
+#endif
 }
 
 bool
@@ -1047,7 +1048,8 @@ ck_rhs_fas(struct ck_rhs *hs,
     void **previous)
 {
 	long slot, first;
-	void *object, *insert;
+	void *object;
+	const void *insert;
 	unsigned long n_probes;
 	struct ck_rhs_map *map = hs->map;
 	struct ck_rhs_entry_desc *desc, *desc2;
@@ -1108,7 +1110,8 @@ ck_rhs_apply(struct ck_rhs *hs,
     ck_rhs_apply_fn_t *fn,
     void *cl)
 {
-	void  *object, *insert, *delta = false;
+	const void *insert;
+	void  *object, *delta = false;
 	unsigned long n_probes;
 	long slot, first;
 	struct ck_rhs_map *map;
@@ -1211,7 +1214,8 @@ ck_rhs_set(struct ck_rhs *hs,
     void **previous)
 {
 	long slot, first;
-	void *object, *insert;
+	void *object;
+	const void *insert;
 	unsigned long n_probes;
 	struct ck_rhs_map *map;
 
@@ -1290,7 +1294,8 @@ ck_rhs_put_internal(struct ck_rhs *hs,
     enum ck_rhs_probe_behavior behavior)
 {
 	long slot, first;
-	void *object, *insert;
+	void *object;
+	const void *insert;
 	unsigned long n_probes;
 	struct ck_rhs_map *map;
 

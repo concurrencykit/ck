@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2014 Samy Al Bahra.
+ * Copyright 2009-2015 Samy Al Bahra.
  * Copyright 2011 Devon H. O'Dell <devon.odell@gmail.com>
  * All rights reserved.
  *
@@ -114,16 +114,16 @@ CK_PR_FAS_S(8,  uint8_t,  "xchgb")
 #undef CK_PR_FAS_S
 #undef CK_PR_FAS
 
-#define CK_PR_LOAD(S, M, T, C, I)				\
-	CK_CC_INLINE static T					\
-	ck_pr_load_##S(const M *target)				\
-	{							\
-		T r;						\
-		__asm__ __volatile__(I " %1, %0"		\
-					: "=q" (r)		\
-					: "m"  (*(C *)target)	\
-					: "memory");		\
-		return (r);					\
+#define CK_PR_LOAD(S, M, T, C, I)					\
+	CK_CC_INLINE static T						\
+	ck_pr_load_##S(const M *target)					\
+	{								\
+		T r;							\
+		__asm__ __volatile__(I " %1, %0"			\
+					: "=q" (r)			\
+					: "m"  (*(const C *)target)	\
+					: "memory");			\
+		return (r);						\
 	}
 
 CK_PR_LOAD(ptr, void, void *, char, "movl")

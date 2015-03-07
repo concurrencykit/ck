@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2014 Samy Al Bahra.
+ * Copyright 2012-2015 Samy Al Bahra.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -93,6 +93,17 @@ struct ck_hs_map {
 	CK_HS_WORD *probe_bound;
 	void **entries;
 };
+
+static inline void
+ck_hs_map_signal(struct ck_hs_map *map, unsigned long h)
+{
+
+	h &= CK_HS_G_MASK;
+	ck_pr_store_uint(&map->generation[h],
+	    map->generation[h] + 1);
+	ck_pr_fence_store();
+	return;
+}
 
 void
 ck_hs_iterator_init(struct ck_hs_iterator *iterator)
@@ -498,24 +509,26 @@ leave:
 	return cursor;
 }
 
-static inline void *
+static inline const void *
 ck_hs_marshal(unsigned int mode, const void *key, unsigned long h)
 {
-	void *insert;
-
 #ifdef CK_HS_PP
+	const void *insert;
+
 	if (mode & CK_HS_MODE_OBJECT) {
-		insert = (void *)((uintptr_t)CK_HS_VMA(key) | ((h >> 25) << CK_MD_VMA_BITS));
+		insert = (void *)((uintptr_t)CK_HS_VMA(key) |
+		    ((h >> 25) << CK_MD_VMA_BITS));
 	} else {
-		insert = (void *)key;
+		insert = key;
 	}
+
+	return insert;
 #else
 	(void)mode;
 	(void)h;
-	insert = (void *)key;
-#endif
 
-	return insert;
+	return key;
+#endif
 }
 
 bool
@@ -570,11 +583,10 @@ ck_hs_gc(struct ck_hs *hs, unsigned long cycles, unsigned long seed)
 		    ck_hs_map_bound_get(map, h), CK_HS_PROBE);
 
 		if (first != NULL) {
-			void *insert = ck_hs_marshal(hs->mode, entry, h);
+			const void *insert = ck_hs_marshal(hs->mode, entry, h);
 
 			ck_pr_store_ptr(first, insert);
-			ck_pr_inc_uint(&map->generation[h & CK_HS_G_MASK]);
-			ck_pr_fence_atomic_store();
+			ck_hs_map_signal(map, h);
 			ck_pr_store_ptr(slot, CK_HS_TOMBSTONE);
 		}
 
@@ -614,7 +626,8 @@ ck_hs_fas(struct ck_hs *hs,
     const void *key,
     void **previous)
 {
-	void **slot, **first, *object, *insert;
+	const void *insert;
+	void **slot, **first, *object;
 	unsigned long n_probes;
 	struct ck_hs_map *map = hs->map;
 
@@ -630,8 +643,7 @@ ck_hs_fas(struct ck_hs *hs,
 
 	if (first != NULL) {
 		ck_pr_store_ptr(first, insert);
-		ck_pr_inc_uint(&map->generation[h & CK_HS_G_MASK]);
-		ck_pr_fence_atomic_store();
+		ck_hs_map_signal(map, h);
 		ck_pr_store_ptr(slot, CK_HS_TOMBSTONE);
 	} else {
 		ck_pr_store_ptr(slot, insert);
@@ -660,7 +672,8 @@ ck_hs_apply(struct ck_hs *hs,
     ck_hs_apply_fn_t *fn,
     void *cl)
 {
-	void **slot, **first, *object, *insert, *delta;
+	const void *insert;
+	void **slot, **first, *object, *delta;
 	unsigned long n_probes;
 	struct ck_hs_map *map;
 
@@ -707,8 +720,7 @@ restart:
 		ck_pr_store_ptr(first, insert);
 
 		if (object != NULL) {
-			ck_pr_inc_uint(&map->generation[h & CK_HS_G_MASK]);
-			ck_pr_fence_atomic_store();
+			ck_hs_map_signal(map, h);
 			ck_pr_store_ptr(slot, CK_HS_TOMBSTONE);
 		}
 	} else {
@@ -731,7 +743,8 @@ ck_hs_set(struct ck_hs *hs,
     const void *key,
     void **previous)
 {
-	void **slot, **first, *object, *insert;
+	const void *insert;
+	void **slot, **first, *object;
 	unsigned long n_probes;
 	struct ck_hs_map *map;
 
@@ -763,8 +776,7 @@ restart:
 		 * duplicate key.
 		 */
 		if (object != NULL) {
-			ck_pr_inc_uint(&map->generation[h & CK_HS_G_MASK]);
-			ck_pr_fence_atomic_store();
+			ck_hs_map_signal(map, h);
 			ck_pr_store_ptr(slot, CK_HS_TOMBSTONE);
 		}
 	} else {
@@ -788,7 +800,8 @@ ck_hs_put_internal(struct ck_hs *hs,
     const void *key,
     enum ck_hs_probe_behavior behavior)
 {
-	void **slot, **first, *object, *insert;
+	const void *insert;
+	void **slot, **first, *object;
 	unsigned long n_probes;
 	struct ck_hs_map *map;
 
