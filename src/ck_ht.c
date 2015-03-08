@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2014 Samy Al Bahra.
+ * Copyright 2012-2015 Samy Al Bahra.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -141,11 +141,13 @@ static struct ck_ht_map *
 ck_ht_map_create(struct ck_ht *table, uint64_t entries)
 {
 	struct ck_ht_map *map;
-	uint64_t size, n_entries, prefix;
+	uint64_t size;
+	uintptr_t prefix;
+	uint32_t n_entries;
 
 	n_entries = ck_internal_power_2(entries);
 	if (n_entries < CK_HT_BUCKET_LENGTH)
-		return NULL;
+		n_entries = CK_HT_BUCKET_LENGTH;
 
 	size = sizeof(struct ck_ht_map) +
 		   (sizeof(struct ck_ht_entry) * n_entries + CK_MD_CACHELINE - 1);
@@ -460,6 +462,9 @@ ck_ht_gc(struct ck_ht *ht, unsigned long cycles, unsigned long seed)
 			ck_pr_store_64(&map->deletions, map->deletions + 1);
 			ck_pr_fence_store();
 			ck_pr_store_ptr(&entry->key, (void *)CK_HT_KEY_TOMBSTONE);
+			ck_pr_fence_store();
+			ck_pr_store_64(&map->deletions, map->deletions + 1);
+			ck_pr_fence_store();
 		}
 
 		if (cycles == 0) {
@@ -784,6 +789,7 @@ ck_ht_remove_spmc(struct ck_ht *table,
 	 * states should be (T, V') or (K', V'). The latter is guaranteed
 	 * through memory fencing.
 	 */
+	ck_pr_fence_store();
 	ck_pr_store_64(&map->deletions, map->deletions + 1);
 	ck_pr_fence_store();
 	ck_pr_store_64(&map->n_entries, map->n_entries - 1);
@@ -899,6 +905,9 @@ ck_ht_set_spmc(struct ck_ht *table,
 		ck_pr_store_64(&map->deletions, map->deletions + 1);
 		ck_pr_fence_store();
 		ck_pr_store_ptr(&candidate->key, (void *)CK_HT_KEY_TOMBSTONE);
+		ck_pr_fence_store();
+		ck_pr_store_64(&map->deletions, map->deletions + 1);
+		ck_pr_fence_store();
 	} else {
 		/*
 		 * In this case we are inserting a new entry or replacing

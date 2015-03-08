@@ -118,7 +118,7 @@ ck_swlock_write_latch(ck_swlock_t *rw)
 	/* Publish intent to acquire lock. */
 	ck_pr_or_32(&rw->value, CK_SWLOCK_WRITER_BIT);
 
-	/* Stall until readers have seen the seen writer and cleared. */
+	/* Stall until readers have seen the writer and cleared. */
 	while (ck_pr_cas_32(&rw->value, CK_SWLOCK_WRITER_BIT,
 	    CK_SWLOCK_WRITER_MASK) == false)  {
 		do {

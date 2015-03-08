@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2014 Samy Al Bahra.
+ * Copyright 2012-2015 Samy Al Bahra.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -83,7 +83,7 @@ main(void)
 	mode |= CK_HT_WORKLOAD_DELETE;
 #endif
 
-	if (ck_ht_init(&ht, mode, NULL, &my_allocator, 16, 6602834) == false) {
+	if (ck_ht_init(&ht, mode, NULL, &my_allocator, 2, 6602834) == false) {
 		perror("ck_ht_init");
 		exit(EXIT_FAILURE);
 	}

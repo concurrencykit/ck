@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2014 Samy Al Bahra.
+ * Copyright 2009-2015 Samy Al Bahra.
  * Copyright 2012 João Fernandes.
  * All rights reserved.
  *
@@ -82,16 +82,16 @@ CK_PR_FENCE(release, "lwsync")
 
 #undef CK_PR_FENCE
 
-#define CK_PR_LOAD(S, M, T, C, I)				\
-	CK_CC_INLINE static T					\
-	ck_pr_load_##S(const M *target)				\
-	{							\
-		T r;						\
-		__asm__ __volatile__(I "%U1%X1 %0, %1"		\
-					: "=r" (r)		\
-					: "m"  (*(C *)target)	\
-					: "memory");		\
-		return (r);					\
+#define CK_PR_LOAD(S, M, T, C, I)					\
+	CK_CC_INLINE static T						\
+	ck_pr_load_##S(const M *target)					\
+	{								\
+		T r;							\
+		__asm__ __volatile__(I "%U1%X1 %0, %1"			\
+					: "=r" (r)			\
+					: "m"  (*(const C *)target)	\
+					: "memory");			\
+		return (r);						\
 	}
 
 CK_PR_LOAD(ptr, void, void *, uint32_t, "lwz")
