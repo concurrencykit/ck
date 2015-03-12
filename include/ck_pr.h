@@ -138,6 +138,17 @@ CK_PR_FENCE_NOOP(release)
 #undef CK_PR_FENCE_EMIT
 #undef CK_PR_FENCE_NOOP
 
+#ifndef CK_F_PR_RFO
+#define CK_F_PR_RFO
+CK_CC_INLINE static void
+ck_pr_rfo(const void *m)
+{
+
+	(void)m;
+	return;
+}
+#endif /* CK_F_PR_RFO */
+
 #define CK_PR_BIN(K, S, M, T, P, C)					\
 	CK_CC_INLINE static void					\
 	ck_pr_##K##_##S(M *target, T value)				\

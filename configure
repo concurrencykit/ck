@@ -103,6 +103,7 @@ generate()
 	    -e "s#@GZIP_SUFFIX@#$GZIP_SUFFIX#g"			\
 	    -e "s#@POINTER_PACK_ENABLE@#$POINTER_PACK_ENABLE#g"	\
 	    -e "s#@RTM_ENABLE@#$RTM_ENABLE#g"			\
+	    -e "s#@RFO_ENABLE@#$RFO_ENABLE#g"			\
 	    -e "s#@VMA_BITS@#$VMA_BITS_R#g"			\
 	    -e "s#@VMA_BITS_VALUE@#$VMA_BITS_VALUE_R#g"		\
 	    -e "s#@MM@#$MM#g"					\
@@ -137,6 +138,7 @@ generate_stdout()
 	echo "      POINTER_PACK = $POINTER_PACK_ENABLE"
 	echo "          VMA_BITS = $VMA_BITS"
 	echo "      MEMORY_MODEL = $MM"
+	echo "               RFO = $RFO_ENABLE"
 	echo "               RTM = $RTM_ENABLE"
 	echo
 	echo "Headers will be installed in $HEADERS"
@@ -170,12 +172,15 @@ for option; do
 		echo "  --mandir=N               Manual pages directory (default is ${PREFIX}/man)"
 		echo "  --prefix=N               Installs library files in N (default is $PREFIX)"
 		echo
-		echo "The following options will modify code generation."
-		echo "  --cores=N                Specify number of cores available on target machine"
+		echo "The following options will affect generated code."
 		echo "  --enable-pointer-packing Assumes address encoding is subset of pointer range"
-		echo "  --enable-rtm             Enable restricted transactional memory (x86_64 only)"
+		echo "  --enable-rtm             Enable restricted transactional memory (power, x86_64)"
+		echo "  --enable-rfo             Enable read-for-ownership interface (power, x86_64)"
 		echo "  --memory-model=N         Specify memory model (currently tso, pso or rmo)"
 		echo "  --vma-bits=N             Specify valid number of VMA bits"
+		echo
+		echo "The following options affect regression testing."
+		echo "  --cores=N                Specify number of cores available on target machine"
 		echo
 		echo "The following environment variables may be used:"
 		echo "   CC       C compiler command"
@@ -211,6 +216,9 @@ for option; do
 		;;
 	--enable-rtm)
 		RTM_ENABLE_SET="CK_MD_RTM_ENABLE"
+		;;
+	--enable-rfo)
+		RFO_ENABLE_SET="CK_MD_RFO_ENABLE"
 		;;
 	--cores=*)
 		CORES=$value
@@ -272,6 +280,7 @@ MANDIR=${MANDIR:-"${PREFIX}/share/man"}
 GZIP=${GZIP:-"gzip -c"}
 POINTER_PACK_ENABLE=${POINTER_PACK_ENABLE:-"CK_MD_POINTER_PACK_DISABLE"}
 RTM_ENABLE=${RTM_ENABLE_SET:-"CK_MD_RTM_DISABLE"}
+RFO_ENABLE=${RFO_ENABLE_SET:-"CK_MD_RFO_DISABLE"}
 VMA_BITS=${VMA_BITS:-"unknown"}
 
 if test "$PROFILE"; then

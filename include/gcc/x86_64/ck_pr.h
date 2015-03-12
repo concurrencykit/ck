@@ -92,6 +92,26 @@ CK_PR_FENCE(acquire, "mfence")
 #undef CK_PR_FENCE
 
 /*
+ * Read for ownership. Older compilers will generate the 32-bit
+ * 3DNow! variant which is binary compatible with x86-64 variant
+ * of prefetchw.
+ */
+#ifdef CK_MD_RFO_ENABLE
+#define CK_F_PR_RFO
+CK_CC_INLINE static void
+ck_pr_rfo(const void *m)
+{
+
+	__asm__ __volatile__("prefetchw (%0)"
+	    :
+	    : "r" (m)
+	    : "memory");
+
+	return;
+}
+#endif /* CD_MD_PREFETCHW_ENABLE */
+
+/*
  * Atomic fetch-and-store operations.
  */
 #define CK_PR_FAS(S, M, T, C, I)				\
