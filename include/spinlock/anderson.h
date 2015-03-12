@@ -162,4 +162,3 @@ ck_spinlock_anderson_unlock(struct ck_spinlock_anderson *lock,
 }
 #endif /* CK_F_SPINLOCK_ANDERSON */
 #endif /* _CK_SPINLOCK_ANDERSON_H */
-

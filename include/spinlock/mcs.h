@@ -146,4 +146,3 @@ ck_spinlock_mcs_unlock(struct ck_spinlock_mcs **queue, struct ck_spinlock_mcs *n
 }
 #endif /* CK_F_SPINLOCK_MCS */
 #endif /* _CK_SPINLOCK_MCS_H */
-

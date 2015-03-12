@@ -140,4 +140,3 @@ CK_ELIDE_TRYLOCK_PROTOTYPE(ck_spinlock_dec, ck_spinlock_dec_t,
 
 #endif /* CK_F_SPINLOCK_DEC */
 #endif /* _CK_SPINLOCK_DEC_H */
-
