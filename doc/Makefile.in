@@ -199,6 +199,10 @@ objcheck: all
 		fi;						\
 	done
 
+# check for stale references
+refcheck:
+	@./refcheck.pl $(OBJECTS)
+
 install:
 	mkdir -p $(DESTDIR)/$(MANDIR)/man3 || exit
 	cp *$(GZIP_SUFFIX) $(DESTDIR)/$(MANDIR)/man3 || exit
