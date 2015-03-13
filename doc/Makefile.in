@@ -199,5 +199,5 @@ uninstall:
 	done
 
 clean:
-	rm -f $(BUILD_DIR)/doc/*~ $(BUILD_DIR)/doc/*.3.gz $(BUILD_DIR)/doc/*.html
+	rm -f $(BUILD_DIR)/doc/*~ $(BUILD_DIR)/doc/*$(GZIP_SUFFIX) $(BUILD_DIR)/doc/*$(HTML_SUFFIX)
 
