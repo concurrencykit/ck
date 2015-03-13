@@ -189,6 +189,14 @@ html:
 		   $(BUILD_DIR)/doc/$$target$(HTML_SUFFIX); 		\
 	done
 
+# check for entries that are missing in OBJECTS
+objcheck: all
+	for file in `ls * | egrep '(ck|CK)_' | egrep -v "($(GZIP_SUFFIX)|$(HTML_SUFFIX))$$"`; do \
+		if [ ! -f $${file}$(GZIP_SUFFIX) ]; then	\
+			echo "$$file is missing from OBJECTS" >&2;	\
+		fi;						\
+	done
+
 install:
 	mkdir -p $(DESTDIR)/$(MANDIR)/man3 || exit
 	cp *$(GZIP_SUFFIX) $(DESTDIR)/$(MANDIR)/man3 || exit
