@@ -99,6 +99,7 @@ OBJECTS=CK_ARRAY_FOREACH		\
 	ck_rhs_next			\
 	ck_rhs_get			\
 	ck_rhs_put			\
+	ck_rhs_put_unique		\
 	ck_rhs_set			\
 	ck_rhs_fas			\
 	ck_rhs_remove			\
@@ -190,6 +191,18 @@ html:
 		   $(BUILD_DIR)/doc/$$target$(HTML_SUFFIX); 		\
 	done
 
+# check for entries that are missing in OBJECTS
+objcheck: all
+	for file in `ls * | egrep '(ck|CK)_' | egrep -v "($(GZIP_SUFFIX)|$(HTML_SUFFIX))$$"`; do \
+		if [ ! -f $${file}$(GZIP_SUFFIX) ]; then	\
+			echo "$$file is missing from OBJECTS" >&2;	\
+		fi;						\
+	done
+
+# check for stale references
+refcheck:
+	@./refcheck.pl $(OBJECTS)
+
 install:
 	mkdir -p $(DESTDIR)/$(MANDIR)/man3 || exit
 	cp *$(GZIP_SUFFIX) $(DESTDIR)/$(MANDIR)/man3 || exit
@@ -200,5 +213,5 @@ uninstall:
 	done
 
 clean:
-	rm -f $(BUILD_DIR)/doc/*~ $(BUILD_DIR)/doc/*.3.gz $(BUILD_DIR)/doc/*.html
+	rm -f $(BUILD_DIR)/doc/*~ $(BUILD_DIR)/doc/*$(GZIP_SUFFIX) $(BUILD_DIR)/doc/*$(HTML_SUFFIX)
 

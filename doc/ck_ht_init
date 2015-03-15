@@ -76,7 +76,7 @@ with using the
 .Xr ck_ht_entry_key_direct 3 ,
 .Xr ck_ht_entry_value_direct 3
 and
-.Xr ck_entry_set_direct 3
+.Xr ck_ht_entry_set_direct 3
 functions. Attempting a hash table operation with a key of value of 0 or
 UINTPTR_MAX will result in undefined behavior.
 .El

@@ -295,4 +295,3 @@ CK_ELIDE_TRYLOCK_PROTOTYPE(ck_spinlock_ticket, ck_spinlock_ticket_t,
 
 #endif /* CK_F_SPINLOCK_TICKET */
 #endif /* _CK_SPINLOCK_TICKET_H */
-

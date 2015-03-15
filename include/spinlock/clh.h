@@ -114,4 +114,3 @@ ck_spinlock_clh_unlock(struct ck_spinlock_clh **thread)
 }
 #endif /* CK_F_SPINLOCK_CLH */
 #endif /* _CK_SPINLOCK_CLH_H */
-
