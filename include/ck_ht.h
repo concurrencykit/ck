@@ -27,6 +27,10 @@
 #ifndef _CK_HT_H
 #define _CK_HT_H
 
+#ifndef _CK_HT_IM
+#warning ck_ht is deprecated, see ck_hm, ck_hs or ck_rhs.
+#endif /* !_CK_HT_IM */
+
 #include <ck_pr.h>
 
 #if defined(CK_F_PR_LOAD_64) && defined(CK_F_PR_STORE_64)
