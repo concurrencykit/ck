@@ -110,7 +110,7 @@ ck_spinlock_hclh_lock(struct ck_spinlock_hclh **glob_queue,
 	while (ck_pr_load_uint(&previous->wait) == true)
 		ck_pr_stall();
 
-	ck_pr_fence_load();
+	ck_pr_fence_acquire();
 	return;
 }
 

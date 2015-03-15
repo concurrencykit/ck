@@ -82,7 +82,7 @@ ck_spinlock_clh_lock(struct ck_spinlock_clh **queue, struct ck_spinlock_clh *thr
 	while (ck_pr_load_uint(&previous->wait) == true)
 		ck_pr_stall();
 
-	ck_pr_fence_load();
+	ck_pr_fence_acquire();
 	return;
 }
 
