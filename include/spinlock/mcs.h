@@ -103,7 +103,7 @@ ck_spinlock_mcs_lock(struct ck_spinlock_mcs **queue, struct ck_spinlock_mcs *nod
 			ck_pr_stall();
 	}
 
-	ck_pr_fence_load();
+	ck_pr_fence_acquire();
 	return;
 }
 
