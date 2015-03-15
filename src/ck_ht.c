@@ -451,6 +451,8 @@ ck_ht_gc(struct ck_ht *ht, unsigned long cycles, unsigned long seed)
 		offset = h.value & map->mask;
 
 		if (priority != NULL) {
+			ck_pr_store_64(&map->deletions, map->deletions + 1);
+			ck_pr_fence_store();
 #ifndef CK_HT_PP
 			ck_pr_store_64(&priority->key_length, entry->key_length);
 			ck_pr_store_64(&priority->hash, entry->hash);
@@ -462,8 +464,6 @@ ck_ht_gc(struct ck_ht *ht, unsigned long cycles, unsigned long seed)
 			ck_pr_store_64(&map->deletions, map->deletions + 1);
 			ck_pr_fence_store();
 			ck_pr_store_ptr(&entry->key, (void *)CK_HT_KEY_TOMBSTONE);
-			ck_pr_fence_store();
-			ck_pr_store_64(&map->deletions, map->deletions + 1);
 			ck_pr_fence_store();
 		}
 
@@ -768,29 +768,8 @@ ck_ht_remove_spmc(struct ck_ht *table,
 		return false;
 
 	*entry = snapshot;
-	ck_pr_store_ptr(&candidate->key, (void *)CK_HT_KEY_TOMBSTONE);
 
-	/*
-	 * It is possible that the key is read before transition into
-	 * the tombstone state. Assuming the keys do match, a reader
-	 * may have already acquired a snapshot of the value at the time.
-	 * However, assume the reader is preempted as a deletion occurs
-	 * followed by a replacement. In this case, it is possible that
-	 * the reader acquires some value V' instead of V. Let us assume
-	 * however that any transition from V into V' (essentially, update
-	 * of a value without the reader knowing of a K -> K' transition),
-	 * is preceded by an update to the deletions counter. This guarantees
-	 * any replacement of a T key also implies a D -> D' transition.
-	 * If D has not transitioned, the value has yet to be replaced so it
-	 * is a valid association with K and is safe to return. If D has
-	 * transitioned after a reader has acquired a snapshot then it is
-	 * possible that we are in the invalid state of (K, V'). The reader
-	 * is then able to attempt a reprobe at which point the only visible
-	 * states should be (T, V') or (K', V'). The latter is guaranteed
-	 * through memory fencing.
-	 */
-	ck_pr_fence_store();
-	ck_pr_store_64(&map->deletions, map->deletions + 1);
+	ck_pr_store_ptr(&candidate->key, (void *)CK_HT_KEY_TOMBSTONE);
 	ck_pr_fence_store();
 	ck_pr_store_64(&map->n_entries, map->n_entries - 1);
 	return true;
@@ -884,13 +863,11 @@ ck_ht_set_spmc(struct ck_ht *table,
 	if (candidate->key != CK_HT_KEY_EMPTY &&
 	    priority != NULL && candidate != priority) {
 		/*
-		 * If we are replacing an existing entry and an earlier
-		 * tombstone was found in the probe sequence then replace
-		 * the existing entry in a manner that doesn't affect linearizability
-		 * of concurrent get operations. We avoid a state of (K, B)
-		 * (where [K, B] -> [K', B]) by guaranteeing a forced reprobe
-		 * before transitioning from K to T. (K, B) implies (K, B, D')
-		 * so we will reprobe successfully from this transient state.
+		 * Entry is moved into another position in probe sequence.
+		 * We avoid a state of (K, B) (where [K, B] -> [K', B]) by
+		 * guaranteeing a forced reprobe before transitioning from K to
+		 * T. (K, B) implies (K, B, D') so we will reprobe successfully
+		 * from this transient state.
 		 */
 		probes = probes_wr;
 
@@ -898,28 +875,47 @@ ck_ht_set_spmc(struct ck_ht *table,
 		ck_pr_store_64(&priority->key_length, entry->key_length);
 		ck_pr_store_64(&priority->hash, entry->hash);
 #endif
+
+		/*
+		 * Readers must observe version counter change before they
+		 * observe re-use. If they observe re-use, it is at most
+		 * a tombstone.
+		 */
+		if (priority->value == CK_HT_KEY_TOMBSTONE) {
+			ck_pr_store_64(&map->deletions, map->deletions + 1);
+			ck_pr_fence_store();
+		}
+
 		ck_pr_store_ptr(&priority->value, (void *)entry->value);
 		ck_pr_fence_store();
 		ck_pr_store_ptr(&priority->key, (void *)entry->key);
 		ck_pr_fence_store();
+
+		/*
+		 * Make sure that readers who observe the tombstone would
+		 * also observe counter change.
+		 */
 		ck_pr_store_64(&map->deletions, map->deletions + 1);
 		ck_pr_fence_store();
+
 		ck_pr_store_ptr(&candidate->key, (void *)CK_HT_KEY_TOMBSTONE);
-		ck_pr_fence_store();
-		ck_pr_store_64(&map->deletions, map->deletions + 1);
 		ck_pr_fence_store();
 	} else {
 		/*
 		 * In this case we are inserting a new entry or replacing
-		 * an existing entry. There is no need to force a re-probe
-		 * on tombstone replacement due to the fact that previous
-		 * deletion counter update would have been published with
-		 * respect to any concurrent probes.
+		 * an existing entry. Yes, this can be combined into above branch,
+		 * but isn't because you are actually looking at dying code
+		 * (ck_ht is effectively deprecated and is being replaced soon).
 		 */
 		bool replace = candidate->key != CK_HT_KEY_EMPTY &&
 		    candidate->key != CK_HT_KEY_TOMBSTONE;
 
 		if (priority != NULL) {
+			if (priority->key == CK_HT_KEY_TOMBSTONE) {
+				ck_pr_store_64(&map->deletions, map->deletions + 1);
+				ck_pr_fence_store();
+			}
+
 			candidate = priority;
 			probes = probes_wr;
 		}
@@ -991,6 +987,10 @@ ck_ht_put_spmc(struct ck_ht *table,
 	}
 
 	if (priority != NULL) {
+		/* Version counter is updated before re-use. */
+		ck_pr_store_64(&map->deletions, map->deletions + 1);
+		ck_pr_fence_store();
+
 		/* Re-use tombstone if one was found. */
 		candidate = priority;
 		probes = probes_wr;
