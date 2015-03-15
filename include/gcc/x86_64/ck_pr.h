@@ -96,7 +96,7 @@ CK_PR_FENCE(acquire, "mfence")
  * 3DNow! variant which is binary compatible with x86-64 variant
  * of prefetchw.
  */
-#ifdef CK_MD_RFO_ENABLE
+#ifndef CK_F_PR_RFO
 #define CK_F_PR_RFO
 CK_CC_INLINE static void
 ck_pr_rfo(const void *m)
@@ -109,7 +109,7 @@ ck_pr_rfo(const void *m)
 
 	return;
 }
-#endif /* CD_MD_PREFETCHW_ENABLE */
+#endif /* CK_F_PR_RFO */
 
 /*
  * Atomic fetch-and-store operations.
