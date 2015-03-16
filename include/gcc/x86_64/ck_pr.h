@@ -24,10 +24,10 @@
  * SUCH DAMAGE.
  */
 
-#ifndef _CK_PR_X86_64_H
-#define _CK_PR_X86_64_H
+#ifndef CK_PR_X86_64_H
+#define CK_PR_X86_64_H
 
-#ifndef _CK_PR_H
+#ifndef CK_PR_H
 #error Do not include this file directly, use ck_pr.h
 #endif
 
@@ -561,5 +561,5 @@ CK_PR_GENERATE(btr)
 #undef CK_PR_GENERATE
 #undef CK_PR_BT
 
-#endif /* _CK_PR_X86_64_H */
+#endif /* CK_PR_X86_64_H */
 

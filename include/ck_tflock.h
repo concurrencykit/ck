@@ -24,8 +24,8 @@
  * SUCH DAMAGE.
  */
 
-#ifndef _CK_TFLOCK_TICKET_H
-#define _CK_TFLOCK_TICKET_H
+#ifndef CK_TFLOCK_TICKET_H
+#define CK_TFLOCK_TICKET_H
 
 /*
  * This is an implementation of task-fair locks derived from the work
@@ -130,4 +130,4 @@ ck_tflock_ticket_read_unlock(struct ck_tflock_ticket *lock)
 	return;
 }
 
-#endif /* _CK_TFLOCK_TICKET_H */
+#endif /* CK_TFLOCK_TICKET_H */

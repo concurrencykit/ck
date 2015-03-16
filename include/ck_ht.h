@@ -24,12 +24,12 @@
  * SUCH DAMAGE.
  */
 
-#ifndef _CK_HT_H
-#define _CK_HT_H
+#ifndef CK_HT_H
+#define CK_HT_H
 
-#ifndef _CK_HT_IM
+#ifndef CK_HT_IM
 #warning ck_ht is deprecated, see ck_hm, ck_hs or ck_rhs.
-#endif /* !_CK_HT_IM */
+#endif /* !CK_HT_IM */
 
 #include <ck_pr.h>
 
@@ -262,4 +262,4 @@ bool ck_ht_reset_size_spmc(ck_ht_t *, uint64_t);
 uint64_t ck_ht_count(ck_ht_t *);
 
 #endif /* CK_F_PR_LOAD_64 && CK_F_PR_STORE_64 */
-#endif /* _CK_HT_H */
+#endif /* CK_HT_H */

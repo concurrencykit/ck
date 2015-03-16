@@ -24,8 +24,8 @@
  * SUCH DAMAGE.
  */
 
-#ifndef _CK_SPINLOCK_FAS_H
-#define _CK_SPINLOCK_FAS_H
+#ifndef CK_SPINLOCK_FAS_H
+#define CK_SPINLOCK_FAS_H
 
 #include <ck_backoff.h>
 #include <ck_cc.h>
@@ -114,4 +114,4 @@ CK_ELIDE_TRYLOCK_PROTOTYPE(ck_spinlock_fas, ck_spinlock_fas_t,
     ck_spinlock_fas_locked, ck_spinlock_fas_trylock)
 
 #endif /* CK_F_SPINLOCK_FAS */
-#endif /* _CK_SPINLOCK_FAS_H */
+#endif /* CK_SPINLOCK_FAS_H */

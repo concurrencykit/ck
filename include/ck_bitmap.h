@@ -26,8 +26,8 @@
  * SUCH DAMAGE.
  */
 
-#ifndef _CK_BITMAP_H
-#define _CK_BITMAP_H
+#ifndef CK_BITMAP_H
+#define CK_BITMAP_H
 
 #include <ck_cc.h>
 #include <ck_limits.h>
@@ -510,4 +510,4 @@ non_zero:
 	return true;
 }
 
-#endif /* _CK_BITMAP_H */
+#endif /* CK_BITMAP_H */

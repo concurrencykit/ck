@@ -24,8 +24,8 @@
  * SUCH DAMAGE.
  */
 
-#ifndef _CK_BYTELOCK_H
-#define _CK_BYTELOCK_H
+#ifndef CK_BYTELOCK_H
+#define CK_BYTELOCK_H
 
 /*
  * The implementations here are derived from the work described in:
@@ -183,4 +183,4 @@ ck_bytelock_read_unlock(struct ck_bytelock *bytelock, unsigned int slot)
 	return;
 }
 
-#endif /* _CK_BYTELOCK_H */
+#endif /* CK_BYTELOCK_H */

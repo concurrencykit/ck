@@ -24,8 +24,8 @@
  * SUCH DAMAGE.
  */
 
-#ifndef _CK_HS_H
-#define _CK_HS_H
+#ifndef CK_HS_H
+#define CK_HS_H
 
 #include <ck_cc.h>
 #include <ck_malloc.h>
@@ -131,4 +131,4 @@ bool ck_hs_reset(ck_hs_t *);
 bool ck_hs_reset_size(ck_hs_t *, unsigned long);
 void ck_hs_stat(ck_hs_t *, struct ck_hs_stat *);
 
-#endif /* _CK_HS_H */
+#endif /* CK_HS_H */

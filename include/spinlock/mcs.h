@@ -24,8 +24,8 @@
  * SUCH DAMAGE.
  */
 
-#ifndef _CK_SPINLOCK_MCS_H
-#define _CK_SPINLOCK_MCS_H
+#ifndef CK_SPINLOCK_MCS_H
+#define CK_SPINLOCK_MCS_H
 
 #include <ck_cc.h>
 #include <ck_pr.h>
@@ -145,4 +145,4 @@ ck_spinlock_mcs_unlock(struct ck_spinlock_mcs **queue, struct ck_spinlock_mcs *n
 	return;
 }
 #endif /* CK_F_SPINLOCK_MCS */
-#endif /* _CK_SPINLOCK_MCS_H */
+#endif /* CK_SPINLOCK_MCS_H */

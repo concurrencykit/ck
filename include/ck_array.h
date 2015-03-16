@@ -25,8 +25,8 @@
  * SUCH DAMAGE.
  */
 
-#ifndef _CK_ARRAY_H
-#define _CK_ARRAY_H
+#ifndef CK_ARRAY_H
+#define CK_ARRAY_H
 
 #include <ck_cc.h>
 #include <ck_malloc.h>
@@ -97,4 +97,4 @@ ck_array_initialized(struct ck_array *array)
 	    ((*b) = (a)->active->values[_ck_i], 1);	\
 	    _ck_i++)
 
-#endif /* _CK_ARRAY_H */
+#endif /* CK_ARRAY_H */

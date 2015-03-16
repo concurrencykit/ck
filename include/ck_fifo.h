@@ -25,8 +25,8 @@
  * SUCH DAMAGE.
  */
 
-#ifndef _CK_FIFO_H
-#define _CK_FIFO_H
+#ifndef CK_FIFO_H
+#define CK_FIFO_H
 
 #include <ck_cc.h>
 #include <ck_md.h>
@@ -475,4 +475,4 @@ ck_fifo_mpmc_trydequeue(struct ck_fifo_mpmc *fifo,
 #endif /* CK_F_FIFO_MPMC */
 #endif /* CK_F_PR_CAS_PTR_2 */
 
-#endif /* _CK_FIFO_H */
+#endif /* CK_FIFO_H */

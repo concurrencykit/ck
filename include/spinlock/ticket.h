@@ -24,8 +24,8 @@
  * SUCH DAMAGE.
  */
 
-#ifndef _CK_SPINLOCK_TICKET_H
-#define _CK_SPINLOCK_TICKET_H
+#ifndef CK_SPINLOCK_TICKET_H
+#define CK_SPINLOCK_TICKET_H
 
 #include <ck_backoff.h>
 #include <ck_cc.h>
@@ -294,4 +294,4 @@ CK_ELIDE_TRYLOCK_PROTOTYPE(ck_spinlock_ticket, ck_spinlock_ticket_t,
     ck_spinlock_ticket_locked, ck_spinlock_ticket_trylock)
 
 #endif /* CK_F_SPINLOCK_TICKET */
-#endif /* _CK_SPINLOCK_TICKET_H */
+#endif /* CK_SPINLOCK_TICKET_H */

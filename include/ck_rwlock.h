@@ -24,8 +24,8 @@
  * SUCH DAMAGE.
  */
 
-#ifndef _CK_RWLOCK_H
-#define _CK_RWLOCK_H
+#ifndef CK_RWLOCK_H
+#define CK_RWLOCK_H
 
 #include <ck_elide.h>
 #include <ck_pr.h>
@@ -294,4 +294,4 @@ ck_rwlock_recursive_read_unlock(ck_rwlock_recursive_t *rw)
 	return;
 }
 
-#endif /* _CK_RWLOCK_H */
+#endif /* CK_RWLOCK_H */

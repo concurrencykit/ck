@@ -25,8 +25,8 @@
  * SUCH DAMAGE.
  */
 
-#ifndef _CK_GCC_CC_H
-#define _CK_GCC_CC_H
+#ifndef CK_GCC_CC_H
+#define CK_GCC_CC_H
 
 #include <ck_md.h>
 
@@ -134,4 +134,4 @@ ck_cc_popcount(unsigned int x)
 	return __builtin_popcount(x);
 }
 
-#endif /* _CK_GCC_CC_H */
+#endif /* CK_GCC_CC_H */

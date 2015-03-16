@@ -24,8 +24,8 @@
  * SUCH DAMAGE.
  */
 
-#ifndef _CK_BACKOFF_H
-#define _CK_BACKOFF_H
+#ifndef CK_BACKOFF_H
+#define CK_BACKOFF_H
 
 #include <ck_cc.h>
 #include <ck_pr.h>
@@ -54,4 +54,4 @@ ck_backoff_eb(unsigned int *c)
 	return;
 }
 
-#endif /* _CK_BACKOFF_H */
+#endif /* CK_BACKOFF_H */

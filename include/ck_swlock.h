@@ -25,8 +25,8 @@
  * SUCH DAMAGE.
  */
 
-#ifndef _CK_SWLOCK_H
-#define _CK_SWLOCK_H
+#ifndef CK_SWLOCK_H
+#define CK_SWLOCK_H
 
 #include <ck_elide.h>
 #include <ck_limits.h>
@@ -214,4 +214,4 @@ CK_ELIDE_PROTOTYPE(ck_swlock_read, ck_swlock_t,
     ck_swlock_locked_writer, ck_swlock_read_lock,
     ck_swlock_locked_reader, ck_swlock_read_unlock)
 
-#endif /* _CK_SWLOCK_H */
+#endif /* CK_SWLOCK_H */

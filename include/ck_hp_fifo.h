@@ -25,8 +25,8 @@
  * SUCH DAMAGE.
  */
 
-#ifndef _CK_HP_FIFO_H
-#define _CK_HP_FIFO_H
+#ifndef CK_HP_FIFO_H
+#define CK_HP_FIFO_H
 
 #include <ck_cc.h>
 #include <ck_hp.h>
@@ -218,4 +218,4 @@ ck_hp_fifo_trydequeue_mpmc(ck_hp_record_t *record,
              (entry) != NULL && ((T) = (entry)->next, 1);	\
              (entry) = (T))
 
-#endif /* _CK_HP_FIFO_H */
+#endif /* CK_HP_FIFO_H */

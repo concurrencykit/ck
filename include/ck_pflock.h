@@ -25,8 +25,8 @@
  * SUCH DAMAGE.
  */
 
-#ifndef _CK_PFLOCK_H
-#define _CK_PFLOCK_H
+#ifndef CK_PFLOCK_H
+#define CK_PFLOCK_H
 
 /*
  * This is an implementation of phase-fair locks derived from the work
@@ -139,4 +139,4 @@ leave:
 	return;
 }
 
-#endif /* _CK_PFLOCK_H */
+#endif /* CK_PFLOCK_H */

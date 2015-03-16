@@ -24,8 +24,8 @@
  * SUCH DAMAGE.
  */
 
-#ifndef _CK_HT_HASH_H
-#define _CK_HT_HASH_H
+#ifndef CK_HT_HASH_H
+#define CK_HT_HASH_H
 
 /*
  * This is the Murmur hash written by Austin Appleby.
@@ -266,4 +266,4 @@ static inline uint64_t MurmurHash64B ( const void * key, int len, uint64_t seed 
   return h;
 }
 
-#endif /* _CK_HT_HASH_H */
+#endif /* CK_HT_HASH_H */

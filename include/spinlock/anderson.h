@@ -24,8 +24,8 @@
  * SUCH DAMAGE.
  */
 
-#ifndef _CK_SPINLOCK_ANDERSON_H
-#define _CK_SPINLOCK_ANDERSON_H
+#ifndef CK_SPINLOCK_ANDERSON_H
+#define CK_SPINLOCK_ANDERSON_H
 
 #include <ck_cc.h>
 #include <ck_limits.h>
@@ -161,4 +161,4 @@ ck_spinlock_anderson_unlock(struct ck_spinlock_anderson *lock,
 	return;
 }
 #endif /* CK_F_SPINLOCK_ANDERSON */
-#endif /* _CK_SPINLOCK_ANDERSON_H */
+#endif /* CK_SPINLOCK_ANDERSON_H */

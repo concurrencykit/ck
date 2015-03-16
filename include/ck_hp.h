@@ -24,8 +24,8 @@
  * SUCH DAMAGE.
  */
 
-#ifndef _CK_HP_H
-#define _CK_HP_H
+#ifndef CK_HP_H
+#define CK_HP_H
 
 #include <ck_cc.h>
 #include <ck_pr.h>
@@ -103,4 +103,4 @@ void ck_hp_free(ck_hp_record_t *, ck_hp_hazard_t *, void *, void *);
 void ck_hp_retire(ck_hp_record_t *, ck_hp_hazard_t *, void *, void *);
 void ck_hp_purge(ck_hp_record_t *);
 
-#endif /* _CK_HP_H */
+#endif /* CK_HP_H */

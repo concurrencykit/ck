@@ -25,8 +25,8 @@
  * SUCH DAMAGE.
  */
 
-#ifndef _CK_COHORT_H
-#define _CK_COHORT_H
+#ifndef CK_COHORT_H
+#define CK_COHORT_H
 
 /*
  * This is an implementation of lock cohorts as described in:
@@ -158,4 +158,4 @@ enum ck_cohort_state {
 	.local_pass_limit = CK_COHORT_DEFAULT_LOCAL_PASS_LIMIT			\
 }
 
-#endif /* _CK_COHORT_H */
+#endif /* CK_COHORT_H */

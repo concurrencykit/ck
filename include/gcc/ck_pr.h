@@ -24,10 +24,10 @@
  * SUCH DAMAGE.
  */
 
-#ifndef _CK_PR_GCC_H
-#define _CK_PR_GCC_H
+#ifndef CK_PR_GCC_H
+#define CK_PR_GCC_H
 
-#ifndef _CK_PR_H
+#ifndef CK_PR_H
 #error Do not include this file directly, use ck_pr.h
 #endif
 
@@ -277,5 +277,5 @@ CK_PR_UNARY_S(8, uint8_t)
 #undef CK_PR_UNARY_S
 #undef CK_PR_UNARY
 #endif /* !CK_F_PR */
-#endif /* _CK_PR_GCC_H */
+#endif /* CK_PR_GCC_H */
 

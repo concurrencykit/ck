@@ -25,8 +25,8 @@
  * SUCH DAMAGE.
  */
 
-#ifndef _CK_PR_H
-#define _CK_PR_H
+#ifndef CK_PR_H
+#define CK_PR_H
 
 #include <ck_cc.h>
 #include <ck_limits.h>
@@ -1159,4 +1159,4 @@ CK_PR_FAS_S(8, uint8_t)
 #undef CK_PR_FAA
 #undef CK_PR_FAS
 
-#endif /* _CK_PR_H */
+#endif /* CK_PR_H */

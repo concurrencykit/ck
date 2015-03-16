@@ -24,8 +24,8 @@
  * SUCH DAMAGE.
  */
 
-#ifndef _CK_RING_H
-#define _CK_RING_H
+#ifndef CK_RING_H
+#define CK_RING_H
 
 #include <ck_cc.h>
 #include <ck_md.h>
@@ -431,4 +431,4 @@ ck_ring_dequeue_spmc_##name(struct ck_ring *a,		\
 #define CK_RING_DEQUEUE_SPMC(name, a, b, c)		\
 	ck_ring_dequeue_spmc_##name(a, b, c)
 
-#endif /* _CK_RING_H */
+#endif /* CK_RING_H */

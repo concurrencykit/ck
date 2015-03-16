@@ -24,8 +24,8 @@
  * SUCH DAMAGE.
  */
 
-#ifndef _CK_SPINLOCK_CLH_H
-#define _CK_SPINLOCK_CLH_H
+#ifndef CK_SPINLOCK_CLH_H
+#define CK_SPINLOCK_CLH_H
 
 #include <ck_cc.h>
 #include <ck_limits.h>
@@ -113,4 +113,4 @@ ck_spinlock_clh_unlock(struct ck_spinlock_clh **thread)
 	return;
 }
 #endif /* CK_F_SPINLOCK_CLH */
-#endif /* _CK_SPINLOCK_CLH_H */
+#endif /* CK_SPINLOCK_CLH_H */

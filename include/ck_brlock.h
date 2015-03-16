@@ -24,8 +24,8 @@
  * SUCH DAMAGE.
  */
 
-#ifndef _CK_BRLOCK_H
-#define _CK_BRLOCK_H
+#ifndef CK_BRLOCK_H
+#define CK_BRLOCK_H
 
 /*
  * Big reader spinlocks provide cache-local contention-free read
@@ -276,4 +276,4 @@ ck_brlock_read_unlock(struct ck_brlock_reader *reader)
 	return;
 }
 
-#endif /* _CK_BRLOCK_H */
+#endif /* CK_BRLOCK_H */

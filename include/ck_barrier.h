@@ -25,8 +25,8 @@
  * SUCH DAMAGE.
  */
 
-#ifndef _CK_BARRIER_H
-#define _CK_BARRIER_H
+#ifndef CK_BARRIER_H
+#define CK_BARRIER_H
 
 #include <ck_spinlock.h>
 
@@ -161,4 +161,4 @@ void ck_barrier_mcs_init(ck_barrier_mcs_t *, unsigned int);
 void ck_barrier_mcs_subscribe(ck_barrier_mcs_t *, ck_barrier_mcs_state_t *);
 void ck_barrier_mcs(ck_barrier_mcs_t *, ck_barrier_mcs_state_t *);
 
-#endif /* _CK_BARRIER_H */
+#endif /* CK_BARRIER_H */

@@ -25,8 +25,8 @@
  * SUCH DAMAGE.
  */
 
-#ifndef _CK_CC_H
-#define _CK_CC_H
+#ifndef CK_CC_H
+#define CK_CC_H
 
 #if defined(__GNUC__) || defined(__SUNPRO_C)
 #include "gcc/ck_cc.h"
@@ -152,4 +152,4 @@ ck_cc_popcount(unsigned int x)
 }
 #endif
 
-#endif /* _CK_CC_H */
+#endif /* CK_CC_H */

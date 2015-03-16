@@ -24,8 +24,8 @@
  * SUCH DAMAGE.
  */
 
-#ifndef _CK_HP_STACK_H
-#define _CK_HP_STACK_H
+#ifndef CK_HP_STACK_H
+#define CK_HP_STACK_H
 
 #include <ck_cc.h>
 #include <ck_hp.h>
@@ -110,4 +110,4 @@ leave:
 	return false;
 }
 
-#endif /* _CK_HP_STACK_H */
+#endif /* CK_HP_STACK_H */

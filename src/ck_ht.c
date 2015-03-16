@@ -24,7 +24,7 @@
  * SUCH DAMAGE.
  */
 
-#define _CK_HT_IM
+#define CK_HT_IM
 #include <ck_ht.h>
 
 #ifdef CK_F_HT

@@ -24,8 +24,8 @@
  * SUCH DAMAGE.
  */
 
-#ifndef _CK_MD_H
-#define _CK_MD_H
+#ifndef CK_MD_H
+#define CK_MD_H
 
 #ifndef CK_MD_CACHELINE
 #define CK_MD_CACHELINE (64)
@@ -51,4 +51,4 @@
 #define @MM@
 #endif /* @MM@ */
 
-#endif /* _CK_MD_H */
+#endif /* CK_MD_H */

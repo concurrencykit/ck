@@ -24,8 +24,8 @@
  * SUCH DAMAGE.
  */
 
-#ifndef _CK_EPOCH_H
-#define _CK_EPOCH_H
+#ifndef CK_EPOCH_H
+#define CK_EPOCH_H
 
 /*
  * The implementation here is inspired from the work described in:
@@ -159,4 +159,4 @@ void ck_epoch_synchronize(ck_epoch_t *, ck_epoch_record_t *);
 void ck_epoch_barrier(ck_epoch_t *, ck_epoch_record_t *);
 void ck_epoch_reclaim(ck_epoch_record_t *);
 
-#endif /* _CK_EPOCH_H */
+#endif /* CK_EPOCH_H */

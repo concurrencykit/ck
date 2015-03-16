@@ -24,8 +24,8 @@
  * SUCH DAMAGE.
  */
 
-#ifndef _CK_STACK_H
-#define _CK_STACK_H
+#ifndef CK_STACK_H
+#define CK_STACK_H
 
 #include <ck_cc.h>
 #include <ck_pr.h>
@@ -354,4 +354,4 @@ ck_stack_init(struct ck_stack *stack)
 	     (entry) != NULL && ((T) = (entry)->next, 1);	\
 	     (entry) = (T))
 
-#endif /* _CK_STACK_H */
+#endif /* CK_STACK_H */
