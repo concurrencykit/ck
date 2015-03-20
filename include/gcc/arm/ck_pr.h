@@ -132,11 +132,12 @@ CK_PR_LOAD_S(char, char, "ldrb")
 CK_CC_INLINE static uint64_t
 ck_pr_load_64(const uint64_t *target)
 {
-	register uint64_t ret asm("r0");
+	register uint64_t ret;
 
-	__asm __volatile("ldrd %0, [%1]" : "+r" (ret)
-	    				 : "r" (target)
-					 : "memory", "cc");
+	__asm __volatile("ldrexd %0, [%1]" 
+	    : "=&r" (ret)
+	    : "r" (target)
+	    : "memory", "cc");
 	return (ret);
 }
 
@@ -170,10 +171,16 @@ CK_PR_STORE_S(char, char, "strb")
 CK_CC_INLINE static void
 ck_pr_store_64(const uint64_t *target, uint64_t value)
 {
-
-	__asm __volatile("strd %0, [%1]"
-				:
-				: "r" (value), "r" (target)
+	uint64_t tmp;
+	uint32_t flag;
+	__asm __volatile("1: 		\n"
+	    		 "ldrexd	%0, [%2]\n"
+			 "strexd	%1, %3, [%2]\n"
+			 "teq		%1, #0\n"
+			 "it ne		\n"
+			 "bne		1\n"
+				: "=&r" (tmp), "=&r" (flag)
+				: "r" (target), "r" (value)
 				: "memory", "cc");
 }
 
