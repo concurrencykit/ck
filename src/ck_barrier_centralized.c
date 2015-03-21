@@ -50,7 +50,7 @@ ck_barrier_centralized(struct ck_barrier_centralized *barrier,
 		return;
 	}
 
-	ck_pr_fence_load();
+	ck_pr_fence_atomic_load();
 	while (sense != ck_pr_load_uint(&barrier->sense))
 		ck_pr_stall();
 

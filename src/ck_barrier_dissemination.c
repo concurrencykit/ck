@@ -119,5 +119,6 @@ ck_barrier_dissemination(struct ck_barrier_dissemination *barrier,
 		state->sense = ~state->sense;
 
 	state->parity = 1 - state->parity;
+	ck_pr_fence_memory();
 	return;
 }

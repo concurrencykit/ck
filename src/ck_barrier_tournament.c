@@ -178,6 +178,7 @@ wakeup:
 	}
 
 leave:
+	ck_pr_fence_memory();
 	state->sense = ~state->sense;
 	return;
 }
