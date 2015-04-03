@@ -1077,14 +1077,14 @@ restart:
 			goto restart;
 		else if (CK_CC_UNLIKELY(ret != 0))
 			return false;
-		ck_pr_store_ptr(ck_rhs_entry_addr(map, first), insert);
+		ck_pr_store_ptr_unsafe(ck_rhs_entry_addr(map, first), insert);
 		ck_pr_inc_uint(&map->generation[h & CK_RHS_G_MASK]);
 		ck_pr_fence_atomic_store();
 		desc2->probes = n_probes;
 		ck_rhs_add_wanted(hs, first, -1, h);
 		ck_rhs_do_backward_shift_delete(hs, slot);
 	} else {
-		ck_pr_store_ptr(ck_rhs_entry_addr(map, slot), insert);
+		ck_pr_store_ptr_unsafe(ck_rhs_entry_addr(map, slot), insert);
 		ck_rhs_set_probes(map, slot, n_probes);
 	}
 	*previous = object;
@@ -1173,7 +1173,7 @@ restart:
 		if (CK_CC_UNLIKELY(ret == -1))
 			return false;
 		/* If an earlier bucket was found, then store entry there. */
-		ck_pr_store_ptr(ck_rhs_entry_addr(map, first), insert);
+		ck_pr_store_ptr_unsafe(ck_rhs_entry_addr(map, first), insert);
 		desc2->probes = n_probes;
 		/*
 		 * If a duplicate key was found, then delete it after
@@ -1193,7 +1193,7 @@ restart:
 		 * If we are storing into same slot, then atomic store is sufficient
 		 * for replacement.
 		 */
-		ck_pr_store_ptr(ck_rhs_entry_addr(map, slot), insert);
+		ck_pr_store_ptr_unsafe(ck_rhs_entry_addr(map, slot), insert);
 		ck_rhs_set_probes(map, slot, n_probes);
 		if (object == NULL)
 			ck_rhs_add_wanted(hs, slot, -1, h);
@@ -1250,7 +1250,7 @@ restart:
 		if (CK_CC_UNLIKELY(ret == -1))
 			return false;
 		/* If an earlier bucket was found, then store entry there. */
-		ck_pr_store_ptr(ck_rhs_entry_addr(map, first), insert);
+		ck_pr_store_ptr_unsafe(ck_rhs_entry_addr(map, first), insert);
 		desc2->probes = n_probes;
 		/*
 		 * If a duplicate key was found, then delete it after
@@ -1271,7 +1271,7 @@ restart:
 		 * If we are storing into same slot, then atomic store is sufficient
 		 * for replacement.
 		 */
-		ck_pr_store_ptr(ck_rhs_entry_addr(map, slot), insert);
+		ck_pr_store_ptr_unsafe(ck_rhs_entry_addr(map, slot), insert);
 		ck_rhs_set_probes(map, slot, n_probes);
 		if (object == NULL)
 			ck_rhs_add_wanted(hs, slot, -1, h);
@@ -1327,12 +1327,12 @@ restart:
 		else if (CK_CC_UNLIKELY(ret == -1))
 			return false;
 		/* Insert key into first bucket in probe sequence. */
-		ck_pr_store_ptr(ck_rhs_entry_addr(map, first), insert);
+		ck_pr_store_ptr_unsafe(ck_rhs_entry_addr(map, first), insert);
 		desc->probes = n_probes;
 		ck_rhs_add_wanted(hs, first, -1, h);
 	} else {
 		/* An empty slot was found. */
-		ck_pr_store_ptr(ck_rhs_entry_addr(map, slot), insert);
+		ck_pr_store_ptr_unsafe(ck_rhs_entry_addr(map, slot), insert);
 		ck_rhs_set_probes(map, slot, n_probes);
 		ck_rhs_add_wanted(hs, slot, -1, h);
 	}

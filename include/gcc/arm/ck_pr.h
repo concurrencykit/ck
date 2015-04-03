@@ -104,7 +104,7 @@ CK_PR_FENCE(release, CK_DMB)
 
 #define CK_PR_LOAD(S, M, T, C, I)				\
 	CK_CC_INLINE static T					\
-	ck_pr_load_##S(const M *target)				\
+	ck_pr_md_load_##S(const M *target)			\
 	{							\
 		long r = 0;					\
 		__asm__ __volatile__(I " %0, [%1];"		\
@@ -143,7 +143,7 @@ ck_pr_load_64(const uint64_t *target)
 
 #define CK_PR_STORE(S, M, T, C, I)				\
 	CK_CC_INLINE static void				\
-	ck_pr_store_##S(M *target, T v)				\
+	ck_pr_md_store_##S(M *target, T v)			\
 	{							\
 		__asm__ __volatile__(I " %1, [%0]"		\
 					:			\

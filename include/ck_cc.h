@@ -86,6 +86,10 @@
 #define CK_CC_UNLIKELY(x) x
 #endif
 
+#ifndef CK_CC_TYPEOF
+#define CK_CC_TYPEOF(X, DEFAULT) DEFAULT
+#endif
+
 #ifndef CK_F_CC_FFS
 #define CK_F_CC_FFS
 CK_CC_INLINE static int

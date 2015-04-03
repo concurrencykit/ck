@@ -57,14 +57,14 @@ ck_pr_barrier(void)
 
 #define CK_PR_LOAD(S, M, T)		 			\
 	CK_CC_INLINE static T					\
-	ck_pr_load_##S(const M *target)				\
+	ck_pr_md_load_##S(const M *target)			\
 	{							\
 		T r;						\
 		r = CK_PR_ACCESS(*(T *)target);			\
 		return (r);					\
 	}							\
 	CK_CC_INLINE static void				\
-	ck_pr_store_##S(M *target, T v)				\
+	ck_pr_md_store_##S(M *target, T v)			\
 	{							\
 		CK_PR_ACCESS(*(T *)target) = v;			\
 		return;						\
