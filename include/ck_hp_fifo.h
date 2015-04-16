@@ -168,7 +168,7 @@ ck_hp_fifo_dequeue_mpmc(ck_hp_record_t *record,
 			break;
 	}
 
-	ck_pr_store_ptr(value, next->value);
+	ck_pr_store_ptr_unsafe(value, next->value);
 	return head;
 }
 
@@ -202,7 +202,7 @@ ck_hp_fifo_trydequeue_mpmc(ck_hp_record_t *record,
 	} else if (ck_pr_cas_ptr(&fifo->head, head, next) == false)
 		return NULL;
 
-	ck_pr_store_ptr(value, next->value);
+	ck_pr_store_ptr_unsafe(value, next->value);
 	return head;
 }
 

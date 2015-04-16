@@ -584,8 +584,7 @@ ck_hs_gc(struct ck_hs *hs, unsigned long cycles, unsigned long seed)
 
 		if (first != NULL) {
 			const void *insert = ck_hs_marshal(hs->mode, entry, h);
-
-			ck_pr_store_ptr(first, insert);
+			ck_pr_store_ptr_unsafe(first, insert);
 			ck_hs_map_signal(map, h);
 			ck_pr_store_ptr(slot, CK_HS_TOMBSTONE);
 		}
@@ -642,11 +641,11 @@ ck_hs_fas(struct ck_hs *hs,
 	insert = ck_hs_marshal(hs->mode, key, h);
 
 	if (first != NULL) {
-		ck_pr_store_ptr(first, insert);
+		ck_pr_store_ptr_unsafe(first, insert);
 		ck_hs_map_signal(map, h);
 		ck_pr_store_ptr(slot, CK_HS_TOMBSTONE);
 	} else {
-		ck_pr_store_ptr(slot, insert);
+		ck_pr_store_ptr_unsafe(slot, insert);
 	}
 
 	*previous = object;
@@ -717,7 +716,7 @@ restart:
 		 * This follows the same semantics as ck_hs_set, please refer to that
 		 * function for documentation.
 		 */
-		ck_pr_store_ptr(first, insert);
+		ck_pr_store_ptr_unsafe(first, insert);
 
 		if (object != NULL) {
 			ck_hs_map_signal(map, h);
@@ -728,7 +727,7 @@ restart:
 		 * If we are storing into same slot, then atomic store is sufficient
 		 * for replacement.
 		 */
-		ck_pr_store_ptr(slot, insert);
+		ck_pr_store_ptr_unsafe(slot, insert);
 	}
 
 	if (object == NULL)
@@ -766,7 +765,7 @@ restart:
 
 	if (first != NULL) {
 		/* If an earlier bucket was found, then store entry there. */
-		ck_pr_store_ptr(first, insert);
+		ck_pr_store_ptr_unsafe(first, insert);
 
 		/*
 		 * If a duplicate key was found, then delete it after
@@ -784,7 +783,7 @@ restart:
 		 * If we are storing into same slot, then atomic store is sufficient
 		 * for replacement.
 		 */
-		ck_pr_store_ptr(slot, insert);
+		ck_pr_store_ptr_unsafe(slot, insert);
 	}
 
 	if (object == NULL)
@@ -827,10 +826,10 @@ restart:
 
 	if (first != NULL) {
 		/* Insert key into first bucket in probe sequence. */
-		ck_pr_store_ptr(first, insert);
+		ck_pr_store_ptr_unsafe(first, insert);
 	} else {
 		/* An empty slot was found. */
-		ck_pr_store_ptr(slot, insert);
+		ck_pr_store_ptr_unsafe(slot, insert);
 	}
 
 	ck_hs_map_postinsert(hs, map);
