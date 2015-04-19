@@ -584,6 +584,7 @@ ck_hs_gc(struct ck_hs *hs, unsigned long cycles, unsigned long seed)
 
 		if (first != NULL) {
 			const void *insert = ck_hs_marshal(hs->mode, entry, h);
+
 			ck_pr_store_ptr_unsafe(first, insert);
 			ck_hs_map_signal(map, h);
 			ck_pr_store_ptr(slot, CK_HS_TOMBSTONE);
