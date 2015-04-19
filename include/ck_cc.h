@@ -32,6 +32,12 @@
 #include "gcc/ck_cc.h"
 #endif
 
+#ifndef CK_CC_RESTRICT
+#define CK_CC_RESTRICT
+#endif
+
+#define CK_CC_DECONST_PTR(X) ((void *)(uintptr_t)(X))
+
 /*
  * Container function.
  * This relies on (compiler) implementation-defined behavior.

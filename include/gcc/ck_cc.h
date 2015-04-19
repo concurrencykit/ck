@@ -57,6 +57,8 @@
 #define CK_CC_INLINE CK_CC_UNUSED
 #endif
 
+#define CK_CC_RESTRICT restrict
+
 /*
  * Packed attribute.
  */
