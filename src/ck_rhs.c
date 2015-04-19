@@ -89,7 +89,7 @@ struct ck_rhs_entry_desc {
 	unsigned short wanted;
 	CK_RHS_WORD probe_bound;
 	bool in_rh;
-	void *entry;
+	const void *entry;
 } CK_CC_ALIGN(16);
 
 struct ck_rhs_no_entry_desc {
@@ -105,7 +105,7 @@ typedef long ck_rhs_probe_cb_t(struct ck_rhs *hs,
     long *priority,
     unsigned long h,
     const void *key,
-    void **object,
+    const void **object,
     unsigned long probe_limit,
     enum ck_rhs_probe_behavior behavior);
 
@@ -122,7 +122,7 @@ struct ck_rhs_map {
 	union {
 		struct ck_rhs_entry_desc *descs;
 		struct ck_rhs_no_entry {
-			void **entries;
+			const void **entries;
 			struct ck_rhs_no_entry_desc *descs;
 		} no_entries;
 	} entries;
@@ -130,7 +130,7 @@ struct ck_rhs_map {
 	ck_rhs_probe_cb_t *probe_func;
 };
 
-static CK_CC_INLINE void *
+static CK_CC_INLINE const void *
 ck_rhs_entry(struct ck_rhs_map *map, long offset)
 {
 
@@ -140,7 +140,7 @@ ck_rhs_entry(struct ck_rhs_map *map, long offset)
 		return (map->entries.descs[offset].entry);
 }
 
-static CK_CC_INLINE void **
+static CK_CC_INLINE const void **
 ck_rhs_entry_addr(struct ck_rhs_map *map, long offset)
 {
 
@@ -266,7 +266,7 @@ ck_rhs_next(struct ck_rhs *hs, struct ck_rhs_iterator *i, void **key)
 		return false;
 
 	do {
-		value = ck_rhs_entry(map, i->offset);
+		value = CK_CC_DECONST_PTR(ck_rhs_entry(map, i->offset));
 		if (value != CK_RHS_EMPTY) {
 #ifdef CK_RHS_PP
 			if (hs->mode & CK_RHS_MODE_OBJECT)
@@ -475,7 +475,7 @@ ck_rhs_grow(struct ck_rhs *hs,
     unsigned long capacity)
 {
 	struct ck_rhs_map *map, *update;
-	void *previous, *prev_saved;
+	const void *previous, *prev_saved;
 	unsigned long k, offset, probes;
 
 restart:
@@ -504,7 +504,7 @@ restart:
 		probes = 0;
 
 		for (;;) {
-			void **cursor = ck_rhs_entry_addr(update, offset);
+			const void **cursor = ck_rhs_entry_addr(update, offset);
 
 			if (probes++ == update->probe_limit) {
 				/*
@@ -522,7 +522,7 @@ restart:
 				ck_rhs_map_bound_set(update, h, probes);
 				break;
 			} else if (ck_rhs_probes(update, offset) < probes) {
-				void *tmp = prev_saved;
+				const void *tmp = prev_saved;
 				unsigned int old_probes;
 				prev_saved = previous = *cursor;
 #ifdef CK_RHS_PP
@@ -563,11 +563,11 @@ ck_rhs_map_probe_rm(struct ck_rhs *hs,
     long *priority,
     unsigned long h,
     const void *key,
-    void **object,
+    const void **object,
     unsigned long probe_limit,
     enum ck_rhs_probe_behavior behavior)
 {
-	void *k;
+	const void *k;
 	const void *compare;
 	long pr = -1;
 	unsigned long offset, probes, opl;
@@ -675,11 +675,11 @@ ck_rhs_map_probe(struct ck_rhs *hs,
     long *priority,
     unsigned long h,
     const void *key,
-    void **object,
+    const void **object,
     unsigned long probe_limit,
     enum ck_rhs_probe_behavior behavior)
 {
-	void *k;
+	const void *k;
 	const void *compare;
 	long pr = -1;
 	unsigned long offset, probes, opl;
@@ -887,7 +887,7 @@ ck_rhs_put_robin_hood(struct ck_rhs *hs,
     long orig_slot, struct ck_rhs_entry_desc *desc)
 {
 	long slot, first;
-	void *object, *insert;
+	const void *object, *insert;
 	unsigned long n_probes;
 	struct ck_rhs_map *map;
 	unsigned long h = 0;
@@ -900,7 +900,7 @@ ck_rhs_put_robin_hood(struct ck_rhs *hs,
 	first = orig_slot;
 	n_probes = desc->probes;
 restart:
-	key = ck_rhs_entry(map, first);
+	key = CK_CC_DECONST_PTR(ck_rhs_entry(map, first));
 	insert = key;
 #ifdef CK_RHS_PP
 	if (hs->mode & CK_RHS_MODE_OBJECT)
@@ -1048,7 +1048,7 @@ ck_rhs_fas(struct ck_rhs *hs,
     void **previous)
 {
 	long slot, first;
-	void *object;
+	const void *object;
 	const void *insert;
 	unsigned long n_probes;
 	struct ck_rhs_map *map = hs->map;
@@ -1077,17 +1077,17 @@ restart:
 			goto restart;
 		else if (CK_CC_UNLIKELY(ret != 0))
 			return false;
-		ck_pr_store_ptr_unsafe(ck_rhs_entry_addr(map, first), insert);
+		ck_pr_store_ptr(ck_rhs_entry_addr(map, first), insert);
 		ck_pr_inc_uint(&map->generation[h & CK_RHS_G_MASK]);
 		ck_pr_fence_atomic_store();
 		desc2->probes = n_probes;
 		ck_rhs_add_wanted(hs, first, -1, h);
 		ck_rhs_do_backward_shift_delete(hs, slot);
 	} else {
-		ck_pr_store_ptr_unsafe(ck_rhs_entry_addr(map, slot), insert);
+		ck_pr_store_ptr(ck_rhs_entry_addr(map, slot), insert);
 		ck_rhs_set_probes(map, slot, n_probes);
 	}
-	*previous = object;
+	*previous = CK_CC_DECONST_PTR(object);
 	return true;
 }
 
@@ -1111,7 +1111,7 @@ ck_rhs_apply(struct ck_rhs *hs,
     void *cl)
 {
 	const void *insert;
-	void  *object, *delta = false;
+	const void  *object, *delta = false;
 	unsigned long n_probes;
 	long slot, first;
 	struct ck_rhs_map *map;
@@ -1128,7 +1128,7 @@ restart:
 		goto restart;
 	}
 	if (!delta_set) {
-		delta = fn(object, cl);
+		delta = fn(CK_CC_DECONST_PTR(object), cl);
 		delta_set = true;
 	}
 
@@ -1173,7 +1173,7 @@ restart:
 		if (CK_CC_UNLIKELY(ret == -1))
 			return false;
 		/* If an earlier bucket was found, then store entry there. */
-		ck_pr_store_ptr_unsafe(ck_rhs_entry_addr(map, first), insert);
+		ck_pr_store_ptr(ck_rhs_entry_addr(map, first), insert);
 		desc2->probes = n_probes;
 		/*
 		 * If a duplicate key was found, then delete it after
@@ -1193,7 +1193,7 @@ restart:
 		 * If we are storing into same slot, then atomic store is sufficient
 		 * for replacement.
 		 */
-		ck_pr_store_ptr_unsafe(ck_rhs_entry_addr(map, slot), insert);
+		ck_pr_store_ptr(ck_rhs_entry_addr(map, slot), insert);
 		ck_rhs_set_probes(map, slot, n_probes);
 		if (object == NULL)
 			ck_rhs_add_wanted(hs, slot, -1, h);
@@ -1214,7 +1214,7 @@ ck_rhs_set(struct ck_rhs *hs,
     void **previous)
 {
 	long slot, first;
-	void *object;
+	const void *object;
 	const void *insert;
 	unsigned long n_probes;
 	struct ck_rhs_map *map;
@@ -1250,7 +1250,7 @@ restart:
 		if (CK_CC_UNLIKELY(ret == -1))
 			return false;
 		/* If an earlier bucket was found, then store entry there. */
-		ck_pr_store_ptr_unsafe(ck_rhs_entry_addr(map, first), insert);
+		ck_pr_store_ptr(ck_rhs_entry_addr(map, first), insert);
 		desc2->probes = n_probes;
 		/*
 		 * If a duplicate key was found, then delete it after
@@ -1271,7 +1271,7 @@ restart:
 		 * If we are storing into same slot, then atomic store is sufficient
 		 * for replacement.
 		 */
-		ck_pr_store_ptr_unsafe(ck_rhs_entry_addr(map, slot), insert);
+		ck_pr_store_ptr(ck_rhs_entry_addr(map, slot), insert);
 		ck_rhs_set_probes(map, slot, n_probes);
 		if (object == NULL)
 			ck_rhs_add_wanted(hs, slot, -1, h);
@@ -1283,7 +1283,7 @@ restart:
 			ck_rhs_grow(hs, map->capacity << 1);
 	}
 
-	*previous = object;
+	*previous = CK_CC_DECONST_PTR(object);
 	return true;
 }
 
@@ -1294,7 +1294,7 @@ ck_rhs_put_internal(struct ck_rhs *hs,
     enum ck_rhs_probe_behavior behavior)
 {
 	long slot, first;
-	void *object;
+	const void *object;
 	const void *insert;
 	unsigned long n_probes;
 	struct ck_rhs_map *map;
@@ -1327,12 +1327,12 @@ restart:
 		else if (CK_CC_UNLIKELY(ret == -1))
 			return false;
 		/* Insert key into first bucket in probe sequence. */
-		ck_pr_store_ptr_unsafe(ck_rhs_entry_addr(map, first), insert);
+		ck_pr_store_ptr(ck_rhs_entry_addr(map, first), insert);
 		desc->probes = n_probes;
 		ck_rhs_add_wanted(hs, first, -1, h);
 	} else {
 		/* An empty slot was found. */
-		ck_pr_store_ptr_unsafe(ck_rhs_entry_addr(map, slot), insert);
+		ck_pr_store_ptr(ck_rhs_entry_addr(map, slot), insert);
 		ck_rhs_set_probes(map, slot, n_probes);
 		ck_rhs_add_wanted(hs, slot, -1, h);
 	}
@@ -1367,7 +1367,7 @@ ck_rhs_get(struct ck_rhs *hs,
     const void *key)
 {
 	long first;
-	void *object;
+	const void *object;
 	struct ck_rhs_map *map;
 	unsigned long n_probes;
 	unsigned int g, g_p, probe;
@@ -1387,7 +1387,7 @@ ck_rhs_get(struct ck_rhs *hs,
 		g_p = ck_pr_load_uint(generation);
 	} while (g != g_p);
 
-	return object;
+	return CK_CC_DECONST_PTR(object);
 }
 
 void *
@@ -1396,7 +1396,7 @@ ck_rhs_remove(struct ck_rhs *hs,
     const void *key)
 {
 	long slot, first;
-	void *object;
+	const void *object;
 	struct ck_rhs_map *map = hs->map;
 	unsigned long n_probes;
 
@@ -1407,7 +1407,7 @@ ck_rhs_remove(struct ck_rhs *hs,
 
 	map->n_entries--;
 	ck_rhs_do_backward_shift_delete(hs, slot);
-	return object;
+	return CK_CC_DECONST_PTR(object);
 }
 
 bool
