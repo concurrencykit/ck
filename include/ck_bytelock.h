@@ -92,8 +92,12 @@ ck_bytelock_write_lock(struct ck_bytelock *bytelock, unsigned int slot)
 	if (slot <= sizeof bytelock->readers)
 		ck_pr_store_8(&bytelock->readers[slot - 1], false);
 
-	/* Wait for slotted readers to drain out. */
-	ck_pr_fence_store_load();
+	/*
+	 * Wait for slotted readers to drain out. This also provides the
+	 * lock acquire semantics.
+	 */
+	ck_pr_fence_atomic_load();
+
 	for (i = 0; i < sizeof(bytelock->readers) / CK_BYTELOCK_LENGTH; i++) {
 		while (CK_BYTELOCK_LOAD(&readers[i]) != false)
 			ck_pr_stall();
@@ -143,14 +147,14 @@ ck_bytelock_read_lock(struct ck_bytelock *bytelock, unsigned int slot)
 				ck_pr_stall();
 		}
 
-		ck_pr_fence_load();
+		ck_pr_fence_acquire();
 		return;
 	}
 
 	slot -= 1;
 	for (;;) {
-		ck_pr_store_8(&bytelock->readers[slot], true);
-		ck_pr_fence_store_load();
+		ck_pr_faa_8(&bytelock->readers[slot], true);
+		ck_pr_fence_atomic_load();
 
 		/*
 		 * If there is no owner at this point, our slot has
@@ -165,7 +169,7 @@ ck_bytelock_read_lock(struct ck_bytelock *bytelock, unsigned int slot)
 			ck_pr_stall();
 	}
 
-	ck_pr_fence_load();
+	ck_pr_fence_acquire();
 	return;
 }
 
