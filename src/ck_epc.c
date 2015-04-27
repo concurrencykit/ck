@@ -108,6 +108,15 @@ ck_epc_begin(ck_epc_t *epc, ck_epc_record_t *record, ck_epc_section_t *section)
 	epoch_idx = epoch % CK_EPC_GRACE;
 	ref = &record->epoch_refs[epoch_idx];
 	if (ref->ref_count == 0) {
+		/*
+		 * We are about to reference a new epoch.
+		 *
+		 * It is now safe to dispatch callbacks for on the deferral
+		 * stack for `epoch % CK_EPOCH_LENGTH' (see implementation),
+		 * since the last epoch to be allocated on that portion of the
+		 * ring was at least 2 epochs older.
+		 */
+		ck_epoch_dispatch(&record->record, epoch);
 		ref->epoch_value = epoch;
 		ref->ref_count = 1;
 	} else {

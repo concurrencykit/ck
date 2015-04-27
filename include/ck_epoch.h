@@ -157,6 +157,7 @@ void ck_epoch_unregister(ck_epoch_t *, ck_epoch_record_t *);
 bool ck_epoch_poll(ck_epoch_t *, ck_epoch_record_t *);
 void ck_epoch_synchronize(ck_epoch_t *, ck_epoch_record_t *);
 void ck_epoch_barrier(ck_epoch_t *, ck_epoch_record_t *);
+void ck_epoch_dispatch(ck_epoch_record_t *record, unsigned int e);
 void ck_epoch_reclaim(ck_epoch_record_t *);
 
 #endif /* CK_EPOCH_H */

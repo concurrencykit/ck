@@ -253,7 +253,7 @@ ck_epoch_scan(struct ck_epoch *global,
 	return NULL;
 }
 
-static void
+void
 ck_epoch_dispatch(struct ck_epoch_record *record, unsigned int e)
 {
 	unsigned int epoch = e & (CK_EPOCH_LENGTH - 1);
