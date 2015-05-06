@@ -71,14 +71,14 @@ ck_pr_barrier(void)
 	}
 
 CK_CC_INLINE static void *
-ck_pr_load_ptr(const void *target)
+ck_pr_md_load_ptr(const void *target)
 {
 
 	return CK_PR_ACCESS(*(void **)target);
 }
 
 CK_CC_INLINE static void
-ck_pr_store_ptr(void *target, const void *v)
+ck_pr_md_store_ptr(void *target, const void *v)
 {
 
 	CK_PR_ACCESS(*(void **)target) = (void *)v;
