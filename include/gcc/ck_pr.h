@@ -113,7 +113,8 @@ CK_PR_LOAD_S(8,  uint8_t)
 CK_CC_INLINE static void
 ck_pr_stall(void)
 {
-	return;
+
+	ck_pr_barrier();
 }
 
 /*
