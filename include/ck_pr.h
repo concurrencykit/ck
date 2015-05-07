@@ -459,7 +459,7 @@ CK_PR_BIN_S(or, 8, uint8_t, |)
 	{									   \
 		T previous;							   \
 		C punt;								   \
-		punt = ck_pr_load_##S(target);					   \
+		punt = ck_pr_md_load_##S(target);				   \
 		previous = (T)punt;						   \
 		while (ck_pr_cas_##S##_value(target, (C)previous,		   \
 			(C)(previous P (R ((T)1 << offset))), &previous) == false) \
@@ -600,7 +600,7 @@ CK_PR_BTX_S(bts, 16, uint16_t, |,)
 	{								\
 		T previous;						\
 		C punt;							\
-		punt = (C)ck_pr_load_##S(target);			\
+		punt = (C)ck_pr_md_load_##S(target);			\
 		previous = (T)punt;					\
 		while (ck_pr_cas_##S##_value(target,			\
 					     (C)previous,		\
