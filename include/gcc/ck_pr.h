@@ -60,28 +60,39 @@ ck_pr_barrier(void)
 	ck_pr_md_load_##S(const M *target)			\
 	{							\
 		T r;						\
+		ck_pr_barrier();				\
 		r = CK_PR_ACCESS(*(T *)target);			\
+		ck_pr_barrier();				\
 		return (r);					\
 	}							\
 	CK_CC_INLINE static void				\
 	ck_pr_md_store_##S(M *target, T v)			\
 	{							\
+		ck_pr_barrier();				\
 		CK_PR_ACCESS(*(T *)target) = v;			\
+		ck_pr_barrier();				\
 		return;						\
 	}
 
 CK_CC_INLINE static void *
 ck_pr_md_load_ptr(const void *target)
 {
+	void *r;
 
-	return CK_PR_ACCESS(*(void **)target);
+	ck_pr_barrier();
+	r = CK_PR_ACCESS(*(void **)target);
+	ck_pr_barrier();
+
+	return r;
 }
 
 CK_CC_INLINE static void
 ck_pr_md_store_ptr(void *target, const void *v)
 {
 
+	ck_pr_barrier();
 	CK_PR_ACCESS(*(void **)target) = (void *)v;
+	ck_pr_barrier();
 	return;
 }
 
