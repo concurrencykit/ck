@@ -118,6 +118,7 @@ struct ck_rhs_map {
 	unsigned long n_entries;
 	unsigned long capacity;
 	unsigned long size;
+	unsigned long max_entries;
 	char offset_mask;
 	union {
 		struct ck_rhs_entry_desc *descs;
@@ -242,10 +243,28 @@ ck_rhs_unset_rh(struct ck_rhs_map *map, long offset)
 }
 
 
-#define CK_RHS_LOAD_FACTOR	50
+#define CK_RHS_DEFAULT_LOAD_FACTOR	50
 
 static ck_rhs_probe_cb_t ck_rhs_map_probe;
 static ck_rhs_probe_cb_t ck_rhs_map_probe_rm;
+
+bool
+ck_rhs_set_load_factor(struct ck_rhs *hs, unsigned int load_factor)
+{
+	struct ck_rhs_map *map = hs->map;
+
+	if (load_factor == 0 || load_factor > 100)
+		return false;
+
+	hs->load_factor = load_factor;
+	map->max_entries = (map->capacity * (unsigned long)hs->load_factor) / 100;
+	while (map->n_entries > map->max_entries) {
+		if (ck_rhs_grow(hs, map->capacity << 1) == false)
+			return false;
+		map = hs->map;
+	}
+	return true;
+}
 
 void
 ck_rhs_iterator_init(struct ck_rhs_iterator *iterator)
@@ -351,6 +370,7 @@ ck_rhs_map_create(struct ck_rhs *hs, unsigned long entries)
 	map->mask = n_entries - 1;
 	map->n_entries = 0;
 
+	map->max_entries = (map->capacity * (unsigned long)hs->load_factor) / 100;
 	/* Align map allocation to cache line. */
 	if (map->read_mostly) {
 		map->entries.no_entries.entries = (void *)(((uintptr_t)&map[1] +
@@ -913,6 +933,8 @@ restart:
 	    map->probe_limit, prevs_nb == CK_RHS_MAX_RH ?
 	    CK_RHS_PROBE_NO_RH : CK_RHS_PROBE_ROBIN_HOOD);
 
+	if (prevs_nb == CK_RHS_MAX_RH)
+		printf("FUCK PARTY\n");
 	if (slot == -1 && first == -1) {
 		if (ck_rhs_grow(hs, map->capacity << 1) == false) {
 			desc->in_rh = false;
@@ -1201,7 +1223,7 @@ restart:
 
 	if (object == NULL) {
 		map->n_entries++;
-		if ((map->n_entries ) > ((map->capacity * CK_RHS_LOAD_FACTOR) / 100))
+		if ((map->n_entries ) > map->max_entries)
 			ck_rhs_grow(hs, map->capacity << 1);
 	}
 	return true;
@@ -1279,7 +1301,7 @@ restart:
 
 	if (object == NULL) {
 		map->n_entries++;
-		if ((map->n_entries ) > ((map->capacity * CK_RHS_LOAD_FACTOR) / 100))
+		if ((map->n_entries ) > map->max_entries)
 			ck_rhs_grow(hs, map->capacity << 1);
 	}
 
@@ -1338,7 +1360,7 @@ restart:
 	}
 
 	map->n_entries++;
-	if ((map->n_entries ) > ((map->capacity * CK_RHS_LOAD_FACTOR) / 100))
+	if ((map->n_entries ) > map->max_entries)
 		ck_rhs_grow(hs, map->capacity << 1);
 	return true;
 }
@@ -1424,6 +1446,7 @@ ck_rhs_move(struct ck_rhs *hs,
 	hs->mode = source->mode;
 	hs->seed = source->seed;
 	hs->map = source->map;
+	hs->load_factor = source->load_factor;
 	hs->m = m;
 	hs->hf = hf;
 	hs->compare = compare;
@@ -1448,6 +1471,7 @@ ck_rhs_init(struct ck_rhs *hs,
 	hs->seed = seed;
 	hs->hf = hf;
 	hs->compare = compare;
+	hs->load_factor = CK_RHS_DEFAULT_LOAD_FACTOR;
 
 	hs->map = ck_rhs_map_create(hs, n_entries);
 	return hs->map != NULL;

@@ -84,6 +84,7 @@ struct ck_rhs {
 	struct ck_malloc *m;
 	struct ck_rhs_map *map;
 	unsigned int mode;
+	unsigned int load_factor;
 	unsigned long seed;
 	ck_rhs_hash_cb_t *hf;
 	ck_rhs_compare_cb_t *compare;
@@ -128,5 +129,6 @@ unsigned long ck_rhs_count(ck_rhs_t *);
 bool ck_rhs_reset(ck_rhs_t *);
 bool ck_rhs_reset_size(ck_rhs_t *, unsigned long);
 void ck_rhs_stat(ck_rhs_t *, struct ck_rhs_stat *);
+bool ck_rhs_set_load_factor(ck_rhs_t *, unsigned int);
 
 #endif /* CK_RHS_H */
