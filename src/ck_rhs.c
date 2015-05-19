@@ -933,8 +933,6 @@ restart:
 	    map->probe_limit, prevs_nb == CK_RHS_MAX_RH ?
 	    CK_RHS_PROBE_NO_RH : CK_RHS_PROBE_ROBIN_HOOD);
 
-	if (prevs_nb == CK_RHS_MAX_RH)
-		printf("FUCK PARTY\n");
 	if (slot == -1 && first == -1) {
 		if (ck_rhs_grow(hs, map->capacity << 1) == false) {
 			desc->in_rh = false;
