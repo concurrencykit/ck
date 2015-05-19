@@ -915,6 +915,7 @@ ck_rhs_put_robin_hood(struct ck_rhs *hs,
 	void *key;
 	long prevs[CK_RHS_MAX_RH];
 	unsigned int prevs_nb = 0;
+	unsigned int i;
 
 	map = hs->map;
 	first = orig_slot;
@@ -936,10 +937,13 @@ restart:
 	if (slot == -1 && first == -1) {
 		if (ck_rhs_grow(hs, map->capacity << 1) == false) {
 			desc->in_rh = false;
-			for (unsigned int i = 0; i < prevs_nb; i++)
+
+			for (i = 0; i < prevs_nb; i++)
 				ck_rhs_unset_rh(map, prevs[i]);
+
 			return -1;
 		}
+
 		return 1;
 	}
 
