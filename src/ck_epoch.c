@@ -131,8 +131,10 @@ enum {
 	CK_EPOCH_STATE_FREE = 1
 };
 
-CK_STACK_CONTAINER(struct ck_epoch_record, record_next, ck_epoch_record_container)
-CK_STACK_CONTAINER(struct ck_epoch_entry, stack_entry, ck_epoch_entry_container)
+CK_STACK_CONTAINER(struct ck_epoch_record, record_next,
+    ck_epoch_record_container)
+CK_STACK_CONTAINER(struct ck_epoch_entry, stack_entry,
+    ck_epoch_entry_container)
 
 void
 ck_epoch_init(struct ck_epoch *global)
@@ -322,7 +324,8 @@ ck_epoch_synchronize(struct ck_epoch *global, struct ck_epoch_record *record)
 		 * Determine whether all threads have observed the current
 		 * epoch.  We can get away without a fence here.
 		 */
-		while (cr = ck_epoch_scan(global, cr, delta, &active), cr != NULL) {
+		while (cr = ck_epoch_scan(global, cr, delta, &active),
+		    cr != NULL) {
 			unsigned int e_d;
 
 			ck_pr_stall();
