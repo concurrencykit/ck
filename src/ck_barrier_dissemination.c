@@ -104,7 +104,7 @@ ck_barrier_dissemination(struct ck_barrier_dissemination *barrier,
 		unsigned int *pflag, *tflag;
 
 		pflag = barrier[state->tid].flags[state->parity][i].pflag;
-		tflag = barrier[state->tid].flags[state->parity][i].tflag;
+		tflag = &barrier[state->tid].flags[state->parity][i].tflag;
 
 		/* Unblock current partner. */
 		ck_pr_store_uint(pflag, state->sense);
