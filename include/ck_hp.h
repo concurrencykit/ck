@@ -28,6 +28,7 @@
 #define CK_HP_H
 
 #include <ck_cc.h>
+#include <ck_md.h>
 #include <ck_pr.h>
 #include <ck_stack.h>
 
@@ -78,6 +79,20 @@ ck_hp_set(struct ck_hp_record *record, unsigned int i, void *pointer)
 {
 
 	ck_pr_store_ptr(&record->pointers[i], pointer);
+	return;
+}
+
+CK_CC_INLINE static void
+ck_hp_set_fence(struct ck_hp_record *record, unsigned int i, void *pointer)
+{
+
+#ifdef CK_MD_TSO
+	ck_pr_fas_ptr(&record->pointers[i], pointer);
+#else
+	ck_pr_store_ptr(&record->pointers[i], pointer);
+	ck_pr_fence_memory();
+#endif
+
 	return;
 }
 
