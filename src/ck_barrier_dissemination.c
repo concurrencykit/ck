@@ -101,11 +101,16 @@ ck_barrier_dissemination(struct ck_barrier_dissemination *barrier,
 	unsigned int size = barrier->size;
 
 	for (i = 0; i < size; ++i) {
+		unsigned int *pflag, *tflag;
+
+		pflag = barrier[state->tid].flags[state->parity][i].pflag;
+		tflag = barrier[state->tid].flags[state->parity][i].tflag;
+
 		/* Unblock current partner. */
-		ck_pr_store_uint(barrier[state->tid].flags[state->parity][i].pflag, state->sense);
+		ck_pr_store_uint(pflag, state->sense);
 
 		/* Wait until some other thread unblocks this one. */
-		while (ck_pr_load_uint(&barrier[state->tid].flags[state->parity][i].tflag) != state->sense)
+		while (ck_pr_load_uint(tflag) != state->sense)
 			ck_pr_stall();
 	}
 
@@ -119,6 +124,7 @@ ck_barrier_dissemination(struct ck_barrier_dissemination *barrier,
 		state->sense = ~state->sense;
 
 	state->parity = 1 - state->parity;
-	ck_pr_fence_memory();
+
+	ck_pr_fence_acquire();
 	return;
 }
