@@ -395,7 +395,7 @@ ck_bitmap_count(const ck_bitmap_t *bitmap, unsigned int limit)
 
 /*
  * Returns the number of set bit in the intersection of two bitmaps,
- * upto (and exclusing) limit.  If limit is greater than either bitmap
+ * upto (and excluding) limit.  If limit is greater than either bitmap
  * size, it is truncated to the smallest.
  */
 CK_CC_INLINE static unsigned int
