@@ -57,6 +57,8 @@
 #define CK_CC_INLINE CK_CC_UNUSED
 #endif
 
+#define CK_CC_RESTRICT restrict
+
 /*
  * Packed attribute.
  */
@@ -96,6 +98,11 @@
  * cost rather than overly expensive register spillage.
  */
 #define CK_CC_ALIASED __attribute__((__may_alias__))
+
+/*
+ * Compile-time typeof
+ */
+#define CK_CC_TYPEOF(X, DEFAULT) __typeof__(X)
 
 /*
  * Portability wrappers for bitwise ops.

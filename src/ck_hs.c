@@ -91,7 +91,7 @@ struct ck_hs_map {
 	unsigned long capacity;
 	unsigned long size;
 	CK_HS_WORD *probe_bound;
-	void **entries;
+	const void **entries;
 };
 
 static inline void
@@ -124,7 +124,7 @@ ck_hs_next(struct ck_hs *hs, struct ck_hs_iterator *i, void **key)
 		return false;
 
 	do {
-		value = map->entries[i->offset];
+		value = CK_CC_DECONST_PTR(map->entries[i->offset]);
 		if (value != CK_HS_EMPTY && value != CK_HS_TOMBSTONE) {
 #ifdef CK_HS_PP
 			if (hs->mode & CK_HS_MODE_OBJECT)
@@ -312,8 +312,8 @@ ck_hs_grow(struct ck_hs *hs,
     unsigned long capacity)
 {
 	struct ck_hs_map *map, *update;
-	void **bucket, *previous;
 	unsigned long k, i, j, offset, probes;
+	const void *previous, **bucket;
 
 restart:
 	map = hs->map;
@@ -341,10 +341,10 @@ restart:
 		i = probes = 0;
 
 		for (;;) {
-			bucket = (void *)((uintptr_t)&update->entries[offset] & ~(CK_MD_CACHELINE - 1));
+			bucket = (const void **)((uintptr_t)&update->entries[offset] & ~(CK_MD_CACHELINE - 1));
 
 			for (j = 0; j < CK_HS_PROBE_L1; j++) {
-				void **cursor = bucket + ((j + offset) & (CK_HS_PROBE_L1 - 1));
+				const void **cursor = bucket + ((j + offset) & (CK_HS_PROBE_L1 - 1));
 
 				if (probes++ == update->probe_limit)
 					break;
@@ -398,20 +398,19 @@ ck_hs_rebuild(struct ck_hs *hs)
 	return ck_hs_grow(hs, hs->map->capacity);
 }
 
-static void **
+static const void **
 ck_hs_map_probe(struct ck_hs *hs,
     struct ck_hs_map *map,
     unsigned long *n_probes,
-    void ***priority,
+    const void ***priority,
     unsigned long h,
     const void *key,
-    void **object,
+    const void **object,
     unsigned long probe_limit,
     enum ck_hs_probe_behavior behavior)
 {
-	void **bucket, **cursor, *k;
-	const void *compare;
-	void **pr = NULL;
+	const void **bucket, **cursor, *k, *compare;
+	const void **pr = NULL;
 	unsigned long offset, j, i, probes, opl;
 
 #ifdef CK_HS_PP
@@ -437,7 +436,7 @@ ck_hs_map_probe(struct ck_hs *hs,
 		probe_limit = ck_hs_map_bound_get(map, h);
 
 	for (;;) {
-		bucket = (void **)((uintptr_t)&map->entries[offset] & ~(CK_MD_CACHELINE - 1));
+		bucket = (const void **)((uintptr_t)&map->entries[offset] & ~(CK_MD_CACHELINE - 1));
 
 		for (j = 0; j < CK_HS_PROBE_L1; j++) {
 			cursor = bucket + ((j + offset) & (CK_HS_PROBE_L1 - 1));
@@ -564,7 +563,7 @@ ck_hs_gc(struct ck_hs *hs, unsigned long cycles, unsigned long seed)
 	}
 
 	for (i = 0; i < map->capacity; i++) {
-		void **first, *object, *entry, **slot;
+		const void **first, *object, **slot, *entry;
 		unsigned long n_probes, offset, h;
 
 		entry = map->entries[(i + seed) & map->mask];
@@ -626,10 +625,9 @@ ck_hs_fas(struct ck_hs *hs,
     const void *key,
     void **previous)
 {
-	const void *insert;
-	void **slot, **first, *object;
-	unsigned long n_probes;
+	const void **slot, **first, *object, *insert;
 	struct ck_hs_map *map = hs->map;
+	unsigned long n_probes;
 
 	*previous = NULL;
 	slot = ck_hs_map_probe(hs, map, &n_probes, &first, h, key, &object,
@@ -649,7 +647,7 @@ ck_hs_fas(struct ck_hs *hs,
 		ck_pr_store_ptr(slot, insert);
 	}
 
-	*previous = object;
+	*previous = CK_CC_DECONST_PTR(object);
 	return true;
 }
 
@@ -672,8 +670,7 @@ ck_hs_apply(struct ck_hs *hs,
     ck_hs_apply_fn_t *fn,
     void *cl)
 {
-	const void *insert;
-	void **slot, **first, *object, *delta;
+	const void **slot, **first, *object, *delta, *insert;
 	unsigned long n_probes;
 	struct ck_hs_map *map;
 
@@ -688,7 +685,7 @@ restart:
 		goto restart;
 	}
 
-	delta = fn(object, cl);
+	delta = fn(CK_CC_DECONST_PTR(object), cl);
 	if (delta == NULL) {
 		/*
 		 * The apply function has requested deletion. If the object doesn't exist,
@@ -743,8 +740,7 @@ ck_hs_set(struct ck_hs *hs,
     const void *key,
     void **previous)
 {
-	const void *insert;
-	void **slot, **first, *object;
+	const void **slot, **first, *object, *insert;
 	unsigned long n_probes;
 	struct ck_hs_map *map;
 
@@ -790,7 +786,7 @@ restart:
 	if (object == NULL)
 		ck_hs_map_postinsert(hs, map);
 
-	*previous = object;
+	*previous = CK_CC_DECONST_PTR(object);
 	return true;
 }
 
@@ -800,8 +796,7 @@ ck_hs_put_internal(struct ck_hs *hs,
     const void *key,
     enum ck_hs_probe_behavior behavior)
 {
-	const void *insert;
-	void **slot, **first, *object;
+	const void **slot, **first, *object, *insert;
 	unsigned long n_probes;
 	struct ck_hs_map *map;
 
@@ -860,7 +855,7 @@ ck_hs_get(struct ck_hs *hs,
     unsigned long h,
     const void *key)
 {
-	void **first, *object;
+	const void **first, *object;
 	struct ck_hs_map *map;
 	unsigned long n_probes;
 	unsigned int g, g_p, probe;
@@ -879,7 +874,7 @@ ck_hs_get(struct ck_hs *hs,
 		g_p = ck_pr_load_uint(generation);
 	} while (g != g_p);
 
-	return object;
+	return CK_CC_DECONST_PTR(object);
 }
 
 void *
@@ -887,7 +882,7 @@ ck_hs_remove(struct ck_hs *hs,
     unsigned long h,
     const void *key)
 {
-	void **slot, **first, *object;
+	const void **slot, **first, *object;
 	struct ck_hs_map *map = hs->map;
 	unsigned long n_probes;
 
@@ -899,7 +894,7 @@ ck_hs_remove(struct ck_hs *hs,
 	ck_pr_store_ptr(slot, CK_HS_TOMBSTONE);
 	map->n_entries--;
 	map->tombstones++;
-	return object;
+	return CK_CC_DECONST_PTR(object);
 }
 
 bool

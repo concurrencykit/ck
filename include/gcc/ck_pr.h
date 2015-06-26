@@ -57,31 +57,42 @@ ck_pr_barrier(void)
 
 #define CK_PR_LOAD(S, M, T)		 			\
 	CK_CC_INLINE static T					\
-	ck_pr_load_##S(const M *target)				\
+	ck_pr_md_load_##S(const M *target)			\
 	{							\
 		T r;						\
+		ck_pr_barrier();				\
 		r = CK_PR_ACCESS(*(T *)target);			\
+		ck_pr_barrier();				\
 		return (r);					\
 	}							\
 	CK_CC_INLINE static void				\
-	ck_pr_store_##S(M *target, T v)				\
+	ck_pr_md_store_##S(M *target, T v)			\
 	{							\
+		ck_pr_barrier();				\
 		CK_PR_ACCESS(*(T *)target) = v;			\
+		ck_pr_barrier();				\
 		return;						\
 	}
 
 CK_CC_INLINE static void *
-ck_pr_load_ptr(const void *target)
+ck_pr_md_load_ptr(const void *target)
 {
+	void *r;
 
-	return CK_PR_ACCESS(*(void **)target);
+	ck_pr_barrier();
+	r = CK_PR_ACCESS(*(void **)target);
+	ck_pr_barrier();
+
+	return r;
 }
 
 CK_CC_INLINE static void
-ck_pr_store_ptr(void *target, const void *v)
+ck_pr_md_store_ptr(void *target, const void *v)
 {
 
+	ck_pr_barrier();
 	CK_PR_ACCESS(*(void **)target) = (void *)v;
+	ck_pr_barrier();
 	return;
 }
 
@@ -102,7 +113,8 @@ CK_PR_LOAD_S(8,  uint8_t)
 CK_CC_INLINE static void
 ck_pr_stall(void)
 {
-	return;
+
+	ck_pr_barrier();
 }
 
 /*
@@ -278,4 +290,3 @@ CK_PR_UNARY_S(8, uint8_t)
 #undef CK_PR_UNARY
 #endif /* !CK_F_PR */
 #endif /* CK_PR_GCC_H */
-

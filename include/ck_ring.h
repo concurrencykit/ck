@@ -53,7 +53,7 @@ struct ck_ring_buffer {
 typedef struct ck_ring_buffer ck_ring_buffer_t;
 
 CK_CC_INLINE static unsigned int
-ck_ring_size(struct ck_ring *ring)
+ck_ring_size(const struct ck_ring *ring)
 {
 	unsigned int c, p;
 
@@ -63,9 +63,8 @@ ck_ring_size(struct ck_ring *ring)
 }
 
 CK_CC_INLINE static unsigned int
-ck_ring_capacity(struct ck_ring *ring)
+ck_ring_capacity(const struct ck_ring *ring)
 {
-
 	return ring->size;
 }
 

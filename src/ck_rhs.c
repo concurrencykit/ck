@@ -89,7 +89,7 @@ struct ck_rhs_entry_desc {
 	unsigned short wanted;
 	CK_RHS_WORD probe_bound;
 	bool in_rh;
-	void *entry;
+	const void *entry;
 } CK_CC_ALIGN(16);
 
 struct ck_rhs_no_entry_desc {
@@ -105,7 +105,7 @@ typedef long ck_rhs_probe_cb_t(struct ck_rhs *hs,
     long *priority,
     unsigned long h,
     const void *key,
-    void **object,
+    const void **object,
     unsigned long probe_limit,
     enum ck_rhs_probe_behavior behavior);
 
@@ -118,11 +118,12 @@ struct ck_rhs_map {
 	unsigned long n_entries;
 	unsigned long capacity;
 	unsigned long size;
+	unsigned long max_entries;
 	char offset_mask;
 	union {
 		struct ck_rhs_entry_desc *descs;
 		struct ck_rhs_no_entry {
-			void **entries;
+			const void **entries;
 			struct ck_rhs_no_entry_desc *descs;
 		} no_entries;
 	} entries;
@@ -130,7 +131,7 @@ struct ck_rhs_map {
 	ck_rhs_probe_cb_t *probe_func;
 };
 
-static CK_CC_INLINE void *
+static CK_CC_INLINE const void *
 ck_rhs_entry(struct ck_rhs_map *map, long offset)
 {
 
@@ -140,7 +141,7 @@ ck_rhs_entry(struct ck_rhs_map *map, long offset)
 		return (map->entries.descs[offset].entry);
 }
 
-static CK_CC_INLINE void **
+static CK_CC_INLINE const void **
 ck_rhs_entry_addr(struct ck_rhs_map *map, long offset)
 {
 
@@ -242,10 +243,28 @@ ck_rhs_unset_rh(struct ck_rhs_map *map, long offset)
 }
 
 
-#define CK_RHS_LOAD_FACTOR	50
+#define CK_RHS_DEFAULT_LOAD_FACTOR	50
 
 static ck_rhs_probe_cb_t ck_rhs_map_probe;
 static ck_rhs_probe_cb_t ck_rhs_map_probe_rm;
+
+bool
+ck_rhs_set_load_factor(struct ck_rhs *hs, unsigned int load_factor)
+{
+	struct ck_rhs_map *map = hs->map;
+
+	if (load_factor == 0 || load_factor > 100)
+		return false;
+
+	hs->load_factor = load_factor;
+	map->max_entries = (map->capacity * (unsigned long)hs->load_factor) / 100;
+	while (map->n_entries > map->max_entries) {
+		if (ck_rhs_grow(hs, map->capacity << 1) == false)
+			return false;
+		map = hs->map;
+	}
+	return true;
+}
 
 void
 ck_rhs_iterator_init(struct ck_rhs_iterator *iterator)
@@ -266,7 +285,7 @@ ck_rhs_next(struct ck_rhs *hs, struct ck_rhs_iterator *i, void **key)
 		return false;
 
 	do {
-		value = ck_rhs_entry(map, i->offset);
+		value = CK_CC_DECONST_PTR(ck_rhs_entry(map, i->offset));
 		if (value != CK_RHS_EMPTY) {
 #ifdef CK_RHS_PP
 			if (hs->mode & CK_RHS_MODE_OBJECT)
@@ -351,6 +370,7 @@ ck_rhs_map_create(struct ck_rhs *hs, unsigned long entries)
 	map->mask = n_entries - 1;
 	map->n_entries = 0;
 
+	map->max_entries = (map->capacity * (unsigned long)hs->load_factor) / 100;
 	/* Align map allocation to cache line. */
 	if (map->read_mostly) {
 		map->entries.no_entries.entries = (void *)(((uintptr_t)&map[1] +
@@ -475,7 +495,7 @@ ck_rhs_grow(struct ck_rhs *hs,
     unsigned long capacity)
 {
 	struct ck_rhs_map *map, *update;
-	void *previous, *prev_saved;
+	const void *previous, *prev_saved;
 	unsigned long k, offset, probes;
 
 restart:
@@ -504,7 +524,7 @@ restart:
 		probes = 0;
 
 		for (;;) {
-			void **cursor = ck_rhs_entry_addr(update, offset);
+			const void **cursor = ck_rhs_entry_addr(update, offset);
 
 			if (probes++ == update->probe_limit) {
 				/*
@@ -522,7 +542,7 @@ restart:
 				ck_rhs_map_bound_set(update, h, probes);
 				break;
 			} else if (ck_rhs_probes(update, offset) < probes) {
-				void *tmp = prev_saved;
+				const void *tmp = prev_saved;
 				unsigned int old_probes;
 				prev_saved = previous = *cursor;
 #ifdef CK_RHS_PP
@@ -563,11 +583,11 @@ ck_rhs_map_probe_rm(struct ck_rhs *hs,
     long *priority,
     unsigned long h,
     const void *key,
-    void **object,
+    const void **object,
     unsigned long probe_limit,
     enum ck_rhs_probe_behavior behavior)
 {
-	void *k;
+	const void *k;
 	const void *compare;
 	long pr = -1;
 	unsigned long offset, probes, opl;
@@ -675,11 +695,11 @@ ck_rhs_map_probe(struct ck_rhs *hs,
     long *priority,
     unsigned long h,
     const void *key,
-    void **object,
+    const void **object,
     unsigned long probe_limit,
     enum ck_rhs_probe_behavior behavior)
 {
-	void *k;
+	const void *k;
 	const void *compare;
 	long pr = -1;
 	unsigned long offset, probes, opl;
@@ -887,7 +907,7 @@ ck_rhs_put_robin_hood(struct ck_rhs *hs,
     long orig_slot, struct ck_rhs_entry_desc *desc)
 {
 	long slot, first;
-	void *object, *insert;
+	const void *object, *insert;
 	unsigned long n_probes;
 	struct ck_rhs_map *map;
 	unsigned long h = 0;
@@ -895,12 +915,13 @@ ck_rhs_put_robin_hood(struct ck_rhs *hs,
 	void *key;
 	long prevs[CK_RHS_MAX_RH];
 	unsigned int prevs_nb = 0;
+	unsigned int i;
 
 	map = hs->map;
 	first = orig_slot;
 	n_probes = desc->probes;
 restart:
-	key = ck_rhs_entry(map, first);
+	key = CK_CC_DECONST_PTR(ck_rhs_entry(map, first));
 	insert = key;
 #ifdef CK_RHS_PP
 	if (hs->mode & CK_RHS_MODE_OBJECT)
@@ -916,10 +937,13 @@ restart:
 	if (slot == -1 && first == -1) {
 		if (ck_rhs_grow(hs, map->capacity << 1) == false) {
 			desc->in_rh = false;
-			for (unsigned int i = 0; i < prevs_nb; i++)
+
+			for (i = 0; i < prevs_nb; i++)
 				ck_rhs_unset_rh(map, prevs[i]);
+
 			return -1;
 		}
+
 		return 1;
 	}
 
@@ -1048,7 +1072,7 @@ ck_rhs_fas(struct ck_rhs *hs,
     void **previous)
 {
 	long slot, first;
-	void *object;
+	const void *object;
 	const void *insert;
 	unsigned long n_probes;
 	struct ck_rhs_map *map = hs->map;
@@ -1087,7 +1111,7 @@ restart:
 		ck_pr_store_ptr(ck_rhs_entry_addr(map, slot), insert);
 		ck_rhs_set_probes(map, slot, n_probes);
 	}
-	*previous = object;
+	*previous = CK_CC_DECONST_PTR(object);
 	return true;
 }
 
@@ -1111,7 +1135,7 @@ ck_rhs_apply(struct ck_rhs *hs,
     void *cl)
 {
 	const void *insert;
-	void  *object, *delta = false;
+	const void  *object, *delta = false;
 	unsigned long n_probes;
 	long slot, first;
 	struct ck_rhs_map *map;
@@ -1128,7 +1152,7 @@ restart:
 		goto restart;
 	}
 	if (!delta_set) {
-		delta = fn(object, cl);
+		delta = fn(CK_CC_DECONST_PTR(object), cl);
 		delta_set = true;
 	}
 
@@ -1201,7 +1225,7 @@ restart:
 
 	if (object == NULL) {
 		map->n_entries++;
-		if ((map->n_entries ) > ((map->capacity * CK_RHS_LOAD_FACTOR) / 100))
+		if ((map->n_entries ) > map->max_entries)
 			ck_rhs_grow(hs, map->capacity << 1);
 	}
 	return true;
@@ -1214,7 +1238,7 @@ ck_rhs_set(struct ck_rhs *hs,
     void **previous)
 {
 	long slot, first;
-	void *object;
+	const void *object;
 	const void *insert;
 	unsigned long n_probes;
 	struct ck_rhs_map *map;
@@ -1279,11 +1303,11 @@ restart:
 
 	if (object == NULL) {
 		map->n_entries++;
-		if ((map->n_entries ) > ((map->capacity * CK_RHS_LOAD_FACTOR) / 100))
+		if ((map->n_entries ) > map->max_entries)
 			ck_rhs_grow(hs, map->capacity << 1);
 	}
 
-	*previous = object;
+	*previous = CK_CC_DECONST_PTR(object);
 	return true;
 }
 
@@ -1294,7 +1318,7 @@ ck_rhs_put_internal(struct ck_rhs *hs,
     enum ck_rhs_probe_behavior behavior)
 {
 	long slot, first;
-	void *object;
+	const void *object;
 	const void *insert;
 	unsigned long n_probes;
 	struct ck_rhs_map *map;
@@ -1338,7 +1362,7 @@ restart:
 	}
 
 	map->n_entries++;
-	if ((map->n_entries ) > ((map->capacity * CK_RHS_LOAD_FACTOR) / 100))
+	if ((map->n_entries ) > map->max_entries)
 		ck_rhs_grow(hs, map->capacity << 1);
 	return true;
 }
@@ -1367,7 +1391,7 @@ ck_rhs_get(struct ck_rhs *hs,
     const void *key)
 {
 	long first;
-	void *object;
+	const void *object;
 	struct ck_rhs_map *map;
 	unsigned long n_probes;
 	unsigned int g, g_p, probe;
@@ -1387,7 +1411,7 @@ ck_rhs_get(struct ck_rhs *hs,
 		g_p = ck_pr_load_uint(generation);
 	} while (g != g_p);
 
-	return object;
+	return CK_CC_DECONST_PTR(object);
 }
 
 void *
@@ -1396,7 +1420,7 @@ ck_rhs_remove(struct ck_rhs *hs,
     const void *key)
 {
 	long slot, first;
-	void *object;
+	const void *object;
 	struct ck_rhs_map *map = hs->map;
 	unsigned long n_probes;
 
@@ -1407,7 +1431,7 @@ ck_rhs_remove(struct ck_rhs *hs,
 
 	map->n_entries--;
 	ck_rhs_do_backward_shift_delete(hs, slot);
-	return object;
+	return CK_CC_DECONST_PTR(object);
 }
 
 bool
@@ -1424,6 +1448,7 @@ ck_rhs_move(struct ck_rhs *hs,
 	hs->mode = source->mode;
 	hs->seed = source->seed;
 	hs->map = source->map;
+	hs->load_factor = source->load_factor;
 	hs->m = m;
 	hs->hf = hf;
 	hs->compare = compare;
@@ -1448,6 +1473,7 @@ ck_rhs_init(struct ck_rhs *hs,
 	hs->seed = seed;
 	hs->hf = hf;
 	hs->compare = compare;
+	hs->load_factor = CK_RHS_DEFAULT_LOAD_FACTOR;
 
 	hs->map = ck_rhs_map_create(hs, n_entries);
 	return hs->map != NULL;

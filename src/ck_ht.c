@@ -458,13 +458,13 @@ ck_ht_gc(struct ck_ht *ht, unsigned long cycles, unsigned long seed)
 			ck_pr_store_64(&priority->key_length, entry->key_length);
 			ck_pr_store_64(&priority->hash, entry->hash);
 #endif
-			ck_pr_store_ptr(&priority->value, (void *)entry->value);
+			ck_pr_store_ptr_unsafe(&priority->value, (void *)entry->value);
 			ck_pr_fence_store();
-			ck_pr_store_ptr(&priority->key, (void *)entry->key);
+			ck_pr_store_ptr_unsafe(&priority->key, (void *)entry->key);
 			ck_pr_fence_store();
 			ck_pr_store_64(&map->deletions, map->deletions + 1);
 			ck_pr_fence_store();
-			ck_pr_store_ptr(&entry->key, (void *)CK_HT_KEY_TOMBSTONE);
+			ck_pr_store_ptr_unsafe(&entry->key, (void *)CK_HT_KEY_TOMBSTONE);
 			ck_pr_fence_store();
 		}
 
@@ -643,7 +643,7 @@ ck_ht_reset_size_spmc(struct ck_ht *table, uint64_t size)
 	if (update == NULL)
 		return false;
 
-	ck_pr_store_ptr(&table->map, update);
+	ck_pr_store_ptr_unsafe(&table->map, update);
 	ck_ht_map_destroy(table->m, map, true);
 	return true;
 }
@@ -739,7 +739,7 @@ restart:
 	}
 
 	ck_pr_fence_store();
-	ck_pr_store_ptr(&table->map, update);
+	ck_pr_store_ptr_unsafe(&table->map, update);
 	ck_ht_map_destroy(table->m, map, true);
 	return true;
 }
@@ -770,7 +770,7 @@ ck_ht_remove_spmc(struct ck_ht *table,
 
 	*entry = snapshot;
 
-	ck_pr_store_ptr(&candidate->key, (void *)CK_HT_KEY_TOMBSTONE);
+	ck_pr_store_ptr_unsafe(&candidate->key, (void *)CK_HT_KEY_TOMBSTONE);
 	ck_pr_fence_store();
 	ck_pr_store_64(&map->n_entries, map->n_entries - 1);
 	return true;
@@ -887,9 +887,9 @@ ck_ht_set_spmc(struct ck_ht *table,
 			ck_pr_fence_store();
 		}
 
-		ck_pr_store_ptr(&priority->value, (void *)entry->value);
+		ck_pr_store_ptr_unsafe(&priority->value, (void *)entry->value);
 		ck_pr_fence_store();
-		ck_pr_store_ptr(&priority->key, (void *)entry->key);
+		ck_pr_store_ptr_unsafe(&priority->key, (void *)entry->key);
 		ck_pr_fence_store();
 
 		/*
@@ -899,7 +899,7 @@ ck_ht_set_spmc(struct ck_ht *table,
 		ck_pr_store_64(&map->deletions, map->deletions + 1);
 		ck_pr_fence_store();
 
-		ck_pr_store_ptr(&candidate->key, (void *)CK_HT_KEY_TOMBSTONE);
+		ck_pr_store_ptr_unsafe(&candidate->key, (void *)CK_HT_KEY_TOMBSTONE);
 		ck_pr_fence_store();
 	} else {
 		/*
@@ -922,15 +922,15 @@ ck_ht_set_spmc(struct ck_ht *table,
 		}
 
 #ifdef CK_HT_PP
-		ck_pr_store_ptr(&candidate->value, (void *)entry->value);
+		ck_pr_store_ptr_unsafe(&candidate->value, (void *)entry->value);
 		ck_pr_fence_store();
-		ck_pr_store_ptr(&candidate->key, (void *)entry->key);
+		ck_pr_store_ptr_unsafe(&candidate->key, (void *)entry->key);
 #else
 		ck_pr_store_64(&candidate->key_length, entry->key_length);
 		ck_pr_store_64(&candidate->hash, entry->hash);
-		ck_pr_store_ptr(&candidate->value, (void *)entry->value);
+		ck_pr_store_ptr_unsafe(&candidate->value, (void *)entry->value);
 		ck_pr_fence_store();
-		ck_pr_store_ptr(&candidate->key, (void *)entry->key);
+		ck_pr_store_ptr_unsafe(&candidate->key, (void *)entry->key);
 #endif
 
 		/*
@@ -1008,15 +1008,15 @@ ck_ht_put_spmc(struct ck_ht *table,
 	ck_ht_map_bound_set(map, h, probes);
 
 #ifdef CK_HT_PP
-	ck_pr_store_ptr(&candidate->value, (void *)entry->value);
+	ck_pr_store_ptr_unsafe(&candidate->value, (void *)entry->value);
 	ck_pr_fence_store();
-	ck_pr_store_ptr(&candidate->key, (void *)entry->key);
+	ck_pr_store_ptr_unsafe(&candidate->key, (void *)entry->key);
 #else
 	ck_pr_store_64(&candidate->key_length, entry->key_length);
 	ck_pr_store_64(&candidate->hash, entry->hash);
-	ck_pr_store_ptr(&candidate->value, (void *)entry->value);
+	ck_pr_store_ptr_unsafe(&candidate->value, (void *)entry->value);
 	ck_pr_fence_store();
-	ck_pr_store_ptr(&candidate->key, (void *)entry->key);
+	ck_pr_store_ptr_unsafe(&candidate->key, (void *)entry->key);
 #endif
 
 	ck_pr_store_64(&map->n_entries, map->n_entries + 1);

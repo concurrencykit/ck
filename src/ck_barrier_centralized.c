@@ -54,6 +54,6 @@ ck_barrier_centralized(struct ck_barrier_centralized *barrier,
 	while (sense != ck_pr_load_uint(&barrier->sense))
 		ck_pr_stall();
 
-	ck_pr_fence_memory();
+	ck_pr_fence_acquire();
 	return;
 }
