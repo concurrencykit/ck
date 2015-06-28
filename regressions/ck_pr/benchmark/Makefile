@@ -1,6 +1,9 @@
 .PHONY: clean
 
-all: ck_pr_cas_64 ck_pr_fas_64 ck_pr_cas_64_2
+all: ck_pr_cas_64 ck_pr_fas_64 ck_pr_cas_64_2 fp
+
+fp: fp.c
+	$(CC) $(CFLAGS) -o fp fp.c
 
 ck_pr_cas_64_2: ck_pr_cas_64_2.c
 	$(CC) $(CFLAGS) -o ck_pr_cas_64_2 ck_pr_cas_64_2.c -lm
