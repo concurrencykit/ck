@@ -58,8 +58,7 @@ ck_spinlock_fas_trylock(struct ck_spinlock_fas *lock)
 	bool value;
 
 	value = ck_pr_fas_uint(&lock->value, true);
-	if (value == false)
-		ck_pr_fence_acquire();
+	ck_pr_fence_lock();
 
 	return !value;
 }
@@ -67,9 +66,11 @@ ck_spinlock_fas_trylock(struct ck_spinlock_fas *lock)
 CK_CC_INLINE static bool
 ck_spinlock_fas_locked(struct ck_spinlock_fas *lock)
 {
+	bool r;
 
-	ck_pr_fence_load();
-	return ck_pr_load_uint(&lock->value);
+	r = ck_pr_load_uint(&lock->value);
+	ck_pr_fence_acquire();
+	return r;
 }
 
 CK_CC_INLINE static void
@@ -81,7 +82,7 @@ ck_spinlock_fas_lock(struct ck_spinlock_fas *lock)
 			ck_pr_stall();
 	}
 
-	ck_pr_fence_acquire();
+	ck_pr_fence_lock();
 	return;
 }
 
@@ -93,7 +94,7 @@ ck_spinlock_fas_lock_eb(struct ck_spinlock_fas *lock)
 	while (ck_pr_fas_uint(&lock->value, true) == true)
 		ck_backoff_eb(&backoff);
 
-	ck_pr_fence_acquire();
+	ck_pr_fence_lock();
 	return;
 }
 
@@ -101,7 +102,7 @@ CK_CC_INLINE static void
 ck_spinlock_fas_unlock(struct ck_spinlock_fas *lock)
 {
 
-	ck_pr_fence_release();
+	ck_pr_fence_unlock();
 	ck_pr_store_uint(&lock->value, false);
 	return;
 }

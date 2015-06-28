@@ -91,7 +91,7 @@ ck_brlock_write_lock(struct ck_brlock *br)
 			ck_pr_stall();
 	}
 
-	/* Already acquired with respect to other writers. */
+	ck_pr_fence_lock();
 	return;
 }
 
@@ -99,7 +99,7 @@ CK_CC_INLINE static void
 ck_brlock_write_unlock(struct ck_brlock *br)
 {
 
-	ck_pr_fence_release();
+	ck_pr_fence_unlock();
 	ck_pr_store_uint(&br->writer, false);
 	return;
 }
@@ -134,7 +134,7 @@ ck_brlock_write_trylock(struct ck_brlock *br, unsigned int factor)
 		}
 	}
 
-	/* Already acquired with respect to other writers. */
+	ck_pr_fence_lock();
 	return true;
 }
 
@@ -212,7 +212,7 @@ ck_brlock_read_lock(struct ck_brlock *br, struct ck_brlock_reader *reader)
 		ck_pr_store_uint(&reader->n_readers, 0);
 	}
 
-	ck_pr_fence_load();
+	ck_pr_fence_lock();
 	return;
 }
 
@@ -263,7 +263,7 @@ ck_brlock_read_trylock(struct ck_brlock *br,
 			return false;
 	}
 
-	ck_pr_fence_load();
+	ck_pr_fence_lock();
 	return true;
 }
 
@@ -271,7 +271,7 @@ CK_CC_INLINE static void
 ck_brlock_read_unlock(struct ck_brlock_reader *reader)
 {
 
-	ck_pr_fence_load_store();
+	ck_pr_fence_unlock();
 	ck_pr_store_uint(&reader->n_readers, reader->n_readers - 1);
 	return;
 }

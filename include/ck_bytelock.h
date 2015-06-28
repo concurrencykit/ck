@@ -107,6 +107,7 @@ ck_bytelock_write_lock(struct ck_bytelock *bytelock, unsigned int slot)
 	while (ck_pr_load_uint(&bytelock->n_readers) != 0)
 		ck_pr_stall();
 
+	ck_pr_fence_lock();
 	return;
 }
 
@@ -118,7 +119,7 @@ CK_CC_INLINE static void
 ck_bytelock_write_unlock(struct ck_bytelock *bytelock)
 {
 
-	ck_pr_fence_release();
+	ck_pr_fence_unlock();
 	ck_pr_store_uint(&bytelock->owner, 0);
 	return;
 }
@@ -147,7 +148,7 @@ ck_bytelock_read_lock(struct ck_bytelock *bytelock, unsigned int slot)
 				ck_pr_stall();
 		}
 
-		ck_pr_fence_acquire();
+		ck_pr_fence_lock();
 		return;
 	}
 
@@ -169,7 +170,7 @@ ck_bytelock_read_lock(struct ck_bytelock *bytelock, unsigned int slot)
 			ck_pr_stall();
 	}
 
-	ck_pr_fence_acquire();
+	ck_pr_fence_lock();
 	return;
 }
 
@@ -177,7 +178,7 @@ CK_CC_INLINE static void
 ck_bytelock_read_unlock(struct ck_bytelock *bytelock, unsigned int slot)
 {
 
-	ck_pr_fence_release();
+	ck_pr_fence_unlock();
 
 	if (slot > sizeof bytelock->readers)
 		ck_pr_dec_uint(&bytelock->n_readers);

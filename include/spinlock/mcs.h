@@ -57,25 +57,25 @@ CK_CC_INLINE static bool
 ck_spinlock_mcs_trylock(struct ck_spinlock_mcs **queue,
     struct ck_spinlock_mcs *node)
 {
+	bool r;
 
 	node->locked = true;
 	node->next = NULL;
 	ck_pr_fence_store_atomic();
 
-	if (ck_pr_cas_ptr(queue, NULL, node) == true) {
-		ck_pr_fence_acquire();
-		return true;
-	}
-
-	return false;
+	r = ck_pr_cas_ptr(queue, NULL, node);
+	ck_pr_fence_lock();
+	return r;
 }
 
 CK_CC_INLINE static bool
 ck_spinlock_mcs_locked(struct ck_spinlock_mcs **queue)
 {
+	bool r;
 
-	ck_pr_fence_load();
-	return ck_pr_load_ptr(queue) != NULL;
+	r = ck_pr_load_ptr(queue) != NULL;
+	ck_pr_fence_acquire();
+	return r;
 }
 
 CK_CC_INLINE static void
@@ -108,7 +108,7 @@ ck_spinlock_mcs_lock(struct ck_spinlock_mcs **queue,
 			ck_pr_stall();
 	}
 
-	ck_pr_fence_acquire();
+	ck_pr_fence_lock();
 	return;
 }
 
@@ -118,7 +118,7 @@ ck_spinlock_mcs_unlock(struct ck_spinlock_mcs **queue,
 {
 	struct ck_spinlock_mcs *next;
 
-	ck_pr_fence_release();
+	ck_pr_fence_unlock();
 
 	next = ck_pr_load_ptr(&node->next);
 	if (next == NULL) {

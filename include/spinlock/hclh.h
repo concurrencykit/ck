@@ -62,11 +62,12 @@ CK_CC_INLINE static bool
 ck_spinlock_hclh_locked(struct ck_spinlock_hclh **queue)
 {
 	struct ck_spinlock_hclh *head;
+	bool r;
 
-	ck_pr_fence_load();
 	head = ck_pr_load_ptr(queue);
-	ck_pr_fence_load();
-	return ck_pr_load_uint(&head->wait);
+	r = ck_pr_load_uint(&head->wait);
+	ck_pr_fence_acquire();
+	return r;
 }
 
 CK_CC_INLINE static void
@@ -110,7 +111,7 @@ ck_spinlock_hclh_lock(struct ck_spinlock_hclh **glob_queue,
 	while (ck_pr_load_uint(&previous->wait) == true)
 		ck_pr_stall();
 
-	ck_pr_fence_acquire();
+	ck_pr_fence_lock();
 	return;
 }
 
@@ -129,7 +130,7 @@ ck_spinlock_hclh_unlock(struct ck_spinlock_hclh **thread)
 	previous = thread[0]->previous;
 
 	/* We have to pay this cost anyways, use it as a compiler barrier too. */
-	ck_pr_fence_release();
+	ck_pr_fence_unlock();
 	ck_pr_store_uint(&(*thread)->wait, false);
 
 	/*

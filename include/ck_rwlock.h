@@ -54,7 +54,7 @@ CK_CC_INLINE static void
 ck_rwlock_write_unlock(ck_rwlock_t *rw)
 {
 
-	ck_pr_fence_release();
+	ck_pr_fence_unlock();
 	ck_pr_store_uint(&rw->writer, 0);
 	return;
 }
@@ -62,9 +62,11 @@ ck_rwlock_write_unlock(ck_rwlock_t *rw)
 CK_CC_INLINE static bool
 ck_rwlock_locked_writer(ck_rwlock_t *rw)
 {
+	bool r;
 
-	ck_pr_fence_load();
-	return ck_pr_load_uint(&rw->writer);
+	r = ck_pr_load_uint(&rw->writer);
+	ck_pr_fence_acquire();
+	return r;
 }
 
 CK_CC_INLINE static void
@@ -79,13 +81,12 @@ ck_rwlock_write_downgrade(ck_rwlock_t *rw)
 CK_CC_INLINE static bool
 ck_rwlock_locked(ck_rwlock_t *rw)
 {
-	unsigned int r;
+	bool l;
 
-	ck_pr_fence_load();
-	r = ck_pr_load_uint(&rw->writer);
-	ck_pr_fence_load();
-
-	return ck_pr_load_uint(&rw->n_readers) | r;
+	l = ck_pr_load_uint(&rw->n_readers) |
+	    ck_pr_load_uint(&rw->writer);
+	ck_pr_fence_acquire();
+	return l;
 }
 
 CK_CC_INLINE static bool
@@ -102,6 +103,7 @@ ck_rwlock_write_trylock(ck_rwlock_t *rw)
 		return false;
 	}
 
+	ck_pr_fence_lock();
 	return true;
 }
 
@@ -120,6 +122,7 @@ ck_rwlock_write_lock(ck_rwlock_t *rw)
 	while (ck_pr_load_uint(&rw->n_readers) != 0)
 		ck_pr_stall();
 
+	ck_pr_fence_lock();
 	return;
 }
 
@@ -143,7 +146,7 @@ ck_rwlock_read_trylock(ck_rwlock_t *rw)
 	ck_pr_fence_atomic_load();
 
 	if (ck_pr_load_uint(&rw->writer) == 0) {
-		ck_pr_fence_load();
+		ck_pr_fence_lock();
 		return true;
 	}
 
@@ -230,6 +233,7 @@ ck_rwlock_recursive_write_lock(ck_rwlock_recursive_t *rw, unsigned int tid)
 	while (ck_pr_load_uint(&rw->rw.n_readers) != 0)
 		ck_pr_stall();
 
+	ck_pr_fence_lock();
 leave:
 	rw->wc++;
 	return;
@@ -254,6 +258,7 @@ ck_rwlock_recursive_write_trylock(ck_rwlock_recursive_t *rw, unsigned int tid)
 		return false;
 	}
 
+	ck_pr_fence_lock();
 leave:
 	rw->wc++;
 	return true;
@@ -264,7 +269,7 @@ ck_rwlock_recursive_write_unlock(ck_rwlock_recursive_t *rw)
 {
 
 	if (--rw->wc == 0) {
-		ck_pr_fence_release();
+		ck_pr_fence_unlock();
 		ck_pr_store_uint(&rw->rw.writer, 0);
 	}
 
