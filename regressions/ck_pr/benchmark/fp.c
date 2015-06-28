@@ -28,7 +28,6 @@ main(void)
 
 	s = rdtsc();
 	for (i = 0; i < IR; i++) {
-		ck_pr_load_int(&a);
 		if (ck_pr_load_int(&a) == 0)
 			ck_pr_barrier();
 		ck_pr_fence_strict_lock();
