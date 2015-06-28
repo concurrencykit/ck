@@ -210,7 +210,6 @@ ck_spinlock_ticket_init(struct ck_spinlock_ticket *ticket)
 CK_CC_INLINE static bool
 ck_spinlock_ticket_locked(struct ck_spinlock_ticket *ticket)
 {
-	unsigned int request;
 	bool r;
 
 	r = ck_pr_load_uint(&ticket->position) !=
