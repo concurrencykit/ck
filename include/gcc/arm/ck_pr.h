@@ -94,6 +94,8 @@ CK_PR_FENCE(load_store, CK_DMB)
 CK_PR_FENCE(memory, CK_DMB)
 CK_PR_FENCE(acquire, CK_DMB)
 CK_PR_FENCE(release, CK_DMB)
+CK_PR_FENCE(lock, CK_DMB)
+CK_PR_FENCE(unlock, CK_DMB)
 
 #undef CK_PR_FENCE
 
