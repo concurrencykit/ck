@@ -24,16 +24,27 @@ main(void)
 		ck_pr_load_int(&b);
 	}
 	e = rdtsc();
-	printf("fence_load: %" PRIu64 "\n", (e - s) / IR);
+	printf("[A] fence_load: %" PRIu64 "\n", (e - s) / IR);
+
+	s = rdtsc();
+	for (i = 0; i < IR; i++) {
+		ck_pr_load_int(&a);
+		if (ck_pr_load_int(&a) == 0)
+			ck_pr_barrier();
+		ck_pr_fence_strict_lock();
+		ck_pr_load_int(&b);
+	}
+	e = rdtsc();
+	printf("[A] fence_lock: %" PRIu64 "\n", (e - s) / IR);
 
 	s = rdtsc();
 	for (i = 0; i < IR; i++) {
 		ck_pr_store_int(&a, 0);
 		ck_pr_fence_strict_store();
-		ck_pr_load_int(&b);
+		ck_pr_store_int(&b, 0);
 	}
 	e = rdtsc();
-	printf("fence_store: %" PRIu64 "\n", (e - s) / IR);
+	printf("[B] fence_store: %" PRIu64 "\n", (e - s) / IR);
 
 	s = rdtsc();
 	for (i = 0; i < IR; i++) {
@@ -42,7 +53,7 @@ main(void)
 		ck_pr_load_int(&b);
 	}
 	e = rdtsc();
-	printf("fence_memory: %" PRIu64 "\n", (e - s) / IR);
+	printf("[C] fence_memory: %" PRIu64 "\n", (e - s) / IR);
 
 	s = rdtsc();
 	for (i = 0; i < IR; i++) {
@@ -51,6 +62,6 @@ main(void)
 		ck_pr_load_int(&b);
 	}
 	e = rdtsc();
-	printf("atomic: %" PRIu64 "\n", (e - s) / IR);
+	printf("[C] atomic: %" PRIu64 "\n", (e - s) / IR);
 	return 0;
 }
