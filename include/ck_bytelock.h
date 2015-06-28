@@ -154,8 +154,13 @@ ck_bytelock_read_lock(struct ck_bytelock *bytelock, unsigned int slot)
 
 	slot -= 1;
 	for (;;) {
-		ck_pr_faa_8(&bytelock->readers[slot], true);
+#ifdef CK_F_PR_FAA_8
+		ck_pr_fas_8(&bytelock->readers[slot], true);
 		ck_pr_fence_atomic_load();
+#else
+		ck_pr_store_8(&bytelock->readers[slot], true);
+		ck_pr_fence_store_load();
+#endif
 
 		/*
 		 * If there is no owner at this point, our slot has
