@@ -184,7 +184,7 @@ ck_pr_cas_ptr_value(void *target, void *compare, void *set, void *value)
                                   "r"   (compare)
                                 : "memory", "cc");
 
-        ck_pr_store_ptr(value, previous);
+        ck_pr_md_store_ptr(value, previous);
         return (previous == compare);
 }
 
@@ -418,4 +418,3 @@ CK_PR_FAA(int, int, "w")
 #undef CK_PR_FAA
 
 #endif /* CK_PR_PPC64_H */
-
