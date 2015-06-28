@@ -54,7 +54,8 @@ ck_spinlock_mcs_init(struct ck_spinlock_mcs **queue)
 }
 
 CK_CC_INLINE static bool
-ck_spinlock_mcs_trylock(struct ck_spinlock_mcs **queue, struct ck_spinlock_mcs *node)
+ck_spinlock_mcs_trylock(struct ck_spinlock_mcs **queue,
+    struct ck_spinlock_mcs *node)
 {
 
 	node->locked = true;
@@ -78,13 +79,14 @@ ck_spinlock_mcs_locked(struct ck_spinlock_mcs **queue)
 }
 
 CK_CC_INLINE static void
-ck_spinlock_mcs_lock(struct ck_spinlock_mcs **queue, struct ck_spinlock_mcs *node)
+ck_spinlock_mcs_lock(struct ck_spinlock_mcs **queue,
+    struct ck_spinlock_mcs *node)
 {
 	struct ck_spinlock_mcs *previous;
 
 	/*
-	 * In the case that there is a successor, let them know they must wait
-	 * for us to unlock.
+	 * In the case that there is a successor, let them know they must
+	 * wait for us to unlock.
 	 */
 	node->locked = true;
 	node->next = NULL;
@@ -97,7 +99,10 @@ ck_spinlock_mcs_lock(struct ck_spinlock_mcs **queue, struct ck_spinlock_mcs *nod
 	 */
 	previous = ck_pr_fas_ptr(queue, node);
 	if (previous != NULL) {
-		/* Let the previous lock holder know that we are waiting on them. */
+		/*
+		 * Let the previous lock holder know that we are waiting on
+		 * them.
+		 */
 		ck_pr_store_ptr(&previous->next, node);
 		while (ck_pr_load_uint(&node->locked) == true)
 			ck_pr_stall();
@@ -108,7 +113,8 @@ ck_spinlock_mcs_lock(struct ck_spinlock_mcs **queue, struct ck_spinlock_mcs *nod
 }
 
 CK_CC_INLINE static void
-ck_spinlock_mcs_unlock(struct ck_spinlock_mcs **queue, struct ck_spinlock_mcs *node)
+ck_spinlock_mcs_unlock(struct ck_spinlock_mcs **queue,
+    struct ck_spinlock_mcs *node)
 {
 	struct ck_spinlock_mcs *next;
 
@@ -127,9 +133,10 @@ ck_spinlock_mcs_unlock(struct ck_spinlock_mcs **queue, struct ck_spinlock_mcs *n
 		}
 
 		/*
-		 * If the node is not the current tail then a lock operation is
-		 * in-progress. In this case, busy-wait until the queue is in
-		 * a consistent state to wake up the incoming lock request.
+		 * If the node is not the current tail then a lock operation
+		 * is in-progress. In this case, busy-wait until the queue is
+		 * in a consistent state to wake up the incoming lock
+		 * request.
 		 */
 		for (;;) {
 			next = ck_pr_load_ptr(&node->next);
