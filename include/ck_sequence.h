@@ -101,7 +101,7 @@ ck_sequence_write_begin(struct ck_sequence *sq)
 	 * Increment the sequence to an odd number to indicate
 	 * the beginning of a write update.
 	 */
-	ck_pr_inc_uint(&sq->sequence);
+	ck_pr_store_uint(&sq->sequence, sq->sequence + 1);
 	ck_pr_fence_store();
 	return;
 }
@@ -118,7 +118,7 @@ ck_sequence_write_end(struct ck_sequence *sq)
 	 * completion of a write update.
 	 */
 	ck_pr_fence_store();
-	ck_pr_inc_uint(&sq->sequence);
+	ck_pr_store_uint(&sq->sequence, sq->sequence + 1);
 	return;
 }
 
