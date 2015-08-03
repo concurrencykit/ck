@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2014 Samy Al Bahra.
+ * Copyright 2010-2015 Samy Al Bahra.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -24,8 +24,8 @@
  * SUCH DAMAGE.
  */
 
-#ifndef _CK_SPINLOCK_TICKET_H
-#define _CK_SPINLOCK_TICKET_H
+#ifndef CK_SPINLOCK_TICKET_H
+#define CK_SPINLOCK_TICKET_H
 
 #include <ck_backoff.h>
 #include <ck_cc.h>
@@ -88,12 +88,11 @@ ck_spinlock_ticket_locked(struct ck_spinlock_ticket *ticket)
 {
 	CK_SPINLOCK_TICKET_TYPE request, position;
 
-	ck_pr_fence_load();
-
 	request = CK_SPINLOCK_TICKET_LOAD(&ticket->value);
 	position = request & CK_SPINLOCK_TICKET_MASK;
 	request >>= CK_SPINLOCK_TICKET_SHIFT;
 
+	ck_pr_fence_acquire();
 	return request != position;
 }
 
@@ -115,7 +114,7 @@ ck_spinlock_ticket_lock(struct ck_spinlock_ticket *ticket)
 		    CK_SPINLOCK_TICKET_MASK;
 	}
 
-	ck_pr_fence_acquire();
+	ck_pr_fence_lock();
 	return;
 }
 
@@ -142,7 +141,7 @@ ck_spinlock_ticket_lock_pb(struct ck_spinlock_ticket *ticket, unsigned int c)
 		ck_backoff_eb(&backoff);
 	}
 
-	ck_pr_fence_acquire();
+	ck_pr_fence_lock();
 	return;
 }
 
@@ -163,7 +162,7 @@ ck_spinlock_ticket_trylock(struct ck_spinlock_ticket *ticket)
 		return false;
 	}
 
-	ck_pr_fence_acquire();
+	ck_pr_fence_lock();
 	return true;
 }
 
@@ -171,7 +170,7 @@ CK_CC_INLINE static void
 ck_spinlock_ticket_unlock(struct ck_spinlock_ticket *ticket)
 {
 
-	ck_pr_fence_release();
+	ck_pr_fence_unlock();
 	CK_SPINLOCK_TICKET_INC((CK_SPINLOCK_TICKET_TYPE_BASE *)(void *)&ticket->value);
 	return;
 }
@@ -211,12 +210,12 @@ ck_spinlock_ticket_init(struct ck_spinlock_ticket *ticket)
 CK_CC_INLINE static bool
 ck_spinlock_ticket_locked(struct ck_spinlock_ticket *ticket)
 {
-	unsigned int request;
+	bool r;
 
-	ck_pr_fence_load();
-	request = ck_pr_load_uint(&ticket->next);
-	ck_pr_fence_load();
-	return ck_pr_load_uint(&ticket->position) != request;
+	r = ck_pr_load_uint(&ticket->position) !=
+	    ck_pr_load_uint(&ticket->next);
+	ck_pr_fence_acquire();
+	return r;
 }
 
 CK_CC_INLINE static void
@@ -235,7 +234,7 @@ ck_spinlock_ticket_lock(struct ck_spinlock_ticket *ticket)
 	while (ck_pr_load_uint(&ticket->position) != request)
 		ck_pr_stall();
 
-	ck_pr_fence_acquire();
+	ck_pr_fence_lock();
 	return;
 }
 
@@ -264,7 +263,7 @@ ck_spinlock_ticket_lock_pb(struct ck_spinlock_ticket *ticket, unsigned int c)
 		ck_backoff_eb(&backoff);
 	}
 
-	ck_pr_fence_acquire();
+	ck_pr_fence_lock();
 	return;
 }
 
@@ -273,7 +272,7 @@ ck_spinlock_ticket_unlock(struct ck_spinlock_ticket *ticket)
 {
 	unsigned int update;
 
-	ck_pr_fence_release();
+	ck_pr_fence_unlock();
 
 	/*
 	 * Update current ticket value so next lock request can proceed.
@@ -294,5 +293,4 @@ CK_ELIDE_TRYLOCK_PROTOTYPE(ck_spinlock_ticket, ck_spinlock_ticket_t,
     ck_spinlock_ticket_locked, ck_spinlock_ticket_trylock)
 
 #endif /* CK_F_SPINLOCK_TICKET */
-#endif /* _CK_SPINLOCK_TICKET_H */
-
+#endif /* CK_SPINLOCK_TICKET_H */

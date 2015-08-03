@@ -25,8 +25,8 @@
  * SUCH DAMAGE.
  */
 
-#ifndef _CK_SWLOCK_H
-#define _CK_SWLOCK_H
+#ifndef CK_SWLOCK_H
+#define CK_SWLOCK_H
 
 #include <ck_elide.h>
 #include <ck_limits.h>
@@ -58,7 +58,7 @@ CK_CC_INLINE static void
 ck_swlock_write_unlock(ck_swlock_t *rw)
 {
 
-	ck_pr_fence_release();
+	ck_pr_fence_unlock();
 	ck_pr_and_32(&rw->value, CK_SWLOCK_READER_MASK);
 	return;
 }
@@ -66,9 +66,11 @@ ck_swlock_write_unlock(ck_swlock_t *rw)
 CK_CC_INLINE static bool
 ck_swlock_locked_writer(ck_swlock_t *rw)
 {
+	bool r;
 
-	ck_pr_fence_load();
-	return ck_pr_load_32(&rw->value) & CK_SWLOCK_WRITER_BIT;
+	r = ck_pr_load_32(&rw->value) & CK_SWLOCK_WRITER_BIT;
+	ck_pr_fence_acquire();
+	return r;
 }
 
 CK_CC_INLINE static void
@@ -83,17 +85,21 @@ ck_swlock_write_downgrade(ck_swlock_t *rw)
 CK_CC_INLINE static bool
 ck_swlock_locked(ck_swlock_t *rw)
 {
+	bool r;
 
-	ck_pr_fence_load();
-	return ck_pr_load_32(&rw->value);
+	r = ck_pr_load_32(&rw->value);
+	ck_pr_fence_acquire();
+	return r;
 }
 
 CK_CC_INLINE static bool
 ck_swlock_write_trylock(ck_swlock_t *rw)
 {
+	bool r;
 
-	ck_pr_fence_acquire();
-	return ck_pr_cas_32(&rw->value, 0, CK_SWLOCK_WRITER_BIT);
+	r = ck_pr_cas_32(&rw->value, 0, CK_SWLOCK_WRITER_BIT);
+	ck_pr_fence_lock();
+	return r;
 }
 
 CK_ELIDE_TRYLOCK_PROTOTYPE(ck_swlock_write, ck_swlock_t,
@@ -107,7 +113,7 @@ ck_swlock_write_lock(ck_swlock_t *rw)
 	while (ck_pr_load_32(&rw->value) & CK_SWLOCK_READER_MASK)
 		ck_pr_stall();
 
-	ck_pr_fence_acquire();
+	ck_pr_fence_lock();
 	return;
 }
 
@@ -118,7 +124,7 @@ ck_swlock_write_latch(ck_swlock_t *rw)
 	/* Publish intent to acquire lock. */
 	ck_pr_or_32(&rw->value, CK_SWLOCK_WRITER_BIT);
 
-	/* Stall until readers have seen the seen writer and cleared. */
+	/* Stall until readers have seen the writer and cleared. */
 	while (ck_pr_cas_32(&rw->value, CK_SWLOCK_WRITER_BIT,
 	    CK_SWLOCK_WRITER_MASK) == false)  {
 		do {
@@ -126,7 +132,7 @@ ck_swlock_write_latch(ck_swlock_t *rw)
 		} while (ck_pr_load_32(&rw->value) != CK_SWLOCK_WRITER_BIT);
 	}
 
-	ck_pr_fence_acquire();
+	ck_pr_fence_lock();
 	return;
 }
 
@@ -134,7 +140,7 @@ CK_CC_INLINE static void
 ck_swlock_write_unlatch(ck_swlock_t *rw)
 {
 
-	ck_pr_fence_release();
+	ck_pr_fence_unlock();
 	ck_pr_store_32(&rw->value, 0);
 	return;
 }
@@ -155,15 +161,11 @@ ck_swlock_read_trylock(ck_swlock_t *rw)
 		return false;
 
 	l = ck_pr_faa_32(&rw->value, 1) & CK_SWLOCK_WRITER_MASK;
-	if (l == 0) {
-		ck_pr_fence_acquire();
-		return true;
-	}
-
 	if (l == CK_SWLOCK_WRITER_BIT)
 		ck_pr_dec_32(&rw->value);
 
-	return false;
+	ck_pr_fence_lock();
+	return l == 0;
 }
 
 CK_CC_INLINE static void
@@ -188,10 +190,9 @@ ck_swlock_read_lock(ck_swlock_t *rw)
 			ck_pr_dec_32(&rw->value);
 	}
 
-	ck_pr_fence_acquire();
+	ck_pr_fence_lock();
 	return;
 }
-
 
 CK_CC_INLINE static bool
 ck_swlock_locked_reader(ck_swlock_t *rw)
@@ -205,7 +206,7 @@ CK_CC_INLINE static void
 ck_swlock_read_unlock(ck_swlock_t *rw)
 {
 
-	ck_pr_fence_release();
+	ck_pr_fence_unlock();
 	ck_pr_dec_32(&rw->value);
 	return;
 }
@@ -214,4 +215,4 @@ CK_ELIDE_PROTOTYPE(ck_swlock_read, ck_swlock_t,
     ck_swlock_locked_writer, ck_swlock_read_lock,
     ck_swlock_locked_reader, ck_swlock_read_unlock)
 
-#endif /* _CK_SWLOCK_H */
+#endif /* CK_SWLOCK_H */

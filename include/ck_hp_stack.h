@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2014 Samy Al Bahra.
+ * Copyright 2010-2015 Samy Al Bahra.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -24,8 +24,8 @@
  * SUCH DAMAGE.
  */
 
-#ifndef _CK_HP_STACK_H
-#define _CK_HP_STACK_H
+#ifndef CK_HP_STACK_H
+#define CK_HP_STACK_H
 
 #include <ck_cc.h>
 #include <ck_hp.h>
@@ -61,20 +61,18 @@ ck_hp_stack_pop_mpmc(ck_hp_record_t *record, struct ck_stack *target)
 		if (entry == NULL)
 			return NULL;
 
-		ck_hp_set(record, 0, entry);
-		ck_pr_fence_store_load();
+		ck_hp_set_fence(record, 0, entry);
 	} while (entry != ck_pr_load_ptr(&target->head));
 
 	while (ck_pr_cas_ptr_value(&target->head, entry, entry->next, &entry) == false) {
 		if (entry == NULL)
 			return NULL;
 
-		ck_hp_set(record, 0, entry);
-		ck_pr_fence_store_load();
+		ck_hp_set_fence(record, 0, entry);
+
 		update = ck_pr_load_ptr(&target->head);
 		while (entry != update) {
-			ck_hp_set(record, 0, update);
-			ck_pr_fence_store_load();
+			ck_hp_set_fence(record, 0, update);
 			entry = update;
 			update = ck_pr_load_ptr(&target->head);
 			if (update == NULL)
@@ -94,8 +92,7 @@ ck_hp_stack_trypop_mpmc(ck_hp_record_t *record, struct ck_stack *target, struct 
 	if (entry == NULL)
 		return false;
 
-	ck_hp_set(record, 0, entry);
-	ck_pr_fence_store_load();
+	ck_hp_set_fence(record, 0, entry);
 	if (entry != ck_pr_load_ptr(&target->head))
 		goto leave;
 
@@ -110,4 +107,4 @@ leave:
 	return false;
 }
 
-#endif /* _CK_HP_STACK_H */
+#endif /* CK_HP_STACK_H */

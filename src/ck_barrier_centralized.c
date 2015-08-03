@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2014 Samy Al Bahra.
+ * Copyright 2011-2015 Samy Al Bahra.
  * Copyright 2011 David Joseph.
  * All rights reserved.
  *
@@ -50,10 +50,10 @@ ck_barrier_centralized(struct ck_barrier_centralized *barrier,
 		return;
 	}
 
-	ck_pr_fence_load();
+	ck_pr_fence_atomic_load();
 	while (sense != ck_pr_load_uint(&barrier->sense))
 		ck_pr_stall();
 
-	ck_pr_fence_memory();
+	ck_pr_fence_acquire();
 	return;
 }

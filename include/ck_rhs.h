@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2014 Samy Al Bahra.
+ * Copyright 2012-2015 Samy Al Bahra.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -24,8 +24,8 @@
  * SUCH DAMAGE.
  */
 
-#ifndef _CK_RHS_H
-#define _CK_RHS_H
+#ifndef CK_RHS_H
+#define CK_RHS_H
 
 #include <ck_cc.h>
 #include <ck_malloc.h>
@@ -84,6 +84,7 @@ struct ck_rhs {
 	struct ck_malloc *m;
 	struct ck_rhs_map *map;
 	unsigned int mode;
+	unsigned int load_factor;
 	unsigned long seed;
 	ck_rhs_hash_cb_t *hf;
 	ck_rhs_compare_cb_t *compare;
@@ -128,5 +129,6 @@ unsigned long ck_rhs_count(ck_rhs_t *);
 bool ck_rhs_reset(ck_rhs_t *);
 bool ck_rhs_reset_size(ck_rhs_t *, unsigned long);
 void ck_rhs_stat(ck_rhs_t *, struct ck_rhs_stat *);
+bool ck_rhs_set_load_factor(ck_rhs_t *, unsigned int);
 
-#endif /* _CK_RHS_H */
+#endif /* CK_RHS_H */

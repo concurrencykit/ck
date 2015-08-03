@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2014 Samy Al Bahra.
+ * Copyright 2010-2015 Samy Al Bahra.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -24,10 +24,11 @@
  * SUCH DAMAGE.
  */
 
-#ifndef _CK_HP_H
-#define _CK_HP_H
+#ifndef CK_HP_H
+#define CK_HP_H
 
 #include <ck_cc.h>
+#include <ck_md.h>
 #include <ck_pr.h>
 #include <ck_stack.h>
 
@@ -82,6 +83,20 @@ ck_hp_set(struct ck_hp_record *record, unsigned int i, void *pointer)
 }
 
 CK_CC_INLINE static void
+ck_hp_set_fence(struct ck_hp_record *record, unsigned int i, void *pointer)
+{
+
+#ifdef CK_MD_TSO
+	ck_pr_fas_ptr(&record->pointers[i], pointer);
+#else
+	ck_pr_store_ptr(&record->pointers[i], pointer);
+	ck_pr_fence_memory();
+#endif
+
+	return;
+}
+
+CK_CC_INLINE static void
 ck_hp_clear(struct ck_hp_record *record)
 {
 	void **pointers = record->pointers;
@@ -103,4 +118,4 @@ void ck_hp_free(ck_hp_record_t *, ck_hp_hazard_t *, void *, void *);
 void ck_hp_retire(ck_hp_record_t *, ck_hp_hazard_t *, void *, void *);
 void ck_hp_purge(ck_hp_record_t *);
 
-#endif /* _CK_HP_H */
+#endif /* CK_HP_H */

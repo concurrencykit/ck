@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2014 Samy Al Bahra.
+ * Copyright 2011-2015 Samy Al Bahra.
  * Copyright 2011 David Joseph.
  * All rights reserved.
  *
@@ -136,5 +136,6 @@ ck_barrier_mcs(struct ck_barrier_mcs *barrier,
 	ck_pr_store_uint(barrier[state->vpid].children[0], state->sense);
 	ck_pr_store_uint(barrier[state->vpid].children[1], state->sense);
 	state->sense = ~state->sense;
+	ck_pr_fence_memory();
 	return;
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2014 Samy Al Bahra.
+ * Copyright 2009-2015 Samy Al Bahra.
  * Copyright 2012 João Fernandes.
  * All rights reserved.
  *
@@ -25,10 +25,10 @@
  * SUCH DAMAGE.
  */
 
-#ifndef _CK_PR_PPC_H
-#define _CK_PR_PPC_H
+#ifndef CK_PR_PPC_H
+#define CK_PR_PPC_H
 
-#ifndef _CK_PR_H
+#ifndef CK_PR_H
 #error Do not include this file directly, use ck_pr.h
 #endif
 
@@ -79,19 +79,21 @@ CK_PR_FENCE(load_store, "lwsync")
 CK_PR_FENCE(memory, "sync")
 CK_PR_FENCE(acquire, "lwsync")
 CK_PR_FENCE(release, "lwsync")
+CK_PR_FENCE(lock, "lwsync")
+CK_PR_FENCE(unlock, "lwsync")
 
 #undef CK_PR_FENCE
 
-#define CK_PR_LOAD(S, M, T, C, I)				\
-	CK_CC_INLINE static T					\
-	ck_pr_load_##S(const M *target)				\
-	{							\
-		T r;						\
-		__asm__ __volatile__(I "%U1%X1 %0, %1"		\
-					: "=r" (r)		\
-					: "m"  (*(C *)target)	\
-					: "memory");		\
-		return (r);					\
+#define CK_PR_LOAD(S, M, T, C, I)					\
+	CK_CC_INLINE static T						\
+	ck_pr_md_load_##S(const M *target)				\
+	{								\
+		T r;							\
+		__asm__ __volatile__(I "%U1%X1 %0, %1"			\
+					: "=r" (r)			\
+					: "m"  (*(const C *)target)	\
+					: "memory");			\
+		return (r);						\
 	}
 
 CK_PR_LOAD(ptr, void, void *, uint32_t, "lwz")
@@ -111,7 +113,7 @@ CK_PR_LOAD_S(char, char, "lbz")
 
 #define CK_PR_STORE(S, M, T, C, I)				\
 	CK_CC_INLINE static void				\
-	ck_pr_store_##S(M *target, T v)				\
+	ck_pr_md_store_##S(M *target, T v)			\
 	{							\
 		__asm__ __volatile__(I "%U0%X0 %1, %0"		\
 					: "=m" (*(C *)target)	\
@@ -318,5 +320,5 @@ CK_PR_FAA(int, int, "w")
 
 #undef CK_PR_FAA
 
-#endif /* _CK_PR_PPC_H */
+#endif /* CK_PR_PPC_H */
 

@@ -24,10 +24,10 @@
  * SUCH DAMAGE.
  */
 
-#ifndef _CK_PR_GCC_H
-#define _CK_PR_GCC_H
+#ifndef CK_PR_GCC_H
+#define CK_PR_GCC_H
 
-#ifndef _CK_PR_H
+#ifndef CK_PR_H
 #error Do not include this file directly, use ck_pr.h
 #endif
 
@@ -57,31 +57,42 @@ ck_pr_barrier(void)
 
 #define CK_PR_LOAD(S, M, T)		 			\
 	CK_CC_INLINE static T					\
-	ck_pr_load_##S(const M *target)				\
+	ck_pr_md_load_##S(const M *target)			\
 	{							\
 		T r;						\
+		ck_pr_barrier();				\
 		r = CK_PR_ACCESS(*(T *)target);			\
+		ck_pr_barrier();				\
 		return (r);					\
 	}							\
 	CK_CC_INLINE static void				\
-	ck_pr_store_##S(M *target, T v)				\
+	ck_pr_md_store_##S(M *target, T v)			\
 	{							\
+		ck_pr_barrier();				\
 		CK_PR_ACCESS(*(T *)target) = v;			\
+		ck_pr_barrier();				\
 		return;						\
 	}
 
 CK_CC_INLINE static void *
-ck_pr_load_ptr(const void *target)
+ck_pr_md_load_ptr(const void *target)
 {
+	void *r;
 
-	return CK_PR_ACCESS(*(void **)target);
+	ck_pr_barrier();
+	r = CK_PR_ACCESS(*(void **)target);
+	ck_pr_barrier();
+
+	return r;
 }
 
 CK_CC_INLINE static void
-ck_pr_store_ptr(void *target, const void *v)
+ck_pr_md_store_ptr(void *target, const void *v)
 {
 
+	ck_pr_barrier();
 	CK_PR_ACCESS(*(void **)target) = (void *)v;
+	ck_pr_barrier();
 	return;
 }
 
@@ -102,7 +113,8 @@ CK_PR_LOAD_S(8,  uint8_t)
 CK_CC_INLINE static void
 ck_pr_stall(void)
 {
-	return;
+
+	ck_pr_barrier();
 }
 
 /*
@@ -130,6 +142,8 @@ CK_PR_FENCE(store_load)
 CK_PR_FENCE(memory)
 CK_PR_FENCE(acquire)
 CK_PR_FENCE(release)
+CK_PR_FENCE(lock)
+CK_PR_FENCE(unlock)
 
 #undef CK_PR_FENCE
 
@@ -277,5 +291,4 @@ CK_PR_UNARY_S(8, uint8_t)
 #undef CK_PR_UNARY_S
 #undef CK_PR_UNARY
 #endif /* !CK_F_PR */
-#endif /* _CK_PR_GCC_H */
-
+#endif /* CK_PR_GCC_H */

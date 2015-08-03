@@ -24,10 +24,10 @@
  * SUCH DAMAGE.
  */
 
-#ifndef _CK_PR_SPARCV9_H
-#define _CK_PR_SPARCV9_H
+#ifndef CK_PR_SPARCV9_H
+#define CK_PR_SPARCV9_H
 
-#ifndef _CK_PR_H
+#ifndef CK_PR_H
 #error Do not include this file directly, use ck_pr.h
 #endif
 
@@ -79,12 +79,14 @@ CK_PR_FENCE(load_store, "membar #LoadStore")
 CK_PR_FENCE(memory, "membar #LoadLoad | #LoadStore | #StoreStore | #StoreLoad")
 CK_PR_FENCE(acquire, "membar #LoadLoad | #LoadStore")
 CK_PR_FENCE(release, "membar #LoadStore | #StoreStore")
+CK_PR_FENCE(lock, "membar #LoadLoad | #LoadStore | #StoreStore | #StoreLoad")
+CK_PR_FENCE(unlock, "membar #LoadStore | #StoreStore")
 
 #undef CK_PR_FENCE
 
 #define CK_PR_LOAD(S, M, T, C, I)				\
 	CK_CC_INLINE static T					\
-	ck_pr_load_##S(const M *target)				\
+	ck_pr_md_load_##S(const M *target)			\
 	{							\
 		T r;						\
 		__asm__ __volatile__(I " [%1], %0"		\
@@ -109,7 +111,7 @@ CK_PR_LOAD_S(int, int, "ldsw")
 
 #define CK_PR_STORE(S, M, T, C, I)				\
 	CK_CC_INLINE static void				\
-	ck_pr_store_##S(M *target, T v)				\
+	ck_pr_md_store_##S(M *target, T v)			\
 	{							\
 		__asm__ __volatile__(I " %0, [%1]"		\
 					:			\
@@ -221,5 +223,5 @@ CK_PR_FAS(32, uint32_t)
 
 #undef CK_PR_FAS
 
-#endif /* _CK_PR_SPARCV9_H */
+#endif /* CK_PR_SPARCV9_H */
 

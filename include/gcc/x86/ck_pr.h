@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2014 Samy Al Bahra.
+ * Copyright 2009-2015 Samy Al Bahra.
  * Copyright 2011 Devon H. O'Dell <devon.odell@gmail.com>
  * All rights reserved.
  *
@@ -25,10 +25,10 @@
  * SUCH DAMAGE.
  */
 
-#ifndef _CK_PR_X86_H
-#define _CK_PR_X86_H
+#ifndef CK_PR_X86_H
+#define CK_PR_X86_H
 
-#ifndef _CK_PR_H
+#ifndef CK_PR_H
 #error Do not include this file directly, use ck_pr.h
 #endif
 
@@ -82,6 +82,8 @@ CK_PR_FENCE(store_load, "mfence")
 CK_PR_FENCE(memory, "mfence")
 CK_PR_FENCE(release, "mfence")
 CK_PR_FENCE(acquire, "mfence")
+CK_PR_FENCE(lock, "mfence")
+CK_PR_FENCE(unlock, "mfence")
 
 #undef CK_PR_FENCE
 
@@ -114,16 +116,16 @@ CK_PR_FAS_S(8,  uint8_t,  "xchgb")
 #undef CK_PR_FAS_S
 #undef CK_PR_FAS
 
-#define CK_PR_LOAD(S, M, T, C, I)				\
-	CK_CC_INLINE static T					\
-	ck_pr_load_##S(const M *target)				\
-	{							\
-		T r;						\
-		__asm__ __volatile__(I " %1, %0"		\
-					: "=q" (r)		\
-					: "m"  (*(C *)target)	\
-					: "memory");		\
-		return (r);					\
+#define CK_PR_LOAD(S, M, T, C, I)					\
+	CK_CC_INLINE static T						\
+	ck_pr_md_load_##S(const M *target)				\
+	{								\
+		T r;							\
+		__asm__ __volatile__(I " %1, %0"			\
+					: "=q" (r)			\
+					: "m"  (*(const C *)target)	\
+					: "memory");			\
+		return (r);						\
 	}
 
 CK_PR_LOAD(ptr, void, void *, char, "movl")
@@ -142,7 +144,7 @@ CK_PR_LOAD_S(8,  uint8_t,  "movb")
 
 #define CK_PR_STORE(S, M, T, C, I)				\
 	CK_CC_INLINE static void				\
-	ck_pr_store_##S(M *target, T v)				\
+	ck_pr_md_store_##S(M *target, T v)			\
 	{							\
 		__asm__ __volatile__(I " %1, %0"		\
 					: "=m" (*(C *)target)	\
@@ -384,5 +386,5 @@ CK_PR_GENERATE(btr)
 #undef CK_PR_GENERATE
 #undef CK_PR_BT
 
-#endif /* _CK_PR_X86_H */
+#endif /* CK_PR_X86_H */
 

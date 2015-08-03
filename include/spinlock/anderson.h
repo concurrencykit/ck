@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2014 Samy Al Bahra.
+ * Copyright 2010-2015 Samy Al Bahra.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -24,8 +24,8 @@
  * SUCH DAMAGE.
  */
 
-#ifndef _CK_SPINLOCK_ANDERSON_H
-#define _CK_SPINLOCK_ANDERSON_H
+#ifndef CK_SPINLOCK_ANDERSON_H
+#define CK_SPINLOCK_ANDERSON_H
 
 #include <ck_cc.h>
 #include <ck_limits.h>
@@ -91,12 +91,12 @@ CK_CC_INLINE static bool
 ck_spinlock_anderson_locked(struct ck_spinlock_anderson *lock)
 {
 	unsigned int position;
+	bool r;
 
-	ck_pr_fence_load();
 	position = ck_pr_load_uint(&lock->next) & lock->mask;
-	ck_pr_fence_load();
-
-	return ck_pr_load_uint(&lock->slots[position].locked);
+	r = ck_pr_load_uint(&lock->slots[position].locked);
+	ck_pr_fence_acquire();
+	return r;
 }
 
 CK_CC_INLINE static void
@@ -131,13 +131,16 @@ ck_spinlock_anderson_lock(struct ck_spinlock_anderson *lock,
 	/* Serialize with respect to previous thread's store. */
 	ck_pr_fence_load();
 
-	/* Spin until slot is marked as unlocked. First slot is initialized to false. */
+	/*
+	 * Spin until slot is marked as unlocked. First slot is initialized to
+	 * false.
+	 */
 	while (ck_pr_load_uint(&lock->slots[position].locked) == true)
 		ck_pr_stall();
 
 	/* Prepare slot for potential re-use by another thread. */
 	ck_pr_store_uint(&lock->slots[position].locked, true);
-	ck_pr_fence_acquire();
+	ck_pr_fence_lock();
 
 	*slot = lock->slots + position;
 	return;
@@ -149,7 +152,7 @@ ck_spinlock_anderson_unlock(struct ck_spinlock_anderson *lock,
 {
 	unsigned int position;
 
-	ck_pr_fence_release();
+	ck_pr_fence_unlock();
 
 	/* Mark next slot as available. */
 	if (lock->wrap == 0)
@@ -161,5 +164,4 @@ ck_spinlock_anderson_unlock(struct ck_spinlock_anderson *lock,
 	return;
 }
 #endif /* CK_F_SPINLOCK_ANDERSON */
-#endif /* _CK_SPINLOCK_ANDERSON_H */
-
+#endif /* CK_SPINLOCK_ANDERSON_H */

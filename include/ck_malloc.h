@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2014 Samy Al Bahra.
+ * Copyright 2012-2015 Samy Al Bahra.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -24,8 +24,8 @@
  * SUCH DAMAGE.
  */
 
-#ifndef _CK_MALLOC_H
-#define _CK_MALLOC_H
+#ifndef CK_MALLOC_H
+#define CK_MALLOC_H
 
 #include <stdbool.h>
 #include <sys/types.h>
@@ -36,4 +36,4 @@ struct ck_malloc {
 	void (*free)(void *, size_t, bool);
 };
 
-#endif /* _CK_MALLOC_H */
+#endif /* CK_MALLOC_H */

@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2014 Samy Al Bahra.
+ * Copyright 2009-2015 Samy Al Bahra.
  * Copyright 2011 David Joseph.
  * All rights reserved.
  *
@@ -25,8 +25,8 @@
  * SUCH DAMAGE.
  */
 
-#ifndef _CK_PR_H
-#define _CK_PR_H
+#ifndef CK_PR_H
+#define CK_PR_H
 
 #include <ck_cc.h>
 #include <ck_limits.h>
@@ -97,6 +97,8 @@ CK_PR_FENCE_EMIT(store)
 CK_PR_FENCE_EMIT(memory)
 CK_PR_FENCE_EMIT(acquire)
 CK_PR_FENCE_EMIT(release)
+CK_PR_FENCE_EMIT(lock)
+CK_PR_FENCE_EMIT(unlock)
 #elif defined(CK_MD_PSO)
 /*
  * Anything can be re-ordered with respect to stores.
@@ -114,6 +116,8 @@ CK_PR_FENCE_EMIT(store)
 CK_PR_FENCE_EMIT(memory)
 CK_PR_FENCE_EMIT(acquire)
 CK_PR_FENCE_EMIT(release)
+CK_PR_FENCE_EMIT(lock)
+CK_PR_FENCE_EMIT(unlock)
 #elif defined(CK_MD_TSO)
 /*
  * Only loads are re-ordered and only with respect to
@@ -131,6 +135,8 @@ CK_PR_FENCE_NOOP(store)
 CK_PR_FENCE_NOOP(memory)
 CK_PR_FENCE_NOOP(acquire)
 CK_PR_FENCE_NOOP(release)
+CK_PR_FENCE_NOOP(lock)
+CK_PR_FENCE_NOOP(unlock)
 #else
 #error "No memory model has been defined."
 #endif /* CK_MD_TSO */
@@ -138,13 +144,60 @@ CK_PR_FENCE_NOOP(release)
 #undef CK_PR_FENCE_EMIT
 #undef CK_PR_FENCE_NOOP
 
+#ifndef CK_F_PR_RFO
+#define CK_F_PR_RFO
+CK_CC_INLINE static void
+ck_pr_rfo(const void *m)
+{
+
+	(void)m;
+	return;
+}
+#endif /* CK_F_PR_RFO */
+
+#define CK_PR_STORE_SAFE(DST, VAL, TYPE)			\
+    ck_pr_md_store_##TYPE(					\
+        ((void)sizeof(*(DST) = (VAL)), (DST)),			\
+        (VAL))
+
+#define ck_pr_store_ptr(DST, VAL) CK_PR_STORE_SAFE((DST), (VAL), ptr)
+#define ck_pr_store_char(DST, VAL) CK_PR_STORE_SAFE((DST), (VAL), char)
+#define ck_pr_store_double(DST, VAL) CK_PR_STORE_SAFE((DST), (VAL), double)
+#define ck_pr_store_uint(DST, VAL) CK_PR_STORE_SAFE((DST), (VAL), uint)
+#define ck_pr_store_int(DST, VAL) CK_PR_STORE_SAFE((DST), (VAL), int)
+#define ck_pr_store_32(DST, VAL) CK_PR_STORE_SAFE((DST), (VAL), 32)
+#define ck_pr_store_16(DST, VAL) CK_PR_STORE_SAFE((DST), (VAL), 16)
+#define ck_pr_store_8(DST, VAL) CK_PR_STORE_SAFE((DST), (VAL), 8)
+
+#define ck_pr_store_ptr_unsafe(DST, VAL) ck_pr_md_store_ptr((DST), (VAL))
+
+#ifdef CK_F_PR_LOAD_64
+#define ck_pr_store_64(DST, VAL) CK_PR_STORE_SAFE((DST), (VAL), 64)
+#endif /* CK_F_PR_LOAD_64 */
+
+#define CK_PR_LOAD_PTR_SAFE(SRC) (CK_CC_TYPEOF(*(SRC), (void *)))ck_pr_md_load_ptr((SRC))
+#define ck_pr_load_ptr(SRC) CK_PR_LOAD_PTR_SAFE((SRC))
+
+#define CK_PR_LOAD_SAFE(SRC, TYPE) ck_pr_md_load_##TYPE((SRC))
+#define ck_pr_load_char(SRC) CK_PR_LOAD_SAFE((SRC), char)
+#define ck_pr_load_double(SRC) CK_PR_LOAD_SAFE((SRC), double)
+#define ck_pr_load_uint(SRC) CK_PR_LOAD_SAFE((SRC), uint)
+#define ck_pr_load_int(SRC) CK_PR_LOAD_SAFE((SRC), int)
+#define ck_pr_load_32(SRC) CK_PR_LOAD_SAFE((SRC), 32)
+#define ck_pr_load_16(SRC) CK_PR_LOAD_SAFE((SRC), 16)
+#define ck_pr_load_8(SRC) CK_PR_LOAD_SAFE((SRC), 8)
+
+#ifdef CK_F_PR_LOAD_64
+#define ck_pr_load_64(SRC) CK_PR_LOAD_SAFE((SRC), 64)
+#endif /* CK_F_PR_LOAD_64 */
+
 #define CK_PR_BIN(K, S, M, T, P, C)					\
 	CK_CC_INLINE static void					\
 	ck_pr_##K##_##S(M *target, T value)				\
 	{								\
 		T previous;						\
 		C punt;							\
-		punt = ck_pr_load_##S(target);				\
+		punt = ck_pr_md_load_##S(target);			\
 		previous = (T)punt;					\
 		while (ck_pr_cas_##S##_value(target,			\
 					     (C)previous,		\
@@ -412,7 +465,7 @@ CK_PR_BIN_S(or, 8, uint8_t, |)
 	{									   \
 		T previous;							   \
 		C punt;								   \
-		punt = ck_pr_load_##S(target);					   \
+		punt = ck_pr_md_load_##S(target);				   \
 		previous = (T)punt;						   \
 		while (ck_pr_cas_##S##_value(target, (C)previous,		   \
 			(C)(previous P (R ((T)1 << offset))), &previous) == false) \
@@ -553,7 +606,7 @@ CK_PR_BTX_S(bts, 16, uint16_t, |,)
 	{								\
 		T previous;						\
 		C punt;							\
-		punt = (C)ck_pr_load_##S(target);			\
+		punt = (C)ck_pr_md_load_##S(target);			\
 		previous = (T)punt;					\
 		while (ck_pr_cas_##S##_value(target,			\
 					     (C)previous,		\
@@ -784,7 +837,7 @@ CK_PR_UNARY_Z_S(dec, 8, uint8_t, -, 1)
 	{								\
 		T previous;						\
 		C punt;							\
-		punt = (C)ck_pr_load_##S(target);			\
+		punt = (C)ck_pr_md_load_##S(target);			\
 		previous = (T)punt;					\
 		while (ck_pr_cas_##S##_value(target,			\
 					     (C)previous,		\
@@ -801,7 +854,7 @@ CK_PR_UNARY_Z_S(dec, 8, uint8_t, -, 1)
 	{								\
 		T previous;						\
 		C punt;							\
-		punt = (C)ck_pr_load_##S(target);			\
+		punt = (C)ck_pr_md_load_##S(target);			\
 		previous = (T)punt;					\
 		while (ck_pr_cas_##S##_value(target,			\
 					     (C)previous,		\
@@ -988,7 +1041,7 @@ CK_PR_N_Z_S(8, uint8_t)
 	{								\
 		T previous;						\
 		C punt;							\
-		punt = (C)ck_pr_load_##S(target);			\
+		punt = (C)ck_pr_md_load_##S(target);			\
 		previous = (T)punt;					\
 		while (ck_pr_cas_##S##_value(target,			\
 					     (C)previous,		\
@@ -1004,7 +1057,7 @@ CK_PR_N_Z_S(8, uint8_t)
 	ck_pr_fas_##S(M *target, C update)				\
 	{								\
 		C previous;						\
-		previous = ck_pr_load_##S(target);			\
+		previous = ck_pr_md_load_##S(target);			\
 		while (ck_pr_cas_##S##_value(target,			\
 					     previous,			\
 					     update,			\
@@ -1148,4 +1201,4 @@ CK_PR_FAS_S(8, uint8_t)
 #undef CK_PR_FAA
 #undef CK_PR_FAS
 
-#endif /* _CK_PR_H */
+#endif /* CK_PR_H */

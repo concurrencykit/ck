@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2014 Samy Al Bahra.
+ * Copyright 2009-2015 Samy Al Bahra.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -24,8 +24,8 @@
  * SUCH DAMAGE.
  */
 
-#ifndef _CK_RING_H
-#define _CK_RING_H
+#ifndef CK_RING_H
+#define CK_RING_H
 
 #include <ck_cc.h>
 #include <ck_md.h>
@@ -53,7 +53,7 @@ struct ck_ring_buffer {
 typedef struct ck_ring_buffer ck_ring_buffer_t;
 
 CK_CC_INLINE static unsigned int
-ck_ring_size(struct ck_ring *ring)
+ck_ring_size(const struct ck_ring *ring)
 {
 	unsigned int c, p;
 
@@ -63,9 +63,8 @@ ck_ring_size(struct ck_ring *ring)
 }
 
 CK_CC_INLINE static unsigned int
-ck_ring_capacity(struct ck_ring *ring)
+ck_ring_capacity(const struct ck_ring *ring)
 {
-
 	return ring->size;
 }
 
@@ -431,4 +430,4 @@ ck_ring_dequeue_spmc_##name(struct ck_ring *a,		\
 #define CK_RING_DEQUEUE_SPMC(name, a, b, c)		\
 	ck_ring_dequeue_spmc_##name(a, b, c)
 
-#endif /* _CK_RING_H */
+#endif /* CK_RING_H */

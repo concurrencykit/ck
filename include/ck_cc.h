@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2014 Samy Al Bahra.
+ * Copyright 2009-2015 Samy Al Bahra.
  * Copyright 2014 Paul Khuong.
  * All rights reserved.
  *
@@ -25,12 +25,18 @@
  * SUCH DAMAGE.
  */
 
-#ifndef _CK_CC_H
-#define _CK_CC_H
+#ifndef CK_CC_H
+#define CK_CC_H
 
 #if defined(__GNUC__) || defined(__SUNPRO_C)
 #include "gcc/ck_cc.h"
 #endif
+
+#ifndef CK_CC_RESTRICT
+#define CK_CC_RESTRICT
+#endif
+
+#define CK_CC_DECONST_PTR(X) ((void *)(uintptr_t)(X))
 
 /*
  * Container function.
@@ -40,7 +46,7 @@
 	CK_CC_INLINE static T *							\
 	N(F *p)									\
 	{									\
-		const F *n = p;							\
+		F *n = p;							\
 		return (T *)(void *)(((char *)n) - ((size_t)&((T *)0)->M));	\
 	}
 
@@ -84,6 +90,10 @@
 
 #ifndef CK_CC_UNLIKELY
 #define CK_CC_UNLIKELY(x) x
+#endif
+
+#ifndef CK_CC_TYPEOF
+#define CK_CC_TYPEOF(X, DEFAULT) DEFAULT
 #endif
 
 #ifndef CK_F_CC_FFS
@@ -152,4 +162,4 @@ ck_cc_popcount(unsigned int x)
 }
 #endif
 
-#endif /* _CK_CC_H */
+#endif /* CK_CC_H */

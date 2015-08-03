@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2014 Samy Al Bahra.
+ * Copyright 2009-2015 Samy Al Bahra.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -24,10 +24,10 @@
  * SUCH DAMAGE.
  */
 
-#ifndef _CK_PR_X86_64_H
-#define _CK_PR_X86_64_H
+#ifndef CK_PR_X86_64_H
+#define CK_PR_X86_64_H
 
-#ifndef _CK_PR_H
+#ifndef CK_PR_H
 #error Do not include this file directly, use ck_pr.h
 #endif
 
@@ -88,8 +88,30 @@ CK_PR_FENCE(store_load, "mfence")
 CK_PR_FENCE(memory, "mfence")
 CK_PR_FENCE(release, "mfence")
 CK_PR_FENCE(acquire, "mfence")
+CK_PR_FENCE(lock, "mfence")
+CK_PR_FENCE(unlock, "mfence")
 
 #undef CK_PR_FENCE
+
+/*
+ * Read for ownership. Older compilers will generate the 32-bit
+ * 3DNow! variant which is binary compatible with x86-64 variant
+ * of prefetchw.
+ */
+#ifndef CK_F_PR_RFO
+#define CK_F_PR_RFO
+CK_CC_INLINE static void
+ck_pr_rfo(const void *m)
+{
+
+	__asm__ __volatile__("prefetchw (%0)"
+	    :
+	    : "r" (m)
+	    : "memory");
+
+	return;
+}
+#endif /* CK_F_PR_RFO */
 
 /*
  * Atomic fetch-and-store operations.
@@ -127,13 +149,13 @@ CK_PR_FAS_S(8,  uint8_t,  "xchgb")
  */
 #define CK_PR_LOAD(S, M, T, C, I)				\
 	CK_CC_INLINE static T					\
-	ck_pr_load_##S(const M *target)				\
+	ck_pr_md_load_##S(const M *target)			\
 	{							\
 		T r;						\
 		__asm__ __volatile__(I " %1, %0"		\
-					: "=q" (r)		\
-					: "m"  (*(C *)target)	\
-					: "memory");		\
+		    : "=q" (r)					\
+		    : "m"  (*(const C *)target)			\
+		    : "memory");				\
 		return (r);					\
 	}
 
@@ -167,7 +189,7 @@ ck_pr_load_64_2(const uint64_t target[2], uint64_t v[2])
 }
 
 CK_CC_INLINE static void
-ck_pr_load_ptr_2(void *t, void *v)
+ck_pr_load_ptr_2(const void *t, void *v)
 {
 	ck_pr_load_64_2((uint64_t *)t, (uint64_t *)v);
 	return;
@@ -175,7 +197,7 @@ ck_pr_load_ptr_2(void *t, void *v)
 
 #define CK_PR_LOAD_2(S, W, T)							\
 	CK_CC_INLINE static void						\
-	ck_pr_load_##S##_##W(const T t[2], T v[2])				\
+	ck_pr_md_load_##S##_##W(const T t[2], T v[2])				\
 	{									\
 		ck_pr_load_64_2((const uint64_t *)(const void *)t,		\
 				(uint64_t *)(void *)v);				\
@@ -196,7 +218,7 @@ CK_PR_LOAD_2(8, 16, uint8_t)
  */
 #define CK_PR_STORE_IMM(S, M, T, C, I, K)				\
 	CK_CC_INLINE static void					\
-	ck_pr_store_##S(M *target, T v)					\
+	ck_pr_md_store_##S(M *target, T v)				\
 	{								\
 		__asm__ __volatile__(I " %1, %0"			\
 					: "=m" (*(C *)target)		\
@@ -207,7 +229,7 @@ CK_PR_LOAD_2(8, 16, uint8_t)
 
 #define CK_PR_STORE(S, M, T, C, I)				\
 	CK_CC_INLINE static void				\
-	ck_pr_store_##S(M *target, T v)				\
+	ck_pr_md_store_##S(M *target, T v)			\
 	{							\
 		__asm__ __volatile__(I " %1, %0"		\
 					: "=m" (*(C *)target)	\
@@ -541,5 +563,5 @@ CK_PR_GENERATE(btr)
 #undef CK_PR_GENERATE
 #undef CK_PR_BT
 
-#endif /* _CK_PR_X86_64_H */
+#endif /* CK_PR_X86_64_H */
 

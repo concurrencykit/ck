@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2014 Samy Al Bahra.
+ * Copyright 2012-2015 Samy Al Bahra.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -56,8 +56,8 @@
  * $FreeBSD: release/9.0.0/sys/sys/queue.h 221843 2011-05-13 15:49:23Z mdf $
  */
 
-#ifndef _CK_QUEUE_H_
-#define	_CK_QUEUE_H_
+#ifndef CK_QUEUE_H
+#define	CK_QUEUE_H
 
 #include <ck_pr.h>
 
@@ -414,4 +414,4 @@ struct {									\
 		swap_tmp->field.le_prev = &(head2)->lh_first;		\
 } while (0)
 
-#endif /* _CK_QUEUE_H */
+#endif /* CK_QUEUE_H */

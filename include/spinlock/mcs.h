@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2014 Samy Al Bahra.
+ * Copyright 2010-2015 Samy Al Bahra.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -24,8 +24,8 @@
  * SUCH DAMAGE.
  */
 
-#ifndef _CK_SPINLOCK_MCS_H
-#define _CK_SPINLOCK_MCS_H
+#ifndef CK_SPINLOCK_MCS_H
+#define CK_SPINLOCK_MCS_H
 
 #include <ck_cc.h>
 #include <ck_pr.h>
@@ -54,37 +54,39 @@ ck_spinlock_mcs_init(struct ck_spinlock_mcs **queue)
 }
 
 CK_CC_INLINE static bool
-ck_spinlock_mcs_trylock(struct ck_spinlock_mcs **queue, struct ck_spinlock_mcs *node)
+ck_spinlock_mcs_trylock(struct ck_spinlock_mcs **queue,
+    struct ck_spinlock_mcs *node)
 {
+	bool r;
 
 	node->locked = true;
 	node->next = NULL;
 	ck_pr_fence_store_atomic();
 
-	if (ck_pr_cas_ptr(queue, NULL, node) == true) {
-		ck_pr_fence_acquire();
-		return true;
-	}
-
-	return false;
+	r = ck_pr_cas_ptr(queue, NULL, node);
+	ck_pr_fence_lock();
+	return r;
 }
 
 CK_CC_INLINE static bool
 ck_spinlock_mcs_locked(struct ck_spinlock_mcs **queue)
 {
+	bool r;
 
-	ck_pr_fence_load();
-	return ck_pr_load_ptr(queue) != NULL;
+	r = ck_pr_load_ptr(queue) != NULL;
+	ck_pr_fence_acquire();
+	return r;
 }
 
 CK_CC_INLINE static void
-ck_spinlock_mcs_lock(struct ck_spinlock_mcs **queue, struct ck_spinlock_mcs *node)
+ck_spinlock_mcs_lock(struct ck_spinlock_mcs **queue,
+    struct ck_spinlock_mcs *node)
 {
 	struct ck_spinlock_mcs *previous;
 
 	/*
-	 * In the case that there is a successor, let them know they must wait
-	 * for us to unlock.
+	 * In the case that there is a successor, let them know they must
+	 * wait for us to unlock.
 	 */
 	node->locked = true;
 	node->next = NULL;
@@ -97,22 +99,26 @@ ck_spinlock_mcs_lock(struct ck_spinlock_mcs **queue, struct ck_spinlock_mcs *nod
 	 */
 	previous = ck_pr_fas_ptr(queue, node);
 	if (previous != NULL) {
-		/* Let the previous lock holder know that we are waiting on them. */
+		/*
+		 * Let the previous lock holder know that we are waiting on
+		 * them.
+		 */
 		ck_pr_store_ptr(&previous->next, node);
 		while (ck_pr_load_uint(&node->locked) == true)
 			ck_pr_stall();
 	}
 
-	ck_pr_fence_load();
+	ck_pr_fence_lock();
 	return;
 }
 
 CK_CC_INLINE static void
-ck_spinlock_mcs_unlock(struct ck_spinlock_mcs **queue, struct ck_spinlock_mcs *node)
+ck_spinlock_mcs_unlock(struct ck_spinlock_mcs **queue,
+    struct ck_spinlock_mcs *node)
 {
 	struct ck_spinlock_mcs *next;
 
-	ck_pr_fence_release();
+	ck_pr_fence_unlock();
 
 	next = ck_pr_load_ptr(&node->next);
 	if (next == NULL) {
@@ -127,9 +133,10 @@ ck_spinlock_mcs_unlock(struct ck_spinlock_mcs **queue, struct ck_spinlock_mcs *n
 		}
 
 		/*
-		 * If the node is not the current tail then a lock operation is
-		 * in-progress. In this case, busy-wait until the queue is in
-		 * a consistent state to wake up the incoming lock request.
+		 * If the node is not the current tail then a lock operation
+		 * is in-progress. In this case, busy-wait until the queue is
+		 * in a consistent state to wake up the incoming lock
+		 * request.
 		 */
 		for (;;) {
 			next = ck_pr_load_ptr(&node->next);
@@ -145,5 +152,4 @@ ck_spinlock_mcs_unlock(struct ck_spinlock_mcs **queue, struct ck_spinlock_mcs *n
 	return;
 }
 #endif /* CK_F_SPINLOCK_MCS */
-#endif /* _CK_SPINLOCK_MCS_H */
-
+#endif /* CK_SPINLOCK_MCS_H */

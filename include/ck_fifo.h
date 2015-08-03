@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2014 Samy Al Bahra.
+ * Copyright 2010-2015 Samy Al Bahra.
  * Copyright 2011 David Joseph.
  * All rights reserved.
  *
@@ -25,8 +25,8 @@
  * SUCH DAMAGE.
  */
 
-#ifndef _CK_FIFO_H
-#define _CK_FIFO_H
+#ifndef CK_FIFO_H
+#define CK_FIFO_H
 
 #include <ck_cc.h>
 #include <ck_md.h>
@@ -151,7 +151,7 @@ ck_fifo_spsc_dequeue(struct ck_fifo_spsc *fifo, void *value)
 		return false;
 
 	/* If entry is visible, guarantee store to value is visible. */
-	ck_pr_store_ptr(value, entry->value);
+	ck_pr_store_ptr_unsafe(value, entry->value);
 	ck_pr_fence_store();
 	ck_pr_store_ptr(&fifo->head, entry);
 	return true;
@@ -262,6 +262,7 @@ ck_fifo_mpmc_enqueue(struct ck_fifo_mpmc *fifo,
 		ck_pr_fence_load();
 		tail.pointer = ck_pr_load_ptr(&fifo->tail.pointer);
 		next.generation = ck_pr_load_ptr(&tail.pointer->next.generation);
+		ck_pr_fence_load();
 		next.pointer = ck_pr_load_ptr(&tail.pointer->next.pointer);
 
 		if (ck_pr_load_ptr(&fifo->tail.generation) != tail.generation)
@@ -314,6 +315,7 @@ ck_fifo_mpmc_tryenqueue(struct ck_fifo_mpmc *fifo,
 	ck_pr_fence_load();
 	tail.pointer = ck_pr_load_ptr(&fifo->tail.pointer);
 	next.generation = ck_pr_load_ptr(&tail.pointer->next.generation);
+	ck_pr_fence_load();
 	next.pointer = ck_pr_load_ptr(&tail.pointer->next.pointer);
 
 	if (ck_pr_load_ptr(&fifo->tail.generation) != tail.generation)
@@ -365,6 +367,7 @@ ck_fifo_mpmc_dequeue(struct ck_fifo_mpmc *fifo,
 		tail.pointer = ck_pr_load_ptr(&fifo->tail.pointer);
 
 		next.generation = ck_pr_load_ptr(&head.pointer->next.generation);
+		ck_pr_fence_load();
 		next.pointer = ck_pr_load_ptr(&head.pointer->next.pointer);
 
 		update.pointer = next.pointer;
@@ -419,6 +422,7 @@ ck_fifo_mpmc_trydequeue(struct ck_fifo_mpmc *fifo,
 	tail.pointer = ck_pr_load_ptr(&fifo->tail.pointer);
 
 	next.generation = ck_pr_load_ptr(&head.pointer->next.generation);
+	ck_pr_fence_load();
 	next.pointer = ck_pr_load_ptr(&head.pointer->next.pointer);
 
 	update.pointer = next.pointer;
@@ -471,4 +475,4 @@ ck_fifo_mpmc_trydequeue(struct ck_fifo_mpmc *fifo,
 #endif /* CK_F_FIFO_MPMC */
 #endif /* CK_F_PR_CAS_PTR_2 */
 
-#endif /* _CK_FIFO_H */
+#endif /* CK_FIFO_H */

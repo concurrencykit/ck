@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2014 Samy Al Bahra.
+ * Copyright 2010-2015 Samy Al Bahra.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -24,8 +24,8 @@
  * SUCH DAMAGE.
  */
 
-#ifndef _CK_SPINLOCK_DEC_H
-#define _CK_SPINLOCK_DEC_H
+#ifndef CK_SPINLOCK_DEC_H
+#define CK_SPINLOCK_DEC_H
 
 #include <ck_backoff.h>
 #include <ck_cc.h>
@@ -62,20 +62,18 @@ ck_spinlock_dec_trylock(struct ck_spinlock_dec *lock)
 	unsigned int value;
 
 	value = ck_pr_fas_uint(&lock->value, 0);
-	if (value == 1) {
-		ck_pr_fence_acquire();
-		return true;
-	}
-
-	return false;
+	ck_pr_fence_lock();
+	return value == 1;
 }
 
 CK_CC_INLINE static bool
 ck_spinlock_dec_locked(struct ck_spinlock_dec *lock)
 {
+	bool r;
 
-	ck_pr_fence_load();
-	return ck_pr_load_uint(&lock->value) != 1;
+	r = ck_pr_load_uint(&lock->value) != 1;
+	ck_pr_fence_acquire();
+	return r;
 }
 
 CK_CC_INLINE static void
@@ -98,7 +96,7 @@ ck_spinlock_dec_lock(struct ck_spinlock_dec *lock)
 			ck_pr_stall();
 	}
 
-	ck_pr_fence_acquire();
+	ck_pr_fence_lock();
 	return;
 }
 
@@ -116,7 +114,7 @@ ck_spinlock_dec_lock_eb(struct ck_spinlock_dec *lock)
 		ck_backoff_eb(&backoff);
 	}
 
-	ck_pr_fence_acquire();
+	ck_pr_fence_lock();
 	return;
 }
 
@@ -124,9 +122,12 @@ CK_CC_INLINE static void
 ck_spinlock_dec_unlock(struct ck_spinlock_dec *lock)
 {
 
-	ck_pr_fence_release();
+	ck_pr_fence_unlock();
 
-	/* Unconditionally set lock value to 1 so someone can decrement lock to 0. */
+	/*
+	 * Unconditionally set lock value to 1 so someone can decrement lock
+	 * to 0.
+	 */
 	ck_pr_store_uint(&lock->value, 1);
 	return;
 }
@@ -139,5 +140,4 @@ CK_ELIDE_TRYLOCK_PROTOTYPE(ck_spinlock_dec, ck_spinlock_dec_t,
     ck_spinlock_dec_locked, ck_spinlock_dec_trylock)
 
 #endif /* CK_F_SPINLOCK_DEC */
-#endif /* _CK_SPINLOCK_DEC_H */
-
+#endif /* CK_SPINLOCK_DEC_H */

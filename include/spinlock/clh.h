@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2014 Samy Al Bahra.
+ * Copyright 2010-2015 Samy Al Bahra.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -24,8 +24,8 @@
  * SUCH DAMAGE.
  */
 
-#ifndef _CK_SPINLOCK_CLH_H
-#define _CK_SPINLOCK_CLH_H
+#ifndef CK_SPINLOCK_CLH_H
+#define CK_SPINLOCK_CLH_H
 
 #include <ck_cc.h>
 #include <ck_limits.h>
@@ -57,11 +57,12 @@ CK_CC_INLINE static bool
 ck_spinlock_clh_locked(struct ck_spinlock_clh **queue)
 {
 	struct ck_spinlock_clh *head;
+	bool r;
 
-	ck_pr_fence_load();
 	head = ck_pr_load_ptr(queue);
-	ck_pr_fence_load();
-	return ck_pr_load_uint(&head->wait);
+	r = ck_pr_load_uint(&head->wait);
+	ck_pr_fence_acquire();
+	return r;
 }
 
 CK_CC_INLINE static void
@@ -73,7 +74,10 @@ ck_spinlock_clh_lock(struct ck_spinlock_clh **queue, struct ck_spinlock_clh *thr
 	thread->wait = true;
 	ck_pr_fence_store_atomic();
 
-	/* Mark current request as last request. Save reference to previous request. */
+	/*
+	 * Mark current request as last request. Save reference to previous
+	 * request.
+	 */
 	previous = ck_pr_fas_ptr(queue, thread);
 	thread->previous = previous;
 
@@ -82,7 +86,7 @@ ck_spinlock_clh_lock(struct ck_spinlock_clh **queue, struct ck_spinlock_clh *thr
 	while (ck_pr_load_uint(&previous->wait) == true)
 		ck_pr_stall();
 
-	ck_pr_fence_load();
+	ck_pr_fence_lock();
 	return;
 }
 
@@ -100,8 +104,10 @@ ck_spinlock_clh_unlock(struct ck_spinlock_clh **thread)
 	 */
 	previous = thread[0]->previous;
 
-	/* We have to pay this cost anyways, use it as a compiler barrier too. */
-	ck_pr_fence_release();
+	/*
+	 * We have to pay this cost anyways, use it as a compiler barrier too.
+	 */
+	ck_pr_fence_unlock();
 	ck_pr_store_uint(&(*thread)->wait, false);
 
 	/*
@@ -113,5 +119,4 @@ ck_spinlock_clh_unlock(struct ck_spinlock_clh **thread)
 	return;
 }
 #endif /* CK_F_SPINLOCK_CLH */
-#endif /* _CK_SPINLOCK_CLH_H */
-
+#endif /* CK_SPINLOCK_CLH_H */

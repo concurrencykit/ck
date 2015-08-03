@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2014 Samy Al Bahra.
+ * Copyright 2009-2015 Samy Al Bahra.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -24,8 +24,8 @@
  * SUCH DAMAGE.
  */
 
-#ifndef _CK_STACK_H
-#define _CK_STACK_H
+#ifndef CK_STACK_H
+#define CK_STACK_H
 
 #include <ck_cc.h>
 #include <ck_pr.h>
@@ -197,10 +197,12 @@ ck_stack_pop_mpmc(struct ck_stack *target)
 	struct ck_stack original, update;
 
 	original.generation = ck_pr_load_ptr(&target->generation);
+	ck_pr_fence_load();
 	original.head = ck_pr_load_ptr(&target->head);
 	if (original.head == NULL)
 		return NULL;
 
+	/* Order with respect to next pointer. */
 	ck_pr_fence_load();
 
 	update.generation = original.generation + 1;
@@ -212,6 +214,7 @@ ck_stack_pop_mpmc(struct ck_stack *target)
 
 		update.generation = original.generation + 1;
 
+		/* Order with respect to next pointer. */
 		ck_pr_fence_load();
 		update.head = original.head->next;
 	}
@@ -228,6 +231,7 @@ ck_stack_trypop_mpmc(struct ck_stack *target, struct ck_stack_entry **r)
 	struct ck_stack original, update;
 
 	original.generation = ck_pr_load_ptr(&target->generation);
+	ck_pr_fence_load();
 	original.head = ck_pr_load_ptr(&target->head);
 	if (original.head == NULL)
 		return false;
@@ -271,7 +275,7 @@ ck_stack_push_mpnc(struct ck_stack *target, struct ck_stack_entry *entry)
 	struct ck_stack_entry *stack;
 
 	entry->next = NULL;
-	ck_pr_fence_store();
+	ck_pr_fence_store_atomic();
 	stack = ck_pr_fas_ptr(&target->head, entry);
 	ck_pr_store_ptr(&entry->next, stack);
 	ck_pr_fence_store();
@@ -289,7 +293,6 @@ ck_stack_push_spnc(struct ck_stack *target, struct ck_stack_entry *entry)
 
 	entry->next = target->head;
 	target->head = entry;
-
 	return;
 }
 
@@ -351,4 +354,4 @@ ck_stack_init(struct ck_stack *stack)
 	     (entry) != NULL && ((T) = (entry)->next, 1);	\
 	     (entry) = (T))
 
-#endif /* _CK_STACK_H */
+#endif /* CK_STACK_H */

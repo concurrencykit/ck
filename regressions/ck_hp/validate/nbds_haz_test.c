@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2014 Samy Al Bahra.
+ * Copyright 2010-2015 Samy Al Bahra.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -121,14 +121,14 @@ stack_pop_mpmc(ck_hp_record_t *record, struct stack *target)
 		if (entry == NULL)
 			return (NULL);
 
-		ck_hp_set(record, 0, entry);
+		ck_hp_set_fence(record, 0, entry);
 	} while (entry != ck_pr_load_ptr(&target->head));
 
 	while (ck_pr_cas_ptr_value(&target->head, entry, entry->next, &entry) == false) {
 		if (ck_pr_load_ptr(&entry) == NULL)
 			break;
 
-		ck_hp_set(record, 0, entry);
+		ck_hp_set_fence(record, 0, entry);
 		if (entry != ck_pr_load_ptr(&target->head))
 			continue;
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 Samy Al Bahra.
+ * Copyright 2013-2015 Samy Al Bahra.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -40,10 +40,10 @@
  * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
  */
 
-#ifndef _CK_PR_X86_64_RTM_H
-#define _CK_PR_X86_64_RTM_H
+#ifndef CK_PR_X86_64_RTM_H
+#define CK_PR_X86_64_RTM_H
 
-#ifndef _CK_PR_X86_64_H
+#ifndef CK_PR_X86_64_H
 #error Do not include this file directly, use ck_pr.h
 #endif
 
@@ -105,5 +105,5 @@ ck_pr_rtm_test(void)
 	return r;
 }
 
-#endif /* _CK_PR_X86_64_RTM_H */
+#endif /* CK_PR_X86_64_RTM_H */
 

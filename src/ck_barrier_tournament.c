@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2014 Samy Al Bahra.
+ * Copyright 2011-2015 Samy Al Bahra.
  * Copyright 2011 David Joseph.
  * All rights reserved.
  *
@@ -178,6 +178,7 @@ wakeup:
 	}
 
 leave:
+	ck_pr_fence_memory();
 	state->sense = ~state->sense;
 	return;
 }

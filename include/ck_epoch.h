@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2014 Samy Al Bahra.
+ * Copyright 2011-2015 Samy Al Bahra.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -24,8 +24,8 @@
  * SUCH DAMAGE.
  */
 
-#ifndef _CK_EPOCH_H
-#define _CK_EPOCH_H
+#ifndef CK_EPOCH_H
+#define CK_EPOCH_H
 
 /*
  * The implementation here is inspired from the work described in:
@@ -34,6 +34,7 @@
  */
 
 #include <ck_cc.h>
+#include <ck_md.h>
 #include <ck_pr.h>
 #include <ck_stack.h>
 #include <stdbool.h>
@@ -101,7 +102,7 @@ ck_epoch_begin(ck_epoch_t *epoch, ck_epoch_record_t *record)
 		 */
 		ck_pr_store_uint(&record->epoch, g_epoch);
 
-#if defined(__x86__) || defined(__x86_64__)
+#if defined(CK_MD_TSO)
 		ck_pr_fas_uint(&record->active, 1);
 		ck_pr_fence_atomic_load();
 #else
@@ -159,4 +160,4 @@ void ck_epoch_synchronize(ck_epoch_t *, ck_epoch_record_t *);
 void ck_epoch_barrier(ck_epoch_t *, ck_epoch_record_t *);
 void ck_epoch_reclaim(ck_epoch_record_t *);
 
-#endif /* _CK_EPOCH_H */
+#endif /* CK_EPOCH_H */

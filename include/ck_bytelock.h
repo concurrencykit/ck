@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2014 Samy Al Bahra.
+ * Copyright 2010-2015 Samy Al Bahra.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -24,8 +24,8 @@
  * SUCH DAMAGE.
  */
 
-#ifndef _CK_BYTELOCK_H
-#define _CK_BYTELOCK_H
+#ifndef CK_BYTELOCK_H
+#define CK_BYTELOCK_H
 
 /*
  * The implementations here are derived from the work described in:
@@ -92,8 +92,12 @@ ck_bytelock_write_lock(struct ck_bytelock *bytelock, unsigned int slot)
 	if (slot <= sizeof bytelock->readers)
 		ck_pr_store_8(&bytelock->readers[slot - 1], false);
 
-	/* Wait for slotted readers to drain out. */
-	ck_pr_fence_store_load();
+	/*
+	 * Wait for slotted readers to drain out. This also provides the
+	 * lock acquire semantics.
+	 */
+	ck_pr_fence_atomic_load();
+
 	for (i = 0; i < sizeof(bytelock->readers) / CK_BYTELOCK_LENGTH; i++) {
 		while (CK_BYTELOCK_LOAD(&readers[i]) != false)
 			ck_pr_stall();
@@ -103,6 +107,7 @@ ck_bytelock_write_lock(struct ck_bytelock *bytelock, unsigned int slot)
 	while (ck_pr_load_uint(&bytelock->n_readers) != 0)
 		ck_pr_stall();
 
+	ck_pr_fence_lock();
 	return;
 }
 
@@ -114,7 +119,7 @@ CK_CC_INLINE static void
 ck_bytelock_write_unlock(struct ck_bytelock *bytelock)
 {
 
-	ck_pr_fence_release();
+	ck_pr_fence_unlock();
 	ck_pr_store_uint(&bytelock->owner, 0);
 	return;
 }
@@ -143,14 +148,19 @@ ck_bytelock_read_lock(struct ck_bytelock *bytelock, unsigned int slot)
 				ck_pr_stall();
 		}
 
-		ck_pr_fence_load();
+		ck_pr_fence_lock();
 		return;
 	}
 
 	slot -= 1;
 	for (;;) {
+#ifdef CK_F_PR_FAA_8
+		ck_pr_fas_8(&bytelock->readers[slot], true);
+		ck_pr_fence_atomic_load();
+#else
 		ck_pr_store_8(&bytelock->readers[slot], true);
 		ck_pr_fence_store_load();
+#endif
 
 		/*
 		 * If there is no owner at this point, our slot has
@@ -165,7 +175,7 @@ ck_bytelock_read_lock(struct ck_bytelock *bytelock, unsigned int slot)
 			ck_pr_stall();
 	}
 
-	ck_pr_fence_load();
+	ck_pr_fence_lock();
 	return;
 }
 
@@ -173,7 +183,7 @@ CK_CC_INLINE static void
 ck_bytelock_read_unlock(struct ck_bytelock *bytelock, unsigned int slot)
 {
 
-	ck_pr_fence_release();
+	ck_pr_fence_unlock();
 
 	if (slot > sizeof bytelock->readers)
 		ck_pr_dec_uint(&bytelock->n_readers);
@@ -183,4 +193,4 @@ ck_bytelock_read_unlock(struct ck_bytelock *bytelock, unsigned int slot)
 	return;
 }
 
-#endif /* _CK_BYTELOCK_H */
+#endif /* CK_BYTELOCK_H */

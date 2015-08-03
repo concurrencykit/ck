@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2014 Samy Al Bahra.
+ * Copyright 2011-2015 Samy Al Bahra.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -87,16 +87,16 @@ thread(void *null CK_CC_UNUSED)
 			ck_error("is_locked operation failed.");
 #endif
 
-		ck_pr_inc_uint(&locked);
-		ck_pr_inc_uint(&locked);
-		ck_pr_inc_uint(&locked);
-		ck_pr_inc_uint(&locked);
-		ck_pr_inc_uint(&locked);
-		ck_pr_inc_uint(&locked);
-		ck_pr_inc_uint(&locked);
-		ck_pr_inc_uint(&locked);
-		ck_pr_inc_uint(&locked);
-		ck_pr_inc_uint(&locked);
+		ck_pr_store_uint(&locked, locked + 1);
+		ck_pr_store_uint(&locked, locked + 1);
+		ck_pr_store_uint(&locked, locked + 1);
+		ck_pr_store_uint(&locked, locked + 1);
+		ck_pr_store_uint(&locked, locked + 1);
+		ck_pr_store_uint(&locked, locked + 1);
+		ck_pr_store_uint(&locked, locked + 1);
+		ck_pr_store_uint(&locked, locked + 1);
+		ck_pr_store_uint(&locked, locked + 1);
+		ck_pr_store_uint(&locked, locked + 1);
 
 		j = ck_pr_load_uint(&locked);
 
@@ -105,19 +105,18 @@ thread(void *null CK_CC_UNUSED)
 			exit(EXIT_FAILURE);
 		}
 
-		ck_pr_dec_uint(&locked);
-		ck_pr_dec_uint(&locked);
-		ck_pr_dec_uint(&locked);
-		ck_pr_dec_uint(&locked);
-		ck_pr_dec_uint(&locked);
-		ck_pr_dec_uint(&locked);
-		ck_pr_dec_uint(&locked);
-		ck_pr_dec_uint(&locked);
-		ck_pr_dec_uint(&locked);
-		ck_pr_dec_uint(&locked);
+		ck_pr_store_uint(&locked, locked - 1);
+		ck_pr_store_uint(&locked, locked - 1);
+		ck_pr_store_uint(&locked, locked - 1);
+		ck_pr_store_uint(&locked, locked - 1);
+		ck_pr_store_uint(&locked, locked - 1);
+		ck_pr_store_uint(&locked, locked - 1);
+		ck_pr_store_uint(&locked, locked - 1);
+		ck_pr_store_uint(&locked, locked - 1);
+		ck_pr_store_uint(&locked, locked - 1);
+		ck_pr_store_uint(&locked, locked - 1);
 
 		UNLOCK;
-
 		LOCK;
 
 		j = ck_pr_load_uint(&locked);

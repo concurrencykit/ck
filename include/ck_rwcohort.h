@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 Samy Al Bahra.
+ * Copyright 2013-2015 Samy Al Bahra.
  * Copyright 2013 Brendon Scheinman.
  * All rights reserved.
  *
@@ -25,8 +25,8 @@
  * SUCH DAMAGE.
  */
 
-#ifndef _CK_RWCOHORT_H
-#define _CK_RWCOHORT_H
+#ifndef CK_RWCOHORT_H
+#define CK_RWCOHORT_H
 
 /*
  * This is an implementation of NUMA-aware reader-writer locks as described in:
@@ -314,4 +314,4 @@
 	.read_counter = 0,								\
 }
 
-#endif /* _CK_RWCOHORT_H */
+#endif /* CK_RWCOHORT_H */

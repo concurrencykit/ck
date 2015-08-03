@@ -1,6 +1,6 @@
 /*
- * Copyright 2009-2014 Samy Al Bahra.
- * Copyright 2013-2014 Olivier Houchard.
+ * Copyright 2009-2015 Samy Al Bahra.
+ * Copyright 2013-2015 Olivier Houchard.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,10 +25,10 @@
  * SUCH DAMAGE.
  */
 
-#ifndef _CK_PR_ARM_H
-#define _CK_PR_ARM_H
+#ifndef CK_PR_ARM_H
+#define CK_PR_ARM_H
 
-#ifndef _CK_PR_H
+#ifndef CK_PR_H
 #error Do not include this file directly, use ck_pr.h
 #endif
 
@@ -55,24 +55,24 @@ ck_pr_stall(void)
 }
 
 #if defined(__ARM_ARCH_7__) || defined(__ARM_ARCH_7A__)
-#define __CK_ISB __asm __volatile("isb" : : "r" (0) : "memory")
-#define _CK_DMB __asm __volatile("dmb" : : "r" (0) : "memory")
-#define _CK_DSB __asm __volatile("dsb" : : "r" (0) : "memory")
+#define CK_ISB __asm __volatile("isb" : : "r" (0) : "memory")
+#define CK_DMB __asm __volatile("dmb" : : "r" (0) : "memory")
+#define CK_DSB __asm __volatile("dsb" : : "r" (0) : "memory")
 /* FreeBSD's toolchain doesn't accept dmb st, so use the opcode instead */
 #ifdef __FreeBSD__
-#define _CK_DMB_ST __asm __volatile(".word 0xf57ff05e" : : "r" (0) : "memory")
+#define CK_DMB_ST __asm __volatile(".word 0xf57ff05e" : : "r" (0) : "memory")
 #else
-#define _CK_DMB_ST __asm __volatile("dmb st" : : "r" (0) : "memory")
+#define CK_DMB_ST __asm __volatile("dmb st" : : "r" (0) : "memory")
 #endif /* __FreeBSD__ */
 #else
 /* armv6 doesn't have dsb/dmb/isb, and no way to wait only for stores */
-#define _CK_ISB \
+#define CK_ISB \
     __asm __volatile("mcr p15, 0, %0, c7, c5, 4" : : "r" (0) : "memory")
-#define _CK_DSB \
+#define CK_DSB \
     __asm __volatile("mcr p15, 0, %0, c7, c10, 4" : : "r" (0) : "memory")
-#define _CK_DMB  \
+#define CK_DMB  \
     __asm __volatile("mcr p15, 0, %0, c7, c10, 5" : : "r" (0) : "memory")
-#define _CK_DMB_ST _CK_DMB
+#define CK_DMB_ST CK_DMB
 #endif
 
 #define CK_PR_FENCE(T, I)				\
@@ -82,29 +82,31 @@ ck_pr_stall(void)
 		I;					\
 	}
 
-CK_PR_FENCE(atomic, _CK_DMB_ST)
-CK_PR_FENCE(atomic_store, _CK_DMB_ST)
-CK_PR_FENCE(atomic_load, _CK_DMB_ST)
-CK_PR_FENCE(store_atomic, _CK_DMB_ST)
-CK_PR_FENCE(load_atomic, _CK_DMB)
-CK_PR_FENCE(store, _CK_DMB_ST)
-CK_PR_FENCE(store_load, _CK_DMB_ST)
-CK_PR_FENCE(load, _CK_DMB)
-CK_PR_FENCE(load_store, _CK_DMB)
-CK_PR_FENCE(memory, _CK_DMB)
-CK_PR_FENCE(acquire, _CK_DMB)
-CK_PR_FENCE(release, _CK_DMB)
+CK_PR_FENCE(atomic, CK_DMB_ST)
+CK_PR_FENCE(atomic_store, CK_DMB_ST)
+CK_PR_FENCE(atomic_load, CK_DMB_ST)
+CK_PR_FENCE(store_atomic, CK_DMB_ST)
+CK_PR_FENCE(load_atomic, CK_DMB)
+CK_PR_FENCE(store, CK_DMB_ST)
+CK_PR_FENCE(store_load, CK_DMB)
+CK_PR_FENCE(load, CK_DMB)
+CK_PR_FENCE(load_store, CK_DMB)
+CK_PR_FENCE(memory, CK_DMB)
+CK_PR_FENCE(acquire, CK_DMB)
+CK_PR_FENCE(release, CK_DMB)
+CK_PR_FENCE(lock, CK_DMB)
+CK_PR_FENCE(unlock, CK_DMB)
 
 #undef CK_PR_FENCE
 
-#undef _CK_ISB
-#undef _CK_DSB
-#undef _CK_DMB
-#undef _CK_DMB_ST
+#undef CK_ISB
+#undef CK_DSB
+#undef CK_DMB
+#undef CK_DMB_ST
 
 #define CK_PR_LOAD(S, M, T, C, I)				\
 	CK_CC_INLINE static T					\
-	ck_pr_load_##S(const M *target)				\
+	ck_pr_md_load_##S(const M *target)			\
 	{							\
 		long r = 0;					\
 		__asm__ __volatile__(I " %0, [%1];"		\
@@ -132,17 +134,18 @@ CK_PR_LOAD_S(char, char, "ldrb")
 CK_CC_INLINE static uint64_t
 ck_pr_load_64(const uint64_t *target)
 {
-	register uint64_t ret asm("r0");
+	register uint64_t ret;
 
-	__asm __volatile("ldrd %0, [%1]" : "+r" (ret)
-	    				 : "r" (target)
-					 : "memory", "cc");
+	__asm __volatile("ldrexd %0, [%1]" 
+	    : "=&r" (ret)
+	    : "r" (target)
+	    : "memory", "cc");
 	return (ret);
 }
 
 #define CK_PR_STORE(S, M, T, C, I)				\
 	CK_CC_INLINE static void				\
-	ck_pr_store_##S(M *target, T v)				\
+	ck_pr_md_store_##S(M *target, T v)			\
 	{							\
 		__asm__ __volatile__(I " %1, [%0]"		\
 					:			\
@@ -170,10 +173,16 @@ CK_PR_STORE_S(char, char, "strb")
 CK_CC_INLINE static void
 ck_pr_store_64(const uint64_t *target, uint64_t value)
 {
-
-	__asm __volatile("strd %0, [%1]"
-				:
-				: "r" (value), "r" (target)
+	uint64_t tmp;
+	uint32_t flag;
+	__asm __volatile("1: 		\n"
+	    		 "ldrexd	%0, [%2]\n"
+			 "strexd	%1, %3, [%2]\n"
+			 "teq		%1, #0\n"
+			 "it ne		\n"
+			 "bne		1\n"
+				: "=&r" (tmp), "=&r" (flag)
+				: "r" (target), "r" (value)
 				: "memory", "cc");
 }
 
@@ -510,5 +519,5 @@ CK_PR_FAA(char, char, "b")
 
 #undef CK_PR_FAA
 
-#endif /* _CK_PR_ARM_H */
+#endif /* CK_PR_ARM_H */
 

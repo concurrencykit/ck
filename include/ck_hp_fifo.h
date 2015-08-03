@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2014 Samy Al Bahra.
+ * Copyright 2010-2015 Samy Al Bahra.
  * Copyright 2011 David Joseph.
  * All rights reserved.
  *
@@ -25,8 +25,8 @@
  * SUCH DAMAGE.
  */
 
-#ifndef _CK_HP_FIFO_H
-#define _CK_HP_FIFO_H
+#ifndef CK_HP_FIFO_H
+#define CK_HP_FIFO_H
 
 #include <ck_cc.h>
 #include <ck_hp.h>
@@ -88,8 +88,7 @@ ck_hp_fifo_enqueue_mpmc(ck_hp_record_t *record,
 
 	for (;;) {
 		tail = ck_pr_load_ptr(&fifo->tail);
-		ck_hp_set(record, 0, tail);
-		ck_pr_fence_store_load();
+		ck_hp_set_fence(record, 0, tail);
 		if (tail != ck_pr_load_ptr(&fifo->tail))
 			continue;
 
@@ -119,8 +118,7 @@ ck_hp_fifo_tryenqueue_mpmc(ck_hp_record_t *record,
 	ck_pr_fence_store_atomic();
 
 	tail = ck_pr_load_ptr(&fifo->tail);
-	ck_hp_set(record, 0, tail);
-	ck_pr_fence_store_load();
+	ck_hp_set_fence(record, 0, tail);
 	if (tail != ck_pr_load_ptr(&fifo->tail))
 		return false;
 
@@ -147,14 +145,12 @@ ck_hp_fifo_dequeue_mpmc(ck_hp_record_t *record,
 		head = ck_pr_load_ptr(&fifo->head);
 		ck_pr_fence_load();
 		tail = ck_pr_load_ptr(&fifo->tail);
-		ck_hp_set(record, 0, head);
-		ck_pr_fence_store_load();
+		ck_hp_set_fence(record, 0, head);
 		if (head != ck_pr_load_ptr(&fifo->head))
 			continue;
 
 		next = ck_pr_load_ptr(&head->next);
-		ck_hp_set(record, 1, next);
-		ck_pr_fence_store_load();
+		ck_hp_set_fence(record, 1, next);
 		if (head != ck_pr_load_ptr(&fifo->head))
 			continue;
 
@@ -168,7 +164,7 @@ ck_hp_fifo_dequeue_mpmc(ck_hp_record_t *record,
 			break;
 	}
 
-	ck_pr_store_ptr(value, next->value);
+	ck_pr_store_ptr_unsafe(value, next->value);
 	return head;
 }
 
@@ -182,14 +178,12 @@ ck_hp_fifo_trydequeue_mpmc(ck_hp_record_t *record,
 	head = ck_pr_load_ptr(&fifo->head);
 	ck_pr_fence_load();
 	tail = ck_pr_load_ptr(&fifo->tail);
-	ck_hp_set(record, 0, head);
-	ck_pr_fence_store_load();
+	ck_hp_set_fence(record, 0, head);
 	if (head != ck_pr_load_ptr(&fifo->head))
 		return NULL;
 
 	next = ck_pr_load_ptr(&head->next);
-	ck_hp_set(record, 1, next);
-	ck_pr_fence_store_load();
+	ck_hp_set_fence(record, 1, next);
 	if (head != ck_pr_load_ptr(&fifo->head))
 		return NULL;
 
@@ -202,7 +196,7 @@ ck_hp_fifo_trydequeue_mpmc(ck_hp_record_t *record,
 	} else if (ck_pr_cas_ptr(&fifo->head, head, next) == false)
 		return NULL;
 
-	ck_pr_store_ptr(value, next->value);
+	ck_pr_store_ptr_unsafe(value, next->value);
 	return head;
 }
 
@@ -218,4 +212,4 @@ ck_hp_fifo_trydequeue_mpmc(ck_hp_record_t *record,
              (entry) != NULL && ((T) = (entry)->next, 1);	\
              (entry) = (T))
 
-#endif /* _CK_HP_FIFO_H */
+#endif /* CK_HP_FIFO_H */

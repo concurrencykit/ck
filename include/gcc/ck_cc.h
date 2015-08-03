@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2014 Samy Al Bahra.
+ * Copyright 2009-2015 Samy Al Bahra.
  * Copyright 2014 Paul Khuong.
  * All rights reserved.
  *
@@ -25,8 +25,8 @@
  * SUCH DAMAGE.
  */
 
-#ifndef _CK_GCC_CC_H
-#define _CK_GCC_CC_H
+#ifndef CK_GCC_CC_H
+#define CK_GCC_CC_H
 
 #include <ck_md.h>
 
@@ -56,6 +56,8 @@
 #else
 #define CK_CC_INLINE CK_CC_UNUSED
 #endif
+
+#define CK_CC_RESTRICT restrict
 
 /*
  * Packed attribute.
@@ -98,6 +100,11 @@
 #define CK_CC_ALIASED __attribute__((__may_alias__))
 
 /*
+ * Compile-time typeof
+ */
+#define CK_CC_TYPEOF(X, DEFAULT) __typeof__(X)
+
+/*
  * Portability wrappers for bitwise ops.
  */
 
@@ -134,4 +141,4 @@ ck_cc_popcount(unsigned int x)
 	return __builtin_popcount(x);
 }
 
-#endif /* _CK_GCC_CC_H */
+#endif /* CK_GCC_CC_H */

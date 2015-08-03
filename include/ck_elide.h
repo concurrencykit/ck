@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 Samy Al Bahra.
+ * Copyright 2013-2015 Samy Al Bahra.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -24,8 +24,8 @@
  * SUCH DAMAGE.
  */
 
-#ifndef _CK_ELIDE_H
-#define _CK_ELIDE_H
+#ifndef CK_ELIDE_H
+#define CK_ELIDE_H
 
 /*
  * As RTM is currently only supported on TSO x86 architectures,
@@ -88,7 +88,7 @@ enum _ck_elide_hint {
 	CK_ELIDE_HINT_STOP
 };
 
-#define _CK_ELIDE_LOCK_BUSY 0xFF
+#define CK_ELIDE_LOCK_BUSY 0xFF
 
 static enum _ck_elide_hint
 _ck_elide_fallback(int *retry,
@@ -105,7 +105,7 @@ _ck_elide_fallback(int *retry,
 		return CK_ELIDE_HINT_STOP;
 
 	if (status & CK_PR_RTM_EXPLICIT) {
-		if (CK_PR_RTM_CODE(status) == _CK_ELIDE_LOCK_BUSY) {
+		if (CK_PR_RTM_CODE(status) == CK_ELIDE_LOCK_BUSY) {
 			st->skip = c->skip_busy;
 			*retry = c->retry_busy;
 			return CK_ELIDE_HINT_SPIN;
@@ -159,7 +159,7 @@ _ck_elide_fallback(int *retry,
 			unsigned int status = ck_pr_rtm_begin();			\
 			if (status == CK_PR_RTM_STARTED) {				\
 				if (L_P(lock) == true)					\
-					ck_pr_rtm_abort(_CK_ELIDE_LOCK_BUSY);		\
+					ck_pr_rtm_abort(CK_ELIDE_LOCK_BUSY);		\
 											\
 				return;							\
 			}								\
@@ -211,7 +211,7 @@ _ck_elide_fallback(int *retry,
 		}									\
 											\
 		if (L_P(lock) == true)							\
-			ck_pr_rtm_abort(_CK_ELIDE_LOCK_BUSY);				\
+			ck_pr_rtm_abort(CK_ELIDE_LOCK_BUSY);				\
 											\
 		return;									\
 	}										\
@@ -237,7 +237,7 @@ _ck_elide_fallback(int *retry,
 			return false;					\
 									\
 		if (TL_P(lock) == true)					\
-			ck_pr_rtm_abort(_CK_ELIDE_LOCK_BUSY);		\
+			ck_pr_rtm_abort(CK_ELIDE_LOCK_BUSY);		\
 									\
 		return true;						\
 	}
@@ -318,4 +318,4 @@ _ck_elide_fallback(int *retry,
 #define CK_ELIDE_UNLOCK_ADAPTIVE(NAME, STAT, LOCK) \
 	ck_elide_##NAME##_unlock_adaptive(STAT, LOCK)
 
-#endif /* _CK_ELIDE_H */
+#endif /* CK_ELIDE_H */

@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2014 Samy Al Bahra.
+ * Copyright 2012-2015 Samy Al Bahra.
  * Copyright 2012-2014 AppNexus, Inc.
  * Copyright 2014 Paul Khuong.
  * All rights reserved.
@@ -26,8 +26,8 @@
  * SUCH DAMAGE.
  */
 
-#ifndef _CK_BITMAP_H
-#define _CK_BITMAP_H
+#ifndef CK_BITMAP_H
+#define CK_BITMAP_H
 
 #include <ck_cc.h>
 #include <ck_limits.h>
@@ -395,7 +395,7 @@ ck_bitmap_count(const ck_bitmap_t *bitmap, unsigned int limit)
 
 /*
  * Returns the number of set bit in the intersection of two bitmaps,
- * upto (and exclusing) limit.  If limit is greater than either bitmap
+ * upto (and excluding) limit.  If limit is greater than either bitmap
  * size, it is truncated to the smallest.
  */
 CK_CC_INLINE static unsigned int
@@ -510,4 +510,4 @@ non_zero:
 	return true;
 }
 
-#endif /* _CK_BITMAP_H */
+#endif /* CK_BITMAP_H */

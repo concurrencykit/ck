@@ -1,6 +1,6 @@
 /*
- * Copyright 2013-2014 Olivier Houchard
- * Copyright 2010-2014 Samy Al Bahra.
+ * Copyright 2013-2015 Olivier Houchard
+ * Copyright 2010-2015 Samy Al Bahra.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,8 +25,8 @@
  * SUCH DAMAGE.
  */
 
-#ifndef _CK_SPINLOCK_HCLH_H
-#define _CK_SPINLOCK_HCLH_H
+#ifndef CK_SPINLOCK_HCLH_H
+#define CK_SPINLOCK_HCLH_H
 
 #include <ck_cc.h>
 #include <ck_pr.h>
@@ -62,11 +62,12 @@ CK_CC_INLINE static bool
 ck_spinlock_hclh_locked(struct ck_spinlock_hclh **queue)
 {
 	struct ck_spinlock_hclh *head;
+	bool r;
 
-	ck_pr_fence_load();
 	head = ck_pr_load_ptr(queue);
-	ck_pr_fence_load();
-	return ck_pr_load_uint(&head->wait);
+	r = ck_pr_load_uint(&head->wait);
+	ck_pr_fence_acquire();
+	return r;
 }
 
 CK_CC_INLINE static void
@@ -110,7 +111,7 @@ ck_spinlock_hclh_lock(struct ck_spinlock_hclh **glob_queue,
 	while (ck_pr_load_uint(&previous->wait) == true)
 		ck_pr_stall();
 
-	ck_pr_fence_load();
+	ck_pr_fence_lock();
 	return;
 }
 
@@ -129,7 +130,7 @@ ck_spinlock_hclh_unlock(struct ck_spinlock_hclh **thread)
 	previous = thread[0]->previous;
 
 	/* We have to pay this cost anyways, use it as a compiler barrier too. */
-	ck_pr_fence_release();
+	ck_pr_fence_unlock();
 	ck_pr_store_uint(&(*thread)->wait, false);
 
 	/*
@@ -141,5 +142,4 @@ ck_spinlock_hclh_unlock(struct ck_spinlock_hclh **thread)
 	return;
 }
 #endif /* CK_F_SPINLOCK_HCLH */
-#endif /* _CK_SPINLOCK_HCLH_H */
-
+#endif /* CK_SPINLOCK_HCLH_H */

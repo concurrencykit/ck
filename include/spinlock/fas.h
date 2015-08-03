@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2014 Samy Al Bahra.
+ * Copyright 2010-2015 Samy Al Bahra.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -24,8 +24,8 @@
  * SUCH DAMAGE.
  */
 
-#ifndef _CK_SPINLOCK_FAS_H
-#define _CK_SPINLOCK_FAS_H
+#ifndef CK_SPINLOCK_FAS_H
+#define CK_SPINLOCK_FAS_H
 
 #include <ck_backoff.h>
 #include <ck_cc.h>
@@ -58,8 +58,7 @@ ck_spinlock_fas_trylock(struct ck_spinlock_fas *lock)
 	bool value;
 
 	value = ck_pr_fas_uint(&lock->value, true);
-	if (value == false)
-		ck_pr_fence_acquire();
+	ck_pr_fence_lock();
 
 	return !value;
 }
@@ -67,9 +66,11 @@ ck_spinlock_fas_trylock(struct ck_spinlock_fas *lock)
 CK_CC_INLINE static bool
 ck_spinlock_fas_locked(struct ck_spinlock_fas *lock)
 {
+	bool r;
 
-	ck_pr_fence_load();
-	return ck_pr_load_uint(&lock->value);
+	r = ck_pr_load_uint(&lock->value);
+	ck_pr_fence_acquire();
+	return r;
 }
 
 CK_CC_INLINE static void
@@ -81,7 +82,7 @@ ck_spinlock_fas_lock(struct ck_spinlock_fas *lock)
 			ck_pr_stall();
 	}
 
-	ck_pr_fence_acquire();
+	ck_pr_fence_lock();
 	return;
 }
 
@@ -93,7 +94,7 @@ ck_spinlock_fas_lock_eb(struct ck_spinlock_fas *lock)
 	while (ck_pr_fas_uint(&lock->value, true) == true)
 		ck_backoff_eb(&backoff);
 
-	ck_pr_fence_acquire();
+	ck_pr_fence_lock();
 	return;
 }
 
@@ -101,7 +102,7 @@ CK_CC_INLINE static void
 ck_spinlock_fas_unlock(struct ck_spinlock_fas *lock)
 {
 
-	ck_pr_fence_release();
+	ck_pr_fence_unlock();
 	ck_pr_store_uint(&lock->value, false);
 	return;
 }
@@ -114,5 +115,4 @@ CK_ELIDE_TRYLOCK_PROTOTYPE(ck_spinlock_fas, ck_spinlock_fas_t,
     ck_spinlock_fas_locked, ck_spinlock_fas_trylock)
 
 #endif /* CK_F_SPINLOCK_FAS */
-#endif /* _CK_SPINLOCK_FAS_H */
-
+#endif /* CK_SPINLOCK_FAS_H */

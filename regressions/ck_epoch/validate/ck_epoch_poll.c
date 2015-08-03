@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2014 Samy Al Bahra.
+ * Copyright 2010-2015 Samy Al Bahra.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -87,14 +87,7 @@ read_thread(void *unused CK_CC_UNUSED)
 {
 	unsigned int j;
 	ck_epoch_record_t record CK_CC_CACHELINE;
-	ck_stack_entry_t *cursor;
-
-	/*
-	 * This is redundant post-incremented in order to silence some
-	 * irrelevant GCC warnings. It is volatile in order to prevent
-	 * elimination.
-	 */
-	volatile ck_stack_entry_t *n;
+	ck_stack_entry_t *cursor, *n;
 
 	ck_epoch_register(&stack_epoch, &record);
 
@@ -121,9 +114,7 @@ read_thread(void *unused CK_CC_UNUSED)
 				continue;
 
 			n = CK_STACK_NEXT(cursor);
-
-			/* Force n use. */
-			j += ((uintptr_t)(void *)n & 0) + 1;
+			j += ck_pr_load_ptr(&n) != NULL;
 		}
 		ck_epoch_end(&stack_epoch, &record);
 
