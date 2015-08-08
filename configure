@@ -412,6 +412,11 @@ case $PLATFORM in
 		ENVIRONMENT=64
 		;;
 	arm|armv6l|armv7l)
+		if test "$PLATFORM" = "armv6l"; then
+			CFLAGS="$CFLAGS -march=armv6";
+		elif test "$PLATFORM" = "armv7l"; then
+			CFLAGS="$CFLAGS -march=armv7-a";
+		fi
 		RTM_ENABLE="CK_MD_RTM_DISABLE"
 		MM="${MM:-"CK_MD_RMO"}"
 		PLATFORM=arm
