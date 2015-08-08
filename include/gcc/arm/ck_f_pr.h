@@ -91,7 +91,9 @@
 #define CK_F_PR_INC_UINT
 #define CK_F_PR_LOAD_16
 #define CK_F_PR_LOAD_32
+#if defined(__ARM_ARCH_7__) || defined(__ARM_ARCH_7A__)
 #define CK_F_PR_LOAD_64
+#endif
 #define CK_F_PR_LOAD_8
 #define CK_F_PR_LOAD_CHAR
 #define CK_F_PR_LOAD_INT
@@ -125,7 +127,9 @@
 #define CK_F_PR_STALL
 #define CK_F_PR_STORE_16
 #define CK_F_PR_STORE_32
+#if defined(__ARM_ARCH_7__) || defined(__ARM_ARCH_7A__)
 #define CK_F_PR_STORE_64
+#endif
 #define CK_F_PR_STORE_8
 #define CK_F_PR_STORE_CHAR
 #define CK_F_PR_STORE_INT

@@ -131,6 +131,8 @@ CK_PR_LOAD_S(char, char, "ldrb")
 #undef CK_PR_LOAD_S
 #undef CK_PR_LOAD
 
+#if defined(__ARM_ARCH_7__) || defined(__ARM_ARCH_7A__)
+
 CK_CC_INLINE static uint64_t
 ck_pr_md_load_64(const uint64_t *target)
 {
@@ -142,6 +144,8 @@ ck_pr_md_load_64(const uint64_t *target)
 	    : "memory", "cc");
 	return (ret);
 }
+
+#endif
 
 #define CK_PR_STORE(S, M, T, C, I)				\
 	CK_CC_INLINE static void				\
@@ -170,6 +174,8 @@ CK_PR_STORE_S(char, char, "strb")
 #undef CK_PR_STORE_S
 #undef CK_PR_STORE
 
+#if defined(__ARM_ARCH_7__) || defined(__ARM_ARCH_7A__)
+
 CK_CC_INLINE static void
 ck_pr_md_store_64(const uint64_t *target, uint64_t value)
 {
@@ -185,6 +191,8 @@ ck_pr_md_store_64(const uint64_t *target, uint64_t value)
 				: "r" (target), "r" (value)
 				: "memory", "cc");
 }
+
+#endif
 
 CK_CC_INLINE static bool
 ck_pr_cas_64_value(uint64_t *target, uint64_t compare, uint64_t set, uint64_t *value)
