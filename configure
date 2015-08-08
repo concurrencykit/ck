@@ -276,35 +276,6 @@ POINTER_PACK_ENABLE=${POINTER_PACK_ENABLE:-"CK_MD_POINTER_PACK_DISABLE"}
 RTM_ENABLE=${RTM_ENABLE_SET:-"CK_MD_RTM_DISABLE"}
 VMA_BITS=${VMA_BITS:-"unknown"}
 
-if test "$PROFILE"; then
-	printf "Using user-specified profile....."
-
-	if test -z "$CC"; then
-		echo "failed [specify compiler]"
-		exit $EXIT_FAILURE
-	fi
-
-	if test ! -f build/ck.build.$PROFILE; then
-		echo "failed [$PROFILE]"
-		exit $EXIT_FAILURE
-	fi
-
-	echo "success [$PROFILE]"
-	printf "Generating header files.........."
-	generate include/ck_md.h.in include/ck_md.h
-	echo "success"
-	printf "Generating build files..........."
-	generate doc/Makefile.in doc/Makefile
-	generate build/ck.build.in build/ck.build
-	generate build/regressions.build.in build/regressions.build
-	generate build/ck.pc.in build/ck.pc
-	generate build/ck.spec.in build/ck.spec
-	generate Makefile.in Makefile
-	echo "success"
-	generate_stdout
-	exit $EXIT_SUCCESS
-fi
-
 DCORES=2
 printf "Detecting operating system......."
 SYSTEM=`uname -s 2> /dev/null`
@@ -691,6 +662,36 @@ EOF
 		exit $EXIT_FAILURE
 	fi
 done
+
+if test "$PROFILE"; then
+    printf "Using user-specified profile....."
+
+	if test -z "$CC"; then
+		echo "failed [specify compiler]"
+		exit $EXIT_FAILURE
+	fi
+
+	if test ! -f build/ck.build.$PROFILE; then
+		echo "failed [$PROFILE]"
+		exit $EXIT_FAILURE
+	fi
+
+	echo "success [$PROFILE]"
+	printf "Generating header files.........."
+	generate include/ck_md.h.in include/ck_md.h
+	echo "success"
+	printf "Generating build files..........."
+	generate src/Makefile.in src/Makefile
+	generate doc/Makefile.in doc/Makefile
+	generate build/ck.build.in build/ck.build
+	generate build/regressions.build.in build/regressions.build
+	generate build/ck.pc.in build/ck.pc
+	generate build/ck.spec.in build/ck.spec
+	generate Makefile.in Makefile
+	echo "success"
+	generate_stdout
+	exit $EXIT_SUCCESS
+fi
 
 # Platform will be used as a macro.
 PROFILE="${PROFILE:-$PLATFORM}"
