@@ -6,6 +6,7 @@ build/ck.spec
 include/ck_md.h
 src/Makefile
 doc/Makefile
+doc/*.3
 build/Makefile
 .DS_Store
 *.html
