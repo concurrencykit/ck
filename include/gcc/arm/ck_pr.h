@@ -247,7 +247,7 @@ ck_pr_cas_64(uint64_t *target, uint64_t compare, uint64_t set)
 			     : "=&r" (ret), "=&r" (tmp)
 			     : "r" (compare), "r" (set) ,
 			       "r"(target)
-			     : "memory", "cc", "r4", "r5", "r6");
+			     : "memory", "cc");
 
 	return (ret);
 }
