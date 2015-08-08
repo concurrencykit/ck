@@ -132,7 +132,7 @@ CK_PR_LOAD_S(char, char, "ldrb")
 #undef CK_PR_LOAD
 
 CK_CC_INLINE static uint64_t
-ck_pr_load_64(const uint64_t *target)
+ck_pr_md_load_64(const uint64_t *target)
 {
 	register uint64_t ret;
 
@@ -171,7 +171,7 @@ CK_PR_STORE_S(char, char, "strb")
 #undef CK_PR_STORE
 
 CK_CC_INLINE static void
-ck_pr_store_64(const uint64_t *target, uint64_t value)
+ck_pr_md_store_64(const uint64_t *target, uint64_t value)
 {
 	uint64_t tmp;
 	uint32_t flag;
