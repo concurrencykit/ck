@@ -217,12 +217,12 @@ ck_pr_cas_64_value(uint64_t *target, uint64_t compare, uint64_t set, uint64_t *v
 CK_CC_INLINE static bool
 ck_pr_cas_ptr_2_value(void *target, void *compare, void *set, void *value)
 {
-	uint32_t *_compare = compare;
-	uint32_t *_set = set;
+	uint32_t *_compare = (uint32_t *) compare;
+	uint32_t *_set = (uint32_t *) set;
 	uint64_t __compare = ((uint64_t)_compare[0]) | ((uint64_t)_compare[1] << 32);
 	uint64_t __set = ((uint64_t)_set[0]) | ((uint64_t)_set[1] << 32);
 
-	return (ck_pr_cas_64_value(target, __compare, __set, value));
+	return (ck_pr_cas_64_value((uint64_t *)target, __compare, __set, (uint64_t *)value));
 }
 
 
@@ -253,11 +253,11 @@ ck_pr_cas_64(uint64_t *target, uint64_t compare, uint64_t set)
 CK_CC_INLINE static bool
 ck_pr_cas_ptr_2(void *target, void *compare, void *set)
 {
-	uint32_t *_compare = compare;
-	uint32_t *_set = set;
+	uint32_t *_compare = (uint32_t *)compare;
+	uint32_t *_set = (uint32_t *)set;
 	uint64_t __compare = ((uint64_t)_compare[0]) | ((uint64_t)_compare[1] << 32);
 	uint64_t __set = ((uint64_t)_set[0]) | ((uint64_t)_set[1] << 32);
-	return (ck_pr_cas_64(target, __compare, __set));
+	return (ck_pr_cas_64((uint64_t *)target, __compare, __set));
 }
 
 #endif

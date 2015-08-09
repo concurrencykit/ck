@@ -26,6 +26,20 @@
 
 #if defined(__linux__) && defined(__KERNEL__)
 #include <linux/kernel.h>
+
+#ifndef UINT8_MAX
+#define UINT8_MAX ((u8)(~0U))
+#endif
+#ifndef UINT16_MAX
+#define UINT16_MAX USHRT_MAX
+#endif
+#ifndef UINT32_MAX
+#define UINT32_MAX ULONG_MAX
+#endif
+#ifndef UINT64_MAX
+#define UINT64_MAX ULLONG_MAX
+#endif
+
 #else
 #include <limits.h>
 #endif /* __linux__ && __KERNEL__ */
