@@ -51,4 +51,6 @@
 #define @MM@
 #endif /* @MM@ */
 
+#define CK_VERSION "@VERSION@"
+
 #endif /* CK_MD_H */
