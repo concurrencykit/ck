@@ -32,6 +32,7 @@
 #include <ck_epoch.h>
 #include <ck_malloc.h>
 #include <ck_pr.h>
+#include <ck_spinlock.h>
 #include <errno.h>
 #include <inttypes.h>
 #include <pthread.h>
@@ -63,6 +64,7 @@ enum state {
 
 static struct affinity affinerator = AFFINITY_INITIALIZER;
 static uint64_t accumulator[HT_STATE_COUNT];
+static ck_spinlock_t accumulator_mutex = CK_SPINLOCK_INITIALIZER;
 static int barrier[HT_STATE_COUNT];
 static int state;
 
@@ -247,7 +249,9 @@ ht_reader(void *unused)
 
 		n_state = ck_pr_load_int(&state);
 		if (n_state != state_previous) {
-			ck_pr_add_64(&accumulator[state_previous], a / (j * keys_length));
+			ck_spinlock_lock(&accumulator_mutex);
+			accumulator[state_previous] += a / (j * keys_length);
+			ck_spinlock_unlock(&accumulator_mutex);
 			ck_pr_inc_int(&barrier[state_previous]);
 			while (ck_pr_load_int(&barrier[state_previous]) != n_threads + 1)
 				ck_pr_stall();
