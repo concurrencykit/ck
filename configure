@@ -111,6 +111,7 @@ generate()
 	    -e "s#@LDNAME@#$LDNAME#g"				\
 	    -e "s#@LDNAME_MAJOR@#$LDNAME_MAJOR#g"		\
 	    -e "s#@LDNAME_VERSION@#$LDNAME_VERSION#g"		\
+	    -e "s#@PC_CFLAGS#$PC_CFLAGS#g"			\
 		$1 > $2
 }
 
@@ -175,6 +176,8 @@ for option; do
 		echo "  --enable-rtm             Enable restricted transactional memory (power, x86_64)"
 		echo "  --memory-model=N         Specify memory model (currently tso, pso or rmo)"
 		echo "  --vma-bits=N             Specify valid number of VMA bits"
+		echo "  --platform=N             Force the platform type, instead of relying on autodetection"
+		echo "  --use-cc-builtins        Use the compiler atomic bultin functions, instead of the CK implementation"
 		echo
 		echo "The following options affect regression testing."
 		echo "  --cores=N                Specify number of cores available on target machine"
@@ -240,6 +243,12 @@ for option; do
 		;;
 	--disable-option-checking)
 		OPTION_CHECKING=0
+		;;
+	--use-cc-builtins)
+		USE_CC_BUILTINS=1
+		;;
+	--platform=*)
+		PLATFORM=$value
 		;;
 	--build=*|--host=*|--target=*|--exec-prefix=*|--bindir=*|--sbindir=*|\
 	--sysconfdir=*|--datadir=*|--libexecdir=*|--localstatedir=*|\
@@ -320,7 +329,10 @@ assert "$SYSTEM" "$SYSTEM" "unsupported"
 
 CORES=${CORES:-${DCORES}}
 printf "Detecting machine architecture..."
-PLATFORM=`uname -m 2> /dev/null`
+if test "x$PLATFORM" = "x"; then
+	PLATFORM=`uname -m 2> /dev/null`
+fi
+
 case $PLATFORM in
 	"macppc"|"Power Macintosh"|"powerpc")
 		RTM_ENABLE="CK_MD_RTM_DISABLE"
@@ -413,7 +425,7 @@ case $PLATFORM in
 		;;
 	arm|armv6l|armv7l)
 		if test "$PLATFORM" = "armv6l"; then
-			CFLAGS="$CFLAGS -march=armv6";
+			CFLAGS="$CFLAGS -march=armv6k";
 		elif test "$PLATFORM" = "armv7l"; then
 			CFLAGS="$CFLAGS -march=armv7-a";
 		fi
@@ -444,6 +456,11 @@ if test "$VMA" = "unknown"; then
 else
 	VMA_BITS_R="CK_MD_VMA_BITS"
 	VMA_BITS_VALUE_R="${VMA_BITS}ULL"
+fi
+
+if test "$USE_CC_BUILTINS"; then
+	CFLAGS="$CFLAGS -DCK_CC_BUILTINS"
+	PC_CFLAGS="-DCK_CC_BULITINS"
 fi
 
 # `which` on Solaris sucks
