@@ -162,4 +162,11 @@ ck_cc_popcount(unsigned int x)
 }
 #endif
 
+
+#ifdef __cplusplus
+#define CK_CPP_CAST(type, arg) static_cast<type>(arg)
+#else
+#define CK_CPP_CAST(type, arg) arg
+#endif
+
 #endif /* CK_CC_H */
