@@ -192,8 +192,6 @@ ck_pr_md_store_64(const uint64_t *target, uint64_t value)
 				: "memory", "cc");
 }
 
-#endif
-
 CK_CC_INLINE static bool
 ck_pr_cas_64_value(uint64_t *target, uint64_t compare, uint64_t set, uint64_t *value)
 {
@@ -261,6 +259,8 @@ ck_pr_cas_ptr_2(void *target, void *compare, void *set)
 	uint64_t __set = ((uint64_t)_set[0]) | ((uint64_t)_set[1] << 32);
 	return (ck_pr_cas_64(target, __compare, __set));
 }
+
+#endif
 
 CK_CC_INLINE static bool
 ck_pr_cas_ptr_value(void *target, void *compare, void *set, void *value)
