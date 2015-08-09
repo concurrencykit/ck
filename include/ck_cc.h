@@ -93,7 +93,7 @@
 #endif
 
 #ifndef CK_CC_TYPEOF
-#define CK_CC_TYPEOF(X, DEFAULT) DEFAULT
+#define CK_CC_TYPEOF(X, DEFAULT) (DEFAULT)
 #endif
 
 #ifndef CK_F_CC_FFS
