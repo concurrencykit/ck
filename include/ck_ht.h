@@ -33,8 +33,19 @@
 
 #include <ck_pr.h>
 
-#if defined(CK_F_PR_LOAD_64) && defined(CK_F_PR_STORE_64)
 #define CK_F_HT
+#if defined(CK_F_PR_LOAD_64) && defined(CK_F_PR_STORE_64)
+#define CK_HT_TYPE uint64_t
+#define CK_HT_TYPE_LOAD		ck_pr_load_64
+#define CK_HT_TYPE_STORE 	ck_pr_store_64
+#define CK_HT_TYPE_MAX		UINT64_MAX
+#else
+#define CK_HT_TYPE uint32_t
+#define CK_HT_TYPE_LOAD		ck_pr_load_32
+#define CK_HT_TYPE_STORE	ck_pr_store_32
+#define CK_HT_TYPE_MAX		UINT32_MAX
+#endif
+
 
 #include <ck_cc.h>
 #include <ck_malloc.h>
@@ -68,8 +79,8 @@ struct ck_ht_entry {
 #else
 	uintptr_t key;
 	uintptr_t value;
-	uint64_t key_length;
-	uint64_t hash;
+	CK_HT_TYPE key_length;
+	CK_HT_TYPE hash;
 } CK_CC_ALIGN(32);
 #endif
 typedef struct ck_ht_entry ck_ht_entry_t;
@@ -249,17 +260,16 @@ void ck_ht_stat(ck_ht_t *, struct ck_ht_stat *);
 void ck_ht_hash(ck_ht_hash_t *, ck_ht_t *, const void *, uint16_t);
 void ck_ht_hash_direct(ck_ht_hash_t *, ck_ht_t *, uintptr_t);
 bool ck_ht_init(ck_ht_t *, unsigned int, ck_ht_hash_cb_t *,
-    struct ck_malloc *, uint64_t, uint64_t);
+    struct ck_malloc *, CK_HT_TYPE, uint64_t);
 void ck_ht_destroy(ck_ht_t *);
 bool ck_ht_set_spmc(ck_ht_t *, ck_ht_hash_t, ck_ht_entry_t *);
 bool ck_ht_put_spmc(ck_ht_t *, ck_ht_hash_t, ck_ht_entry_t *);
 bool ck_ht_get_spmc(ck_ht_t *, ck_ht_hash_t, ck_ht_entry_t *);
 bool ck_ht_gc(struct ck_ht *, unsigned long, unsigned long);
-bool ck_ht_grow_spmc(ck_ht_t *, uint64_t);
+bool ck_ht_grow_spmc(ck_ht_t *, CK_HT_TYPE);
 bool ck_ht_remove_spmc(ck_ht_t *, ck_ht_hash_t, ck_ht_entry_t *);
 bool ck_ht_reset_spmc(ck_ht_t *);
-bool ck_ht_reset_size_spmc(ck_ht_t *, uint64_t);
-uint64_t ck_ht_count(ck_ht_t *);
+bool ck_ht_reset_size_spmc(ck_ht_t *, CK_HT_TYPE);
+CK_HT_TYPE ck_ht_count(ck_ht_t *);
 
-#endif /* CK_F_PR_LOAD_64 && CK_F_PR_STORE_64 */
 #endif /* CK_HT_H */

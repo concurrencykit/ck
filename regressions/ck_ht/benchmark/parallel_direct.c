@@ -26,8 +26,6 @@
 
 #include <ck_ht.h>
 
-#ifdef CK_F_HT
-
 #include <assert.h>
 #include <ck_epoch.h>
 #include <ck_malloc.h>
@@ -541,12 +539,3 @@ main(int argc, char *argv[])
 	    epoch_wr.n_pending, epoch_wr.n_peak, epoch_wr.n_dispatch);
 	return 0;
 }
-#else
-int
-main(void)
-{
-
-	return 0;
-}
-#endif /* CK_F_HT */
-
