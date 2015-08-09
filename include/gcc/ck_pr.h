@@ -53,7 +53,7 @@ ck_pr_barrier(void)
  */
 #include "ck_f_pr.h"
 
-#define CK_PR_ACCESS(x) (*(volatile typeof(x) *)&(x))
+#define CK_PR_ACCESS(x) (*(volatile __typeof__(x) *)&(x))
 
 #define CK_PR_LOAD(S, M, T)		 			\
 	CK_CC_INLINE static T					\
