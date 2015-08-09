@@ -186,7 +186,7 @@ ck_pr_md_store_64(const uint64_t *target, uint64_t value)
 			 "strexd	%1, %3, [%2]\n"
 			 "teq		%1, #0\n"
 			 "it ne		\n"
-			 "bne		1\n"
+			 "bne		1b\n"
 				: "=&r" (tmp), "=&r" (flag)
 				: "r" (target), "r" (value)
 				: "memory", "cc");
