@@ -111,7 +111,7 @@ generate()
 	    -e "s#@LDNAME@#$LDNAME#g"				\
 	    -e "s#@LDNAME_MAJOR@#$LDNAME_MAJOR#g"		\
 	    -e "s#@LDNAME_VERSION@#$LDNAME_VERSION#g"		\
-	    -e "s#@PC_CFLAGS#$PC_CFLAGS#g"			\
+	    -e "s#@PC_CFLAGS@#$PC_CFLAGS#g"			\
 		$1 > $2
 }
 
