@@ -82,6 +82,22 @@ assert()
 	fi
 }
 
+get_git_sha()
+{
+    # return a short SHA for the current HEAD
+    GIT_SHA=""
+    GIT_MSG="success"
+    gitcmd=`which git`
+    if test -n "$gitcmd"; then
+	GIT_SHA=`git rev-parse --short HEAD  2>/dev/null`
+	if ! test -n "$GIT_SHA"; then
+	    GIT_MSG="not within a git repo"
+	fi
+    else
+	GIT_MSG="git not installed or executable"
+    fi
+}
+
 generate()
 {
 	sed -e "s#@PROFILE@#$PROFILE#g"				\
@@ -112,6 +128,7 @@ generate()
 	    -e "s#@LDNAME_MAJOR@#$LDNAME_MAJOR#g"		\
 	    -e "s#@LDNAME_VERSION@#$LDNAME_VERSION#g"		\
 	    -e "s#@PC_CFLAGS@#$PC_CFLAGS#g"			\
+	    -e "s#@GIT_SHA@#$GIT_SHA#g"			        \
 		$1 > $2
 }
 
@@ -120,6 +137,7 @@ generate_stdout()
 
 	echo
 	echo "           VERSION = $VERSION"
+	echo "           GIT_SHA = $GIT_SHA"
 	echo "         BUILD_DIR = $P_PWD"
 	echo "           SRC_DIR = $BUILD_DIR"
 	echo "            SYSTEM = $SYSTEM"
@@ -684,6 +702,10 @@ EOF
 		exit $EXIT_FAILURE
 	fi
 done
+
+printf "Detecting git SHA................"
+get_git_sha
+echo "$GIT_MSG [$GIT_SHA]"
 
 if test "$PROFILE"; then
     printf "Using user-specified profile....."
