@@ -160,7 +160,8 @@ main(int argc, char *argv[])
 
 	n_cohorts = atoi(argv[1]);
 	if (n_cohorts <= 0) {
-		ck_error("ERROR: Number of cohorts must be greater than 0\n");
+		fprintf(stderr, "setting number of cohorts per thread to 1\n");
+		n_cohorts = 1;
 	}
 
 	threads_per_cohort = atoi(argv[2]);
