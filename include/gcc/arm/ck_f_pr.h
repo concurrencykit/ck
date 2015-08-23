@@ -23,6 +23,8 @@
 #if defined(__ARM_ARCH_7__) || defined(__ARM_ARCH_7A__)
 #define CK_F_PR_CAS_64
 #define CK_F_PR_CAS_64_VALUE
+#define CK_F_PR_CAS_DOUBLE
+#define CK_F_PR_CAS_DOUBLE_VALUE
 #endif
 #define CK_F_PR_CAS_8
 #define CK_F_PR_CAS_8_VALUE
@@ -97,6 +99,7 @@
 #define CK_F_PR_LOAD_32
 #if defined(__ARM_ARCH_7__) || defined(__ARM_ARCH_7A__)
 #define CK_F_PR_LOAD_64
+#define CK_F_PR_LOAD_DOUBLE
 #endif
 #define CK_F_PR_LOAD_8
 #define CK_F_PR_LOAD_CHAR
@@ -133,6 +136,7 @@
 #define CK_F_PR_STORE_32
 #if defined(__ARM_ARCH_7__) || defined(__ARM_ARCH_7A__)
 #define CK_F_PR_STORE_64
+#define CK_F_PR_STORE_DOUBLE
 #endif
 #define CK_F_PR_STORE_8
 #define CK_F_PR_STORE_CHAR
