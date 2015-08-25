@@ -7,4 +7,4 @@ Description: Toolkit for well-specified design and implementation of concurrent 
 URL: http://concurrencykit.org/
 Version: @VERSION@
 Libs: -L${libdir} -lck
-Cflags: -D__@PROFILE@__ -I${includedir}
+Cflags: -D__@PROFILE@__ -I${includedir} @PC_CFLAGS@

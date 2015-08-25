@@ -93,7 +93,7 @@
 #endif
 
 #ifndef CK_CC_TYPEOF
-#define CK_CC_TYPEOF(X, DEFAULT) DEFAULT
+#define CK_CC_TYPEOF(X, DEFAULT) (DEFAULT)
 #endif
 
 #ifndef CK_F_CC_FFS
@@ -160,6 +160,13 @@ ck_cc_popcount(unsigned int x)
 
 	return acc;
 }
+#endif
+
+
+#ifdef __cplusplus
+#define CK_CPP_CAST(type, arg) static_cast<type>(arg)
+#else
+#define CK_CPP_CAST(type, arg) arg
 #endif
 
 #endif /* CK_CC_H */

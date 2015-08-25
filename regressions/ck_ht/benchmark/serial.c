@@ -26,8 +26,6 @@
 
 #include <ck_ht.h>
 
-#ifdef CK_F_HT
-
 #include <assert.h>
 #include <ck_malloc.h>
 #include <errno.h>
@@ -387,12 +385,3 @@ main(int argc, char *argv[])
 
 	return 0;
 }
-#else
-int
-main(void)
-{
-
-	return 0;
-}
-#endif /* CK_F_HT */
-

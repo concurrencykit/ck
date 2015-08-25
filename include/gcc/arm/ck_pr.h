@@ -131,17 +131,25 @@ CK_PR_LOAD_S(char, char, "ldrb")
 #undef CK_PR_LOAD_S
 #undef CK_PR_LOAD
 
-CK_CC_INLINE static uint64_t
-ck_pr_load_64(const uint64_t *target)
-{
-	register uint64_t ret;
+#if defined(__ARM_ARCH_7__) || defined(__ARM_ARCH_7A__)
 
-	__asm __volatile("ldrexd %0, [%1]" 
-	    : "=&r" (ret)
-	    : "r" (target)
-	    : "memory", "cc");
-	return (ret);
-}
+#define CK_PR_DOUBLE_LOAD(T, N) 		\
+CK_CC_INLINE static T				\
+ck_pr_md_load_##N(const T *target)		\
+{						\
+	register T ret;				\
+						\
+	__asm __volatile("ldrexd %0, [%1]" 	\
+	    : "=&r" (ret)			\
+	    : "r" (target)			\
+	    : "memory", "cc");			\
+	return (ret);				\
+}					
+
+CK_PR_DOUBLE_LOAD(uint64_t, 64)
+CK_PR_DOUBLE_LOAD(double, double)
+#undef CK_PR_DOUBLE_LOAD
+#endif
 
 #define CK_PR_STORE(S, M, T, C, I)				\
 	CK_CC_INLINE static void				\
@@ -170,89 +178,112 @@ CK_PR_STORE_S(char, char, "strb")
 #undef CK_PR_STORE_S
 #undef CK_PR_STORE
 
-CK_CC_INLINE static void
-ck_pr_store_64(const uint64_t *target, uint64_t value)
-{
-	uint64_t tmp;
-	uint32_t flag;
-	__asm __volatile("1: 		\n"
-	    		 "ldrexd	%0, [%2]\n"
-			 "strexd	%1, %3, [%2]\n"
-			 "teq		%1, #0\n"
-			 "it ne		\n"
-			 "bne		1\n"
-				: "=&r" (tmp), "=&r" (flag)
-				: "r" (target), "r" (value)
-				: "memory", "cc");
+#if defined(__ARM_ARCH_7__) || defined(__ARM_ARCH_7A__)
+
+#define CK_PR_DOUBLE_STORE(T, N)				\
+CK_CC_INLINE static void					\
+ck_pr_md_store_##N(const T *target, T value)			\
+{								\
+	T tmp;							\
+	uint32_t flag;						\
+	__asm __volatile("1: 		\n"			\
+	    		 "ldrexd	%0, [%2]\n"		\
+			 "strexd	%1, %3, [%2]\n"		\
+			 "teq		%1, #0\n"		\
+			 "it ne		\n"			\
+			 "bne		1b\n"			\
+				: "=&r" (tmp), "=&r" (flag)	\
+				: "r" (target), "r" (value)	\
+				: "memory", "cc");		\
 }
 
-CK_CC_INLINE static bool
-ck_pr_cas_64_value(uint64_t *target, uint64_t compare, uint64_t set, uint64_t *value)
-{
-        uint64_t previous;
-        int tmp;
+CK_PR_DOUBLE_STORE(uint64_t, 64)
+CK_PR_DOUBLE_STORE(double, double)
 
-	__asm__ __volatile__("1:"
-			     "ldrexd %0, [%4];"
-			     "cmp    %Q0, %Q2;"
-			     "ittt eq;"
-			     "cmpeq  %R0, %R2;"
-			     "strexdeq %1, %3, [%4];"
-			     "cmpeq  %1, #1;"
-			     "beq 1b;"
-				:"=&r" (previous), "=&r" (tmp)
-				: "r" (compare), "r" (set) ,
-				  "r"(target)
-				: "memory", "cc", "r4", "r5", "r6");
-        *value = previous;
-	return (*value == compare);
+#undef CK_PR_DOUBLE_STORE
+
+#define CK_PR_DOUBLE_CAS_VALUE(T, N)				\
+CK_CC_INLINE static bool					\
+ck_pr_cas_##N##_value(T *target, T compare, T set, T *value)	\
+{								\
+        T previous;						\
+        int tmp;						\
+								\
+	__asm__ __volatile__("1:"				\
+			     "ldrexd %0, [%4];"			\
+			     "cmp    %Q0, %Q2;"			\
+			     "ittt eq;"				\
+			     "cmpeq  %R0, %R2;"			\
+			     "strexdeq %1, %3, [%4];"		\
+			     "cmpeq  %1, #1;"			\
+			     "beq 1b;"				\
+				:"=&r" (previous), "=&r" (tmp)	\
+				: "r" (compare), "r" (set) ,	\
+				  "r"(target)			\
+				: "memory", "cc");		\
+        *value = previous;					\
+	return (*value == compare);				\
 }
+
+CK_PR_DOUBLE_CAS_VALUE(uint64_t, 64)
+CK_PR_DOUBLE_CAS_VALUE(double, double)
+
+#undef CK_PR_DOUBLE_CAS_VALUE
 
 CK_CC_INLINE static bool
 ck_pr_cas_ptr_2_value(void *target, void *compare, void *set, void *value)
 {
-	uint32_t *_compare = compare;
-	uint32_t *_set = set;
+	uint32_t *_compare = CK_CPP_CAST(uint32_t *, compare);
+	uint32_t *_set = CK_CPP_CAST(uint32_t *, set);
 	uint64_t __compare = ((uint64_t)_compare[0]) | ((uint64_t)_compare[1] << 32);
 	uint64_t __set = ((uint64_t)_set[0]) | ((uint64_t)_set[1] << 32);
 
-	return (ck_pr_cas_64_value(target, __compare, __set, value));
+	return (ck_pr_cas_64_value(CK_CPP_CAST(uint64_t *, target),
+				   __compare,
+				   __set,
+				   CK_CPP_CAST(uint64_t *, value)));
 }
 
-
-CK_CC_INLINE static bool
-ck_pr_cas_64(uint64_t *target, uint64_t compare, uint64_t set)
-{
-	int ret;
-        uint64_t tmp;
-
-	__asm__ __volatile__("1:"
-			     "mov %0, #0;"
-			     "ldrexd %1, [%4];"
-			     "cmp    %Q1, %Q2;"
-			     "itttt eq;"
-			     "cmpeq  %R1, %R2;"
-			     "strexdeq %1, %3, [%4];"
-			     "moveq %0, #1;"
-			     "cmpeq  %1, #1;"
-			     "beq 1b;"
-			     : "=&r" (ret), "=&r" (tmp)
-			     : "r" (compare), "r" (set) ,
-			       "r"(target)
-			     : "memory", "cc", "r4", "r5", "r6");
-
-	return (ret);
+#define CK_PR_DOUBLE_CAS(T, N)  		\
+CK_CC_INLINE static bool			\
+ck_pr_cas_##N(T *target, T compare, T set)	\
+{						\
+	int ret;				\
+        T tmp;					\
+						\
+	__asm__ __volatile__("1:"		\
+			     "mov %0, #0;"	\
+			     "ldrexd %1, [%4];"	\
+			     "cmp    %Q1, %Q2;"	\
+			     "itttt eq;"	\
+			     "cmpeq  %R1, %R2;"	\
+			     "strexdeq %1, %3, [%4];" \
+			     "moveq %0, #1;"	\
+			     "cmpeq  %1, #1;"	\
+			     "beq 1b;"		\
+			     : "=&r" (ret), "=&r" (tmp) \
+			     : "r" (compare), "r" (set) , \
+			       "r"(target)	\
+			     : "memory", "cc");	\
+						\
+	return (ret);				\
 }
 
+CK_PR_DOUBLE_CAS(uint64_t, 64)
+CK_PR_DOUBLE_CAS(double, double)
 CK_CC_INLINE static bool
 ck_pr_cas_ptr_2(void *target, void *compare, void *set)
 {
-	uint32_t *_compare = compare;
-	uint32_t *_set = set;
+	uint32_t *_compare = CK_CPP_CAST(uint32_t *, compare);
+	uint32_t *_set = CK_CPP_CAST(uint32_t *, set);
 	uint64_t __compare = ((uint64_t)_compare[0]) | ((uint64_t)_compare[1] << 32);
 	uint64_t __set = ((uint64_t)_set[0]) | ((uint64_t)_set[1] << 32);
-	return (ck_pr_cas_64(target, __compare, __set));
+	return (ck_pr_cas_64(CK_CPP_CAST(uint64_t *, target),
+			     __compare,
+			     __set));
 }
+
+#endif
 
 CK_CC_INLINE static bool
 ck_pr_cas_ptr_value(void *target, void *compare, void *set, void *value)

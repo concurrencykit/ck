@@ -191,7 +191,8 @@ ck_pr_load_64_2(const uint64_t target[2], uint64_t v[2])
 CK_CC_INLINE static void
 ck_pr_load_ptr_2(const void *t, void *v)
 {
-	ck_pr_load_64_2((uint64_t *)t, (uint64_t *)v);
+	ck_pr_load_64_2(CK_CPP_CAST(const uint64_t *, t),
+			CK_CPP_CAST(uint64_t *, v));
 	return;
 }
 
@@ -472,7 +473,9 @@ ck_pr_cas_64_2(uint64_t target[2], uint64_t compare[2], uint64_t set[2])
 CK_CC_INLINE static bool
 ck_pr_cas_ptr_2(void *t, void *c, void *s)
 {
-	return ck_pr_cas_64_2((uint64_t *)t, (uint64_t *)c, (uint64_t *)s);
+	return ck_pr_cas_64_2(CK_CPP_CAST(uint64_t *, t),
+			      CK_CPP_CAST(uint64_t *, c),
+			      CK_CPP_CAST(uint64_t *, s));
 }
 
 CK_CC_INLINE static bool
@@ -500,7 +503,10 @@ ck_pr_cas_64_2_value(uint64_t target[2],
 CK_CC_INLINE static bool
 ck_pr_cas_ptr_2_value(void *t, void *c, void *s, void *v)
 {
-	return ck_pr_cas_64_2_value((uint64_t *)t, (uint64_t *)c, (uint64_t *)s, (uint64_t *)v);
+	return ck_pr_cas_64_2_value(CK_CPP_CAST(uint64_t *,t),
+				    CK_CPP_CAST(uint64_t *,c),
+				    CK_CPP_CAST(uint64_t *,s),
+				    CK_CPP_CAST(uint64_t *,v));
 }
 
 #define CK_PR_CAS_V(S, W, T)					\
