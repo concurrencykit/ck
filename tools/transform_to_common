@@ -7,13 +7,15 @@ then
 fi
 
 commondir=$1
-toolsdir=`dirname $0`
-srcdir=`dirname $toolsdir`
-src=$srcdir/include
+
+cd `dirname $0`/..
+
+ckdir=`pwd`
+src=$ckdir/include
 trg=$commondir/src/include/aerospike/ck
 
 cd $src
 rm -rf $trg
 mkdir -p $trg
 
-find . -type f -name "*.h" -exec $toolsdir/transform_header {} $trg \;
+find . -type f -name "*.h" -exec $ckdir/tools/transform_header {} $trg \;
