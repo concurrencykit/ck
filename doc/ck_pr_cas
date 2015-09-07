@@ -108,7 +108,7 @@ for equality with
 and if so, replace the value pointed to by
 .Fa target
 with the value specified by
-.Fa original_value .
+.Fa new_value .
 If the value in
 .Fa target
 was not equal to the value specified by
