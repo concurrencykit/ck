@@ -38,9 +38,9 @@ Concurrency Kit (libck, \-lck)
 .Sh DESCRIPTION
 The
 .Fn ck_ring_capacity 3
-function returns the number of pointers that can be
-held in the buffer pointed to by
+function returns the number of slots in the buffer pointed to by
 .Fa ring .
+Note that a ring can hold up to ck_ring_capacity() - 1 pointers due to wraparound.
 .Sh SEE ALSO
 .Xr ck_ring_init 3 ,
 .Xr ck_ring_enqueue_spmc 3 ,
