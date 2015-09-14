@@ -41,6 +41,9 @@ The
 function returns the number of pointers that can be
 held in the buffer pointed to by
 .Fa ring .
+Note that a ring can only hold
+.Fn ck_ring_capacity 3
+minus one entries at a time.
 .Sh SEE ALSO
 .Xr ck_ring_init 3 ,
 .Xr ck_ring_enqueue_spmc 3 ,
