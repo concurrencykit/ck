@@ -75,6 +75,7 @@ regressions/ck_pflock/validate/validate
 regressions/ck_pr/benchmark/ck_pr_cas_64
 regressions/ck_pr/benchmark/ck_pr_cas_64_2
 regressions/ck_pr/benchmark/ck_pr_fas_64
+regressions/ck_pr/benchmark/fp
 regressions/ck_pr/validate/ck_pr_add
 regressions/ck_pr/validate/ck_pr_and
 regressions/ck_pr/validate/ck_pr_bin
