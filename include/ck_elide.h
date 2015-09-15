@@ -73,7 +73,7 @@ typedef struct ck_elide_stat ck_elide_stat_t;
 
 #define CK_ELIDE_STAT_INITIALIZER { 0, 0, 0 }
 
-static inline void
+CK_CC_INLINE static void
 ck_elide_stat_init(ck_elide_stat_t *st)
 {
 
