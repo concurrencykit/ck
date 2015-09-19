@@ -89,5 +89,54 @@ main(int argc, char *argv[])
 	}
 
 	printf("spmc %10d %16" PRIu64 " %16" PRIu64 "\n", size, e_a / ITERATIONS, d_a / ITERATIONS);
+
+	ck_ring_init(&ring, size);
+	e_a = d_a = s = e = 0;
+	for (r = 0; r < ITERATIONS; r++) {
+		for (i = 0; i < size / 4; i += 4) {
+			s = rdtsc();
+			ck_ring_enqueue_mpsc(&ring, buf, &entry);
+			ck_ring_enqueue_mpsc(&ring, buf, &entry);
+			ck_ring_enqueue_mpsc(&ring, buf, &entry);
+			ck_ring_enqueue_mpsc(&ring, buf, &entry);
+			e = rdtsc();
+		}
+		e_a += (e - s) / 4;
+
+		for (i = 0; i < size / 4; i += 4) {
+			s = rdtsc();
+			ck_ring_dequeue_mpsc(&ring, buf, &entry);
+			ck_ring_dequeue_mpsc(&ring, buf, &entry);
+			ck_ring_dequeue_mpsc(&ring, buf, &entry);
+			ck_ring_dequeue_mpsc(&ring, buf, &entry);
+			e = rdtsc();
+		}
+		d_a += (e - s) / 4;
+	}
+	printf("mpsc %10d %16" PRIu64 " %16" PRIu64 "\n", size, e_a / ITERATIONS, d_a / ITERATIONS);
+	ck_ring_init(&ring, size);
+	e_a = d_a = s = e = 0;
+	for (r = 0; r < ITERATIONS; r++) {
+		for (i = 0; i < size / 4; i += 4) {
+			s = rdtsc();
+			ck_ring_enqueue_mpmc(&ring, buf, &entry);
+			ck_ring_enqueue_mpmc(&ring, buf, &entry);
+			ck_ring_enqueue_mpmc(&ring, buf, &entry);
+			ck_ring_enqueue_mpmc(&ring, buf, &entry);
+			e = rdtsc();
+		}
+		e_a += (e - s) / 4;
+
+		for (i = 0; i < size / 4; i += 4) {
+			s = rdtsc();
+			ck_ring_dequeue_mpmc(&ring, buf, &entry);
+			ck_ring_dequeue_mpmc(&ring, buf, &entry);
+			ck_ring_dequeue_mpmc(&ring, buf, &entry);
+			ck_ring_dequeue_mpmc(&ring, buf, &entry);
+			e = rdtsc();
+		}
+		d_a += (e - s) / 4;
+	}
+	printf("mpmc %10d %16" PRIu64 " %16" PRIu64 "\n", size, e_a / ITERATIONS, d_a / ITERATIONS);
 	return (0);
 }
