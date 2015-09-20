@@ -459,6 +459,10 @@ ck_ring_dequeue_mpsc(struct ck_ring *ring,
 	    sizeof(data));
 }
 
+/*
+ * CK_RING_PROTOTYPE is used to define a type-safe interface for inlining
+ * values of a particular type in the ring the buffer.
+ */
 #define CK_RING_PROTOTYPE(name, type)			\
 CK_CC_INLINE static bool				\
 ck_ring_enqueue_spsc_size_##name(struct ck_ring *a,	\
