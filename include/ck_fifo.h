@@ -32,7 +32,7 @@
 #include <ck_md.h>
 #include <ck_pr.h>
 #include <ck_spinlock.h>
-#include <stddef.h>
+#include <ck_stddef.h>
 
 #ifndef CK_F_FIFO_SPSC
 #define CK_F_FIFO_SPSC

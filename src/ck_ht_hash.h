@@ -32,7 +32,7 @@
  */
 
 #include <ck_stdint.h>
-#include <string.h>
+#include <ck_string.h>
 
 //-----------------------------------------------------------------------------
 // MurmurHash3 was written by Austin Appleby, and is placed in the public

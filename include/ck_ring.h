@@ -30,8 +30,8 @@
 #include <ck_cc.h>
 #include <ck_md.h>
 #include <ck_pr.h>
-#include <stdbool.h>
-#include <string.h>
+#include <ck_stdbool.h>
+#include <ck_string.h>
 
 /*
  * Concurrent ring buffer.

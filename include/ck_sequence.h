@@ -29,7 +29,7 @@
 
 #include <ck_cc.h>
 #include <ck_pr.h>
-#include <stdbool.h>
+#include <ck_stdbool.h>
 
 struct ck_sequence {
 	unsigned int sequence;

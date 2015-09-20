@@ -35,7 +35,7 @@
 
 #include <ck_cc.h>
 #include <ck_pr.h>
-#include <string.h>
+#include <ck_string.h>
 
 /*
  * skip_-prefixed counters represent the number of consecutive

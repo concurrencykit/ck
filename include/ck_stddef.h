@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2015 Samy Al Bahra.
+ * Copyright 2015 Olivier Houchard.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -24,11 +24,8 @@
  * SUCH DAMAGE.
  */
 
-#if defined(__linux__) && defined(__KERNEL__)
-#include <linux/kernel.h>
-#include <linux/types.h>
-#elif defined(__FreeBSD__) && defined(_KERNEL)
-#include <sys/stdint.h>
+#if defined(__FreeBSD__) && defined(_KERNEL)
+#include <sys/stddef.h>
 #else
-#include <stdint.h>
-#endif /* __linux__ && __KERNEL__ */
+#include <stddef.h>
+#endif

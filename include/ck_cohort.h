@@ -36,7 +36,7 @@
 
 #include <ck_cc.h>
 #include <ck_pr.h>
-#include <stddef.h>
+#include <ck_stddef.h>
 
 enum ck_cohort_state {
 	CK_COHORT_STATE_GLOBAL = 0,

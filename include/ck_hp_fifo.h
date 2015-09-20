@@ -31,7 +31,7 @@
 #include <ck_cc.h>
 #include <ck_hp.h>
 #include <ck_pr.h>
-#include <stddef.h>
+#include <ck_stddef.h>
 
 #define CK_HP_FIFO_SLOTS_COUNT (2)
 #define CK_HP_FIFO_SLOTS_SIZE  (sizeof(void *) * CK_HP_FIFO_SLOTS_COUNT)

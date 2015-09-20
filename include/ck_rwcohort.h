@@ -36,7 +36,7 @@
 
 #include <ck_cc.h>
 #include <ck_pr.h>
-#include <stddef.h>
+#include <ck_stddef.h>
 #include <ck_cohort.h>
 
 #define CK_RWCOHORT_WP_NAME(N) ck_rwcohort_wp_##N

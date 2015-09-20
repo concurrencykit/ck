@@ -33,9 +33,11 @@
 #include <ck_limits.h>
 #include <ck_pr.h>
 #include <ck_stdint.h>
-#include <stdbool.h>
-#include <stddef.h>
-#include <string.h>
+#include <ck_stdbool.h>
+#include <ck_stddef.h>
+#include <ck_stdbool.h>
+#include <ck_stddef.h>
+#include <ck_string.h>
 
 #if !defined(CK_F_PR_LOAD_UINT) || !defined(CK_F_PR_STORE_UINT) || \
     !defined(CK_F_PR_AND_UINT) || !defined(CK_F_PR_OR_UINT) || \

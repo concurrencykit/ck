@@ -31,7 +31,7 @@
 #include <ck_limits.h>
 #include <ck_md.h>
 #include <ck_pr.h>
-#include <stdbool.h>
+#include <ck_stdbool.h>
 
 #ifndef CK_F_SPINLOCK_ANDERSON
 #define CK_F_SPINLOCK_ANDERSON

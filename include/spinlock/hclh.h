@@ -30,8 +30,8 @@
 
 #include <ck_cc.h>
 #include <ck_pr.h>
-#include <stdbool.h>
-#include <stddef.h>
+#include <ck_stdbool.h>
+#include <ck_stddef.h>
 
 #ifndef CK_F_SPINLOCK_HCLH
 #define CK_F_SPINLOCK_HCLH

@@ -31,8 +31,8 @@
 #include <ck_cc.h>
 #include <ck_malloc.h>
 #include <ck_pr.h>
-#include <stdbool.h>
-#include <stddef.h>
+#include <ck_stdbool.h>
+#include <ck_stddef.h>
 
 struct _ck_array {
 	unsigned int n_committed;

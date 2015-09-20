@@ -37,7 +37,7 @@
 #include <ck_md.h>
 #include <ck_pr.h>
 #include <ck_stack.h>
-#include <stdbool.h>
+#include <ck_stdbool.h>
 
 #ifndef CK_EPOCH_LENGTH
 #define CK_EPOCH_LENGTH 4

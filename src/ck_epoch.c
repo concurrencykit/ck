@@ -35,7 +35,7 @@
 #include <ck_epoch.h>
 #include <ck_pr.h>
 #include <ck_stack.h>
-#include <stdbool.h>
+#include <ck_stdbool.h>
 
 /*
  * Only three distinct values are used for reclamation, but reclamation occurs

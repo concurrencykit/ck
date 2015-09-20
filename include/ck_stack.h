@@ -29,8 +29,8 @@
 
 #include <ck_cc.h>
 #include <ck_pr.h>
-#include <stdbool.h>
-#include <stddef.h>
+#include <ck_stdbool.h>
+#include <ck_stddef.h>
 
 struct ck_stack_entry {
 	struct ck_stack_entry *next;

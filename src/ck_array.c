@@ -28,8 +28,8 @@
 #include <ck_array.h>
 #include <ck_cc.h>
 #include <ck_pr.h>
-#include <stdbool.h>
-#include <string.h>
+#include <ck_stdbool.h>
+#include <ck_string.h>
 
 static struct _ck_array *
 ck_array_create(struct ck_malloc *allocator, unsigned int length)

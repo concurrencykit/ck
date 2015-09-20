@@ -51,8 +51,8 @@
 #include <ck_malloc.h>
 #include <ck_md.h>
 #include <ck_stdint.h>
-#include <stdbool.h>
-#include <stddef.h>
+#include <ck_stdbool.h>
+#include <ck_stddef.h>
 
 struct ck_ht_hash {
 	uint64_t value;

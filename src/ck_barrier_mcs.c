@@ -28,7 +28,7 @@
 #include <ck_barrier.h>
 #include <ck_cc.h>
 #include <ck_pr.h>
-#include <stdbool.h>
+#include <ck_stdbool.h>
 
 void
 ck_barrier_mcs_init(struct ck_barrier_mcs *barrier, unsigned int nthr)

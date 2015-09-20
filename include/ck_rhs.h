@@ -32,8 +32,8 @@
 #include <ck_md.h>
 #include <ck_pr.h>
 #include <ck_stdint.h>
-#include <stdbool.h>
-#include <stddef.h>
+#include <ck_stdbool.h>
+#include <ck_stddef.h>
 
 /*
  * Indicates a single-writer many-reader workload. Mutually

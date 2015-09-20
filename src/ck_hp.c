@@ -56,10 +56,10 @@
 #include <ck_hp.h>
 #include <ck_pr.h>
 #include <ck_stack.h>
-#include <stdbool.h>
-#include <stddef.h>
-#include <stdlib.h>
-#include <string.h>
+#include <ck_stdbool.h>
+#include <ck_stddef.h>
+#include <ck_stdlib.h>
+#include <ck_string.h>
 
 CK_STACK_CONTAINER(struct ck_hp_record, global_entry, ck_hp_record_container)
 CK_STACK_CONTAINER(struct ck_hp_hazard, pending_entry, ck_hp_hazard_container)

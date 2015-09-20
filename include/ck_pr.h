@@ -32,7 +32,7 @@
 #include <ck_limits.h>
 #include <ck_md.h>
 #include <ck_stdint.h>
-#include <stdbool.h>
+#include <ck_stdbool.h>
 
 #ifndef CK_USE_CC_BUILTINS
 #if defined(__x86_64__)

@@ -31,7 +31,7 @@
 #include <ck_cc.h>
 #include <ck_elide.h>
 #include <ck_pr.h>
-#include <stdbool.h>
+#include <ck_stdbool.h>
 
 #ifndef CK_F_SPINLOCK_CAS
 #define CK_F_SPINLOCK_CAS
