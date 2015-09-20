@@ -48,15 +48,13 @@
 #endif /* __x86_64__ || __x86__ */
 #endif
 
-/*
- * If optimizations are turned on, then force inlining.
- */
 #ifdef __OPTIMIZE__
 #define CK_CC_INLINE CK_CC_UNUSED inline
 #else
 #define CK_CC_INLINE CK_CC_UNUSED
 #endif
 
+#define CK_CC_FORCE_INLINE CK_CC_UNUSED __attribute__((always_inline)) inline
 #define CK_CC_RESTRICT restrict
 
 /*

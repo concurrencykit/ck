@@ -36,6 +36,14 @@
 #define CK_CC_RESTRICT
 #endif
 
+#ifndef CK_CC_INLINE
+#define CK_CC_INLINE inline
+#endif
+
+#ifndef CK_CC_FORCE_INLINE
+#define CK_CC_FORCE_INLINE inline
+#endif
+
 #define CK_CC_DECONST_PTR(X) ((void *)(uintptr_t)(X))
 
 /*
