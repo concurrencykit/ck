@@ -123,7 +123,7 @@ fairness(void *null)
 	ck_pr_inc_uint(&barrier);
 	while (ck_pr_load_uint(&barrier) != nthr);
 
-	while (ready) {
+	while (ck_pr_load_uint(&ready)) {
 		CK_COHORT_LOCK(basic, cohort, NULL, NULL);
 
 		count[i].value++;

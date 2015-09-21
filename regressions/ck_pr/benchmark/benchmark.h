@@ -40,7 +40,7 @@ fairness(void *null)
         }
 
 	while (ck_pr_load_uint(&ready) == 0);
-	while (ready) {
+	while (ck_pr_load_uint(&ready)) {
 		ATOMIC;
 		ATOMIC;
 		ATOMIC;
