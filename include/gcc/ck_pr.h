@@ -142,6 +142,7 @@ CK_PR_FENCE(store_load)
 CK_PR_FENCE(memory)
 CK_PR_FENCE(acquire)
 CK_PR_FENCE(release)
+CK_PR_FENCE(acqrel)
 CK_PR_FENCE(lock)
 CK_PR_FENCE(unlock)
 
