@@ -330,7 +330,7 @@ ck_ring_dequeue_spsc(struct ck_ring *ring,
 {
 
 	return _ck_ring_dequeue_sc(ring, buffer,
-	    data, sizeof(data));
+	    (void **)data, sizeof(void *));
 }
 
 /*
@@ -366,7 +366,7 @@ ck_ring_trydequeue_mpmc(struct ck_ring *ring,
 {
 
 	return _ck_ring_trydequeue_mc(ring,
-	    buffer, data, sizeof(data));
+	    buffer, (void **)data, sizeof(void *));
 }
 
 CK_CC_INLINE static bool
@@ -375,8 +375,8 @@ ck_ring_dequeue_mpmc(struct ck_ring *ring,
     void *data)
 {
 
-	return _ck_ring_dequeue_mc(ring, buffer, data,
-	    sizeof(data));
+	return _ck_ring_dequeue_mc(ring, buffer, (void **)data,
+	    sizeof(void *));
 }
 
 /*
@@ -411,7 +411,7 @@ ck_ring_trydequeue_spmc(struct ck_ring *ring,
     void *data)
 {
 
-	return _ck_ring_trydequeue_mc(ring, buffer, data, sizeof(data));
+	return _ck_ring_trydequeue_mc(ring, buffer, (void **)data, sizeof(void *));
 }
 
 CK_CC_INLINE static bool
@@ -420,7 +420,7 @@ ck_ring_dequeue_spmc(struct ck_ring *ring,
     void *data)
 {
 
-	return _ck_ring_dequeue_mc(ring, buffer, data, sizeof(data));
+	return _ck_ring_dequeue_mc(ring, buffer, (void **)data, sizeof(void *));
 }
 
 /*
@@ -455,8 +455,8 @@ ck_ring_dequeue_mpsc(struct ck_ring *ring,
     void *data)
 {
 
-	return _ck_ring_dequeue_sc(ring, buffer, data,
-	    sizeof(data));
+	return _ck_ring_dequeue_sc(ring, buffer, (void **)data,
+	    sizeof(void *));
 }
 
 /*
