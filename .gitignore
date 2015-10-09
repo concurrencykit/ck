@@ -45,6 +45,7 @@ regressions/ck_epoch/validate/ck_epoch_poll
 regressions/ck_epoch/validate/ck_epoch_synchronize
 regressions/ck_epoch/validate/ck_stack
 regressions/ck_epoch/validate/ck_stack_read
+regressions/ck_epc/validate/ck_epc_section
 regressions/ck_fifo/benchmark/latency
 regressions/ck_fifo/validate/ck_fifo_mpmc
 regressions/ck_fifo/validate/ck_fifo_mpmc_iterator

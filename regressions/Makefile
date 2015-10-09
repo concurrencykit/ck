@@ -7,6 +7,7 @@ DIR=array	\
     cohort	\
     epoch	\
     fifo	\
+    epc		\
     hp		\
     hs		\
     rhs		\
@@ -33,6 +34,7 @@ all:
 	$(MAKE) -C ./ck_backoff/validate all
 	$(MAKE) -C ./ck_queue/validate all
 	$(MAKE) -C ./ck_brlock/validate all
+	$(MAKE) -C ./ck_epc/validate all
 	$(MAKE) -C ./ck_ht/validate all
 	$(MAKE) -C ./ck_ht/benchmark all
 	$(MAKE) -C ./ck_brlock/benchmark all
@@ -84,6 +86,7 @@ clean:
 	$(MAKE) -C ./ck_cohort/validate clean
 	$(MAKE) -C ./ck_cohort/benchmark clean
 	$(MAKE) -C ./ck_brlock/validate clean
+	$(MAKE) -C ./ck_epc/validate clean
 	$(MAKE) -C ./ck_ht/validate clean
 	$(MAKE) -C ./ck_ht/benchmark clean
 	$(MAKE) -C ./ck_hs/validate clean
