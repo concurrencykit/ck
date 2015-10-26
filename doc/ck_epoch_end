@@ -34,18 +34,17 @@ Concurrency Kit (libck, \-lck)
 .Sh SYNOPSIS
 .In ck_epoch.h
 .Ft void
-.Fn ck_epoch_end "ck_epoch_t *epoch" "ck_epoch_record_t *record"
+.Fn ck_epoch_end "ck_epoch_record_t *record" "ck_epoch_section_t *section"
 .Sh DESCRIPTION
 The
 .Fn ck_epoch_end 3
 function will mark the end of an epoch-protected code section.
+.Fa section
+must point to a section object initialized previously with
+.Fn ck_epoch_begin 3 .
 .Sh RETURN VALUES
 This function has no return value.
 .Sh ERRORS
-The object pointed to by
-.Fa epoch
-must have been previously initiated via
-.Fn ck_epoch_init 3 .
 The object pointed to by
 .Fa record
 must have been previously registered via

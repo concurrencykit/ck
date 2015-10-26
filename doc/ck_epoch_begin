@@ -34,7 +34,7 @@ Concurrency Kit (libck, \-lck)
 .Sh SYNOPSIS
 .In ck_epoch.h
 .Ft void
-.Fn ck_epoch_begin "ck_epoch_t *epoch" "ck_epoch_record_t *record"
+.Fn ck_epoch_begin "ck_epoch_record_t *record" "ck_epoch_section_t *section"
 .Sh DESCRIPTION
 The
 .Fn ck_epoch_begin 3
@@ -44,7 +44,9 @@ An epoch-protected code section is delimited by a call to the
 function. Though recursion is allowed for epoch-protected sections,
 recursive calls will be associated with the
 .Fn ck_epoch_begin 3
-that is at the top of the call stack.
+that is at the top of the call stack. If a section is passed, then
+recursion on a record will cause the epoch to be refreshed on entry
+of every protected section.
 .Sh RETURN VALUES
 This function has no return value.
 .Sh ERRORS

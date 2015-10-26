@@ -34,7 +34,7 @@ Concurrency Kit (libck, \-lck)
 .Sh SYNOPSIS
 .In ck_epoch.h
 .Ft void
-.Fn ck_epoch_unregister "ck_epoch_t *epoch" "ck_epoch_record_t *record"
+.Fn ck_epoch_unregister "ck_epoch_record_t *record"
 .Sh DESCRIPTION
 The
 .Fn ck_epoch_unregister 3
@@ -50,14 +50,6 @@ is modified in any way, even after a call is made to the
 function.
 .Sh RETURN VALUES
 This function has no return value.
-.Sh ERRORS
-Behavior is undefined if the object pointed to by
-.Fa record
-was not previously associated with the object pointed to by
-.Fa epoch
-through a previous call to the
-.Fn ck_epoch_register 3
-function.
 .Sh SEE ALSO
 .Xr ck_epoch_init 3 ,
 .Xr ck_epoch_register 3 ,

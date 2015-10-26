@@ -37,7 +37,7 @@ typedef struct ck_epoch_entry ck_epoch_entry_t;
 .br
 typedef void ck_epoch_cb_t(ck_epoch_entry_t *);
 .Ft void
-.Fn ck_epoch_call "ck_epoch_t *epoch" "ck_epoch_record_t *record" "ck_epoch_entry_t *entry" "ck_epoch_cb_t *function"
+.Fn ck_epoch_call "ck_epoch_record_t *record" "ck_epoch_entry_t *entry" "ck_epoch_cb_t *function"
 .Sh DESCRIPTION
 The
 .Fn ck_epoch_call 3
@@ -102,15 +102,15 @@ function(void)
 	 * writers. It is also an option to use other forms of blocking
 	 * write-side synchronization such as mutexes.
 	 */
-	ck_epoch_begin(epoch, record);
+	ck_epoch_begin(record);
 	n = ck_pr_fas_ptr(&global, n);
-	ck_epoch_end(epoch, record);
+	ck_epoch_end(record);
 
 	/* Defer destruction of previous object. */
 	ck_epoch_call(record, &n->epoch_entry, destroy_object);
 
 	/* Poll epoch sub-system in non-blocking manner. */
-	ck_epoch_poll(&epoch, record);
+	ck_epoch_poll(record);
 	return;
 }
 .Ed

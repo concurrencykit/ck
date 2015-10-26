@@ -34,7 +34,7 @@ Concurrency Kit (libck, \-lck)
 .Sh SYNOPSIS
 .In ck_epoch.h
 .Ft void
-.Fn ck_epoch_synchronize "ck_epoch_t *epoch" "ck_epoch_record_t *record"
+.Fn ck_epoch_synchronize "ck_epoch_record_t *record"
 .Sh DESCRIPTION
 The
 .Fn ck_epoch_synchronize 3
@@ -80,19 +80,19 @@ function(void)
 	 * If there was only one thread popping from the this stack,
 	 * then there is no need to ck_epoch_begin/ck_epoch_end.
 	 */
-	ck_epoch_begin(epoch, record);
+	ck_epoch_begin(record);
 
 	/* Logically delete an object. */
 	s = ck_stack_pop_upmc(stack);
 
-	ck_epoch_end(epoch, record);
+	ck_epoch_end(record);
 
 	/*
 	 * Wait until no threads could possibly have a reference to the
 	 * object we just popped (assume all threads are simply executing
 	 * ck_stack_pop_upmc).
 	 */
-	ck_epoch_synchronize(epoch, record);
+	ck_epoch_synchronize(record);
 
 	/* It is now safe to physically delete the object. */
 	free(s);
@@ -102,11 +102,7 @@ function(void)
 .Sh RETURN VALUES
 This function has no return value.
 .Sh ERRORS
-Behavior is undefined if the object pointed to by
-.Fa epoch
-is not a valid epoch object. The object pointed to by
-.Fa record
-must have been previously registered via
+The object pointed to by .Fa record must have been previously registered via
 .Fn ck_epoch_register 3 .
 .Sh SEE ALSO
 .Xr ck_epoch_init 3 ,
