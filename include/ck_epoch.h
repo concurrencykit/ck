@@ -62,6 +62,7 @@ struct ck_epoch_entry {
 #define CK_EPOCH_CONTAINER(T, M, N) CK_CC_CONTAINER(struct ck_epoch_entry, T, M, N)
 
 struct ck_epoch_record {
+	struct ck_epoch *global;
 	unsigned int state;
 	unsigned int epoch;
 	unsigned int active;
@@ -85,8 +86,9 @@ typedef struct ck_epoch ck_epoch_t;
  * Marks the beginning of an epoch-protected section.
  */
 CK_CC_INLINE static void
-ck_epoch_begin(ck_epoch_t *epoch, ck_epoch_record_t *record)
+ck_epoch_begin(ck_epoch_record_t *record)
 {
+	struct ck_epoch *epoch = record->global;
 
 	/*
 	 * Only observe new epoch if thread is not recursing into a read
@@ -121,10 +123,8 @@ ck_epoch_begin(ck_epoch_t *epoch, ck_epoch_record_t *record)
  * Marks the end of an epoch-protected section.
  */
 CK_CC_INLINE static void
-ck_epoch_end(ck_epoch_t *global, ck_epoch_record_t *record)
+ck_epoch_end(ck_epoch_record_t *record)
 {
-
-	(void)global;
 
 	ck_pr_fence_release();
 	ck_pr_store_uint(&record->active, record->active - 1);
@@ -137,11 +137,11 @@ ck_epoch_end(ck_epoch_t *global, ck_epoch_record_t *record)
  * non-blocking deferral.
  */
 CK_CC_INLINE static void
-ck_epoch_call(ck_epoch_t *epoch,
-	      ck_epoch_record_t *record,
+ck_epoch_call(ck_epoch_record_t *record,
 	      ck_epoch_entry_t *entry,
 	      ck_epoch_cb_t *function)
 {
+	struct ck_epoch *epoch = record->global;
 	unsigned int e = ck_pr_load_uint(&epoch->epoch);
 	unsigned int offset = e & (CK_EPOCH_LENGTH - 1);
 
@@ -154,10 +154,10 @@ ck_epoch_call(ck_epoch_t *epoch,
 void ck_epoch_init(ck_epoch_t *);
 ck_epoch_record_t *ck_epoch_recycle(ck_epoch_t *);
 void ck_epoch_register(ck_epoch_t *, ck_epoch_record_t *);
-void ck_epoch_unregister(ck_epoch_t *, ck_epoch_record_t *);
-bool ck_epoch_poll(ck_epoch_t *, ck_epoch_record_t *);
-void ck_epoch_synchronize(ck_epoch_t *, ck_epoch_record_t *);
-void ck_epoch_barrier(ck_epoch_t *, ck_epoch_record_t *);
+void ck_epoch_unregister(ck_epoch_record_t *);
+bool ck_epoch_poll(ck_epoch_record_t *);
+void ck_epoch_synchronize(ck_epoch_record_t *);
+void ck_epoch_barrier(ck_epoch_record_t *);
 void ck_epoch_reclaim(ck_epoch_record_t *);
 
 #endif /* CK_EPOCH_H */

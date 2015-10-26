@@ -180,6 +180,7 @@ ck_epoch_register(struct ck_epoch *global, struct ck_epoch_record *record)
 {
 	size_t i;
 
+	record->global = global;
 	record->state = CK_EPOCH_STATE_USED;
 	record->active = 0;
 	record->epoch = 0;
@@ -196,8 +197,9 @@ ck_epoch_register(struct ck_epoch *global, struct ck_epoch_record *record)
 }
 
 void
-ck_epoch_unregister(struct ck_epoch *global, struct ck_epoch_record *record)
+ck_epoch_unregister(struct ck_epoch_record *record)
 {
+	struct ck_epoch *global = record->global;
 	size_t i;
 
 	record->active = 0;
@@ -298,8 +300,9 @@ ck_epoch_reclaim(struct ck_epoch_record *record)
  * This function must not be called with-in read section.
  */
 void
-ck_epoch_synchronize(struct ck_epoch *global, struct ck_epoch_record *record)
+ck_epoch_synchronize(struct ck_epoch_record *record)
 {
+	struct ck_epoch *global = record->global;
 	struct ck_epoch_record *cr;
 	unsigned int delta, epoch, goal, i;
 	bool active;
@@ -332,7 +335,7 @@ ck_epoch_synchronize(struct ck_epoch *global, struct ck_epoch_record *record)
 
 			/*
 			 * Another writer may have already observed a grace
- 			 * period.
+			 * period.
 			 */
 			e_d = ck_pr_load_uint(&global->epoch);
 			if (e_d != delta) {
@@ -384,10 +387,10 @@ reload:
 }
 
 void
-ck_epoch_barrier(struct ck_epoch *global, struct ck_epoch_record *record)
+ck_epoch_barrier(struct ck_epoch_record *record)
 {
 
-	ck_epoch_synchronize(global, record);
+	ck_epoch_synchronize(record);
 	ck_epoch_reclaim(record);
 	return;
 }
@@ -403,12 +406,15 @@ ck_epoch_barrier(struct ck_epoch *global, struct ck_epoch_record *record)
  * is far from ideal too.
  */
 bool
-ck_epoch_poll(struct ck_epoch *global, struct ck_epoch_record *record)
+ck_epoch_poll(struct ck_epoch_record *record)
 {
 	bool active;
-	struct ck_epoch_record *cr = NULL;
-	unsigned int epoch = ck_pr_load_uint(&global->epoch);
+	unsigned int epoch;
 	unsigned int snapshot;
+	struct ck_epoch_record *cr = NULL;
+	struct ck_epoch *global = record->global;
+
+	epoch = ck_pr_load_uint(&global->epoch);
 
 	/* Serialize epoch snapshots with respect to global epoch. */
 	ck_pr_fence_memory();

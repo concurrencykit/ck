@@ -109,7 +109,7 @@ read_thread(void *unused CK_CC_UNUSED)
 
 	j = 0;
 	for (;;) {
-		ck_epoch_begin(&stack_epoch, &record);
+		ck_epoch_begin(&record);
 		CK_STACK_FOREACH(&stack, cursor) {
 			if (cursor == NULL)
 				continue;
@@ -117,7 +117,7 @@ read_thread(void *unused CK_CC_UNUSED)
 			n = CK_STACK_NEXT(cursor);
 			j += ck_pr_load_ptr(&n) != NULL;
 		}
-		ck_epoch_end(&stack_epoch, &record);
+		ck_epoch_end(&record);
 
 		if (j != 0 && ck_pr_load_uint(&readers) == 0)
 			ck_pr_store_uint(&readers, 1);
@@ -179,20 +179,20 @@ write_thread(void *unused CK_CC_UNUSED)
 		}
 
 		for (i = 0; i < PAIRS_S; i++) {
-			ck_epoch_begin(&stack_epoch, &record);
+			ck_epoch_begin(&record);
 			s = ck_stack_pop_upmc(&stack);
 			e = stack_container(s);
-			ck_epoch_end(&stack_epoch, &record);
+			ck_epoch_end(&record);
 
 			if (i & 1) {
-				ck_epoch_synchronize(&stack_epoch, &record);
+				ck_epoch_synchronize(&record);
 				ck_epoch_reclaim(&record);
 			} else {
-				ck_epoch_barrier(&stack_epoch, &record);
+				ck_epoch_barrier(&record);
 			}
 
 			if (i & 1) {
-				ck_epoch_call(&stack_epoch, &record, &e->epoch_entry, destructor);
+				ck_epoch_call(&record, &e->epoch_entry, destructor);
 			} else {
 				if (tid == 0 && i % 8192)
 					fprintf(stderr, "\b%c", animate[i % strlen(animate)]);
@@ -202,7 +202,7 @@ write_thread(void *unused CK_CC_UNUSED)
 		}
 	}
 
-	ck_epoch_synchronize(&stack_epoch, &record);
+	ck_epoch_synchronize(&record);
 
 	if (tid == 0) {
 		fprintf(stderr, "\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b[W] Peak: %u (%2.2f%%)\n    Reclamations: %lu\n\n",

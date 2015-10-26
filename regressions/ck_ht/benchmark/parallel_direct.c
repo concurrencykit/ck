@@ -107,7 +107,7 @@ ht_free(void *p, size_t b, bool r)
 
 	if (r == true) {
 		/* Destruction requires safe memory reclamation. */
-		ck_epoch_call(&epoch_ht, &epoch_wr, &(--e)->epoch_entry, ht_destroy);
+		ck_epoch_call(&epoch_wr, &(--e)->epoch_entry, ht_destroy);
 	} else {
 		free(--e);
 	}
@@ -224,7 +224,7 @@ ht_reader(void *unused)
 	ck_epoch_register(&epoch_ht, &epoch_record);
 	for (;;) {
 		j++;
-		ck_epoch_begin(&epoch_ht, &epoch_record);
+		ck_epoch_begin(&epoch_record);
 		s = rdtsc();
 		for (i = 0; i < keys_length; i++) {
 			uintptr_t r;
@@ -243,7 +243,7 @@ ht_reader(void *unused)
 			    (uintmax_t)r);
 		}
 		a += rdtsc() - s;
-		ck_epoch_end(&epoch_ht, &epoch_record);
+		ck_epoch_end(&epoch_record);
 
 		n_state = ck_pr_load_int(&state);
 		if (n_state != state_previous) {
@@ -410,7 +410,7 @@ main(int argc, char *argv[])
 	fprintf(stderr, "done (%" PRIu64 " ticks)\n", a / (r * keys_length));
 
 	ck_epoch_record_t epoch_temporary = epoch_wr;
-	ck_epoch_synchronize(&epoch_ht, &epoch_wr);
+	ck_epoch_synchronize(&epoch_wr);
 
 	fprintf(stderr, " '- Summary: %u pending, %u peak, %lu reclamations -> "
 	    "%u pending, %u peak, %lu reclamations\n\n",
@@ -455,7 +455,7 @@ main(int argc, char *argv[])
 	while (ck_pr_load_int(&barrier[HT_STATE_STRICT_REPLACEMENT]) != n_threads)
 		ck_pr_stall();
 	table_reset();
-	ck_epoch_synchronize(&epoch_ht, &epoch_wr);
+	ck_epoch_synchronize(&epoch_wr);
 	fprintf(stderr, "done (writer = %" PRIu64 " ticks, reader = %" PRIu64 " ticks)\n",
 	    a / (repeated * keys_length), accumulator[HT_STATE_STRICT_REPLACEMENT] / n_threads);
 
@@ -490,7 +490,7 @@ main(int argc, char *argv[])
 		ck_pr_stall();
 
 	table_reset();
-	ck_epoch_synchronize(&epoch_ht, &epoch_wr);
+	ck_epoch_synchronize(&epoch_wr);
 	fprintf(stderr, "done (writer = %" PRIu64 " ticks, reader = %" PRIu64 " ticks)\n",
 	    a / (repeated * keys_length), accumulator[HT_STATE_DELETION] / n_threads);
 
@@ -529,13 +529,13 @@ main(int argc, char *argv[])
 	while (ck_pr_load_int(&barrier[HT_STATE_REPLACEMENT]) != n_threads)
 		ck_pr_stall();
 	table_reset();
-	ck_epoch_synchronize(&epoch_ht, &epoch_wr);
+	ck_epoch_synchronize(&epoch_wr);
 	fprintf(stderr, "done (writer = %" PRIu64 " ticks, reader = %" PRIu64 " ticks)\n",
 	    a / (repeated * keys_length), accumulator[HT_STATE_REPLACEMENT] / n_threads);
 
 	ck_pr_inc_int(&barrier[HT_STATE_REPLACEMENT]);
 	epoch_temporary = epoch_wr;
-	ck_epoch_synchronize(&epoch_ht, &epoch_wr);
+	ck_epoch_synchronize(&epoch_wr);
 
 	fprintf(stderr, " '- Summary: %u pending, %u peak, %lu reclamations -> "
 	    "%u pending, %u peak, %lu reclamations\n\n",

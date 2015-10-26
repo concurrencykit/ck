@@ -38,7 +38,7 @@ cb(ck_epoch_entry_t *p)
 {
 
 	if (counter == 0)
-		ck_epoch_call(&epoch, &record[1], p, cb);
+		ck_epoch_call(&record[1], p, cb);
 
 	printf("Counter value: %u -> %u\n",
 	    counter, counter + 1);
@@ -54,9 +54,9 @@ main(void)
 	ck_epoch_register(&epoch, &record[0]);
 	ck_epoch_register(&epoch, &record[1]);
 
-	ck_epoch_call(&epoch, &record[1], &entry, cb);
-	ck_epoch_barrier(&epoch, &record[1]);
-	ck_epoch_barrier(&epoch, &record[1]);
+	ck_epoch_call(&record[1], &entry, cb);
+	ck_epoch_barrier(&record[1]);
+	ck_epoch_barrier(&record[1]);
 	if (counter != 2)
 		ck_error("Expected counter value 2, read %u.\n", counter);
 

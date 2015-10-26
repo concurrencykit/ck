@@ -104,14 +104,14 @@ thread(void *unused CK_CC_UNUSED)
 	while (ck_pr_load_uint(&barrier) < n_threads);
 
 	for (i = 0; i < PAIRS; i++) {
-		ck_epoch_begin(&stack_epoch, &record);
+		ck_epoch_begin(&record);
 		ck_stack_push_upmc(&stack, &entry[i]->stack_entry);
 		s = ck_stack_pop_upmc(&stack);
-		ck_epoch_end(&stack_epoch, &record);
+		ck_epoch_end(&record);
 
 		e = stack_container(s);
-		ck_epoch_call(&stack_epoch, &record, &e->epoch_entry, destructor);
-		smr += ck_epoch_poll(&stack_epoch, &record) == false;
+		ck_epoch_call(&record, &e->epoch_entry, destructor);
+		smr += ck_epoch_poll(&record) == false;
 	}
 
 	ck_pr_inc_uint(&e_barrier);
@@ -124,7 +124,7 @@ thread(void *unused CK_CC_UNUSED)
 			record.n_pending,
 			record.n_dispatch);
 
-	ck_epoch_barrier(&stack_epoch, &record);
+	ck_epoch_barrier(&record);
 	ck_pr_inc_uint(&e_barrier);
 	while (ck_pr_load_uint(&e_barrier) < (n_threads << 1));
 
