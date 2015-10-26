@@ -27,10 +27,6 @@
 #ifndef CK_HT_H
 #define CK_HT_H
 
-#ifndef CK_HT_IM
-#warning ck_ht is deprecated, see ck_hm, ck_hs or ck_rhs.
-#endif /* !CK_HT_IM */
-
 #include <ck_pr.h>
 
 #define CK_F_HT
