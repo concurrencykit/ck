@@ -104,10 +104,10 @@ thread(void *unused CK_CC_UNUSED)
 	while (ck_pr_load_uint(&barrier) < n_threads);
 
 	for (i = 0; i < PAIRS; i++) {
-		ck_epoch_begin(&record);
+		ck_epoch_begin(&record, NULL);
 		ck_stack_push_upmc(&stack, &entry[i]->stack_entry);
 		s = ck_stack_pop_upmc(&stack);
-		ck_epoch_end(&record);
+		ck_epoch_end(&record, NULL);
 
 		e = stack_container(s);
 		ck_epoch_call(&record, &e->epoch_entry, destructor);

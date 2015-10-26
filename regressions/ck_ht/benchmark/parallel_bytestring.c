@@ -224,7 +224,7 @@ reader(void *unused)
 	ck_epoch_register(&epoch_ht, &epoch_record);
 	for (;;) {
 		j++;
-		ck_epoch_begin(&epoch_record);
+		ck_epoch_begin(&epoch_record, NULL);
 		s = rdtsc();
 		for (i = 0; i < keys_length; i++) {
 			char *r;
@@ -242,7 +242,7 @@ reader(void *unused)
 			ck_error("ERROR: Found invalid value: [%s] but expected [%s]\n", r, keys[i]);
 		}
 		a += rdtsc() - s;
-		ck_epoch_end(&epoch_record);
+		ck_epoch_end(&epoch_record, NULL);
 
 		n_state = ck_pr_load_int(&state);
 		if (n_state != state_previous) {

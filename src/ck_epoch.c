@@ -36,6 +36,7 @@
 #include <ck_pr.h>
 #include <ck_stack.h>
 #include <ck_stdbool.h>
+#include <ck_string.h>
 
 /*
  * Only three distinct values are used for reclamation, but reclamation occurs
@@ -137,6 +138,85 @@ CK_STACK_CONTAINER(struct ck_epoch_entry, stack_entry,
     ck_epoch_entry_container)
 
 void
+_ck_epoch_delref(struct ck_epoch_record *record,
+    struct ck_epoch_section *section)
+{
+	struct ck_epoch_ref *current;
+	unsigned int i = section->bucket;
+
+	current = &record->local.bucket[i];
+	current->count--;
+
+	/*
+	 * If the current bucket no longer has any references, then
+	 * determine whether we have already transitioned into a newer
+	 * epoch. If so, then make sure to update our shared snapshot
+	 * to allow for forward progress.
+	 *
+	 * If no other active bucket exists, then the record will go
+	 * inactive in order to allow for forward progress.
+	 */
+	if (current->count == 0) {
+		struct ck_epoch_ref *other;
+
+		other = &record->local.bucket[(i + 1) & CK_EPOCH_SENSE];
+		if (other->count > 0 &&
+		    ((int)(current->epoch - other->epoch) < 0 ||
+		    (current->epoch - other->epoch) > 1)) {
+			/*
+			 * The other epoch value is actually the newest,
+			 * transition to it.
+			 */
+			ck_pr_store_uint(&record->epoch, other->epoch);
+		}
+	}
+
+	return;
+}
+
+void
+_ck_epoch_addref(struct ck_epoch_record *record,
+    struct ck_epoch_section *section)
+{
+	struct ck_epoch *global = record->global;
+	struct ck_epoch_ref *ref;
+	unsigned int epoch, i;
+
+	epoch = ck_pr_load_uint(&global->epoch);
+	i = epoch & (CK_EPOCH_SENSE - 1);
+	ref = &record->local.bucket[i];
+
+	if (ref->count++ == 0) {
+#ifndef CK_MD_TSO
+		struct ck_epoch_ref *previous;
+
+		/*
+		 * The system has already ticked. If another non-zero bucket
+		 * exists, make sure to order our observations with respect
+		 * to it. Otherwise, it is possible to acquire a reference
+		 * from the previous epoch generation.
+		 *
+		 * On TSO architectures, the monoticity of the global counter
+		 * and load-{store, load} ordering are sufficient to guarantee
+		 * this ordering.
+		 */
+		previous = &record->local.bucket[(i + 1) & CK_EPOCH_SENSE];
+		if (previous->count > 0)
+			ck_pr_fence_acq_rel();
+#endif /* CK_MD_TSO */
+
+		/*
+		 * If this is this is a new reference into the current
+		 * bucket then cache the associated epoch value.
+		 */
+		ref->epoch = epoch;
+	}
+
+	section->bucket = i;
+	return;
+}
+
+void
 ck_epoch_init(struct ck_epoch *global)
 {
 
@@ -187,6 +267,7 @@ ck_epoch_register(struct ck_epoch *global, struct ck_epoch_record *record)
 	record->n_dispatch = 0;
 	record->n_peak = 0;
 	record->n_pending = 0;
+	memset(&record->local, 0, sizeof record->local);
 
 	for (i = 0; i < CK_EPOCH_LENGTH; i++)
 		ck_stack_init(&record->pending[i]);
@@ -207,6 +288,7 @@ ck_epoch_unregister(struct ck_epoch_record *record)
 	record->n_dispatch = 0;
 	record->n_peak = 0;
 	record->n_pending = 0;
+	memset(&record->local, 0, sizeof record->local);
 
 	for (i = 0; i < CK_EPOCH_LENGTH; i++)
 		ck_stack_init(&record->pending[i]);

@@ -108,7 +108,7 @@ read_thread(void *unused CK_CC_UNUSED)
 
 	j = 0;
 	for (;;) {
-		ck_epoch_begin(&record);
+		ck_epoch_begin(&record, NULL);
 		CK_STACK_FOREACH(&stack, cursor) {
 			if (cursor == NULL)
 				continue;
@@ -116,7 +116,7 @@ read_thread(void *unused CK_CC_UNUSED)
 			n = CK_STACK_NEXT(cursor);
 			j += ck_pr_load_ptr(&n) != NULL;
 		}
-		ck_epoch_end(&record);
+		ck_epoch_end(&record, NULL);
 
 		if (j != 0 && ck_pr_load_uint(&readers) == 0)
 			ck_pr_store_uint(&readers, 1);
@@ -178,10 +178,10 @@ write_thread(void *unused CK_CC_UNUSED)
 		}
 
 		for (i = 0; i < PAIRS_S; i++) {
-			ck_epoch_begin(&record);
+			ck_epoch_begin(&record, NULL);
 			s = ck_stack_pop_upmc(&stack);
 			e = stack_container(s);
-			ck_epoch_end(&record);
+			ck_epoch_end(&record, NULL);
 
 			ck_epoch_call(&record, &e->epoch_entry, destructor);
 			ck_epoch_poll(&record);

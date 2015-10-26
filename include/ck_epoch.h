@@ -43,6 +43,12 @@
 #define CK_EPOCH_LENGTH 4
 #endif
 
+/*
+ * This is used for sense detection with-respect to concurrent
+ * epoch sections.
+ */
+#define CK_EPOCH_SENSE	2
+
 struct ck_epoch_entry;
 typedef struct ck_epoch_entry ck_epoch_entry_t;
 typedef void ck_epoch_cb_t(ck_epoch_entry_t *);
@@ -57,15 +63,33 @@ struct ck_epoch_entry {
 };
 
 /*
+ * A section object may be passed to every begin-end pair to allow for
+ * forward progress guarantees with-in prolonged active sections.
+ */
+struct ck_epoch_section {
+	unsigned int bucket;
+};
+typedef struct ck_epoch_section ck_epoch_section_t;
+
+/*
  * Return pointer to ck_epoch_entry container object.
  */
-#define CK_EPOCH_CONTAINER(T, M, N) CK_CC_CONTAINER(struct ck_epoch_entry, T, M, N)
+#define CK_EPOCH_CONTAINER(T, M, N) \
+	CK_CC_CONTAINER(struct ck_epoch_entry, T, M, N)
+
+struct ck_epoch_ref {
+	unsigned int epoch;
+	unsigned int count;
+};
 
 struct ck_epoch_record {
 	struct ck_epoch *global;
 	unsigned int state;
 	unsigned int epoch;
 	unsigned int active;
+	struct {
+		struct ck_epoch_ref bucket[CK_EPOCH_SENSE];
+	} local CK_CC_CACHELINE;
 	unsigned int n_pending;
 	unsigned int n_peak;
 	unsigned long n_dispatch;
@@ -83,10 +107,16 @@ struct ck_epoch {
 typedef struct ck_epoch ck_epoch_t;
 
 /*
+ * Internal functions.
+ */
+void _ck_epoch_addref(ck_epoch_record_t *, ck_epoch_section_t *);
+void _ck_epoch_delref(ck_epoch_record_t *, ck_epoch_section_t *);
+
+/*
  * Marks the beginning of an epoch-protected section.
  */
-CK_CC_INLINE static void
-ck_epoch_begin(ck_epoch_record_t *record)
+CK_CC_FORCE_INLINE static void
+ck_epoch_begin(ck_epoch_record_t *record, ck_epoch_section_t *section)
 {
 	struct ck_epoch *epoch = record->global;
 
@@ -111,23 +141,29 @@ ck_epoch_begin(ck_epoch_record_t *record)
 		ck_pr_store_uint(&record->active, 1);
 		ck_pr_fence_store_load();
 #endif
-
-		return;
+	} else {
+		ck_pr_store_uint(&record->active, record->active + 1);
 	}
 
-	ck_pr_store_uint(&record->active, record->active + 1);
+	if (section != NULL)
+		_ck_epoch_addref(record, section);
+
 	return;
 }
 
 /*
  * Marks the end of an epoch-protected section.
  */
-CK_CC_INLINE static void
-ck_epoch_end(ck_epoch_record_t *record)
+CK_CC_FORCE_INLINE static void
+ck_epoch_end(ck_epoch_record_t *record, ck_epoch_section_t *section)
 {
 
 	ck_pr_fence_release();
 	ck_pr_store_uint(&record->active, record->active - 1);
+
+	if (section != NULL)
+		_ck_epoch_delref(record, section);
+
 	return;
 }
 
@@ -136,7 +172,7 @@ ck_epoch_end(ck_epoch_record_t *record)
  * argument until an epoch counter loop. This allows for a
  * non-blocking deferral.
  */
-CK_CC_INLINE static void
+CK_CC_FORCE_INLINE static void
 ck_epoch_call(ck_epoch_record_t *record,
 	      ck_epoch_entry_t *entry,
 	      ck_epoch_cb_t *function)
