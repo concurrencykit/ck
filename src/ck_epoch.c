@@ -203,7 +203,7 @@ _ck_epoch_addref(struct ck_epoch_record *record,
 		previous = &record->local.bucket[(i + 1) & CK_EPOCH_SENSE];
 		if (previous->count > 0)
 			ck_pr_fence_acq_rel();
-#endif /* CK_MD_TSO */
+#endif /* !CK_MD_TSO */
 
 		/*
 		 * If this is this is a new reference into the current
