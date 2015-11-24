@@ -47,7 +47,7 @@
 
 #define CK_BITMAP_BLOCK 	(sizeof(unsigned int) * CHAR_BIT)
 #define CK_BITMAP_OFFSET(i)	((i) % CK_BITMAP_BLOCK)
-#define CK_BITMAP_BIT(i)	(1U << ((i) % CK_BITMAP_BLOCK))
+#define CK_BITMAP_BIT(i)	(1U << CK_BITMAP_OFFSET(i))
 #define CK_BITMAP_PTR(x, i)	((x) + ((i) / CK_BITMAP_BLOCK))
 #define CK_BITMAP_BLOCKS(n)	(((n) + CK_BITMAP_BLOCK - 1) / CK_BITMAP_BLOCK)
 
