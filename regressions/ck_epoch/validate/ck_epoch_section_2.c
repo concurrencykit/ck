@@ -179,7 +179,7 @@ main(int argc, char *argv[])
 		pthread_create(threads + i, NULL, write_thread, NULL);
 	} while (++i < n_wr + n_rd);
 
-	sleep(10);
+	common_sleep(10);
 	ck_pr_store_uint(&leave, 1);
 
 	for (i = 0; i < n_threads; i++)

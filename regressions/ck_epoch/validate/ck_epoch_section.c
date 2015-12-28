@@ -35,6 +35,8 @@
 
 #include <ck_epoch.h>
 
+#include "../../common.h"
+
 static ck_epoch_t epc;
 static ck_epoch_record_t record, record2;
 static unsigned int cleanup_calls;
@@ -91,9 +93,6 @@ test_simple_read_section(void)
 	assert(cleanup_calls == 1);
 
 	teardown_test();
-
-	printf("%s passed\n", __FUNCTION__);
-
 	return;
 }
 
@@ -125,9 +124,6 @@ test_nested_read_section(void)
 	assert(cleanup_calls == 2);
 
 	teardown_test();
-
-	printf("%s passed\n", __FUNCTION__);
-
 	return;
 }
 
@@ -171,7 +167,7 @@ reader_work(void *arg)
 	 * thread.
 	 */
 	ck_epoch_begin(&local_record, &section);
-	usleep((rand() % 100) * 1000);
+	usleep((common_rand() % 100) * 1000);
 	assert(ck_pr_load_uint(&o->destroyed) == 0);
 	ck_epoch_end(&local_record, &section);
 
@@ -203,7 +199,7 @@ test_single_reader_with_barrier_thread(void)
 
 	run = 1;
 	memset(&o, 0, sizeof(struct obj));
-	srand(time(NULL));
+	common_srand(time(NULL));
 	setup_test();
 
 	if (pthread_create(&thread, NULL, barrier_work, &run) != 0) {
@@ -221,7 +217,7 @@ test_single_reader_with_barrier_thread(void)
 
 	/* Generate a shuffle. */
 	for (int i = num_sections - 1; i >= 0; i--) {
-		int k = rand() % (i + 1);
+		int k = common_rand() % (i + 1);
 		int tmp = shuffled[k];
 		shuffled[k] = shuffled[i];
 		shuffled[i] = tmp;
@@ -248,8 +244,6 @@ test_single_reader_with_barrier_thread(void)
 
 	teardown_test();
 
-	printf("%s passed\n", __FUNCTION__);
-
 	return;
 }
 
@@ -265,7 +259,7 @@ test_multiple_readers_with_barrier_thread(void)
 	run = 1;
 	memset(&o, 0, sizeof(struct obj));
 	memset(&section, 0, sizeof(ck_epoch_section_t));
-	srand(time(NULL));
+	common_srand(time(NULL));
 	setup_test();
 
 	/* Create a thread to call barrier() while we create reader threads.
@@ -301,9 +295,6 @@ test_multiple_readers_with_barrier_thread(void)
 	}
 
 	teardown_test();
-
-	printf("%s passed\n", __FUNCTION__);
-
 	return;
 }
 
