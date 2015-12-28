@@ -393,8 +393,8 @@ ck_epoch_synchronize(struct ck_epoch_record *record)
 
 	/*
 	 * Technically, we are vulnerable to an overflow in presence of
-	 * multiple writers. Realistically, this will require 2^32 scans. You
-	 * can use epoch-protected sections on the writer-side if this is a
+	 * multiple writers. Realistically, this will require UINT_MAX scans.
+	 * You can use epoch-protected sections on the writer-side if this is a
 	 * concern.
 	 */
 	delta = epoch = ck_pr_load_uint(&global->epoch);
