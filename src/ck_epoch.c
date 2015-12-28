@@ -164,8 +164,7 @@ _ck_epoch_delref(struct ck_epoch_record *record,
 		other = &record->local.bucket[(i + 1) &
 		    CK_EPOCH_SENSE_MASK];
 		if (other->count > 0 &&
-		    ((int)(current->epoch - other->epoch) < 0 ||
-		    (current->epoch - other->epoch) > 1)) {
+		    ((int)(current->epoch - other->epoch) < 0)) {
 			/*
 			 * The other epoch value is actually the newest,
 			 * transition to it.
