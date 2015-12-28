@@ -143,11 +143,14 @@ void
 _ck_epoch_delref(struct ck_epoch_record *record,
     struct ck_epoch_section *section)
 {
-	struct ck_epoch_ref *current;
+	struct ck_epoch_ref *current, *other;
 	unsigned int i = section->bucket;
 
 	current = &record->local.bucket[i];
 	current->count--;
+
+	if (current->count > 0)
+		return;
 
 	/*
 	 * If the current bucket no longer has any references, then
@@ -158,19 +161,15 @@ _ck_epoch_delref(struct ck_epoch_record *record,
 	 * If no other active bucket exists, then the record will go
 	 * inactive in order to allow for forward progress.
 	 */
-	if (current->count == 0) {
-		struct ck_epoch_ref *other;
-
-		other = &record->local.bucket[(i + 1) &
-		    CK_EPOCH_SENSE_MASK];
-		if (other->count > 0 &&
-		    ((int)(current->epoch - other->epoch) < 0)) {
-			/*
-			 * The other epoch value is actually the newest,
-			 * transition to it.
-			 */
-			ck_pr_store_uint(&record->epoch, other->epoch);
-		}
+	other = &record->local.bucket[(i + 1) &
+	    CK_EPOCH_SENSE_MASK];
+	if (other->count > 0 &&
+	    ((int)(current->epoch - other->epoch) < 0)) {
+		/*
+		 * The other epoch value is actually the newest,
+		 * transition to it.
+		 */
+		ck_pr_store_uint(&record->epoch, other->epoch);
 	}
 
 	return;
