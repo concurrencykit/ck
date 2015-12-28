@@ -47,7 +47,7 @@
  * This is used for sense detection with-respect to concurrent
  * epoch sections.
  */
-#define CK_EPOCH_SENSE	2
+#define CK_EPOCH_SENSE		(2)
 
 struct ck_epoch_entry;
 typedef struct ck_epoch_entry ck_epoch_entry_t;

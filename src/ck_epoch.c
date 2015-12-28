@@ -137,6 +137,8 @@ CK_STACK_CONTAINER(struct ck_epoch_record, record_next,
 CK_STACK_CONTAINER(struct ck_epoch_entry, stack_entry,
     ck_epoch_entry_container)
 
+#define CK_EPOCH_SENSE_MASK	(CK_EPOCH_SENSE - 1)
+
 void
 _ck_epoch_delref(struct ck_epoch_record *record,
     struct ck_epoch_section *section)
@@ -159,7 +161,8 @@ _ck_epoch_delref(struct ck_epoch_record *record,
 	if (current->count == 0) {
 		struct ck_epoch_ref *other;
 
-		other = &record->local.bucket[(i + 1) & CK_EPOCH_SENSE];
+		other = &record->local.bucket[(i + 1) &
+		    CK_EPOCH_SENSE_MASK];
 		if (other->count > 0 &&
 		    ((int)(current->epoch - other->epoch) < 0 ||
 		    (current->epoch - other->epoch) > 1)) {
@@ -183,7 +186,7 @@ _ck_epoch_addref(struct ck_epoch_record *record,
 	unsigned int epoch, i;
 
 	epoch = ck_pr_load_uint(&global->epoch);
-	i = epoch & (CK_EPOCH_SENSE - 1);
+	i = epoch & CK_EPOCH_SENSE_MASK;
 	ref = &record->local.bucket[i];
 
 	if (ref->count++ == 0) {
@@ -200,7 +203,8 @@ _ck_epoch_addref(struct ck_epoch_record *record,
 		 * and load-{store, load} ordering are sufficient to guarantee
 		 * this ordering.
 		 */
-		previous = &record->local.bucket[(i + 1) & CK_EPOCH_SENSE];
+		previous = &record->local.bucket[(i + 1) &
+		    CK_EPOCH_SENSE_MASK];
 		if (previous->count > 0)
 			ck_pr_fence_acqrel();
 #endif /* !CK_MD_TSO */
