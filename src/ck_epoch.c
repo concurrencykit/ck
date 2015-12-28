@@ -401,8 +401,7 @@ ck_epoch_synchronize(struct ck_epoch_record *record)
 	goal = epoch + CK_EPOCH_GRACE;
 
 	/*
-	 * Guarantee any mutations previous to the barrier will be made visible
-	 * with respect to epoch snapshots we will read.
+	 * Provide strong ordering irrespective of reader status.
 	 */
 	ck_pr_fence_memory();
 
