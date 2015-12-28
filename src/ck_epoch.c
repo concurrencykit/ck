@@ -401,7 +401,9 @@ ck_epoch_synchronize(struct ck_epoch_record *record)
 	goal = epoch + CK_EPOCH_GRACE;
 
 	/*
-	 * Provide strong ordering irrespective of reader status.
+	 * Provide strong ordering irrespective of reader status. The
+	 * observations of the counters must be ordered with respect to
+	 * prior updates and current active readers.
 	 */
 	ck_pr_fence_memory();
 
