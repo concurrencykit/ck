@@ -89,6 +89,7 @@ read_thread(void *unused CK_CC_UNUSED)
 	ck_epoch_record_t record CK_CC_CACHELINE;
 	ck_stack_entry_t *cursor;
 	ck_stack_entry_t *n;
+	unsigned int i;
 
 	ck_epoch_register(&stack_epoch, &record);
 
@@ -109,6 +110,8 @@ read_thread(void *unused CK_CC_UNUSED)
 
 	j = 0;
 	for (;;) {
+		i = 0;
+
 		ck_epoch_begin(&record, NULL);
 		CK_STACK_FOREACH(&stack, cursor) {
 			if (cursor == NULL)
@@ -116,6 +119,9 @@ read_thread(void *unused CK_CC_UNUSED)
 
 			n = CK_STACK_NEXT(cursor);
 			j += ck_pr_load_ptr(&n) != NULL;
+
+			if (i++ > 4098)
+				break;
 		}
 		ck_epoch_end(&record, NULL);
 
