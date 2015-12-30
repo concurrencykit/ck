@@ -144,7 +144,6 @@ write_thread(void *unused CK_CC_UNUSED)
 {
 	ck_epoch_record_t record;
 	unsigned long iterations = 0;
-	unsigned int i = 1;
 	bool c = ck_pr_faa_uint(&first, 1);
 
 	ck_epoch_register(&epoch, &record);
@@ -163,25 +162,28 @@ write_thread(void *unused CK_CC_UNUSED)
 		 * inside a protected section. Only
 		 * invalid.value <= valid.value is valid.
 		 */
-		if (!c) ck_pr_store_uint(&valid.value, i);
+		if (!c) ck_pr_store_uint(&valid.value, 1);
 		ck_epoch_synchronize(&record);
-		if (!c) ck_pr_store_uint(&invalid.value, i++);
+		if (!c) ck_pr_store_uint(&invalid.value, 1);
 
-		if (!c) ck_pr_store_uint(&valid.value, i);
+		ck_pr_fence_store();
+		if (!c) ck_pr_store_uint(&valid.value, 2);
 		ck_epoch_synchronize(&record);
-		if (!c) ck_pr_store_uint(&invalid.value, i++);
+		if (!c) ck_pr_store_uint(&invalid.value, 2);
 
-		if (!c) ck_pr_store_uint(&valid.value, i);
+		ck_pr_fence_store();
+		if (!c) ck_pr_store_uint(&valid.value, 3);
 		ck_epoch_synchronize(&record);
-		if (!c) ck_pr_store_uint(&invalid.value, i++);
+		if (!c) ck_pr_store_uint(&invalid.value, 3);
 
-		if (!c) ck_pr_store_uint(&valid.value, i);
+		ck_pr_fence_store();
+		if (!c) ck_pr_store_uint(&valid.value, 4);
 		ck_epoch_synchronize(&record);
-		if (!c) ck_pr_store_uint(&invalid.value, i++);
+		if (!c) ck_pr_store_uint(&invalid.value, 4);
 
-		if (!c) ck_pr_store_uint(&valid.value, i);
 		ck_epoch_synchronize(&record);
-		if (!c) ck_pr_store_uint(&invalid.value, i++);
+		if (!c) ck_pr_store_uint(&invalid.value, 0);
+		ck_epoch_synchronize(&record);
 
 		iterations += 4;
 	} while (ck_pr_load_uint(&leave) == 0 &&
