@@ -59,10 +59,12 @@ static struct affinity a;
 static void *
 read_thread(void *unused CK_CC_UNUSED)
 {
-	ck_epoch_record_t record CK_CC_CACHELINE;
+	ck_epoch_record_t *record;
 	unsigned long long i = 0;
 
-	ck_epoch_register(&epoch, &record);
+	record = malloc(sizeof *record);
+	assert(record != NULL);
+	ck_epoch_register(&epoch, record);
 
 	if (aff_iterate(&a)) {
 		perror("ERROR: failed to affine thread");
@@ -77,15 +79,15 @@ read_thread(void *unused CK_CC_UNUSED)
 		ck_epoch_section_t junk[CK_EPOCH_T_DEPTH];
 		unsigned int j;
 
-		ck_epoch_begin(&record, &section[0]);
+		ck_epoch_begin(record, &section[0]);
 
 		for (j = 0; j < CK_EPOCH_T_DEPTH; j++)
-			ck_epoch_begin(&record, &junk[j]);
+			ck_epoch_begin(record, &junk[j]);
 		for (j = 0; j < CK_EPOCH_T_DEPTH; j++)
-			ck_epoch_end(&record, &junk[j]);
+			ck_epoch_end(record, &junk[j]);
 
 		if (i > 0)
-			ck_epoch_end(&record, &section[1]);
+			ck_epoch_end(record, &section[1]);
 
 		/* Wait for the next synchronize operation. */
 		while ((ck_pr_load_uint(&epoch.epoch) & 1) ==
@@ -95,7 +97,7 @@ read_thread(void *unused CK_CC_UNUSED)
 			if (!(i % 10000000)) {
 				fprintf(stderr, "%u %u %u\n",
 				    ck_pr_load_uint(&epoch.epoch),
-				    section[0].bucket, record.epoch);
+				    section[0].bucket, record->epoch);
 			}
 
 			while ((ck_pr_load_uint(&epoch.epoch) & 1) ==
@@ -103,15 +105,15 @@ read_thread(void *unused CK_CC_UNUSED)
 				ck_pr_stall();
 		}
 
-		ck_epoch_begin(&record, &section[1]);
+		ck_epoch_begin(record, &section[1]);
 
 		assert(section[0].bucket != section[1].bucket);
-		ck_epoch_end(&record, &section[0]);
+		ck_epoch_end(record, &section[0]);
 
-		assert(ck_pr_load_uint(&record.active) > 0);
+		assert(ck_pr_load_uint(&record->active) > 0);
 
 		if (ck_pr_load_uint(&leave) == 1) {
-			ck_epoch_end(&record, &section[1]);
+			ck_epoch_end(record, &section[1]);
 			break;
 		}
 
