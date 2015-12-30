@@ -475,7 +475,12 @@ reload:
 		}
 	}
 
-	ck_pr_fence_release();
+	/*
+	 * A majority of use-cases will not require full barrier semantics.
+	 * However, if non-temporal instructions are used, full barrier
+	 * semantics are necessary.
+	 */
+	ck_pr_fence_memory();
 	record->epoch = delta;
 	return;
 }
