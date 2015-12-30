@@ -186,8 +186,9 @@ all:
 html:
 	for target in $(OBJECTS); do 			   		\
 		echo $$target;				   		\
-		groff -man -Tascii $(SRC_DIR)/doc/$$target |		\
-		    man2html -noheads -bare -cgiurl='$$title.html' >	\
+		groff -man -Tascii $(SRC_DIR)/doc/$$target | col -bx >	\
+		   $(BUILD_DIR)/doc/$$target$(HTML_SUFFIX); 		\
+		sed -i.bk 's/\&/\&amp\;/g;s/>/\&gt\;/g;s/</\&lt\;/g;'	\
 		   $(BUILD_DIR)/doc/$$target$(HTML_SUFFIX); 		\
 	done
 
