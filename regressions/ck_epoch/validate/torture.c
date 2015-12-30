@@ -115,9 +115,11 @@ test(struct ck_epoch_record *record)
 static void *
 read_thread(void *unused CK_CC_UNUSED)
 {
-	ck_epoch_record_t record CK_CC_CACHELINE;
+	ck_epoch_record_t *record;
 
-	ck_epoch_register(&epoch, &record);
+	record = malloc(sizeof *record);
+	assert(record != NULL);
+	ck_epoch_register(&epoch, record);
 
 	if (aff_iterate(&a)) {
 		perror("ERROR: failed to affine thread");
@@ -128,10 +130,10 @@ read_thread(void *unused CK_CC_UNUSED)
 	while (ck_pr_load_uint(&barrier) < n_threads);
 
 	do {
-		test(&record);
-		test(&record);
-		test(&record);
-		test(&record);
+		test(record);
+		test(record);
+		test(record);
+		test(record);
 	} while (ck_pr_load_uint(&leave) == 0);
 
 	ck_pr_dec_uint(&n_rd);
@@ -142,11 +144,13 @@ read_thread(void *unused CK_CC_UNUSED)
 static void *
 write_thread(void *unused CK_CC_UNUSED)
 {
-	ck_epoch_record_t record;
+	ck_epoch_record_t *record;
 	unsigned long iterations = 0;
 	bool c = ck_pr_faa_uint(&first, 1);
 
-	ck_epoch_register(&epoch, &record);
+	record = malloc(sizeof *record);
+	assert(record != NULL);
+	ck_epoch_register(&epoch, record);
 
 	if (aff_iterate(&a)) {
 		perror("ERROR: failed to affine thread");
@@ -163,27 +167,27 @@ write_thread(void *unused CK_CC_UNUSED)
 		 * invalid.value <= valid.value is valid.
 		 */
 		if (!c) ck_pr_store_uint(&valid.value, 1);
-		ck_epoch_synchronize(&record);
+		ck_epoch_synchronize(record);
 		if (!c) ck_pr_store_uint(&invalid.value, 1);
 
 		ck_pr_fence_store();
 		if (!c) ck_pr_store_uint(&valid.value, 2);
-		ck_epoch_synchronize(&record);
+		ck_epoch_synchronize(record);
 		if (!c) ck_pr_store_uint(&invalid.value, 2);
 
 		ck_pr_fence_store();
 		if (!c) ck_pr_store_uint(&valid.value, 3);
-		ck_epoch_synchronize(&record);
+		ck_epoch_synchronize(record);
 		if (!c) ck_pr_store_uint(&invalid.value, 3);
 
 		ck_pr_fence_store();
 		if (!c) ck_pr_store_uint(&valid.value, 4);
-		ck_epoch_synchronize(&record);
+		ck_epoch_synchronize(record);
 		if (!c) ck_pr_store_uint(&invalid.value, 4);
 
-		ck_epoch_synchronize(&record);
+		ck_epoch_synchronize(record);
 		if (!c) ck_pr_store_uint(&invalid.value, 0);
-		ck_epoch_synchronize(&record);
+		ck_epoch_synchronize(record);
 
 		iterations += 4;
 	} while (ck_pr_load_uint(&leave) == 0 &&
