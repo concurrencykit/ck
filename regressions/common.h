@@ -24,6 +24,9 @@
  * SUCH DAMAGE.
  */
 
+#ifndef CK_COMMON_H
+#define CK_COMMON_H
+
 #include <ck_cc.h>
 #include <ck_pr.h>
 #include <stdarg.h>
@@ -454,3 +457,10 @@ ck_error(const char *message, ...)
 	va_end(ap);
 	exit(EXIT_FAILURE);
 }
+
+#define ck_test(A, B, ...) do {			\
+	if (A)					\
+		ck_error(B, ##__VA_ARGS__);	\
+} while (0)
+
+#endif /* CK_COMMON_H */
