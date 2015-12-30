@@ -125,22 +125,30 @@ ck_epoch_begin(ck_epoch_record_t *record, ck_epoch_section_t *section)
 	 * section.
 	 */
 	if (record->active == 0) {
-		unsigned int g_epoch = ck_pr_load_uint(&epoch->epoch);
+		unsigned int g_epoch;
 
 		/*
 		 * It is possible for loads to be re-ordered before the store
 		 * is committed into the caller's epoch and active fields.
 		 * For this reason, store to load serialization is necessary.
 		 */
-		ck_pr_store_uint(&record->epoch, g_epoch);
-
 #if defined(CK_MD_TSO)
 		ck_pr_fas_uint(&record->active, 1);
 		ck_pr_fence_atomic_load();
 #else
 		ck_pr_store_uint(&record->active, 1);
-		ck_pr_fence_store_load();
+		ck_pr_fence_memory();
 #endif
+
+		/*
+		 * This load is allowed to be re-ordered prior to setting
+		 * active flag due to monotonic nature of the global epoch.
+		 * However, stale values lead to measurable performance
+		 * degradation in some torture tests so we disallow early load
+		 * of global epoch.
+		 */
+		g_epoch = ck_pr_load_uint(&epoch->epoch);
+		ck_pr_store_uint(&record->epoch, g_epoch);
 	} else {
 		ck_pr_store_uint(&record->active, record->active + 1);
 	}

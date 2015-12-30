@@ -392,10 +392,9 @@ ck_epoch_synchronize(struct ck_epoch_record *record)
 	bool active;
 
 	/*
-	 * Technically, we are vulnerable to an overflow in presence of
-	 * multiple writers. Realistically, this will require UINT_MAX scans.
-	 * You can use epoch-protected sections on the writer-side if this is a
-	 * concern.
+	 * If UINT_MAX concurrent mutations were to occur then
+	 * it is possible to encounter an ABA-issue. If this is a concern,
+	 * consider tuning write-side concurrency.
 	 */
 	delta = epoch = ck_pr_load_uint(&global->epoch);
 	goal = epoch + CK_EPOCH_GRACE;
@@ -408,9 +407,11 @@ ck_epoch_synchronize(struct ck_epoch_record *record)
 	ck_pr_fence_memory();
 
 	for (i = 0, cr = NULL; i < CK_EPOCH_GRACE - 1; cr = NULL, i++) {
+		bool r;
+
 		/*
 		 * Determine whether all threads have observed the current
-		 * epoch.  We can get away without a fence here.
+		 * epoch with respect to the updates on invocation.
 		 */
 		while (cr = ck_epoch_scan(global, cr, delta, &active),
 		    cr != NULL) {
@@ -447,11 +448,18 @@ ck_epoch_synchronize(struct ck_epoch_record *record)
 		 * it is possible to overflow the epoch value if we apply
 		 * modulo-3 arithmetic.
 		 */
-		if (ck_pr_cas_uint_value(&global->epoch, delta, delta + 1,
-		    &delta) == true) {
-			delta = delta + 1;
-			continue;
-		}
+		r = ck_pr_cas_uint_value(&global->epoch, delta, delta + 1,
+		    &delta);
+
+		/* Order subsequent thread active checks. */
+		ck_pr_fence_atomic_load();
+
+		/*
+		 * If CAS has succeeded, then set delta to latest snapshot.
+		 * Otherwise, we have just acquired latest snapshot.
+		 */
+		delta = delta + r;
+		continue;
 
 reload:
 		if ((goal > epoch) & (delta >= goal)) {
@@ -467,6 +475,7 @@ reload:
 		}
 	}
 
+	ck_pr_fence_release();
 	record->epoch = delta;
 	return;
 }
