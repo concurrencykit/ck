@@ -115,6 +115,7 @@ main(int argc, char *argv[])
 {
 	pthread_t *threads;
         unsigned int counter = 0;
+	bool first = true;
 	int n_threads, i;
 
 	if (argc != 3) {
@@ -154,8 +155,10 @@ main(int argc, char *argv[])
 		global.c = global.b + global.a;
                 ck_sequence_write_end(&seqlock);
 
-		if (counter == 1)
+		if (first == true) {
 			ck_pr_store_uint(&barrier, n_threads);
+			first = false;
+		}
 
                 counter++;
 		if (ck_pr_load_uint(&barrier) == 0)
