@@ -62,8 +62,8 @@
 #include <ck_pr.h>
 
 /*
- * This file defines four types of data structures: singly-linked lists,
- * singly-linked tail queues, lists and tail queues.
+ * This file defines three types of data structures: singly-linked lists,
+ * singly-linked tail queues and lists.
  *
  * A singly-linked list is headed by a single forward pointer. The elements
  * are singly linked for minimum space and pointer manipulation overhead at
@@ -74,6 +74,17 @@
  * only be traversed in the forward direction.  Singly-linked lists are ideal
  * for applications with large datasets and few or no removals or for
  * implementing a LIFO queue.
+ *
+ * A singly-linked tail queue is headed by a pair of pointers, one to the
+ * head of the list and the other to the tail of the list. The elements are
+ * singly linked for minimum space and pointer manipulation overhead at the
+ * expense of O(n) removal for arbitrary elements. New elements can be added
+ * to the list after an existing element, at the head of the list, or at the
+ * end of the list. Elements being removed from the head of the tail queue
+ * should use the explicit macro for this purpose for optimum efficiency.
+ * A singly-linked tail queue may only be traversed in the forward direction.
+ * Singly-linked tail queues are ideal for applications with large datasets
+ * and few or no removals or for implementing a FIFO queue.
  *
  * A list is headed by a single forward pointer (or an array of forward
  * pointers for a hash table header). The elements are doubly linked
