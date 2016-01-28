@@ -379,7 +379,7 @@ ck_rhs_map_create(struct ck_rhs *hs, unsigned long entries)
 		memset(map->entries.no_entries.entries, 0,
 		    sizeof(void *) * n_entries);
 		memset(map->entries.no_entries.descs, 0,
-		    sizeof(struct ck_rhs_no_entry_desc));
+		    sizeof(struct ck_rhs_no_entry_desc) * n_entries);
 		map->offset_mask = (CK_MD_CACHELINE / sizeof(void *)) - 1;
 		map->probe_func = ck_rhs_map_probe_rm;
 
