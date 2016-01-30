@@ -391,20 +391,19 @@ ck_epoch_synchronize(struct ck_epoch_record *record)
 	unsigned int delta, epoch, goal, i;
 	bool active;
 
+	ck_pr_fence_memory();
+
 	/*
-	 * If UINT_MAX concurrent mutations were to occur then
-	 * it is possible to encounter an ABA-issue. If this is a concern,
-	 * consider tuning write-side concurrency.
+	 * The observation of the global epoch must be ordered with respect to
+	 * all prior operations. The re-ordering of loads is permitted given
+	 * monoticity of global epoch counter.
+	 *
+	 * If UINT_MAX concurrent mutations were to occur then it is possible
+	 * to encounter an ABA-issue. If this is a concern, consider tuning
+	 * write-side concurrency.
 	 */
 	delta = epoch = ck_pr_load_uint(&global->epoch);
 	goal = epoch + CK_EPOCH_GRACE;
-
-	/*
-	 * Provide strong ordering irrespective of reader status. The
-	 * observations of the counters must be ordered with respect to
-	 * prior updates and current active readers.
-	 */
-	ck_pr_fence_memory();
 
 	for (i = 0, cr = NULL; i < CK_EPOCH_GRACE - 1; cr = NULL, i++) {
 		bool r;
