@@ -179,11 +179,6 @@ write_thread(void *unused CK_CC_UNUSED)
 		while (ck_pr_load_uint(&readers) == 0)
 			ck_pr_stall();
 
-		if (tid == 0) {
-			fprintf(stderr, "\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b[W] %2.2f: %c",
-			    (double)j / ITERATE_S, animate[i % strlen(animate)]);
-		}
-
 		for (i = 0; i < PAIRS_S; i++) {
 			ck_epoch_begin(&record, NULL);
 			s = ck_stack_pop_upmc(&stack);
@@ -193,17 +188,15 @@ write_thread(void *unused CK_CC_UNUSED)
 			if (i & 1) {
 				ck_epoch_synchronize(&record);
 				ck_epoch_reclaim(&record);
-			} else {
-				ck_epoch_barrier(&record);
-			}
-
-			if (i & 1) {
 				ck_epoch_call(&record, &e->epoch_entry, destructor);
 			} else {
-				if (tid == 0 && i % 8192)
-					fprintf(stderr, "\b%c", animate[i % strlen(animate)]);
-
+				ck_epoch_barrier(&record);
 				destructor(&e->epoch_entry);
+			}
+
+			if (tid == 0 && (i % 16384) == 0) {
+				fprintf(stderr, "[W] %2.2f: %c\n",
+				    (double)j / ITERATE_S, animate[i % strlen(animate)]);
 			}
 		}
 	}
@@ -211,7 +204,7 @@ write_thread(void *unused CK_CC_UNUSED)
 	ck_epoch_synchronize(&record);
 
 	if (tid == 0) {
-		fprintf(stderr, "\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b[W] Peak: %u (%2.2f%%)\n    Reclamations: %lu\n\n",
+		fprintf(stderr, "[W] Peak: %u (%2.2f%%)\n    Reclamations: %lu\n\n",
 			record.n_peak,
 			(double)record.n_peak / ((double)PAIRS_S * ITERATE_S) * 100,
 			record.n_dispatch);
