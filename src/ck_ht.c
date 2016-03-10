@@ -112,7 +112,7 @@ ck_ht_hash(struct ck_ht_hash *h,
     uint16_t key_length)
 {
 
-	h->value = MurmurHash64A(key, key_length, table->seed);
+	table->h(h, key, key_length, table->seed);
 	return;
 }
 
