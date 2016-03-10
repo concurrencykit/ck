@@ -33,6 +33,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include "../../common.h"
+#include "../../../src/ck_ht_hash.h"
+
+static size_t hash_times_called = 0;
 
 static void *
 ht_malloc(size_t r)
@@ -48,6 +51,18 @@ ht_free(void *p, size_t b, bool r)
 	(void)b;
 	(void)r;
 	free(p);
+	return;
+}
+
+static void
+ht_hash_wrapper(struct ck_ht_hash *h,
+	const void *key,
+	size_t length,
+	uint64_t seed)
+{
+	hash_times_called++;
+
+	h->value = (unsigned long)MurmurHash64A(key, length, seed);
 	return;
 }
 
@@ -82,7 +97,7 @@ main(void)
 	mode |= CK_HT_WORKLOAD_DELETE;
 #endif
 
-	if (ck_ht_init(&ht, mode, NULL, &my_allocator, 2, 6602834) == false) {
+	if (ck_ht_init(&ht, mode, ht_hash_wrapper, &my_allocator, 2, 6602834) == false) {
 		perror("ck_ht_init");
 		exit(EXIT_FAILURE);
 	}
@@ -247,7 +262,14 @@ main(void)
 	}
 
 	ck_ht_destroy(&ht);
-	if (ck_ht_init(&ht, CK_HT_MODE_DIRECT, NULL, &my_allocator, 8, 6602834) == false) {
+
+	if (hash_times_called == 0) {
+		ck_error("ERROR: Our hash function was not called!\n");
+	}
+
+	hash_times_called = 0;
+
+	if (ck_ht_init(&ht, CK_HT_MODE_DIRECT, ht_hash_wrapper, &my_allocator, 8, 6602834) == false) {
 		perror("ck_ht_init");
 		exit(EXIT_FAILURE);
 	}
@@ -278,5 +300,10 @@ main(void)
 	}
 
 	ck_ht_destroy(&ht);
+
+	if (hash_times_called == 0) {
+		ck_error("ERROR: Our hash function was not called!\n");
+	}
+
 	return 0;
 }
