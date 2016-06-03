@@ -34,7 +34,7 @@ Concurrency Kit (libck, \-lck)
 .Sh SYNOPSIS
 .In ck_epoch.h
 .Ft bool
-.Fn ck_epoch_poll "ck_epoch_t *epoch" "ck_epoch_record_t *record"
+.Fn ck_epoch_poll "ck_epoch_record_t *record"
 .Sh DESCRIPTION
 The
 .Fn ck_epoch_poll 3
@@ -53,10 +53,8 @@ observed the latest generation of epoch-protected objects. Neither value
 indicates an error.
 .Sh ERRORS
 Behavior is undefined if the object pointed to by
-.Fa epoch
-is not a valid epoch object. The object pointed to by
 .Fa record
-must have been previously registered via
+has not have been previously registered via
 .Fn ck_epoch_register 3 .
 .Sh SEE ALSO
 .Xr ck_epoch_init 3 ,
