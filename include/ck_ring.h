@@ -434,7 +434,7 @@ ck_ring_enqueue_mpsc(struct ck_ring *ring,
     const void *entry)
 {
 
-	return _ck_ring_enqueue_mp(ring, buffer, entry,
+	return _ck_ring_enqueue_mp(ring, buffer, &entry,
 	    sizeof(entry), NULL);
 }
 
