@@ -555,7 +555,7 @@ int main(void) {
 #else
 	return (1);
 #endif /* __MINGW32__ && __MINGW32_MAJOR_VERSION >= 3 */
-#elif defined(__clang__) && (__clang_major__ >= 4)
+#elif defined(__clang__) && (__clang_major__ >= 3)
 	puts("clang");
 	return (0);
 #elif defined(__SUNPRO_C) && (__SUNPRO_C >= 0x5110)
