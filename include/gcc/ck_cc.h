@@ -55,7 +55,7 @@
 #endif
 
 #define CK_CC_FORCE_INLINE CK_CC_UNUSED __attribute__((always_inline)) inline
-#define CK_CC_RESTRICT restrict
+#define CK_CC_RESTRICT __restrict__
 
 /*
  * Packed attribute.
