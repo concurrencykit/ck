@@ -381,7 +381,6 @@ CK_PR_CAS(short, short, "h")
 CK_PR_CAS(char, char, "b")
 
 
-#undef CK_PR_CAS_S
 #undef CK_PR_CAS
 
 #define CK_PR_FAS(N, M, T, W)					\
