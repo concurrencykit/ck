@@ -40,7 +40,7 @@ Concurrency Kit (libck, \-lck)
 .Sh DESCRIPTION
 The
 .Fn ck_pr_fence_atomic
-function enfores the ordering of any
+function enforces the ordering of any
 atomic read-modify-write operations relative to
 the invocation of the function. This function
 always serve as an implicit compiler barrier. On

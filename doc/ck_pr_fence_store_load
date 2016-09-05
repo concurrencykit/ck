@@ -40,7 +40,7 @@ Concurrency Kit (libck, \-lck)
 .Sh DESCRIPTION
 The
 .Fn ck_pr_fence_store_load
-function enfores the ordering of any memory store,
+function enforces the ordering of any memory store,
 .Fn ck_pr_store
 and atomic read-modify-write operations to load
 operations relative to the invocation of the function. This function
