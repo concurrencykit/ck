@@ -98,9 +98,11 @@ stack_push_mpmc(struct stack *target, struct stack_entry *entry)
 
 	lstack = ck_pr_load_ptr(&target->head);
 	ck_pr_store_ptr(&entry->next, lstack);
+	ck_pr_fence_store();
 
 	while (ck_pr_cas_ptr_value(&target->head, lstack, entry, &lstack) == false) {
 		ck_pr_store_ptr(&entry->next, lstack);
+		ck_pr_fence_store();
 		ck_backoff_eb(&backoff);
 	}
 
