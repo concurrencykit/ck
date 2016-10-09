@@ -452,7 +452,7 @@ case $PLATFORM in
 		PLATFORM=arm
 		ENVIRONMENT=32
 		;;
-	"aarch64")
+	"arm64"|"aarch64")
 		RTM_ENABLE="CK_MD_RTM_DISABLE"
 		MM="${MM:-"CK_MD_RMO"}"
 		PLATFORM=aarch64
