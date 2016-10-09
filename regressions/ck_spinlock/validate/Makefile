@@ -10,6 +10,7 @@ check: all
 	./ck_cas $(CORES) 1
 	./ck_fas $(CORES) 1
 	./ck_clh $(CORES) 1
+	./ck_hclh $(CORES) 1
 	./linux_spinlock $(CORES) 1
 	./ck_ticket_pb $(CORES) 1
 	./ck_anderson $(CORES) 1
