@@ -44,7 +44,7 @@ ck_pr_barrier(void)
 #ifndef CK_F_PR
 #define CK_F_PR
 
-#include <stdbool.h>
+#include <ck_stdbool.h>
 #include <ck_stdint.h>
 
 /*
