@@ -118,6 +118,7 @@ generate()
 	    -e "s#@GZIP@#$GZIP#g"				\
 	    -e "s#@GZIP_SUFFIX@#$GZIP_SUFFIX#g"			\
 	    -e "s#@POINTER_PACK_ENABLE@#$POINTER_PACK_ENABLE#g"	\
+	    -e "s#@DISABLE_DOUBLE@#$DISABLE_DOUBLE#g"		\
 	    -e "s#@RTM_ENABLE@#$RTM_ENABLE#g"			\
 	    -e "s#@VMA_BITS@#$VMA_BITS_R#g"			\
 	    -e "s#@VMA_BITS_VALUE@#$VMA_BITS_VALUE_R#g"		\
@@ -196,6 +197,7 @@ for option; do
 		echo "  --vma-bits=N             Specify valid number of VMA bits"
 		echo "  --platform=N             Force the platform type, instead of relying on autodetection"
 		echo "  --use-cc-builtins        Use the compiler atomic bultin functions, instead of the CK implementation"
+		echo "  --disable-double         Don't generate any of the functions using the \"double\" type"
 		echo
 		echo "The following options affect regression testing."
 		echo "  --cores=N                Specify number of cores available on target machine"
@@ -265,6 +267,9 @@ for option; do
 	--use-cc-builtins)
 		USE_CC_BUILTINS=1
 		;;
+	--disable-double)
+		DISABLE_DOUBLE="CK_PR_DISABLE_DOUBLE"
+		;;
 	--platform=*)
 		PLATFORM=$value
 		;;
@@ -300,6 +305,7 @@ LIBRARY=${LIBRARY:-"${PREFIX}/lib"}
 MANDIR=${MANDIR:-"${PREFIX}/share/man"}
 GZIP=${GZIP:-"gzip -c"}
 POINTER_PACK_ENABLE=${POINTER_PACK_ENABLE:-"CK_MD_POINTER_PACK_DISABLE"}
+DISABLE_DOUBLE=${DISABLE_DOUBLE:-"CK_PR_ENABLE_DOUBLE"}
 RTM_ENABLE=${RTM_ENABLE_SET:-"CK_MD_RTM_DISABLE"}
 VMA_BITS=${VMA_BITS:-"unknown"}
 

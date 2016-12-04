@@ -124,7 +124,9 @@ CK_PR_LOAD_S(uint, unsigned int, "ldr")
 CK_PR_LOAD_S(int, int, "ldr")
 CK_PR_LOAD_S(short, short, "ldrh")
 CK_PR_LOAD_S(char, char, "ldrb")
+#ifndef CK_PR_DISABLE_DOUBLE
 CK_PR_LOAD_S_64(double, double, "ldr")
+#endif
 
 #undef CK_PR_LOAD_S
 #undef CK_PR_LOAD_S_64
@@ -167,7 +169,9 @@ CK_PR_STORE_S(uint, unsigned int, "str")
 CK_PR_STORE_S(int, int, "str")
 CK_PR_STORE_S(short, short, "strh")
 CK_PR_STORE_S(char, char, "strb")
+#ifndef CK_PR_DISABLE_DOUBLE
 CK_PR_STORE_S_64(double, double, "str")
+#endif
 
 #undef CK_PR_STORE_S
 #undef CK_PR_STORE_S_64
@@ -283,7 +287,9 @@ CK_PR_CAS(ptr, void, void *, "", "")
 
 #define CK_PR_CAS_S(N, M, W, R)	CK_PR_CAS(N, M, M, W, R)
 CK_PR_CAS_S(64, uint64_t, "", "")
+#ifndef CK_PR_DISABLE_DOUBLE
 CK_PR_CAS_S(double, double, "", "")
+#endif
 CK_PR_CAS_S(32, uint32_t, "", "w")
 CK_PR_CAS_S(uint, unsigned int, "", "w")
 CK_PR_CAS_S(int, int, "", "w")

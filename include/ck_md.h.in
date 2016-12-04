@@ -51,6 +51,10 @@
 #define @MM@
 #endif /* @MM@ */
 
+#ifndef @DISABLE_DOUBLE@
+#define @DISABLE_DOUBLE@
+#endif /* @DISABLE_DOUBLE@ */
+
 #define CK_VERSION "@VERSION@"
 #define CK_GIT_SHA "@GIT_SHA@"
 
