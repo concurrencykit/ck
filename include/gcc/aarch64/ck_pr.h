@@ -182,6 +182,7 @@ CK_CC_INLINE static bool
 ck_pr_cas_64_2_value(uint64_t target[2], uint64_t compare[2], uint64_t set[2], uint64_t value[2])
 {
 	uint64_t tmp1, tmp2;
+
 	__asm__ __volatile__("1:"
 	   		     "ldxp %0, %1, [%4];"
 			     "mov %2, %0;"
@@ -215,6 +216,7 @@ CK_CC_INLINE static bool
 ck_pr_cas_64_2(uint64_t target[2], uint64_t compare[2], uint64_t set[2])
 {
 	uint64_t tmp1, tmp2;
+
 	__asm__ __volatile__("1:"
 	   		     "ldxp %0, %1, [%2];"
 			     "eor %0, %0, %3;"
