@@ -196,7 +196,8 @@ ck_pr_cas_64_2_value(uint64_t target[2], uint64_t compare[2], uint64_t set[2], u
 			     "mov %w0, #1;"
 			     "2:"
 			     : "=&r" (tmp1), "=&r" (tmp2), "=&r" (value[0]), "=&r" (value[1]) 
-			     : "r" (target), "r" (compare[0]), "r" (compare[1]), "r" (set[0]), "r" (set[1]));
+			     : "r" (target), "r" (compare[0]), "r" (compare[1]), "r" (set[0]), "r" (set[1])
+			     : "cc", "memory");
 
 	return (tmp1);
 }
@@ -226,7 +227,8 @@ ck_pr_cas_64_2(uint64_t target[2], uint64_t compare[2], uint64_t set[2])
 			     "mov %w0, #1;"
 			     "2:"
 			     : "=&r" (tmp1), "=&r" (tmp2) 
-			     : "r" (target), "r" (compare[0]), "r" (compare[1]), "r" (set[0]), "r" (set[1]));
+			     : "r" (target), "r" (compare[0]), "r" (compare[1]), "r" (set[0]), "r" (set[1])
+			     : "cc", "memory");
 
 	return (tmp1);
 }
