@@ -39,6 +39,10 @@
 #define @RTM_ENABLE@
 #endif /* @RTM_ENABLE@ */
 
+#ifndef @LSE_ENABLE@
+#define @LSE_ENABLE@
+#endif /* @LSE_ENABLE@ */
+
 #ifndef @POINTER_PACK_ENABLE@
 #define @POINTER_PACK_ENABLE@
 #endif /* @POINTER_PACK_ENABLE@ */
