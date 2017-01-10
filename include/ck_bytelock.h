@@ -81,7 +81,7 @@ ck_bytelock_init(struct ck_bytelock *bytelock)
 CK_CC_INLINE static void
 ck_bytelock_write_lock(struct ck_bytelock *bytelock, unsigned int slot)
 {
-	CK_BYTELOCK_TYPE *readers = (void *)bytelock->readers;
+	CK_BYTELOCK_TYPE *readers = (CK_BYTELOCK_TYPE *)bytelock->readers;
 	unsigned int i;
 
 	/* Announce upcoming writer acquisition. */

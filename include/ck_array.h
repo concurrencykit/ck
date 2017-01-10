@@ -37,7 +37,7 @@
 struct _ck_array {
 	unsigned int n_committed;
 	unsigned int length;
-	void *values[];
+	void *values[1];
 };
 
 struct ck_array {

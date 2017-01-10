@@ -97,7 +97,7 @@ ck_spinlock_mcs_lock(struct ck_spinlock_mcs **queue,
 	 * returns NULL, it means the queue was empty. If the queue was empty,
 	 * then the operation is complete.
 	 */
-	previous = ck_pr_fas_ptr(queue, node);
+	previous = (struct ck_spinlock_mcs *)ck_pr_fas_ptr(queue, node);
 	if (previous != NULL) {
 		/*
 		 * Let the previous lock holder know that we are waiting on
