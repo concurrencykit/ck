@@ -561,9 +561,11 @@ else
 fi
 
 printf "Finding suitable compiler........"
-CC=`pathsearch "${CC:-cc}"`
-if test -z "$CC" -o ! -x "$CC"; then
-	CC=`pathsearch "${CC:-gcc}"`
+if test ! -x "${CC}"; then
+	CC=`pathsearch "${CC:-cc}"`
+	if test -z "$CC" -o ! -x "$CC"; then
+		CC=`pathsearch "${CC:-gcc}"`
+	fi
 fi
 assert "$CC" "not found"
 
@@ -596,7 +598,7 @@ int main(void) {
 EOF
 
 $CC -o .1 .1.c
-COMPILER=`./.1`
+COMPILER=`./.1 2> /dev/null`
 r=$?
 rm -f .1.c .1
 
