@@ -191,7 +191,7 @@ write_thread(void *unused CK_CC_UNUSED)
 	ck_epoch_barrier(&record);
 
 	if (tid == 0) {
-		fprintf(stderr, "\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b[W] Peak: %u (%2.2f%%)\n    Reclamations: %lu\n\n",
+		fprintf(stderr, "\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b[W] Peak: %u (%2.2f%%)\n    Reclamations: %u\n\n",
 			record.n_peak,
 			(double)record.n_peak / ((double)PAIRS_S * ITERATE_S) * 100,
 			record.n_dispatch);
