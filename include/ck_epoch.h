@@ -92,7 +92,8 @@ struct ck_epoch_record {
 	} local CK_CC_CACHELINE;
 	unsigned int n_pending;
 	unsigned int n_peak;
-	unsigned long n_dispatch;
+	unsigned int n_dispatch;
+	unsigned int unused;
 	ck_stack_t pending[CK_EPOCH_LENGTH];
 	ck_stack_entry_t record_next;
 } CK_CC_CACHELINE;
@@ -179,7 +180,12 @@ ck_epoch_end(ck_epoch_record_t *record, ck_epoch_section_t *section)
  * Defers the execution of the function pointed to by the "cb"
  * argument until an epoch counter loop. This allows for a
  * non-blocking deferral.
+ *
+ * We can get away without a fence here due to the monotonic nature
+ * of the epoch counter. Worst case, this will result in some delays
+ * before object destruction.
  */
+/*
 CK_CC_FORCE_INLINE static void
 ck_epoch_call(ck_epoch_record_t *record,
 	      ck_epoch_entry_t *entry,
@@ -192,6 +198,27 @@ ck_epoch_call(ck_epoch_record_t *record,
 	record->n_pending++;
 	entry->function = function;
 	ck_stack_push_spnc(&record->pending[offset], &entry->stack_entry);
+	return;
+}
+*/
+
+/*
+ * Same as ck_epoch_call, but allows for records to be shared and is reentrant.
+ */
+CK_CC_FORCE_INLINE static void
+ck_epoch_call(ck_epoch_record_t *record,
+	      ck_epoch_entry_t *entry,
+	      ck_epoch_cb_t *function)
+{
+	struct ck_epoch *epoch = record->global;
+	unsigned int e = ck_pr_load_uint(&epoch->epoch);
+	unsigned int offset = e & (CK_EPOCH_LENGTH - 1);
+
+	ck_pr_inc_uint(&record->n_pending);
+	entry->function = function;
+
+	/* Store fence is implied by push operation. */
+	ck_stack_push_upmc(&record->pending[offset], &entry->stack_entry);
 	return;
 }
 

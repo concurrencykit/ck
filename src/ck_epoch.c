@@ -345,11 +345,10 @@ ck_epoch_dispatch(struct ck_epoch_record *record, unsigned int e)
 {
 	unsigned int epoch = e & (CK_EPOCH_LENGTH - 1);
 	ck_stack_entry_t *head, *next, *cursor;
+	unsigned int n_pending, n_peak;
 	unsigned int i = 0;
 
-	head = CK_STACK_FIRST(&record->pending[epoch]);
-	ck_stack_init(&record->pending[epoch]);
-
+	head = ck_stack_batch_pop_upmc(&record->pending[epoch]);
 	for (cursor = head; cursor != NULL; cursor = next) {
 		struct ck_epoch_entry *entry =
 		    ck_epoch_entry_container(cursor);
@@ -359,11 +358,15 @@ ck_epoch_dispatch(struct ck_epoch_record *record, unsigned int e)
 		i++;
 	}
 
-	if (record->n_pending > record->n_peak)
-		record->n_peak = record->n_pending;
+	n_peak = ck_pr_load_uint(&record->n_peak);
+	n_pending = ck_pr_load_uint(&record->n_pending);
 
-	record->n_dispatch += i;
-	record->n_pending -= i;
+	/* We don't require accuracy around peak calculation. */
+	if (n_pending > n_peak)
+		ck_pr_store_uint(&record->n_peak, n_peak);
+
+	ck_pr_add_uint(&record->n_dispatch, i);
+	ck_pr_sub_uint(&record->n_pending, i);
 	return;
 }
 
