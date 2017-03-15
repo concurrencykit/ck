@@ -481,7 +481,6 @@ reload:
 	 * semantics are necessary.
 	 */
 	ck_pr_fence_memory();
-	record->epoch = delta;
 	return;
 }
 
@@ -509,7 +508,6 @@ ck_epoch_poll(struct ck_epoch_record *record)
 {
 	bool active;
 	unsigned int epoch;
-	unsigned int snapshot;
 	struct ck_epoch_record *cr = NULL;
 	struct ck_epoch *global = record->global;
 
@@ -533,12 +531,7 @@ ck_epoch_poll(struct ck_epoch_record *record)
 	}
 
 	/* If an active thread exists, rely on epoch observation. */
-	if (ck_pr_cas_uint_value(&global->epoch, epoch, epoch + 1,
-	    &snapshot) == false) {
-		record->epoch = snapshot;
-	} else {
-		record->epoch = epoch + 1;
-	}
+	(void)ck_pr_cas_uint(&global->epoch, epoch, epoch + 1);
 
 	ck_epoch_dispatch(record, epoch + 1);
 	return true;
