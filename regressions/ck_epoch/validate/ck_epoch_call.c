@@ -66,7 +66,7 @@ main(void)
 	ck_epoch_barrier(&record[1]);
 
 	if (counter != 4)
-		ck_error("Expected counter value 2, read %u.\n", counter);
+		ck_error("Expected counter value 4, read %u.\n", counter);
 
 	return 0;
 }
