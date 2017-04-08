@@ -230,7 +230,7 @@ ck_epoch_init(struct ck_epoch *global)
 }
 
 struct ck_epoch_record *
-ck_epoch_recycle(struct ck_epoch *global)
+ck_epoch_recycle(struct ck_epoch *global, void *ct)
 {
 	struct ck_epoch_record *record;
 	ck_stack_entry_t *cursor;
@@ -249,6 +249,12 @@ ck_epoch_recycle(struct ck_epoch *global)
 			    CK_EPOCH_STATE_USED);
 			if (state == CK_EPOCH_STATE_FREE) {
 				ck_pr_dec_uint(&global->n_free);
+				ck_pr_store_ptr(&record->ct, ct);
+
+				/*
+				 * The context pointer is ordered by a
+				 * subsequent protected section.
+				 */
 				return record;
 			}
 		}
@@ -258,7 +264,8 @@ ck_epoch_recycle(struct ck_epoch *global)
 }
 
 void
-ck_epoch_register(struct ck_epoch *global, struct ck_epoch_record *record)
+ck_epoch_register(struct ck_epoch *global, struct ck_epoch_record *record,
+    void *ct)
 {
 	size_t i;
 
@@ -269,6 +276,7 @@ ck_epoch_register(struct ck_epoch *global, struct ck_epoch_record *record)
 	record->n_dispatch = 0;
 	record->n_peak = 0;
 	record->n_pending = 0;
+	record->ct = ct;
 	memset(&record->local, 0, sizeof record->local);
 
 	for (i = 0; i < CK_EPOCH_LENGTH; i++)
@@ -295,6 +303,7 @@ ck_epoch_unregister(struct ck_epoch_record *record)
 	for (i = 0; i < CK_EPOCH_LENGTH; i++)
 		ck_stack_init(&record->pending[i]);
 
+	ck_pr_store_ptr(&record->ct, NULL);
 	ck_pr_fence_store();
 	ck_pr_store_uint(&record->state, CK_EPOCH_STATE_FREE);
 	ck_pr_inc_uint(&global->n_free);
@@ -365,8 +374,11 @@ ck_epoch_dispatch(struct ck_epoch_record *record, unsigned int e)
 	if (n_pending > n_peak)
 		ck_pr_store_uint(&record->n_peak, n_peak);
 
-	ck_pr_add_uint(&record->n_dispatch, i);
-	ck_pr_sub_uint(&record->n_pending, i);
+	if (i > 0) {
+		ck_pr_add_uint(&record->n_dispatch, i);
+		ck_pr_sub_uint(&record->n_pending, i);
+	}
+
 	return;
 }
 
@@ -384,13 +396,24 @@ ck_epoch_reclaim(struct ck_epoch_record *record)
 	return;
 }
 
+CK_CC_FORCE_INLINE static void
+epoch_block(struct ck_epoch *global, struct ck_epoch_record *cr,
+    ck_epoch_wait_cb_t *cb, void *ct)
+{
+
+	if (cb != NULL)
+		cb(global, cr, ct);
+
+	return;
+}
+
 /*
  * This function must not be called with-in read section.
  */
 void
-ck_epoch_synchronize(struct ck_epoch_record *record)
+ck_epoch_synchronize_wait(struct ck_epoch *global,
+    ck_epoch_wait_cb_t *cb, void *ct)
 {
-	struct ck_epoch *global = record->global;
 	struct ck_epoch_record *cr;
 	unsigned int delta, epoch, goal, i;
 	bool active;
@@ -427,10 +450,27 @@ ck_epoch_synchronize(struct ck_epoch_record *record)
 			 * period.
 			 */
 			e_d = ck_pr_load_uint(&global->epoch);
-			if (e_d != delta) {
-				delta = e_d;
-				goto reload;
+			if (e_d == delta) {
+				epoch_block(global, cr, cb, ct);
+				continue;
 			}
+
+			/*
+			 * If the epoch has been updated, we may have already
+			 * met our goal.
+			 */
+			delta = e_d;
+			if ((goal > epoch) & (delta >= goal))
+				goto leave;
+
+			epoch_block(global, cr, cb, ct);
+
+			/*
+			 * If the epoch has been updated, then a grace period
+			 * requires that all threads are observed idle at the
+			 * same epoch.
+			 */
+			cr = NULL;
 		}
 
 		/*
@@ -462,20 +502,6 @@ ck_epoch_synchronize(struct ck_epoch_record *record)
 		 * Otherwise, we have just acquired latest snapshot.
 		 */
 		delta = delta + r;
-		continue;
-
-reload:
-		if ((goal > epoch) & (delta >= goal)) {
-			/*
-			 * Right now, epoch overflow is handled as an edge
-			 * case. If we have already observed an epoch
-			 * generation, then we can be sure no hazardous
-			 * references exist to objects from this generation. We
-			 * can actually avoid an addtional scan step at this
-			 * point.
-			 */
-			break;
-		}
 	}
 
 	/*
@@ -483,7 +509,16 @@ reload:
 	 * However, if non-temporal instructions are used, full barrier
 	 * semantics are necessary.
 	 */
+leave:
 	ck_pr_fence_memory();
+	return;
+}
+
+void
+ck_epoch_synchronize(struct ck_epoch_record *record)
+{
+
+	ck_epoch_synchronize_wait(record->global, NULL, NULL);
 	return;
 }
 

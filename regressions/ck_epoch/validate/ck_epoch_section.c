@@ -46,8 +46,8 @@ setup_test(void)
 {
 
 	ck_epoch_init(&epc);
-	ck_epoch_register(&epc, &record);
-	ck_epoch_register(&epc, &record2);
+	ck_epoch_register(&epc, &record, NULL);
+	ck_epoch_register(&epc, &record2, NULL);
 	cleanup_calls = 0;
 
 	return;
@@ -157,7 +157,7 @@ reader_work(void *arg)
 	ck_epoch_section_t section;
 	struct obj *o;
 
-	ck_epoch_register(&epc, &local_record);
+	ck_epoch_register(&epc, &local_record, NULL);
 
 	o = (struct obj *)arg;
 

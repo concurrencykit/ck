@@ -51,8 +51,8 @@ main(void)
 {
 	ck_epoch_entry_t entry;
 
-	ck_epoch_register(&epoch, &record[0]);
-	ck_epoch_register(&epoch, &record[1]);
+	ck_epoch_register(&epoch, &record[0], NULL);
+	ck_epoch_register(&epoch, &record[1], NULL);
 
 	ck_epoch_call(&record[1], &entry, cb);
 	ck_epoch_barrier(&record[1]);

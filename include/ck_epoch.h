@@ -93,7 +93,7 @@ struct ck_epoch_record {
 	unsigned int n_pending;
 	unsigned int n_peak;
 	unsigned int n_dispatch;
-	unsigned int unused;
+	void *ct;
 	ck_stack_t pending[CK_EPOCH_LENGTH];
 	ck_stack_entry_t record_next;
 } CK_CC_CACHELINE;
@@ -112,6 +112,13 @@ typedef struct ck_epoch ck_epoch_t;
  */
 void _ck_epoch_addref(ck_epoch_record_t *, ck_epoch_section_t *);
 void _ck_epoch_delref(ck_epoch_record_t *, ck_epoch_section_t *);
+
+CK_CC_FORCE_INLINE static void *
+ck_epoch_record_ct(const ck_epoch_record_t *record)
+{
+
+	return ck_pr_load_ptr(&record->ct);
+}
 
 /*
  * Marks the beginning of an epoch-protected section.
@@ -185,7 +192,6 @@ ck_epoch_end(ck_epoch_record_t *record, ck_epoch_section_t *section)
  * of the epoch counter. Worst case, this will result in some delays
  * before object destruction.
  */
-/*
 CK_CC_FORCE_INLINE static void
 ck_epoch_call(ck_epoch_record_t *record,
 	      ck_epoch_entry_t *entry,
@@ -200,13 +206,12 @@ ck_epoch_call(ck_epoch_record_t *record,
 	ck_stack_push_spnc(&record->pending[offset], &entry->stack_entry);
 	return;
 }
-*/
 
 /*
  * Same as ck_epoch_call, but allows for records to be shared and is reentrant.
  */
 CK_CC_FORCE_INLINE static void
-ck_epoch_call(ck_epoch_record_t *record,
+ck_epoch_call_strict(ck_epoch_record_t *record,
 	      ck_epoch_entry_t *entry,
 	      ck_epoch_cb_t *function)
 {
@@ -222,12 +227,36 @@ ck_epoch_call(ck_epoch_record_t *record,
 	return;
 }
 
+/*
+ * This callback is used for synchronize_wait to allow for custom blocking
+ * behavior.
+ */
+typedef void ck_epoch_wait_cb_t(ck_epoch_t *, ck_epoch_record_t *,
+    void *);
+
 void ck_epoch_init(ck_epoch_t *);
-ck_epoch_record_t *ck_epoch_recycle(ck_epoch_t *);
-void ck_epoch_register(ck_epoch_t *, ck_epoch_record_t *);
+
+/*
+ * Attempts to recycle an unused epoch record. If one is successfully
+ * allocated, the record context pointer is also updated.
+ */
+ck_epoch_record_t *ck_epoch_recycle(ck_epoch_t *, void *);
+
+/*
+ * Registers an epoch record. An optional context pointer may be passed that
+ * is retrievable with ck_epoch_record_ct.
+ */
+void ck_epoch_register(ck_epoch_t *, ck_epoch_record_t *, void *);
+
+/*
+ * Marks a record as available for re-use by a subsequent recycle operation.
+ * Note that the record cannot be physically destroyed.
+ */
 void ck_epoch_unregister(ck_epoch_record_t *);
+
 bool ck_epoch_poll(ck_epoch_record_t *);
 void ck_epoch_synchronize(ck_epoch_record_t *);
+void ck_epoch_synchronize_wait(ck_epoch_t *, ck_epoch_wait_cb_t *, void *);
 void ck_epoch_barrier(ck_epoch_record_t *);
 void ck_epoch_reclaim(ck_epoch_record_t *);
 

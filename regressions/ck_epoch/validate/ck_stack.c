@@ -81,7 +81,7 @@ thread(void *unused CK_CC_UNUSED)
 	unsigned long smr = 0;
 	unsigned int i;
 
-	ck_epoch_register(&stack_epoch, &record);
+	ck_epoch_register(&stack_epoch, &record, NULL);
 
 	if (aff_iterate(&a)) {
 		perror("ERROR: failed to affine thread");
