@@ -234,6 +234,17 @@ ck_epoch_call_strict(ck_epoch_record_t *record,
 typedef void ck_epoch_wait_cb_t(ck_epoch_t *, ck_epoch_record_t *,
     void *);
 
+/*
+ * Return latest epoch value. This operation provides load ordering.
+ */
+CK_CC_FORCE_INLINE static unsigned int
+ck_epoch_value(const ck_epoch_t *ep)
+{
+
+	ck_pr_fence_load();
+	return ck_pr_load_uint(&ep->epoch);
+}
+
 void ck_epoch_init(ck_epoch_t *);
 
 /*
