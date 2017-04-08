@@ -168,9 +168,10 @@ ck_epoch_begin(ck_epoch_record_t *record, ck_epoch_section_t *section)
 }
 
 /*
- * Marks the end of an epoch-protected section.
+ * Marks the end of an epoch-protected section. Returns true if no more
+ * sections exist for the caller.
  */
-CK_CC_FORCE_INLINE static void
+CK_CC_FORCE_INLINE static bool
 ck_epoch_end(ck_epoch_record_t *record, ck_epoch_section_t *section)
 {
 
@@ -178,9 +179,9 @@ ck_epoch_end(ck_epoch_record_t *record, ck_epoch_section_t *section)
 	ck_pr_store_uint(&record->active, record->active - 1);
 
 	if (section != NULL)
-		_ck_epoch_delref(record, section);
+		return _ck_epoch_delref(record, section);
 
-	return;
+	return record->active == 0;
 }
 
 /*

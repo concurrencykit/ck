@@ -139,7 +139,7 @@ CK_STACK_CONTAINER(struct ck_epoch_entry, stack_entry,
 
 #define CK_EPOCH_SENSE_MASK	(CK_EPOCH_SENSE - 1)
 
-void
+bool
 _ck_epoch_delref(struct ck_epoch_record *record,
     struct ck_epoch_section *section)
 {
@@ -150,7 +150,7 @@ _ck_epoch_delref(struct ck_epoch_record *record,
 	current->count--;
 
 	if (current->count > 0)
-		return;
+		return false;
 
 	/*
 	 * If the current bucket no longer has any references, then
@@ -161,8 +161,7 @@ _ck_epoch_delref(struct ck_epoch_record *record,
 	 * If no other active bucket exists, then the record will go
 	 * inactive in order to allow for forward progress.
 	 */
-	other = &record->local.bucket[(i + 1) &
-	    CK_EPOCH_SENSE_MASK];
+	other = &record->local.bucket[(i + 1) & CK_EPOCH_SENSE_MASK];
 	if (other->count > 0 &&
 	    ((int)(current->epoch - other->epoch) < 0)) {
 		/*
@@ -172,7 +171,7 @@ _ck_epoch_delref(struct ck_epoch_record *record,
 		ck_pr_store_uint(&record->epoch, other->epoch);
 	}
 
-	return;
+	return true;
 }
 
 void

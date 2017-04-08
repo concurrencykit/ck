@@ -88,7 +88,8 @@ test_simple_read_section(void)
 	ck_epoch_begin(&record, &section);
 	ck_epoch_call(&record, &entry, cleanup);
 	assert(cleanup_calls == 0);
-	ck_epoch_end(&record, &section);
+	if (ck_epoch_end(&record, &section) == false)
+		ck_error("expected no more sections");
 	ck_epoch_barrier(&record);
 	assert(cleanup_calls == 1);
 
