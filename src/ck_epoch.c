@@ -531,6 +531,16 @@ ck_epoch_barrier(struct ck_epoch_record *record)
 	return;
 }
 
+void
+ck_epoch_barrier_wait(struct ck_epoch_record *record, ck_epoch_wait_cb_t *cb,
+    void *ct)
+{
+
+	ck_epoch_synchronize_wait(record->global, cb, ct);
+	ck_epoch_reclaim(record);
+	return;
+}
+
 /*
  * It may be worth it to actually apply these deferral semantics to an epoch
  * that was observed at ck_epoch_call time. The problem is that the latter
