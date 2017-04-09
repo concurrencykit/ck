@@ -119,7 +119,7 @@ read_thread(void *unused CK_CC_UNUSED)
 
 	record = malloc(sizeof *record);
 	assert(record != NULL);
-	ck_epoch_register(&epoch, record);
+	ck_epoch_register(&epoch, record, NULL);
 
 	if (aff_iterate(&a)) {
 		perror("ERROR: failed to affine thread");
@@ -151,7 +151,7 @@ write_thread(void *unused CK_CC_UNUSED)
 
 	record = malloc(sizeof *record);
 	assert(record != NULL);
-	ck_epoch_register(&epoch, record);
+	ck_epoch_register(&epoch, record, NULL);
 
 	if (aff_iterate(&a)) {
 		perror("ERROR: failed to affine thread");
