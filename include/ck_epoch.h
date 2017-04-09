@@ -83,6 +83,7 @@ struct ck_epoch_ref {
 };
 
 struct ck_epoch_record {
+	ck_stack_entry_t record_next;
 	struct ck_epoch *global;
 	unsigned int state;
 	unsigned int epoch;
@@ -95,15 +96,13 @@ struct ck_epoch_record {
 	unsigned int n_dispatch;
 	void *ct;
 	ck_stack_t pending[CK_EPOCH_LENGTH];
-	ck_stack_entry_t record_next;
 } CK_CC_CACHELINE;
 typedef struct ck_epoch_record ck_epoch_record_t;
 
 struct ck_epoch {
 	unsigned int epoch;
-	char pad[CK_MD_CACHELINE - sizeof(unsigned int)];
-	ck_stack_t records;
 	unsigned int n_free;
+	ck_stack_t records;
 };
 typedef struct ck_epoch ck_epoch_t;
 
