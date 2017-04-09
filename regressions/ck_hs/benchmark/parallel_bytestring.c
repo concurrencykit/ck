@@ -454,8 +454,8 @@ main(int argc, char *argv[])
 	ck_epoch_record_t epoch_temporary = epoch_wr;
 	ck_epoch_synchronize(&epoch_wr);
 
-	fprintf(stderr, " '- Summary: %u pending, %u peak, %lu reclamations -> "
-	    "%u pending, %u peak, %lu reclamations\n\n",
+	fprintf(stderr, " '- Summary: %u pending, %u peak, %u reclamations -> "
+	    "%u pending, %u peak, %u reclamations\n\n",
 	    epoch_temporary.n_pending, epoch_temporary.n_peak, epoch_temporary.n_dispatch,
 	    epoch_wr.n_pending, epoch_wr.n_peak, epoch_wr.n_dispatch);
 
@@ -593,8 +593,8 @@ main(int argc, char *argv[])
 	epoch_temporary = epoch_wr;
 	ck_epoch_synchronize(&epoch_wr);
 
-	fprintf(stderr, " '- Summary: %u pending, %u peak, %lu reclamations -> "
-	    "%u pending, %u peak, %lu reclamations\n\n",
+	fprintf(stderr, " '- Summary: %u pending, %u peak, %u reclamations -> "
+	    "%u pending, %u peak, %u reclamations\n\n",
 	    epoch_temporary.n_pending, epoch_temporary.n_peak, epoch_temporary.n_dispatch,
 	    epoch_wr.n_pending, epoch_wr.n_peak, epoch_wr.n_dispatch);
 	return 0;
