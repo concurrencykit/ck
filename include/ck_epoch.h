@@ -111,7 +111,7 @@ typedef struct ck_epoch ck_epoch_t;
  * Internal functions.
  */
 void _ck_epoch_addref(ck_epoch_record_t *, ck_epoch_section_t *);
-void _ck_epoch_delref(ck_epoch_record_t *, ck_epoch_section_t *);
+bool _ck_epoch_delref(ck_epoch_record_t *, ck_epoch_section_t *);
 
 CK_CC_FORCE_INLINE static void *
 ck_epoch_record_ct(const ck_epoch_record_t *record)
