@@ -1,0 +1,9 @@
+{
+  "name": "ck",
+  "version": "0.4.2",
+  "repo": "concurrencykit/ck",
+  "description": "Concurrency primitives, safe memory reclamation mechanisms and non-blocking data structures designed to aid in the research, design and implementation of high performance concurrent systems.",
+  "keywords": ["concurrency", "ck", "util"],
+  "install": "./clib-install.sh"
+}
+
