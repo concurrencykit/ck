@@ -1,0 +1,16 @@
+Source: ck
+Section: admin
+Priority: optional
+Maintainer: James Lamb <admin@oranged.to>
+Build-Depends: debhelper (>=9)
+Standards-Version: 3.6.1.0
+
+Package: ck
+Architecture: any
+Depends: ${misc:Depends}, ${shlibs:Depends}
+Recommends: uuid-runtime
+Description: Concurrency-Kit 
+ Concurrency Kit provides a number of primitives, safe memory reclamation mechanisms and
+ non-blocking (including lock-free) data structures designed to aid in the research, design
+ and implementation of high performance concurent systems. http://concurrencykit.org/
+
