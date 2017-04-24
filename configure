@@ -347,7 +347,7 @@ case "$SYSTEM" in
 		DCORES=`sysctl -n hw.ncpu`
 		SYSTEM=darwin
 		;;
-	MINGW32*)
+	MINGW32*|MSYS_NT*)
 		SYSTEM=mingw32
 		LDFLAGS="-mthreads $LDFLAGS"
 		;;
