@@ -116,7 +116,7 @@
 
 struct ck_bitmap {
 	unsigned int n_bits;
-	unsigned int map[];
+	unsigned int map[1];
 };
 typedef struct ck_bitmap ck_bitmap_t;
 
@@ -142,7 +142,7 @@ CK_CC_INLINE static unsigned int
 ck_bitmap_size(unsigned int n_bits)
 {
 
-	return ck_bitmap_base(n_bits) + sizeof(struct ck_bitmap);
+	return offsetof(struct ck_bitmap, map[CK_BITMAP_BLOCKS(n_bits) * sizeof(unsigned int)]);
 }
 
 /*

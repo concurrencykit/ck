@@ -78,7 +78,7 @@ ck_spinlock_clh_lock(struct ck_spinlock_clh **queue, struct ck_spinlock_clh *thr
 	 * Mark current request as last request. Save reference to previous
 	 * request.
 	 */
-	previous = ck_pr_fas_ptr(queue, thread);
+	previous = (struct ck_spinlock_clh *)ck_pr_fas_ptr(queue, thread);
 	thread->previous = previous;
 
 	/* Wait until previous thread is done with lock. */

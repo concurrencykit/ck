@@ -31,12 +31,14 @@
 #include <ck_stdbool.h>
 #include <ck_string.h>
 
+#define ALLOC_SIZE(length) offsetof(struct _ck_array, values[length])
+
 static struct _ck_array *
 ck_array_create(struct ck_malloc *allocator, unsigned int length)
 {
 	struct _ck_array *active;
 
-	active = allocator->malloc(sizeof(struct _ck_array) + sizeof(void *) * length);
+	active = allocator->malloc(ALLOC_SIZE(length));
 	if (active == NULL)
 		return NULL;
 
@@ -87,8 +89,8 @@ ck_array_put(struct ck_array *array, void *value)
 			size = target->length << 1;
 
 			target = array->allocator->realloc(target,
-			    sizeof(struct _ck_array) + sizeof(void *) * array->n_entries,
-			    sizeof(struct _ck_array) + sizeof(void *) * size,
+			    ALLOC_SIZE(array->n_entries),
+			    ALLOC_SIZE(size),
 			    true);
 
 			if (target == NULL)
@@ -110,8 +112,8 @@ ck_array_put(struct ck_array *array, void *value)
 		size = target->length << 1;
 
 		target = array->allocator->realloc(target,
-		    sizeof(struct _ck_array) + sizeof(void *) * array->n_entries,
-		    sizeof(struct _ck_array) + sizeof(void *) * size,
+		    ALLOC_SIZE(array->n_entries),
+		    ALLOC_SIZE(size),
 		    true);
 
 		if (target == NULL)
@@ -211,8 +213,7 @@ ck_array_commit(ck_array_t *array)
 		ck_pr_fence_store();
 		p = array->active;
 		ck_pr_store_ptr(&array->active, m);
-		array->allocator->free(p, sizeof(struct _ck_array) +
-		    p->length * sizeof(void *), true);
+		array->allocator->free(p, ALLOC_SIZE(p->length), true);
 		array->transaction = NULL;
 
 		return true;
@@ -228,11 +229,11 @@ ck_array_deinit(struct ck_array *array, bool defer)
 {
 
 	array->allocator->free(array->active,
-	    sizeof(struct _ck_array) + sizeof(void *) * array->active->length, defer);
+	    ALLOC_SIZE(array->active->length), defer);
 
 	if (array->transaction != NULL) {
 		array->allocator->free(array->transaction,
-		    sizeof(struct _ck_array) + sizeof(void *) * array->transaction->length, defer);
+		    ALLOC_SIZE(array->transaction->length), defer);
 	}
 
 	array->transaction = array->active = NULL;
