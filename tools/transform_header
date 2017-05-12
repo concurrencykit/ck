@@ -1,0 +1,42 @@
+#!/bin/sh
+
+src="$1"
+trg="$2/$1"
+
+# Since we are not copying C source files, only include self contained headers.
+exclude="ck_array.h ck_barrier.h ck_epoch.h ck_hp.h ck_hs.h ck_ht.h ck_rhs.h"
+base=`basename $src`
+
+for i in $exclude
+do
+	if [ "$i" = "$base" ]
+	then
+		echo Exclude $src
+		exit 0
+	fi
+done
+
+echo Transform $src to $2
+
+mkdir -p `dirname $trg`
+
+awk '{
+	found = 0;
+
+	if ($1 == "#include")
+	{
+		s1 = substr($2,1,1);
+		s2 = substr($2,2,3);
+
+		if ((s1 == "<" && s2 == "ck_") || s2 == "gcc" || substr($2,2,8) == "spinlock")
+		{
+			printf("#include %saerospike/ck/%s\n", s1, substr($2,2));
+			found = 1
+		}
+	}
+
+	if (found == 0)
+	{
+		print $0;	
+	}
+}' $src > $trg

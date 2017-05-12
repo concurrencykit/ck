@@ -1,0 +1,21 @@
+#!/bin/sh
+
+if [ $# -ne 1 ]
+then
+	echo "Usage: $0 <common repo directory>"
+	exit
+fi
+
+commondir=$1
+
+cd `dirname $0`/..
+
+ckdir=`pwd`
+src=$ckdir/include
+trg=$commondir/src/include/aerospike/ck
+
+cd $src
+rm -rf $trg
+mkdir -p $trg
+
+find . -type f -name "*.h" -exec $ckdir/tools/transform_header {} $trg \;
