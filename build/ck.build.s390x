@@ -1,0 +1,2 @@
+CFLAGS+=-m64 -O0 -g
+LDFLAGS+=-m64
