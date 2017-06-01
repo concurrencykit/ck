@@ -1,5 +1,6 @@
 /*
  * Copyright 2009-2015 Samy Al Bahra.
+ * Copyright 2017 Neale Ferguson
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
