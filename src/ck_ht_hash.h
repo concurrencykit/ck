@@ -88,7 +88,7 @@ static inline uint64_t rotl64 ( uint64_t x, int8_t r )
 
 FORCE_INLINE static uint32_t getblock ( const uint32_t * p, int i )
 {
-#if __s390x__
+#ifdef __s390x__
   uint32_t res;
 
   __asm__ ("	lrv	%0,%1\n"
@@ -96,7 +96,7 @@ FORCE_INLINE static uint32_t getblock ( const uint32_t * p, int i )
   return res;
 #else
   return p[i];
-#endif
+#endif /* !__s390x__ */
 }
 
 //-----------------------------------------------------------------------------
