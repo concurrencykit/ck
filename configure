@@ -169,7 +169,8 @@ generate_stdout()
 for option; do
 	case "$option" in
 	*=?*)
-		value=`expr -- "$option" : '[^=]*=\(.*\)'`
+		optname=`echo $option|cut -c 3-`
+		value=`expr "$optname" : '[^=]*=\(.*\)'`
 		;;
 	*=)
 		value=
@@ -294,7 +295,8 @@ for option; do
 		fi
 		;;
 	*=*)
-		NAME=`expr -- "$option" : '\([^=]*\)='`
+		optname=`echo $option|cut -c 3-`
+		NAME=`expr "$optname" : '\([^=]*\)='`
 		eval "$NAME='$value'"
 		export $NAME
 		;;
