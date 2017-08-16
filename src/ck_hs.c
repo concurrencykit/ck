@@ -151,7 +151,7 @@ ck_hs_next_spmc(struct ck_hs *hs, struct ck_hs_iterator *i, void **key)
 {
 	struct ck_hs_map *m = i->map;
 	if (m == NULL) {
-		m = i->map = ck_pr_load_ptr(hs->map);
+		m = i->map = ck_pr_load_ptr(&hs->map);
 	}
 	return _ck_hs_next(hs, m, i, key);
 }
