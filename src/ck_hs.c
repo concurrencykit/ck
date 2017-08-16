@@ -105,6 +105,31 @@ ck_hs_map_signal(struct ck_hs_map *map, unsigned long h)
 	return;
 }
 
+static bool 
+_ck_hs_next(struct ck_hs *hs, struct ck_hs_map *map, struct ck_hs_iterator *i, void **key)
+{
+	void *value;
+	if (i->offset >= map->capacity)
+		return false;
+
+	do {
+		value = CK_CC_DECONST_PTR(map->entries[i->offset]);
+		if (value != CK_HS_EMPTY && value != CK_HS_TOMBSTONE) {
+#ifdef CK_HS_PP
+			if (hs->mode & CK_HS_MODE_OBJECT)
+				value = CK_HS_VMA(value);
+#else
+			(void)hs; // avoid unused param warning
+#endif
+			i->offset++;
+			*key = value;
+			return true;
+		}
+	} while (++i->offset < map->capacity);
+
+	return false;
+}
+
 void
 ck_hs_iterator_init(struct ck_hs_iterator *iterator)
 {
@@ -118,30 +143,17 @@ ck_hs_iterator_init(struct ck_hs_iterator *iterator)
 bool
 ck_hs_next(struct ck_hs *hs, struct ck_hs_iterator *i, void **key)
 {
-	struct ck_hs_map *map = i->map;
-	void *value;
+	return _ck_hs_next(hs, hs->map, i, key);
+}
 
-	/* memoize the map into the iterator */
-	if (map == NULL)
-		map = i->map = hs->map;
-
-	if (i->offset >= map->capacity)
-		return false;
-
-	do {
-		value = CK_CC_DECONST_PTR(map->entries[i->offset]);
-		if (value != CK_HS_EMPTY && value != CK_HS_TOMBSTONE) {
-#ifdef CK_HS_PP
-			if (hs->mode & CK_HS_MODE_OBJECT)
-				value = CK_HS_VMA(value);
-#endif
-			i->offset++;
-			*key = value;
-			return true;
-		}
-	} while (++i->offset < map->capacity);
-
-	return false;
+bool
+ck_hs_next_spmc(struct ck_hs *hs, struct ck_hs_iterator *i, void **key)
+{
+	struct ck_hs_map *m = i->map;
+	if (m == NULL) {
+		m = i->map = hs->map;
+	}
+	return _ck_hs_next(hs, m, i, key);
 }
 
 void

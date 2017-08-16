@@ -203,12 +203,12 @@ run_test(unsigned int is, unsigned int ad)
 				ck_error("Iteration must match all elements, has: %d, matched: %d [%d]", entries, matches, is);
 			}
 
-			/* Now test iteration in the face of grows */
+			/* Now test iteration in the face of grows (spmc)*/
 			ck_hs_iterator_init(&it);
 			k = NULL;
 			matches = 0;
 			entries = 0;
-			while(ck_hs_next(&hs[j], &it, &k)) {
+			while(ck_hs_next_spmc(&hs[j], &it, &k)) {
 				entries++;
 				for (i = 0; i < sizeof(test) / sizeof(*test); i++) {
 					int x = strcmp(test[i], (char *)k);

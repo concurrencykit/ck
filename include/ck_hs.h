@@ -113,6 +113,7 @@ typedef void *ck_hs_apply_fn_t(void *, void *);
 bool ck_hs_apply(ck_hs_t *, unsigned long, const void *, ck_hs_apply_fn_t *, void *);
 void ck_hs_iterator_init(ck_hs_iterator_t *);
 bool ck_hs_next(ck_hs_t *, ck_hs_iterator_t *, void **);
+bool ck_hs_next_spmc(ck_hs_t *, ck_hs_iterator_t *, void **);
 bool ck_hs_move(ck_hs_t *, ck_hs_t *, ck_hs_hash_cb_t *,
     ck_hs_compare_cb_t *, struct ck_malloc *);
 bool ck_hs_init(ck_hs_t *, unsigned int, ck_hs_hash_cb_t *,
