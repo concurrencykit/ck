@@ -100,10 +100,11 @@ struct ck_hs_stat {
 struct ck_hs_iterator {
 	void **cursor;
 	unsigned long offset;
+	struct ck_hs_map *map;
 };
 typedef struct ck_hs_iterator ck_hs_iterator_t;
 
-#define CK_HS_ITERATOR_INITIALIZER { NULL, 0 }
+#define CK_HS_ITERATOR_INITIALIZER { NULL, 0, NULL }
 
 /* Convenience wrapper to table hash function. */
 #define CK_HS_HASH(T, F, K) F((K), (T)->seed)

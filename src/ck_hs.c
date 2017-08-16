@@ -111,14 +111,19 @@ ck_hs_iterator_init(struct ck_hs_iterator *iterator)
 
 	iterator->cursor = NULL;
 	iterator->offset = 0;
+	iterator->map = NULL;
 	return;
 }
 
 bool
 ck_hs_next(struct ck_hs *hs, struct ck_hs_iterator *i, void **key)
 {
-	struct ck_hs_map *map = hs->map;
+	struct ck_hs_map *map = i->map;
 	void *value;
+
+	/* memoize the map into the iterator */
+	if (map == NULL)
+		map = i->map = hs->map;
 
 	if (i->offset >= map->capacity)
 		return false;
