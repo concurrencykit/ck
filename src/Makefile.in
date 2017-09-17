@@ -16,7 +16,11 @@ OBJECTS=ck_barrier_centralized.o	\
 	ck_hp.o				\
 	ck_hs.o				\
 	ck_rhs.o			\
-	ck_array.o
+	ck_array.o			\
+	ck_pring.o			\
+	ck_pring_dequeue.o		\
+	ck_pring_enqueue.o		\
+	ck_pring_snoop.o
 
 all: $(ALL_LIBS)
 
@@ -59,6 +63,11 @@ ck_barrier_tournament.o: $(SDIR)/ck_barrier_tournament.c
 ck_barrier_mcs.o: $(SDIR)/ck_barrier_mcs.c
 	$(CC) $(CFLAGS) -c -o $(TARGET_DIR)/ck_barrier_mcs.o $(SDIR)/ck_barrier_mcs.c
 
+ck_pring.o: $(SDIR)/ck_pring.c $(INCLUDE_DIR)/ck_pring.h $(INCLUDE_DIR)/ck_pring/common.h 
+	$(CC) $(CFLAGS) -c -o $(TARGET_DIR)/ck_pring.o $(SDIR)/ck_pring.c
+
+ck_pring_%.o: $(SDIR)/ck_pring/%.c $(INCLUDE_DIR)/ck_pring.h $(INCLUDE_DIR)/ck_pring/common.h $(INCLUDE_DIR)/ck_pring/%.h
+	$(CC) $(CFLAGS) -c -o $@ $<
 clean:
 	rm -rf $(TARGET_DIR)/*.dSYM $(TARGET_DIR)/*~ $(TARGET_DIR)/*.o \
 		$(OBJECTS) $(TARGET_DIR)/libck.a $(TARGET_DIR)/libck.so
