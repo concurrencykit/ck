@@ -119,7 +119,7 @@ _ck_hs_next(struct ck_hs *hs, struct ck_hs_map *map, struct ck_hs_iterator *i, v
 			if (hs->mode & CK_HS_MODE_OBJECT)
 				value = CK_HS_VMA(value);
 #else
-			(void)hs; // avoid unused param warning
+			(void)hs; /* Avoid unused parameter warning. */
 #endif
 			i->offset++;
 			*key = value;
