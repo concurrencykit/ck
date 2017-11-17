@@ -811,16 +811,17 @@ CK_CC_INLINE static bool
 ck_hs_put_internal(struct ck_hs *hs,
     unsigned long h,
     const void *key,
+    const void **object,
     enum ck_hs_probe_behavior behavior)
 {
-	const void **slot, **first, *object, *insert;
+	const void **slot, **first, *insert;
 	unsigned long n_probes;
 	struct ck_hs_map *map;
 
 restart:
 	map = hs->map;
 
-	slot = ck_hs_map_probe(hs, map, &n_probes, &first, h, key, &object,
+	slot = ck_hs_map_probe(hs, map, &n_probes, &first, h, key, object,
 	    map->probe_limit, behavior);
 
 	if (slot == NULL && first == NULL) {
@@ -831,7 +832,7 @@ restart:
 	}
 
 	/* Fail operation if a match was found. */
-	if (object != NULL)
+	if (*object != NULL)
 		return false;
 
 	ck_hs_map_bound_set(map, h, n_probes);
@@ -854,8 +855,18 @@ ck_hs_put(struct ck_hs *hs,
     unsigned long h,
     const void *key)
 {
+	const void *object;
 
-	return ck_hs_put_internal(hs, h, key, CK_HS_PROBE_INSERT);
+	return ck_hs_put_internal(hs, h, key, &object, CK_HS_PROBE_INSERT);
+}
+
+bool
+ck_hs_try_put(
+    ck_hs_t *hs, unsigned long h, const void *key, void **oldkey)
+{
+
+	return ck_hs_put_internal(hs, h, key,
+	    (const void **) (uintptr_t) oldkey, CK_HS_PROBE_INSERT);
 }
 
 bool
@@ -863,8 +874,9 @@ ck_hs_put_unique(struct ck_hs *hs,
     unsigned long h,
     const void *key)
 {
+	const void *object;
 
-	return ck_hs_put_internal(hs, h, key, CK_HS_PROBE_TOMBSTONE);
+	return ck_hs_put_internal(hs, h, key, &object, CK_HS_PROBE_TOMBSTONE);
 }
 
 void *

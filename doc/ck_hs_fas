@@ -85,6 +85,7 @@ are uninitialized.
 .Xr ck_hs_next 3 ,
 .Xr ck_hs_get 3 ,
 .Xr ck_hs_put 3 ,
+.Xr ck_hs_try_put 3 ,
 .Xr ck_hs_put_unique 3 ,
 .Xr ck_hs_remove 3 ,
 .Xr ck_hs_grow 3 ,
