@@ -1,0 +1,8 @@
+language:
+  - c
+
+compiler:
+  - gcc
+  - clang
+
+script: ./tools/travis.sh
