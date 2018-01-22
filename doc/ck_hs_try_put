@@ -25,39 +25,64 @@
 .\"
 .\"
 .Dd September 17, 2012
-.Dt CK_HS_GROW 3
+.Dt CK_HS_PUT 3
 .Sh NAME
-.Nm ck_hs_grow
-.Nd enlarge hash set capacity
+.Nm ck_hs_try_put
+.Nd attempt to store unique key into a hash set
 .Sh LIBRARY
 Concurrency Kit (libck, \-lck)
 .Sh SYNOPSIS
 .In ck_hs.h
 .Ft bool
-.Fn ck_hs_grow "ck_hs_t *hs" "unsigned long capacity"
+.Fn ck_hs_try_put "ck_hs_t *hs" "unsigned long hash" "const void *key" "void **oldkey"
 .Sh DESCRIPTION
 The
-.Fn ck_hs_grow 3
-function will resize the hash set in order to be
-able to store at least the number of entries specified by
-.Fa capacity
-at a load factor of one. The default hash set load factor
-is 0.5. If you wish to minimize the likelihood of memory allocations
-for a hash set meant to store n entries, then specify a
-.Fa capacity
-of 2n. The default behavior of ck_hs is to round
-.Fa capacity
-to the next power of two if it is not already a power of two.
+.Fn ck_hs_try_put 3
+function will attempt to store the key specified by the
+.Fa key
+argument in the hash set pointed to by the
+.Fa hs
+argument. The key specified by
+.Fa key
+is expected to have the hash value specified by the
+.Fa hash
+argument (which was previously generated using the
+.Xr CK_HS_HASH 3
+macro).
+.Pp
+If the call to
+.Fn ck_hs_try_put 3
+was successful then the key specified by
+.Fa key
+was successfully stored in the hash set pointed to by
+.Fa hs .
+The function will fail if a key with an
+equivalent value to
+.Fa key
+is already present in the hash set, and the value that
+exists in
+.Fa hs
+is stored into the void pointer pointed to by the
+.Fa oldkey
+argument. For replacement semantics, please see the
+.Xr ck_hs_set 3
+function.
 .Sh RETURN VALUES
 Upon successful completion,
-.Fn ck_hs_grow 3
+.Fn ck_hs_try_put 3
 returns true and otherwise returns false on failure.
 .Sh ERRORS
 Behavior is undefined if
+.Fa key
+or
 .Fa hs
-is uninitialized. This function will only
-return false if there are internal memory allocation
-failures.
+are uninitialized. The function will also
+return false if the hash set could not be enlarged
+to accomodate key insertion. In this case, the
+value stored into the void pointer pointed to by
+the
+.Fa oldkey
+argument will be NULL.
 .Sh SEE ALSO
 .Xr ck_hs_init 3 ,
 .Xr ck_hs_move 3 ,
@@ -65,13 +90,13 @@ failures.
 .Xr CK_HS_HASH 3 ,
 .Xr ck_hs_iterator_init 3 ,
 .Xr ck_hs_next 3 ,
-.Xr ck_hs_get 3 ,
 .Xr ck_hs_put 3 ,
-.Xr ck_hs_try_put 3 ,
 .Xr ck_hs_put_unique 3 ,
+.Xr ck_hs_get 3 ,
 .Xr ck_hs_set 3 ,
 .Xr ck_hs_fas 3 ,
 .Xr ck_hs_remove 3 ,
+.Xr ck_hs_grow 3 ,
 .Xr ck_hs_rebuild 3 ,
 .Xr ck_hs_gc 3 ,
 .Xr ck_hs_count 3 ,

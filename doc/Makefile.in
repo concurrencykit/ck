@@ -79,6 +79,7 @@ OBJECTS=CK_ARRAY_FOREACH		\
 	ck_hs_next			\
 	ck_hs_get			\
 	ck_hs_put			\
+	ck_hs_try_put			\
 	ck_hs_put_unique		\
 	ck_hs_set			\
 	ck_hs_fas			\

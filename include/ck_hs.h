@@ -121,6 +121,7 @@ bool ck_hs_init(ck_hs_t *, unsigned int, ck_hs_hash_cb_t *,
 void ck_hs_destroy(ck_hs_t *);
 void *ck_hs_get(ck_hs_t *, unsigned long, const void *);
 bool ck_hs_put(ck_hs_t *, unsigned long, const void *);
+bool ck_hs_try_put(ck_hs_t *, unsigned long, const void *, void **);
 bool ck_hs_put_unique(ck_hs_t *, unsigned long, const void *);
 bool ck_hs_set(ck_hs_t *, unsigned long, const void *, void **);
 bool ck_hs_fas(ck_hs_t *, unsigned long, const void *, void **);
