@@ -4,6 +4,7 @@ build/ck.pc
 build/regressions.build
 build/ck.spec
 include/ck_md.h
+include/freebsd/ck_md.h
 src/Makefile
 doc/Makefile
 doc/*.3
