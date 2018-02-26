@@ -223,7 +223,7 @@ ck_hs_map_create(struct ck_hs *hs, unsigned long entries)
 	map->probe_limit = (unsigned int)limit;
 	map->probe_maximum = 0;
 	map->capacity = n_entries;
-	map->step = ck_internal_bsf(n_entries);
+	map->step = ck_cc_ffsl(n_entries);
 	map->mask = n_entries - 1;
 	map->n_entries = 0;
 
