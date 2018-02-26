@@ -759,6 +759,7 @@ if test "$PROFILE"; then
 	echo "success [$PROFILE]"
 	printf "Generating header files.........."
 	generate include/ck_md.h.in include/ck_md.h
+	generate include/freebsd/ck_md.h.in include/freebsd/ck_md.h
 	echo "success"
 	printf "Generating build files..........."
 	generate src/Makefile.in src/Makefile
@@ -779,6 +780,7 @@ PLATFORM="__${PLATFORM}__"
 
 printf "Generating header files.........."
 generate include/ck_md.h.in include/ck_md.h
+generate include/freebsd/ck_md.h.in include/freebsd/ck_md.h
 echo "success"
 
 printf "Generating build files..........."
