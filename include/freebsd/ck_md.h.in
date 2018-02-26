@@ -100,19 +100,12 @@
  */
 #if defined(__i386__) && !defined(__x86__)
 #define __x86__
-#define CK_MD_TSO
-
 /*
- * On i386, we resort to building the fence instructions on top of
- * the kernel-provided facilities.
+ * If x86 becomes more relevant, we may want to consider importing in
+ * __mbk() to avoid potential issues around false sharing.
  */
-#include <sys/cdefs.h>
-#include <sys/atomic.h>
-
-#define CK_MD_X86_MFENCE()	mb()
-#define CK_MD_X86_SFENCE()	wmb()
-#define CK_MD_X86_LFENCE()	rmb()
-
+#define CK_MD_TSO
+#define CK_MD_SSE_DISABLE	1
 #elif defined(__amd64__)
 #define CK_MD_TSO
 #elif defined(__sparc64__) && !defined(__sparcv9__)
