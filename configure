@@ -119,6 +119,7 @@ generate()
 	    -e "s#@GZIP_SUFFIX@#$GZIP_SUFFIX#g"			\
 	    -e "s#@POINTER_PACK_ENABLE@#$POINTER_PACK_ENABLE#g"	\
 	    -e "s#@DISABLE_DOUBLE@#$DISABLE_DOUBLE#g"		\
+	    -e "s#@SSE_DISABLE@#$SSE_DISABLE#g"			\
 	    -e "s#@RTM_ENABLE@#$RTM_ENABLE#g"			\
 	    -e "s#@LSE_ENABLE@#$LSE_ENABLE#g"			\
 	    -e "s#@VMA_BITS@#$VMA_BITS_R#g"			\
@@ -160,6 +161,7 @@ generate_stdout()
 	echo "      MEMORY_MODEL = $MM"
 	echo "               RTM = $RTM_ENABLE"
 	echo "               LSE = $LSE_ENABLE"
+	echo "               SSE = $SSE_DISABLE"
 	echo
 	echo "Headers will be installed in $HEADERS"
 	echo "Libraries will be installed in $LIBRARY"
@@ -202,6 +204,7 @@ for option; do
 		echo "  --platform=N             Force the platform type, instead of relying on autodetection"
 		echo "  --use-cc-builtins        Use the compiler atomic bultin functions, instead of the CK implementation"
 		echo "  --disable-double         Don't generate any of the functions using the \"double\" type"
+		echo "  --disable-sse            Do not use any SSE instructions (x86 only)"
 		echo
 		echo "The following options affect regression testing."
 		echo "  --cores=N                Specify number of cores available on target machine"
@@ -243,6 +246,9 @@ for option; do
 		;;
 	--enable-lse)
 		LSE_ENABLE_SET="CK_MD_LSE_ENABLE"
+		;;
+	--disable-sse)
+		SSE_DISABLE="CK_MD_SSE_DISABLE"
 		;;
 	--cores=*)
 		CORES=$value
@@ -315,6 +321,7 @@ GZIP=${GZIP:-"gzip -c"}
 POINTER_PACK_ENABLE=${POINTER_PACK_ENABLE:-"CK_MD_POINTER_PACK_DISABLE"}
 DISABLE_DOUBLE=${DISABLE_DOUBLE:-"CK_PR_ENABLE_DOUBLE"}
 RTM_ENABLE=${RTM_ENABLE_SET:-"CK_MD_RTM_DISABLE"}
+SSE_DISABLE=${SSE_DISABLE:-"CK_MD_SSE_ENABLE"}
 LSE_ENABLE=${LSE_ENABLE_SET:-"CK_MD_LSE_DISABLE"}
 VMA_BITS=${VMA_BITS:-"unknown"}
 

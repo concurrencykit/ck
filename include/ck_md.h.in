@@ -47,6 +47,10 @@
 #define @POINTER_PACK_ENABLE@
 #endif /* @POINTER_PACK_ENABLE@ */
 
+#ifndef @SSE_DISABLE@
+#define @SSE_DISABLE@
+#endif /* @SSE_DISABLE@ */
+
 #ifndef @VMA_BITS@
 #define @VMA_BITS@ @VMA_BITS_VALUE@
 #endif /* @VMA_BITS@ */
