@@ -4,6 +4,7 @@ DIR=array	\
     bitmap	\
     brlock	\
     bytelock	\
+    cc		\
     cohort	\
     epoch	\
     fifo	\
@@ -27,6 +28,7 @@ DIR=array	\
 
 all:
 	$(MAKE) -C ./ck_array/validate all
+	$(MAKE) -C ./ck_cc/validate all
 	$(MAKE) -C ./ck_cohort/validate all
 	$(MAKE) -C ./ck_cohort/benchmark all
 	$(MAKE) -C ./ck_bitmap/validate all
@@ -72,6 +74,7 @@ all:
 
 clean:
 	$(MAKE) -C ./ck_array/validate clean
+	$(MAKE) -C ./ck_cc/validate clean
 	$(MAKE) -C ./ck_pflock/validate clean
 	$(MAKE) -C ./ck_pflock/benchmark clean
 	$(MAKE) -C ./ck_tflock/validate clean
