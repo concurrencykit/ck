@@ -49,7 +49,7 @@
 #define CK_PR_LOCK_PREFIX
 #else
 #define CK_PR_LOCK_PREFIX "lock "
-#endif
+#endif /* CK_MD_UMP */
 
 /*
  * Prevent speculative execution in busy-wait loops (P4 <=)
