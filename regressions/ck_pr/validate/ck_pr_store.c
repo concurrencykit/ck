@@ -119,6 +119,8 @@ rg_width(int m)
 int
 main(void)
 {
+	void *ptr;
+
 #if defined(CK_F_PR_STORE_DOUBLE) && defined(CK_F_PR_LOAD_DOUBLE)
 	double d;
 
@@ -145,6 +147,12 @@ main(void)
 #ifdef CK_F_PR_STORE_8
 	CK_PR_STORE_B(8);
 #endif
+	printf("ck_pr_store_ptr: ");
+	ck_pr_store_ptr(&ptr, (void *)-1);
+	if (ptr != (void *)(-1))
+		printf("Failed : %p != %p\n", ptr, (void *)-1);
+	else
+		printf("SUCCESS\n");
 
 	return (0);
 }
