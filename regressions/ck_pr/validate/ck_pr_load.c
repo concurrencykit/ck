@@ -118,7 +118,7 @@ rg_width(int m)
 int
 main(void)
 {
-	void *ptr = (void *)-1;
+	void *ptr = (void *)(intptr_t)-1;
 
 	common_srand((unsigned int)getpid());
 
@@ -145,8 +145,8 @@ main(void)
 	printf("%" PRIx64 ":%" PRIx64 "\n", a[0], a[1]);
 #endif
 	printf("ck_pr_load_ptr: ");
-	if (ck_pr_load_ptr(&ptr) != (void *)(-1))
-		printf("Failed : %p != %p\n", ck_pr_load_ptr(&ptr), (void *)(-1));
+	if (ck_pr_load_ptr(&ptr) != (void *)(intptr_t)(-1))
+		printf("Failed : %p != %p\n", ck_pr_load_ptr(&ptr), (void *)(intptr_t)(-1));
 	else
 		printf("SUCCESS\n");
 

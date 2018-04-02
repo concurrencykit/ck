@@ -148,9 +148,9 @@ main(void)
 	CK_PR_STORE_B(8);
 #endif
 	printf("ck_pr_store_ptr: ");
-	ck_pr_store_ptr(&ptr, (void *)-1);
-	if (ptr != (void *)(-1))
-		printf("Failed : %p != %p\n", ptr, (void *)-1);
+	ck_pr_store_ptr(&ptr, (void *)(intptr_t)-1);
+	if (ptr != (void *)(intptr_t)(-1))
+		printf("Failed : %p != %p\n", ptr, (void *)(intptr_t)-1);
 	else
 		printf("SUCCESS\n");
 
