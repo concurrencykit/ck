@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Skeleton for Travis integration testing.
+# Skeleton for continuous integration testing.
 ##############################################################################
 
 set -x
