@@ -1,9 +1,16 @@
+| Platform | Status |
+| -------- | ------ |
+| Linux and Mac OS X | [![Build Status](https://travis-ci.org/concurrencykit/ck.svg)](https://travis-ci.org/concurrencykit/ck)
+| Windows | [![Build Status](https://tea-ci.org/api/badges/concurrencykit/ck/status.svg)](https://tea-ci.org/concurrencykit/ck) |
+
+```
   ____                                                        _  ___ _
  / ___|___  _ __   ___ _   _ _ __ _ __ ___ _ __   ___ _   _  | |/ (_) |_
 | |   / _ \| '_ \ / __| | | | '__| '__/ _ \ '_ \ / __| | | | | ' /| | __|
 | |__| (_) | | | | (__| |_| | |  | | |  __/ | | | (__| |_| | | . \| | |_
  \____\___/|_| |_|\___|\__,_|_|  |_|  \___|_| |_|\___|\__, | |_|\_\_|\__|
                                                       |___/
+```
 
 Step 1.
 	./configure

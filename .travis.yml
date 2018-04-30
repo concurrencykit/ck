@@ -9,4 +9,4 @@ compiler:
   - gcc
   - clang
 
-script: ./tools/travis.sh
+script: ./tools/ci-build.sh
