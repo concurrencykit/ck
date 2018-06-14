@@ -629,6 +629,20 @@ CK_PR_BTX_S(bts, 16, uint16_t, |,)
 			ck_pr_stall();					\
 		*zero = previous == (T)Z;				\
 		return;							\
+	}								\
+	CK_CC_INLINE static bool					\
+	ck_pr_##K##_##S##_is_zero(M *target)				\
+	{								\
+		T previous;						\
+		C punt;							\
+		punt = (C)ck_pr_md_load_##S(target);			\
+		previous = (T)punt;					\
+		while (ck_pr_cas_##S##_value(target,			\
+					     (C)previous,		\
+					     (C)(previous P 1),		\
+					     &previous) == false)	\
+			ck_pr_stall();					\
+		return previous == (T)Z;				\
 	}
 
 #define CK_PR_UNARY_S(K, X, S, M) CK_PR_UNARY(K, X, S, M, M)
