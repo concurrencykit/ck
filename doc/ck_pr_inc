@@ -49,7 +49,7 @@
 .Nm ck_pr_inc_32_zero ,
 .Nm ck_pr_inc_32_is_zero ,
 .Nm ck_pr_inc_16 ,
-.Nm ck_pr_inc_32_zero ,
+.Nm ck_pr_inc_16_zero ,
 .Nm ck_pr_inc_16_is_zero ,
 .Nm ck_pr_inc_8 ,
 .Nm ck_pr_inc_8_zero ,
