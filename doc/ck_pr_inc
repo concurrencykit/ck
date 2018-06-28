@@ -29,22 +29,31 @@
 .Sh NAME
 .Nm ck_pr_inc_ptr ,
 .Nm ck_pr_inc_ptr_zero ,
+.Nm ck_pr_inc_ptr_is_zero ,
 .Nm ck_pr_inc_double ,
 .Nm ck_pr_inc_double_zero ,
+.Nm ck_pr_inc_double_is_zero ,
 .Nm ck_pr_inc_char ,
 .Nm ck_pr_inc_char_zero ,
+.Nm ck_pr_inc_char_is_zero ,
 .Nm ck_pr_inc_uint ,
 .Nm ck_pr_inc_uint_zero ,
+.Nm ck_pr_inc_uint_is_zero ,
 .Nm ck_pr_inc_int ,
 .Nm ck_pr_inc_int_zero ,
+.Nm ck_pr_inc_int_is_zero ,
 .Nm ck_pr_inc_64 ,
 .Nm ck_pr_inc_64_zero ,
+.Nm ck_pr_inc_64_is_zero ,
 .Nm ck_pr_inc_32 ,
 .Nm ck_pr_inc_32_zero ,
+.Nm ck_pr_inc_32_is_zero ,
 .Nm ck_pr_inc_16 ,
 .Nm ck_pr_inc_16_zero ,
+.Nm ck_pr_inc_16_is_zero ,
 .Nm ck_pr_inc_8 ,
-.Nm ck_pr_inc_8_zero
+.Nm ck_pr_inc_8_zero ,
+.Nm ck_pr_inc_8_is_zero
 .Nd atomic increment operations
 .Sh LIBRARY
 Concurrency Kit (libck, \-lck)
@@ -54,38 +63,56 @@ Concurrency Kit (libck, \-lck)
 .Fn ck_pr_inc_ptr "void *target"
 .Ft void
 .Fn ck_pr_inc_ptr_zero "void *target" "bool *z"
+.Ft bool
+.Fn ck_pr_inc_ptr_is_zero "void *target"
 .Ft void
 .Fn ck_pr_inc_double "double *target"
 .Ft void
 .Fn ck_pr_inc_double_zero "double *target" "bool *z"
+.Ft bool
+.Fn ck_pr_inc_double_is_zero "double *target"
 .Ft void
 .Fn ck_pr_inc_char "char *target"
 .Ft void
 .Fn ck_pr_inc_char_zero "char *target" "bool *z"
+.Ft bool
+.Fn ck_pr_inc_char_is_zero "char *target"
 .Ft void
 .Fn ck_pr_inc_uint "unsigned int *target"
 .Ft void
 .Fn ck_pr_inc_uint_zero "unsigned int *target" "bool *z"
+.Ft bool
+.Fn ck_pr_inc_uint_is_zero "unsigned int *target"
 .Ft void
 .Fn ck_pr_inc_int "int *target"
 .Ft void
 .Fn ck_pr_inc_int_zero "int *target" "bool *z"
+.Ft bool
+.Fn ck_pr_inc_int_is_zero "int *target"
 .Ft void
 .Fn ck_pr_inc_64 "uint64_t *target"
 .Ft void
 .Fn ck_pr_inc_64_zero "uint64_t *target" "bool *z"
+.Ft bool
+.Fn ck_pr_inc_64_is_zero "uint64_t *target"
 .Ft void
 .Fn ck_pr_inc_32 "uint32_t *target"
 .Ft void
 .Fn ck_pr_inc_32_zero "uint32_t *target" "bool *z"
+.Ft bool
+.Fn ck_pr_inc_32_is_zero "uint32_t *target"
 .Ft void
 .Fn ck_pr_inc_16 "uint16_t *target"
 .Ft void
 .Fn ck_pr_inc_16_zero "uint16_t *target" "bool *z"
+.Ft bool
+.Fn ck_pr_inc_16_is_zero "uint16_t *target"
 .Ft void
 .Fn ck_pr_inc_8 "uint8_t *target"
 .Ft void
 .Fn ck_pr_inc_8_zero "uint8_t *target" "bool *z"
+.Ft bool
+.Fn ck_pr_inc_8_is_zero "uint8_t *target"
 .Sh DESCRIPTION
 The
 .Fn ck_pr_inc 3
@@ -99,6 +126,8 @@ to true if the result of the increment operation was 0. The functions set
 the value pointed to by
 .Fa z
 false otherwise.
+The ck_pr_inc_is_zero family of function return true if the result
+of the decrement operation was 0 and false otherwise.
 .Sh SEE ALSO
 .Xr ck_pr_fence_load 3 ,
 .Xr ck_pr_fence_load_depends 3 ,
