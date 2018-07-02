@@ -1,5 +1,5 @@
 # sudo required as tests set cpu affinity
-sudo: true
+sudo: false
 
 os:
   - linux
