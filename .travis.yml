@@ -1,5 +1,9 @@
+# sudo required as tests set cpu affinity
+sudo: false
+
 os:
   - linux
+  - linux-ppc64le
   - osx
 
 language:
@@ -9,4 +13,28 @@ compiler:
   - gcc
   - clang
 
-script: ./tools/ci-build.sh
+matrix:
+  exclude:
+    - os: osx
+      compiler: gcc
+addons:
+  apt:
+    sources:
+      - ubuntu-toolchain-r-test
+      - llvm-toolchain-trusty-6.0
+    packages:
+      - gcc-8
+      - clang-6.0
+
+script:
+  - >
+    if [[ $TRAVIS_OS_NAME == linux ]]; then
+      case "$CC" in
+        gcc) export CC=gcc-8 ;;
+        clang) export CC=clang-6.0 ;;
+      esac
+    fi
+  - ${CC} --version
+  - export CFLAGS="-DITERATE=400 -DPAIRS_S=100 -DITERATIONS=24"
+  - ./tools/ci-build.sh --cores=4
+  - make check

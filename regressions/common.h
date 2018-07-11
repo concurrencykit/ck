@@ -285,7 +285,10 @@ aff_iterate(struct affinity *acb)
 	CPU_ZERO(&s);
 	CPU_SET(c % CORES, &s);
 
-	return sched_setaffinity(gettid(), sizeof(s), &s);
+	if (sched_setaffinity(gettid(), sizeof(s), &s) != 0)
+		perror("WARNING: Could not affine thread");
+	
+        return 0;
 }
 
 CK_CC_UNUSED static int
@@ -297,7 +300,10 @@ aff_iterate_core(struct affinity *acb, unsigned int *core)
 	CPU_ZERO(&s);
 	CPU_SET((*core) % CORES, &s);
 
-	return sched_setaffinity(gettid(), sizeof(s), &s);
+	if (sched_setaffinity(gettid(), sizeof(s), &s) != 0)
+		perror("WARNING: Could not affine thread");
+	
+        return 0;
 }
 #elif defined(__MACH__)
 CK_CC_UNUSED static int
