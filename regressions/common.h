@@ -285,10 +285,9 @@ aff_iterate(struct affinity *acb)
 	CPU_ZERO(&s);
 	CPU_SET(c % CORES, &s);
 
-	if (sched_setaffinity(gettid(), sizeof(s), &s))
-        {
-          perror("WARNING: Could not affine thread");
-        }
+	if (sched_setaffinity(gettid(), sizeof(s), &s) != 0)
+		perror("WARNING: Could not affine thread");
+	
         return 0;
 }
 
@@ -301,10 +300,9 @@ aff_iterate_core(struct affinity *acb, unsigned int *core)
 	CPU_ZERO(&s);
 	CPU_SET((*core) % CORES, &s);
 
-	if (sched_setaffinity(gettid(), sizeof(s), &s));
-        {
-          perror("WARNING: Could not affine thread");
-        }
+	if (sched_setaffinity(gettid(), sizeof(s), &s) != 0)
+		perror("WARNING: Could not affine thread");
+	
         return 0;
 }
 #elif defined(__MACH__)
