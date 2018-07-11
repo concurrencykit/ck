@@ -181,7 +181,7 @@ struct {									\
 } while (0)
 
 #define CK_SLIST_REMOVE_AFTER(elm, field) do {					\
-	ck_pr_store_ptr(&(elm)->field.csle_next,					\
+	ck_pr_store_ptr(&(elm)->field.csle_next,				\
 	    (elm)->field.csle_next->field.csle_next);				\
 } while (0)
 
@@ -190,7 +190,7 @@ struct {									\
 		CK_SLIST_REMOVE_HEAD((head), field);				\
 	} else {								\
 		struct type *curelm = (head)->cslh_first;			\
-		while (curelm->field.csle_next != (elm))				\
+		while (curelm->field.csle_next != (elm))			\
 			curelm = curelm->field.csle_next;			\
 		CK_SLIST_REMOVE_AFTER(curelm, field);				\
 	}									\
