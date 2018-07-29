@@ -67,21 +67,21 @@ ck_pr_stall(void)
 		__asm__ __volatile__(I ::: "memory");   \
 	}
 
-CK_PR_FENCE(atomic, "lwsync")
-CK_PR_FENCE(atomic_store, "lwsync")
+CK_PR_FENCE(atomic, "sync")
+CK_PR_FENCE(atomic_store, "sync")
 CK_PR_FENCE(atomic_load, "sync")
-CK_PR_FENCE(store_atomic, "lwsync")
-CK_PR_FENCE(load_atomic, "lwsync")
-CK_PR_FENCE(store, "lwsync")
+CK_PR_FENCE(store_atomic, "sync")
+CK_PR_FENCE(load_atomic, "sync")
+CK_PR_FENCE(store, "sync")
 CK_PR_FENCE(store_load, "sync")
-CK_PR_FENCE(load, "lwsync")
-CK_PR_FENCE(load_store, "lwsync")
+CK_PR_FENCE(load, "sync")
+CK_PR_FENCE(load_store, "sync")
 CK_PR_FENCE(memory, "sync")
-CK_PR_FENCE(acquire, "lwsync")
-CK_PR_FENCE(release, "lwsync")
-CK_PR_FENCE(acqrel, "lwsync")
-CK_PR_FENCE(lock, "lwsync")
-CK_PR_FENCE(unlock, "lwsync")
+CK_PR_FENCE(acquire, "sync")
+CK_PR_FENCE(release, "sync")
+CK_PR_FENCE(acqrel, "sync")
+CK_PR_FENCE(lock, "sync")
+CK_PR_FENCE(unlock, "sync")
 
 #undef CK_PR_FENCE
 
