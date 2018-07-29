@@ -51,6 +51,10 @@
 #define @SSE_DISABLE@
 #endif /* @SSE_DISABLE@ */
 
+#ifndef @PPC32_LWSYNC_ENABLE@
+#define @PPC32_LWSYNC_ENABLE@
+#endif /* @PPC32_LWSYNC_ENABLE@ */
+
 #ifndef @VMA_BITS@
 #define @VMA_BITS@ @VMA_BITS_VALUE@
 #endif /* @VMA_BITS@ */
