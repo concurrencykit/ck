@@ -81,6 +81,7 @@ regressions/ck_pr/benchmark/ck_pr_cas_64_2
 regressions/ck_pr/benchmark/ck_pr_faa_64
 regressions/ck_pr/benchmark/ck_pr_fas_64
 regressions/ck_pr/benchmark/ck_pr_neg_64
+regressions/ck_pr/benchmark/fp
 regressions/ck_pr/validate/ck_pr_add
 regressions/ck_pr/validate/ck_pr_add
 regressions/ck_pr/validate/ck_pr_and
@@ -91,11 +92,13 @@ regressions/ck_pr/validate/ck_pr_bts
 regressions/ck_pr/validate/ck_pr_btx
 regressions/ck_pr/validate/ck_pr_cas
 regressions/ck_pr/validate/ck_pr_dec
+regressions/ck_pr/validate/ck_pr_dec_zero
 regressions/ck_pr/validate/ck_pr_faa
 regressions/ck_pr/validate/ck_pr_fas
 regressions/ck_pr/validate/ck_pr_fax
 regressions/ck_pr/validate/ck_pr_fence
 regressions/ck_pr/validate/ck_pr_inc
+regressions/ck_pr/validate/ck_pr_inc_zero
 regressions/ck_pr/validate/ck_pr_load
 regressions/ck_pr/validate/ck_pr_n
 regressions/ck_pr/validate/ck_pr_or
