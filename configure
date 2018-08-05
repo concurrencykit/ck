@@ -120,6 +120,7 @@ generate()
 	    -e "s#@POINTER_PACK_ENABLE@#$POINTER_PACK_ENABLE#g"	\
 	    -e "s#@DISABLE_DOUBLE@#$DISABLE_DOUBLE#g"		\
 	    -e "s#@SSE_DISABLE@#$SSE_DISABLE#g"			\
+	    -e "s#@PPC32_LWSYNC_ENABLE@#$PPC32_LWSYNC_ENABLE#g"	\
 	    -e "s#@RTM_ENABLE@#$RTM_ENABLE#g"			\
 	    -e "s#@LSE_ENABLE@#$LSE_ENABLE#g"			\
 	    -e "s#@VMA_BITS@#$VMA_BITS_R#g"			\
@@ -157,6 +158,7 @@ generate_stdout()
 	echo "              GZIP = $GZIP"
 	echo "             CORES = $CORES"
 	echo "      POINTER_PACK = $POINTER_PACK_ENABLE"
+	echo "      PPC32_LWSYNC = $PPC32_LWSYNC_ENABLE"
 	echo "          VMA_BITS = $VMA_BITS"
 	echo "      MEMORY_MODEL = $MM"
 	echo "               RTM = $RTM_ENABLE"
@@ -197,14 +199,17 @@ for option; do
 		echo
 		echo "The following options will affect generated code."
 		echo "  --enable-pointer-packing Assumes address encoding is subset of pointer range"
-		echo "  --enable-rtm             Enable restricted transactional memory (power, x86_64)"
-		echo "  --enable-lse             Enable large system extensions (arm64)"
 		echo "  --memory-model=N         Specify memory model (currently tso, pso or rmo)"
 		echo "  --vma-bits=N             Specify valid number of VMA bits"
 		echo "  --platform=N             Force the platform type, instead of relying on autodetection"
 		echo "  --use-cc-builtins        Use the compiler atomic bultin functions, instead of the CK implementation"
 		echo "  --disable-double         Don't generate any of the functions using the \"double\" type"
-		echo "  --disable-sse            Do not use any SSE instructions (x86 only)"
+		echo
+		echo "The following options will affect specific platform-dependent generated code."
+		echo "  --disable-sse            Do not use any SSE instructions (x86)"
+		echo "  --enable-lse             Enable large system extensions (arm64)"
+		echo "  --enable-ppc32-lwsync    Enable lwsync instruction usage (32-bit Power ISA)"
+		echo "  --enable-rtm             Enable restricted transactional memory (Power ISA, x86_64)"
 		echo
 		echo "The following options affect regression testing."
 		echo "  --cores=N                Specify number of cores available on target machine"
@@ -240,6 +245,9 @@ for option; do
 		;;
 	--enable-pointer-packing)
 		POINTER_PACK_ENABLE="CK_MD_POINTER_PACK_ENABLE"
+		;;
+	--enable-ppc32-lwsync)
+		PPC32_LWSYNC_ENABLE="CK_MD_PPC32_LWSYNC"
 		;;
 	--enable-rtm)
 		RTM_ENABLE_SET="CK_MD_RTM_ENABLE"
@@ -320,6 +328,7 @@ MANDIR=${MANDIR:-"${PREFIX}/share/man"}
 GZIP=${GZIP:-"gzip -c"}
 POINTER_PACK_ENABLE=${POINTER_PACK_ENABLE:-"CK_MD_POINTER_PACK_DISABLE"}
 DISABLE_DOUBLE=${DISABLE_DOUBLE:-"CK_PR_ENABLE_DOUBLE"}
+PPC32_LWSYNC_ENABLE=${PPC32_LWSYNC_ENABLE:-"CK_MD_PPC32_LWSYNC_DISABLE"}
 RTM_ENABLE=${RTM_ENABLE_SET:-"CK_MD_RTM_DISABLE"}
 SSE_DISABLE=${SSE_DISABLE:-"CK_MD_SSE_ENABLE"}
 LSE_ENABLE=${LSE_ENABLE_SET:-"CK_MD_LSE_DISABLE"}
