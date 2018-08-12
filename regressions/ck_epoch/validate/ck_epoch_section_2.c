@@ -110,11 +110,14 @@ read_thread(void *unused CK_CC_UNUSED)
 		}
 
 		ck_epoch_begin(record, &section[1]);
-
-		assert(section[0].bucket != section[1].bucket);
+		if (section[0].bucket == section[1].bucket) {
+			ck_error("%u == %u\n",
+			    section[0].bucket, section[1].bucket);
+		}
 		ck_epoch_end(record, &section[0]);
 
-		assert(ck_pr_load_uint(&record->active) > 0);
+		if (ck_pr_load_uint(&record->active) == 0)
+			ck_error("active: %u\n", record->active);
 
 		if (ck_pr_load_uint(&leave) == 1) {
 			ck_epoch_end(record, &section[1]);
