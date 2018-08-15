@@ -44,16 +44,20 @@
 #define ITERATE 1000000
 #endif
 
+#ifndef MAX
+#define MAX(a,b) ((a) > (b) ? (a) : (b))
+#endif
+
 static struct affinity a;
 static unsigned int locked = 0;
 static int nthr;
 static ck_brlock_t lock = CK_BRLOCK_INITIALIZER;
 
 static void *
-thread(void *null CK_CC_UNUSED)
+thread(void *iterate)
 {
 	ck_brlock_reader_t r;
-	int i = ITERATE;
+	int i = *(int *)iterate;
 	unsigned int l;
 
         if (aff_iterate(&a)) {
@@ -119,7 +123,7 @@ int
 main(int argc, char *argv[])
 {
 	pthread_t *threads;
-	int i;
+	int i, iterate;
 
 	if (argc != 3) {
 		ck_error("Usage: validate <number of threads> <affinity delta>\n");
@@ -137,9 +141,13 @@ main(int argc, char *argv[])
 
 	a.delta = atoi(argv[2]);
 
+	/* The contention grows exponentially, try to scale on machine size. 20 */
+	iterate = ITERATE / ((double) MAX(20, nthr) / 20);
+	printf("Iterating for %d per thread\n", iterate);
+
 	fprintf(stderr, "Creating threads (mutual exclusion)...");
 	for (i = 0; i < nthr; i++) {
-		if (pthread_create(&threads[i], NULL, thread, NULL)) {
+		if (pthread_create(&threads[i], NULL, thread, &iterate)) {
 			ck_error("ERROR: Could not create thread %d\n", i);
 		}
 	}
