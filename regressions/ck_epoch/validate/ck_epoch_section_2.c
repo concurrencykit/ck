@@ -133,10 +133,14 @@ read_thread(void *unused CK_CC_UNUSED)
 static void *
 write_thread(void *unused CK_CC_UNUSED)
 {
-	ck_epoch_record_t record;
+	ck_epoch_record_t *record;
 	unsigned long iterations = 0;
 
-	ck_epoch_register(&epoch, &record, NULL);
+	record = malloc(sizeof *record);
+	if (record == NULL)
+		ck_error("record allocation failure");
+
+	ck_epoch_register(&epoch, record, NULL);
 
 	if (aff_iterate(&a)) {
 		perror("ERROR: failed to affine thread");
@@ -150,7 +154,7 @@ write_thread(void *unused CK_CC_UNUSED)
 		if (!(iterations % 1048575))
 			fprintf(stderr, ".");
 
-		ck_epoch_synchronize(&record);
+		ck_epoch_synchronize(record);
 		iterations++;
 
 		if (ck_pr_load_uint(&leave) == 1)

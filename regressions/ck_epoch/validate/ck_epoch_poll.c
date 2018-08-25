@@ -86,10 +86,14 @@ static void *
 read_thread(void *unused CK_CC_UNUSED)
 {
 	unsigned int j;
-	ck_epoch_record_t record CK_CC_CACHELINE;
+	ck_epoch_record_t *record CK_CC_CACHELINE;
 	ck_stack_entry_t *cursor, *n;
 
-	ck_epoch_register(&stack_epoch, &record, NULL);
+	record = malloc(sizeof *record);
+	if (record == NULL)
+		ck_error("record allocation failure");
+
+	ck_epoch_register(&stack_epoch, record, NULL);
 
 	if (aff_iterate(&a)) {
 		perror("ERROR: failed to affine thread");
@@ -108,7 +112,7 @@ read_thread(void *unused CK_CC_UNUSED)
 
 	j = 0;
 	for (;;) {
-		ck_epoch_begin(&record, NULL);
+		ck_epoch_begin(record, NULL);
 		CK_STACK_FOREACH(&stack, cursor) {
 			if (cursor == NULL)
 				continue;
@@ -116,7 +120,7 @@ read_thread(void *unused CK_CC_UNUSED)
 			n = CK_STACK_NEXT(cursor);
 			j += ck_pr_load_ptr(&n) != NULL;
 		}
-		ck_epoch_end(&record, NULL);
+		ck_epoch_end(record, NULL);
 
 		if (j != 0 && ck_pr_load_uint(&readers) == 0)
 			ck_pr_store_uint(&readers, 1);
@@ -138,10 +142,13 @@ write_thread(void *unused CK_CC_UNUSED)
 {
 	struct node **entry, *e;
 	unsigned int i, j, tid;
-	ck_epoch_record_t record;
+	ck_epoch_record_t *record;
 	ck_stack_entry_t *s;
 
-	ck_epoch_register(&stack_epoch, &record, NULL);
+	record = malloc(sizeof *record);
+	if (record == NULL)
+		ck_error("record allocation failure");
+	ck_epoch_register(&stack_epoch, record, NULL);
 
 	if (aff_iterate(&a)) {
 		perror("ERROR: failed to affine thread");
@@ -178,23 +185,23 @@ write_thread(void *unused CK_CC_UNUSED)
 		}
 
 		for (i = 0; i < PAIRS_S; i++) {
-			ck_epoch_begin(&record, NULL);
+			ck_epoch_begin(record, NULL);
 			s = ck_stack_pop_upmc(&stack);
 			e = stack_container(s);
-			ck_epoch_end(&record, NULL);
+			ck_epoch_end(record, NULL);
 
-			ck_epoch_call(&record, &e->epoch_entry, destructor);
-			ck_epoch_poll(&record);
+			ck_epoch_call(record, &e->epoch_entry, destructor);
+			ck_epoch_poll(record);
 		}
 	}
 
-	ck_epoch_barrier(&record);
+	ck_epoch_barrier(record);
 
 	if (tid == 0) {
 		fprintf(stderr, "\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b[W] Peak: %u (%2.2f%%)\n    Reclamations: %u\n\n",
-			record.n_peak,
-			(double)record.n_peak / ((double)PAIRS_S * ITERATE_S) * 100,
-			record.n_dispatch);
+			record->n_peak,
+			(double)record->n_peak / ((double)PAIRS_S * ITERATE_S) * 100,
+			record->n_dispatch);
 	}
 
 	ck_pr_inc_uint(&e_barrier);
