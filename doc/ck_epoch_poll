@@ -47,9 +47,9 @@ if deemed safe. This function is meant to be used in cases epoch
 reclamation cost must be amortized over time in a manner that does
 not affect caller progress.
 .Sh RETURN VALUES
-This functions returns false if no memory was reclaimed, the records
-are not in a grace period or if no forward progress was made to the
-counter.
+This functions returns false if the following conditions are met: 
+no memory was reclaimed, the records are not in a grace period and no forward
+progress was made.
 .Sh ERRORS
 Behavior is undefined if the object pointed to by
 .Fa record
