@@ -2,7 +2,7 @@
 
 OBJECTS=ck_ring_spsc ck_ring_spmc ck_ring_spmc_template ck_ring_mpmc \
 	ck_ring_mpmc_template
-SIZE=16384
+SIZE=2048
 
 all: $(OBJECTS)
 
