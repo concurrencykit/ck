@@ -1,6 +1,7 @@
 | Platform | Status |
 | -------- | ------ |
 | Linux and Mac OS X | [![Build Status](https://travis-ci.org/concurrencykit/ck.svg)](https://travis-ci.org/concurrencykit/ck)
+| Windows | [![Build Status](https://tea-ci.org/api/badges/concurrencykit/ck/status.svg)](https://tea-ci.org/concurrencykit/ck) |
 
 ```
   ____                                                        _  ___ _
