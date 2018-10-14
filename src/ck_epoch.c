@@ -127,6 +127,14 @@
  */
 #define CK_EPOCH_GRACE 3U
 
+/*
+ * CK_EPOCH_LENGTH must be a power-of-2 (because (CK_EPOCH_LENGTH - 1) is used
+ * as a mask, and it must be at least 3 (see comments above).
+ */
+#if (CK_EPOCH_LENGTH < 3 || (CK_EPOCH_LENGTH & (CK_EPOCH_LENGTH - 1)) != 0)
+#error "CK_EPOCH_LENGTH must be a power of 2 and >= 3"
+#endif
+
 enum {
 	CK_EPOCH_STATE_USED = 0,
 	CK_EPOCH_STATE_FREE = 1
