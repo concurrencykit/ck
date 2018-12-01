@@ -11,6 +11,7 @@ OBJECTS=ck_barrier_centralized.o	\
 	ck_barrier_dissemination.o	\
 	ck_barrier_tournament.o		\
 	ck_barrier_mcs.o		\
+	ck_ec.o				\
 	ck_epoch.o			\
 	ck_ht.o				\
 	ck_hp.o				\
@@ -28,6 +29,9 @@ libck.a: $(OBJECTS)
 
 ck_array.o: $(INCLUDE_DIR)/ck_array.h $(SDIR)/ck_array.c
 	$(CC) $(CFLAGS) -c -o $(TARGET_DIR)/ck_array.o $(SDIR)/ck_array.c
+
+ck_ec.o: $(INCLUDE_DIR)/ck_ec.h $(SDIR)/ck_ec.c $(SDIR)/ck_ec_timeutil.h
+	$(CC) $(CFLAGS) -c -o $(TARGET_DIR)/ck_ec.o $(SDIR)/ck_ec.c
 
 ck_epoch.o: $(INCLUDE_DIR)/ck_epoch.h $(SDIR)/ck_epoch.c $(INCLUDE_DIR)/ck_stack.h
 	$(CC) $(CFLAGS) -c -o $(TARGET_DIR)/ck_epoch.o $(SDIR)/ck_epoch.c

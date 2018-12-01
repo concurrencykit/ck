@@ -40,6 +40,15 @@ regressions/ck_cc/validate/ck_cc_nobuiltin
 regressions/ck_cohort/benchmark/ck_cohort.LATENCY
 regressions/ck_cohort/benchmark/ck_cohort.THROUGHPUT
 regressions/ck_cohort/validate/validate
+regressions/ck_ec/benchmark/ck_ec
+regressions/ck_ec/validate/ck_ec_smoke_test
+regressions/ck_ec/validate/prop_test_slow_wakeup
+regressions/ck_ec/validate/prop_test_timeutil_add
+regressions/ck_ec/validate/prop_test_timeutil_add_ns
+regressions/ck_ec/validate/prop_test_timeutil_cmp
+regressions/ck_ec/validate/prop_test_timeutil_scale
+regressions/ck_ec/validate/prop_test_value
+regressions/ck_ec/validate/prop_test_wakeup
 regressions/ck_epoch/validate/ck_epoch_call
 regressions/ck_epoch/validate/ck_epoch_poll
 regressions/ck_epoch/validate/ck_epoch_section
