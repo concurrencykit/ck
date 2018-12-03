@@ -6,6 +6,7 @@ DIR=array	\
     bytelock	\
     cc		\
     cohort	\
+    ec		\
     epoch	\
     fifo	\
     hp		\
@@ -71,6 +72,8 @@ all:
 	$(MAKE) -C ./ck_pflock/benchmark all
 	$(MAKE) -C ./ck_hp/validate all
 	$(MAKE) -C ./ck_hp/benchmark all
+	$(MAKE) -C ./ck_ec/validate all
+	$(MAKE) -C ./ck_ec/benchmark all
 
 clean:
 	$(MAKE) -C ./ck_array/validate clean
@@ -119,6 +122,8 @@ clean:
 	$(MAKE) -C ./ck_pflock/benchmark clean
 	$(MAKE) -C ./ck_hp/validate clean
 	$(MAKE) -C ./ck_hp/benchmark clean
+	$(MAKE) -C ./ck_ec/validate clean
+	$(MAKE) -C ./ck_ec/benchmark clean
 
 check: all
 	rc=0; 							\
