@@ -36,12 +36,12 @@ install-headers:
 	mkdir -p $(DESTDIR)/$(HEADERS) || exit
 	cp $(SRC_DIR)/include/*.h $(DESTDIR)/$(HEADERS) || exit
 	chmod 644 $(DESTDIR)/$(HEADERS)/ck_*.h || exit
-	mkdir -p $(DESTDIR)$(HEADERS)/gcc || exit
+	mkdir -p $(DESTDIR)/$(HEADERS)/gcc || exit
 	cp -r $(SRC_DIR)/include/gcc/* $(DESTDIR)/$(HEADERS)/gcc || exit
 	cp include/ck_md.h $(DESTDIR)/$(HEADERS)/ck_md.h || exit
 	chmod 755 $(DESTDIR)/$(HEADERS)/gcc
 	chmod 644 $(DESTDIR)/$(HEADERS)/gcc/ck_*.h $(DESTDIR)/$(HEADERS)/gcc/*/ck_*.h || exit
-	mkdir -p $(DESTDIR)$(HEADERS)/spinlock || exit
+	mkdir -p $(DESTDIR)/$(HEADERS)/spinlock || exit
 	cp -r $(SRC_DIR)/include/spinlock/* $(DESTDIR)/$(HEADERS)/spinlock || exit
 	chmod 755 $(DESTDIR)/$(HEADERS)/spinlock
 	chmod 644 $(DESTDIR)/$(HEADERS)/spinlock/*.h || exit
