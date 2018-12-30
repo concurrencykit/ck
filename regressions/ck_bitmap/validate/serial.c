@@ -159,7 +159,7 @@ test_init(bool init)
 
 	bytes = ck_bitmap_size(length);
 	bitmap = malloc(bytes);
-	memset(bitmap, random(), bytes);
+	memset(bitmap, common_rand(), bytes);
 
 	ck_bitmap_init(bitmap, length, init);
 
@@ -188,7 +188,7 @@ random_init(void)
 	ck_bitmap_init(bitmap, length, false);
 
 	for (i = 0; i < length; i++) {
-		if (random() & 1) {
+		if (common_rand() & 1) {
 			ck_bitmap_set(bitmap, i);
 		}
 	}
@@ -259,7 +259,7 @@ random_test(unsigned int seed)
 	ck_bitmap_t *x, *x_copy, *y;
 	unsigned int i;
 
-	srandom(seed);
+	common_srand(seed);
 
 	test_init(false);
 	test_init(true);
