@@ -31,7 +31,8 @@ static const struct timespec final_wait_time = {
 	.tv_sec = 1
 };
 
-void ck_ec32_wake(struct ck_ec32 *ec, const struct ck_ec_ops *ops)
+void
+ck_ec32_wake(struct ck_ec32 *ec, const struct ck_ec_ops *ops)
 {
 	/* Spurious wake-ups are OK. Clear the flag before futexing. */
 	ck_pr_and_32(&ec->counter, (1U << 31) - 1);
@@ -39,36 +40,40 @@ void ck_ec32_wake(struct ck_ec32 *ec, const struct ck_ec_ops *ops)
 	return;
 }
 
-int ck_ec32_wait_slow(struct ck_ec32 *ec,
-		      const struct ck_ec_ops *ops,
-		      uint32_t old_value,
-		      const struct timespec *deadline)
+int
+ck_ec32_wait_slow(struct ck_ec32 *ec,
+    const struct ck_ec_ops *ops,
+    uint32_t old_value,
+    const struct timespec *deadline)
 {
 	return ck_ec32_wait_pred_slow(ec, ops, old_value,
 				      NULL, NULL, deadline);
 }
 
 #ifdef CK_F_EC64
-void ck_ec64_wake(struct ck_ec64 *ec, const struct ck_ec_ops *ops)
+void
+ck_ec64_wake(struct ck_ec64 *ec, const struct ck_ec_ops *ops)
 {
 	ck_pr_and_64(&ec->counter, ~1);
 	ops->wake64(ops, &ec->counter);
 	return;
 }
 
-int ck_ec64_wait_slow(struct ck_ec64 *ec,
-		      const struct ck_ec_ops *ops,
-		      uint64_t old_value,
-		      const struct timespec *deadline)
+int
+ck_ec64_wait_slow(struct ck_ec64 *ec,
+    const struct ck_ec_ops *ops,
+    uint64_t old_value,
+    const struct timespec *deadline)
 {
 	return ck_ec64_wait_pred_slow(ec, ops, old_value,
 				      NULL, NULL, deadline);
 }
 #endif
 
-int ck_ec_deadline_impl(struct timespec *new_deadline,
-			const struct ck_ec_ops *ops,
-			const struct timespec *timeout)
+int
+ck_ec_deadline_impl(struct timespec *new_deadline,
+    const struct ck_ec_ops *ops,
+    const struct timespec *timeout)
 {
 	struct timespec now;
 	int r;
@@ -94,8 +99,10 @@ int ck_ec_deadline_impl(struct timespec *new_deadline,
  * Returns a timespec value for deadline_ptr. If deadline_ptr is NULL,
  * returns a timespec far in the future.
  */
-static struct timespec canonical_deadline(const struct timespec *deadline_ptr)
+static struct timespec
+canonical_deadline(const struct timespec *deadline_ptr)
 {
+
 	if (deadline_ptr == NULL) {
 		return (struct timespec) { .tv_sec = TIME_MAX };
 	}
@@ -115,15 +122,15 @@ static struct timespec canonical_deadline(const struct timespec *deadline_ptr)
  * TODO: add some form of randomisation to the intermediate timeout
  * values.
  */
-static int exponential_backoff(
-	struct ck_ec_wait_state *wait_state,
-	bool (*sleep)(const void *sleep_state,
-		      const struct ck_ec_wait_state *wait_state,
-		      const struct timespec *partial_deadline),
-	const void *sleep_state,
-	int (*pred)(const struct ck_ec_wait_state *state,
-		    struct timespec *deadline),
-	const struct timespec *deadline)
+static int
+exponential_backoff(struct ck_ec_wait_state *wait_state,
+    bool (*sleep)(const void *sleep_state,
+	const struct ck_ec_wait_state *wait_state,
+	const struct timespec *partial_deadline),
+    const void *sleep_state,
+    int (*pred)(const struct ck_ec_wait_state *state,
+	struct timespec *deadline),
+    const struct timespec *deadline)
 {
 	struct timespec begin;
 	struct timespec stop_backoff;
@@ -262,9 +269,10 @@ DEF_UPGRADE(64)
  * eventcount's value has changed. If partial_deadline is NULL, wait
  * forever.
  */
-static bool ck_ec32_wait_slow_once(const void *vstate,
-				   const struct ck_ec_wait_state *wait_state,
-				   const struct timespec *partial_deadline)
+static bool
+ck_ec32_wait_slow_once(const void *vstate,
+    const struct ck_ec_wait_state *wait_state,
+    const struct timespec *partial_deadline)
 {
 	const struct ck_ec32_slow_path_state *state = vstate;
 	const struct ck_ec32 *ec = state->ec;
@@ -276,9 +284,10 @@ static bool ck_ec32_wait_slow_once(const void *vstate,
 }
 
 #ifdef CK_F_EC64
-static bool ck_ec64_wait_slow_once(const void *vstate,
-				   const struct ck_ec_wait_state *wait_state,
-				   const struct timespec *partial_deadline)
+static bool
+ck_ec64_wait_slow_once(const void *vstate,
+    const struct ck_ec_wait_state *wait_state,
+    const struct timespec *partial_deadline)
 {
 	const struct ck_ec64_slow_path_state *state = vstate;
 	const struct ck_ec64 *ec = state->ec;
@@ -371,13 +380,14 @@ static bool ck_ec64_wait_slow_once(const void *vstate,
 		}							\
 	} while (0)
 
-int ck_ec32_wait_pred_slow(struct ck_ec32 *ec,
-			   const struct ck_ec_ops *ops,
-			   uint32_t old_value,
-			   int (*pred)(const struct ck_ec_wait_state *state,
-				       struct timespec *deadline),
-			   void *data,
-			   const struct timespec *deadline_ptr)
+int
+ck_ec32_wait_pred_slow(struct ck_ec32 *ec,
+    const struct ck_ec_ops *ops,
+    uint32_t old_value,
+    int (*pred)(const struct ck_ec_wait_state *state,
+	struct timespec *deadline),
+    void *data,
+    const struct timespec *deadline_ptr)
 {
 	const uint32_t unflagged_word = old_value;
 	const uint32_t flagged_word = old_value | (1UL << 31);
@@ -391,13 +401,14 @@ int ck_ec32_wait_pred_slow(struct ck_ec32 *ec,
 }
 
 #ifdef CK_F_EC64
-int ck_ec64_wait_pred_slow(struct ck_ec64 *ec,
-			   const struct ck_ec_ops *ops,
-			   uint64_t old_value,
-			   int (*pred)(const struct ck_ec_wait_state *state,
-				       struct timespec *deadline),
-			   void *data,
-			   const struct timespec *deadline_ptr)
+int
+ck_ec64_wait_pred_slow(struct ck_ec64 *ec,
+    const struct ck_ec_ops *ops,
+    uint64_t old_value,
+    int (*pred)(const struct ck_ec_wait_state *state,
+	struct timespec *deadline),
+    void *data,
+    const struct timespec *deadline_ptr)
 {
 	const uint64_t unflagged_word = old_value << 1;
 	const uint64_t flagged_word = unflagged_word | 1;
