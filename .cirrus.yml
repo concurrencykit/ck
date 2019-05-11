@@ -1,0 +1,14 @@
+env:
+  CIRRUS_CLONE_DEPTH: 1
+  ARCH: amd64
+
+task:
+  freebsd_instance:
+    matrix:
+      image: freebsd-12-0-release-amd64
+      image: freebsd-11-2-release-amd64
+  script:
+   - cc --version
+   - export CFLAGS="-DITERATE=400 -DPAIRS_S=100 -DITERATIONS=24"
+   - ./tools/ci-build.sh --cores=$(sysctl -n hw.ncpu)
+   - make check

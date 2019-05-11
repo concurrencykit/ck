@@ -5,5 +5,8 @@
 
 set -x
 ./configure $@
-make -j
-
+if [ `uname -s` = "FreeBSD" ]; then
+	make -j $(sysctl -n hw.ncpu)
+else
+	make -j
+fi
