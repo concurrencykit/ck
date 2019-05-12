@@ -45,8 +45,26 @@ quickfuzz: all
 ck_ec_smoke_test: ../../../src/ck_ec.c ck_ec_smoke_test.c ../../../src/ck_ec_timeutil.h ../../../include/ck_ec.h
 	$(CC) $(CFLAGS) -std=gnu11 ../../../src/ck_ec.c -o ck_ec_smoke_test ck_ec_smoke_test.c
 
-prop_test_%: ../../../src/ck_ec.c prop_test_%.c ../../../src/ck_ec_timeutil.h ../../../include/ck_ec.h fuzz_harness.h
-	$(CC) $(CFLAGS) $(FUZZ_CFLAGS) ../../../src/ck_ec.c -o $@ $@.c
+prop_test_slow_wakeup.c: ../../../src/ck_ec.c prop_test_wakeup.c ../../../src/ck_ec_timeutil.h ../../../include/ck_ec.h fuzz_harness.h
+	$(CC) $(CFLAGS) $(FUZZ_CFLAGS) ../../../src/ck_ec.c -o prop_test_slow_wakeup prop_test_slow_wakeup.c
+
+prop_test_timeutil_add: ../../../src/ck_ec.c prop_test_wakeup.c ../../../src/ck_ec_timeutil.h ../../../include/ck_ec.h fuzz_harness.h
+	$(CC) $(CFLAGS) $(FUZZ_CFLAGS) ../../../src/ck_ec.c -o prop_test_timeutil_add prop_test_timeutil_add.c
+
+prop_test_timeutil_add_ns: ../../../src/ck_ec.c prop_test_wakeup.c ../../../src/ck_ec_timeutil.h ../../../include/ck_ec.h fuzz_harness.h
+	$(CC) $(CFLAGS) $(FUZZ_CFLAGS) ../../../src/ck_ec.c -o prop_test_timeutil_add_ns prop_test_timeutil_add_ns.c
+
+prop_test_timeutil_cmp: ../../../src/ck_ec.c prop_test_wakeup.c ../../../src/ck_ec_timeutil.h ../../../include/ck_ec.h fuzz_harness.h
+	$(CC) $(CFLAGS) $(FUZZ_CFLAGS) ../../../src/ck_ec.c -o prop_test_timeutil_cmp prop_test_timeutil_cmp.c
+
+prop_test_timeutil_scale: ../../../src/ck_ec.c prop_test_wakeup.c ../../../src/ck_ec_timeutil.h ../../../include/ck_ec.h fuzz_harness.h
+	$(CC) $(CFLAGS) $(FUZZ_CFLAGS) ../../../src/ck_ec.c -o prop_test_timeutil_scale prop_test_timeutil_scale.c
+
+prop_test_value: ../../../src/ck_ec.c prop_test_wakeup.c ../../../src/ck_ec_timeutil.h ../../../include/ck_ec.h fuzz_harness.h
+	$(CC) $(CFLAGS) $(FUZZ_CFLAGS) ../../../src/ck_ec.c -o prop_test_value prop_test_value.c
+
+prop_test_wakeup: ../../../src/ck_ec.c prop_test_wakeup.c ../../../src/ck_ec_timeutil.h ../../../include/ck_ec.h fuzz_harness.h
+	$(CC) $(CFLAGS) $(FUZZ_CFLAGS) ../../../src/ck_ec.c -o prop_test_wakeup prop_test_wakeup.c
 
 clean:
 	rm -rf *~ *.o *.dSYM *.exe $(OBJECTS)
