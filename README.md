@@ -2,8 +2,8 @@
 
 | Environment | Status |
 | -------- | ------ |
-| Travis (Linux / Mac OS X) | [![Build Status](https://travis-ci.org/concurrencykit/ck.svg)](https://travis-ci.org/concurrencykit/ck)
-| Drone (Windows) | [![Build Status](https://cloud.drone.io/api/badges/concurrencykit/ck/status.svg)](https://cloud.drone.io/concurrencykit/ck)
+| Drone | [![Build Status](https://cloud.drone.io/api/badges/concurrencykit/ck/status.svg)](https://cloud.drone.io/concurrencykit/ck)
+| Travis | [![Build Status](https://travis-ci.org/concurrencykit/ck.svg)](https://travis-ci.org/concurrencykit/ck)
 
 ### Build
 

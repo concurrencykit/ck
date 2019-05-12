@@ -1,10 +1,26 @@
 kind: pipeline
-name: default
+name: gcc/amd64/linux
+
+platform:
+  arch: amd64
 
 steps:
-- name: mingw32
-  image: teaci/msys32
-  shell: mingw32
+- name: build
+  image: gcc
+  pull: true
+  commands:
+  - ./tools/ci-build.sh
+
+---
+kind: pipeline
+name: gcc/arm64/linux
+
+platform:
+  arch: arm64
+
+steps:
+- name: build
+  image: gcc
   pull: true
   commands:
   - ./tools/ci-build.sh
