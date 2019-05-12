@@ -24,5 +24,6 @@ steps:
   image: gcc
   pull: true
   commands:
+  - export CFLAGS="-DITERATE=400 -DPAIRS_S=100 -DITERATIONS=24"
   - ./tools/ci-build.sh --cores=4
   - make check
