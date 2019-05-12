@@ -57,6 +57,22 @@ static struct ck_malloc my_allocator = {
 	.free = hs_free
 };
 
+static void
+stub_free(void *p, size_t b, bool r)
+{
+
+	(void)b;
+	(void)r;
+
+	fprintf(stderr, "Ignoring reclamation of %p\n", p);
+	return;
+}
+
+static struct ck_malloc stub_allocator = {
+	.malloc = hs_malloc,
+	.free = stub_free
+};
+
 const char *test[] = { "Samy", "Al", "Bahra", "dances", "in", "the", "wind.", "Once",
                        "upon", "a", "time", "his", "gypsy", "ate", "one", "itsy",
                        "bitsy", "spider.", "What", "goes", "up", "must",
@@ -183,12 +199,13 @@ run_test(unsigned int is, unsigned int ad)
 		}
 
 		/* Test iteration */
-		if (j == 0) { // avoid the blob stuff as it's not in the test array
+		if (j == 0) {
+			/* Avoid the blob stuff as it's not in the test array. */
 			ck_hs_iterator_init(&it);
 			void *k = NULL;
 			int matches = 0;
 			int entries = 0;
-			while(ck_hs_next(&hs[j], &it, &k)) {
+			while (ck_hs_next(&hs[j], &it, &k) == true) {
 				entries++;
 				for (i = 0; i < sizeof(test) / sizeof(*test); i++) {
 					int x = strcmp(test[i], (char *)k);
@@ -203,12 +220,17 @@ run_test(unsigned int is, unsigned int ad)
 				ck_error("Iteration must match all elements, has: %d, matched: %d [%d]", entries, matches, is);
 			}
 
-			/* Now test iteration in the face of grows (spmc)*/
+			/*
+			 * Now test iteration in the face of grows (spmc).
+			 * In order to test usage after reclamation, we
+			 * stub the allocator.
+			 */
 			ck_hs_iterator_init(&it);
 			k = NULL;
 			matches = 0;
 			entries = 0;
-			while(ck_hs_next_spmc(&hs[j], &it, &k)) {
+			hs[j].m = &stub_allocator;
+			while (ck_hs_next_spmc(&hs[j], &it, &k) == true) {
 				entries++;
 				for (i = 0; i < sizeof(test) / sizeof(*test); i++) {
 					int x = strcmp(test[i], (char *)k);
@@ -221,6 +243,7 @@ run_test(unsigned int is, unsigned int ad)
 					ck_hs_grow(&hs[j], 128);
 				}
 			}
+			hs[j].m = &my_allocator;
 
 			if (entries != matches) {
 				ck_error("After growth, iteration must match all elements, has: %d, matched: %d [%d]", entries, matches, is);
