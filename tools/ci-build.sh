@@ -5,7 +5,7 @@
 
 set -x
 
-export CFLAGS="-DITERATE=400 -DPAIRS_S=100 -DITERATIONS=24"
+export CFLAGS="-DITERATE=400 -DPAIRS_S=100 -DITERATIONS=24 -DSTEPS=10000"
 ./configure $@
 
 if [ `uname -s` = "FreeBSD" ]; then
