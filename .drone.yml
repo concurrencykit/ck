@@ -1,6 +1,10 @@
-build:
-        image: teaci/msys32
-        shell: mingw32
-        pull: true
-        commands:
-                - ./tools/ci-build.sh
+kind: pipeline
+name: default
+
+steps:
+- name: mingw32
+  image: teaci/msys32
+  shell: mingw32
+  pull: true
+  commands:
+  - ./tools/ci-build.sh
