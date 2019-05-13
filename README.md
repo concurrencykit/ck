@@ -4,6 +4,7 @@
 | -------- | ------ |
 | Drone | [![Build Status](https://cloud.drone.io/api/badges/concurrencykit/ck/status.svg)](https://cloud.drone.io/concurrencykit/ck)
 | Travis | [![Build Status](https://travis-ci.org/concurrencykit/ck.svg)](https://travis-ci.org/concurrencykit/ck)
+| Cirrus | [![Build Status](https://api.cirrus-ci.com/github/concurrencykit/ck.svg)](https://cirrus-ci.com/github/concurrencykit/ck)
 
 ### Build
 
