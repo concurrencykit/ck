@@ -2,7 +2,7 @@
 
 | Drone | Travis | Cirrus |
 | -------- | ------ | ------- |
-| [![Build Status](https://cloud.drone.io/api/badges/concurrencykit/ck/status.svg)](https://cloud.drone.io/concurrencykit/ck) | [![Build Status](https://travis-ci.org/concurrencykit/ck.svg)](https://travis-ci.org/concurrencykit/ck) | [![Build Status](https://api.cirrus-ci.com/github/concurrencykit/ck.svg)](https://cirrus-ci.com/github/concurrencykit/ck) |
+| [![Build Status](https://cloud.drone.io/api/badges/concurrencykit/ck/status.svg)](https://cloud.drone.io/concurrencykit/ck) | [![Build Status](https://travis-ci.org/concurrencykit/ck.svg)](https://travis-ci.org/concurrencykit/ck) | [![Build Status](https://api.cirrus-ci.com/github/concurrencykit/ck.svg?branch=master)](https://cirrus-ci.com/github/concurrencykit/ck) |
 
 ### Build
 
