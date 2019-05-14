@@ -122,7 +122,7 @@ main(int argc, char *argv[])
 		ck_error("Usage: ck_sequence <number of threads> <affinity delta>\n");
 	}
 
-	n_threads = atoi(argv[1]);
+	n_threads = atoi(argv[1]) - 1;
 	if (n_threads <= 0) {
 		ck_error("ERROR: Number of threads must be greater than 0\n");
 	}
@@ -163,6 +163,8 @@ main(int argc, char *argv[])
                 counter++;
 		if (ck_pr_load_uint(&barrier) == 0)
                         break;
+
+		ck_pr_stall();
         }
 
         printf("%u updates made.\n", counter);
