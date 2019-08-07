@@ -14,6 +14,22 @@ Continuous integration is currently enabled for the following targets:
  * `linux/clang/x86-64`
  * `linux/clang/ppc64le`
 
+### Compile and Build
+
+* Step 1.
+        `./configure`
+        For additional options try `./configure --help`
+
+* Step 2.
+        In order to compile regressions (requires POSIX threads) use
+        `make regressions`. In order to compile libck use `make all` or `make`.
+
+* Step 3.
+	In order to install use `make install`
+	To uninstall use `make uninstall`.
+
+See http://concurrencykit.org/ for more information.
+
 ### Supported Architectures
 
 Concurrency Kit supports any architecture using compiler built-ins as a fallback. There is usually a performance degradation associated with this.
@@ -186,18 +202,3 @@ An implementation of the seminal scalable and fair MCS lock.
 
 An implementation of fair centralized locks.
 
-### Compile and Build
-
-* Step 1.  
-        `./configure`  
-        For additional options try `./configure --help`  
-
-* Step 2.  
-        In order to compile regressions (requires POSIX threads) use  
-        `make regressions`. In order to compile libck use `make all` or `make`.  
-
-* Step 3.  
-	In order to install use `make install`  
-	To uninstall use `make uninstall`.  
-
-See http://concurrencykit.org/ for more information.
