@@ -34,7 +34,7 @@ See http://concurrencykit.org/ for more information.
 
 Concurrency Kit supports any architecture using compiler built-ins as a fallback. There is usually a performance degradation associated with this.
 
-Concurrency Kit has the following specializations:
+Concurrency Kit has specialized assembly for the following architectures:
  * `aarch64`
  * `arm`
  * `ppc`
