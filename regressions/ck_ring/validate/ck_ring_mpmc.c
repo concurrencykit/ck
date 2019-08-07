@@ -102,25 +102,28 @@ test_mpmc(void *c)
 				if (ck_ring_dequeue_mpmc(&ring_mw, buffer, &o) == false)
 					o = NULL;
 			} else {
+				ck_ring_seek_mpmc(&ring_mw);
 				if (ck_ring_trydequeue_mpmc(&ring_mw, buffer, &o) == false)
 					o = NULL;
 			}
 
 			if (o == NULL) {
-				o = malloc(sizeof(*o));
-				if (o == NULL)
-					continue;
+				for (size_t z = 0; z < 2; z++) {
+					o = malloc(sizeof(*o));
+					if (o == NULL)
+						continue;
 
-				o->value_long = (unsigned long)ck_pr_faa_uint(&global_counter, 1) + 1;
+					o->value_long = (unsigned long)ck_pr_faa_uint(&global_counter, 1) + 1;
 
-				o->magic = 0xdead;
-				o->ref = 0;
-				o->tid = tid;
+					o->magic = 0xdead;
+					o->ref = 0;
+					o->tid = tid;
 
-				if (ck_ring_enqueue_mpmc(&ring_mw, buffer, o) == false) {
-					free(o);
-				} else {
-					enqueue++;
+					if (ck_ring_enqueue_mpmc(&ring_mw, buffer, o) == false) {
+						free(o);
+					} else {
+						enqueue++;
+					}
 				}
 
 				continue;
