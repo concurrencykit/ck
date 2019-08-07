@@ -327,7 +327,7 @@ main(int argc, char *argv[])
 			}
 
 			if ((int)s >= (size * ITERATIONS * (nthr - 1))) {
-				ck_error("SPMC: Unexpected size of %u\n", s);
+				ck_error("MPMC: Unexpected size of %u\n", s);
 			}
 		}
 	}

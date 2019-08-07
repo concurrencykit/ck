@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 Samy Al Bahra.
+ * Copyright 2009-2015 Samy Al Bahra.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -128,21 +128,6 @@ _ck_ring_enqueue_sp_size(struct ck_ring *ring,
 	r = _ck_ring_enqueue_sp(ring, buffer, entry, ts, &sz);
 	*size = sz;
 	return r;
-}
-
-CK_CC_FORCE_INLINE static bool
-_ck_ring_seek_sc(struct ck_ring *ring)
-{
-	unsigned int consumer, producer;
-
-	consumer = ring->c_head;
-	producer = ck_pr_load_uint(&ring->p_tail);
-
-	if (CK_CC_UNLIKELY(consumer == producer))
-		return false;
-
-	ck_pr_store_uint(&ring->c_head, consumer + 1);
-	return true;
 }
 
 CK_CC_FORCE_INLINE static bool
@@ -280,46 +265,6 @@ _ck_ring_enqueue_mp_size(struct ck_ring *ring,
 }
 
 CK_CC_FORCE_INLINE static bool
-_ck_ring_tryseek_mc(struct ck_ring *ring)
-{
-	unsigned int consumer, producer;
-
-	consumer = ck_pr_load_uint(&ring->c_head);
-	ck_pr_fence_load();
-	producer = ck_pr_load_uint(&ring->p_tail);
-
-	if (CK_CC_UNLIKELY(consumer == producer))
-		return false;
-
-	return ck_pr_cas_uint(&ring->c_head, consumer, consumer + 1);
-}
-
-CK_CC_FORCE_INLINE static bool
-_ck_ring_seek_mc(struct ck_ring *ring)
-{
-	unsigned int consumer, producer;
-
-	consumer = ck_pr_load_uint(&ring->c_head);
-
-	do {
-		/*
-		 * Producer counter must represent state relative to
-		 * our latest consumer snapshot.
-		 */
-		ck_pr_fence_load();
-		producer = ck_pr_load_uint(&ring->p_tail);
-
-		if (CK_CC_UNLIKELY(consumer == producer))
-			return false;
-	} while (ck_pr_cas_uint_value(&ring->c_head,
-				      consumer,
-				      consumer + 1,
-				      &consumer) == false);
-
-	return true;
-}
-
-CK_CC_FORCE_INLINE static bool
 _ck_ring_trydequeue_mc(struct ck_ring *ring,
     const void *buffer,
     void *data,
@@ -410,13 +355,6 @@ ck_ring_enqueue_spsc(struct ck_ring *ring,
 }
 
 CK_CC_INLINE static bool
-ck_ring_seek_spsc(struct ck_ring *ring)
-{
-
-	return _ck_ring_seek_sc(ring);
-}
-
-CK_CC_INLINE static bool
 ck_ring_dequeue_spsc(struct ck_ring *ring,
     const struct ck_ring_buffer *buffer,
     void *data)
@@ -472,20 +410,6 @@ ck_ring_dequeue_mpmc(struct ck_ring *ring,
 	    sizeof(void *));
 }
 
-CK_CC_INLINE static bool
-ck_ring_tryseek_mpmc(struct ck_ring *ring)
-{
-
-	return _ck_ring_tryseek_mc(ring);
-}
-
-CK_CC_INLINE static bool
-ck_ring_seek_mpmc(struct ck_ring *ring)
-{
-
-	return _ck_ring_seek_mc(ring);
-}
-
 /*
  * The ck_ring_*_spmc namespace is the public interface for interacting with a
  * ring buffer containing pointers. Correctness is provided for any number of
@@ -530,20 +454,6 @@ ck_ring_dequeue_spmc(struct ck_ring *ring,
 	return _ck_ring_dequeue_mc(ring, buffer, (void **)data, sizeof(void *));
 }
 
-CK_CC_INLINE static bool
-ck_ring_tryseek_spmc(struct ck_ring *ring)
-{
-
-	return _ck_ring_tryseek_mc(ring);
-}
-
-CK_CC_INLINE static bool
-ck_ring_seek_spmc(struct ck_ring *ring)
-{
-
-	return _ck_ring_seek_mc(ring);
-}
-
 /*
  * The ck_ring_*_mpsc namespace is the public interface for interacting with a
  * ring buffer containing pointers. Correctness is provided for any number of
@@ -568,13 +478,6 @@ ck_ring_enqueue_mpsc_size(struct ck_ring *ring,
 
 	return _ck_ring_enqueue_mp_size(ring, buffer, &entry,
 	    sizeof(entry), size);
-}
-
-CK_CC_INLINE static bool
-ck_ring_seek_mpsc(struct ck_ring *ring)
-{
-
-	return _ck_ring_seek_sc(ring);
 }
 
 CK_CC_INLINE static bool
