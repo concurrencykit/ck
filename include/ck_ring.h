@@ -110,7 +110,7 @@ ck_ring_valid(const struct ck_ring *ring)
 		return false;
 
 	/* The producer may only be up to size slots ahead of consumer. */
-	if (p_head - c_head > size)
+	if (p_head - c_head >= size)
 		return false;
 
 	return true;
