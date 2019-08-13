@@ -66,7 +66,54 @@ ck_ring_size(const struct ck_ring *ring)
 CK_CC_INLINE static unsigned int
 ck_ring_capacity(const struct ck_ring *ring)
 {
+
 	return ring->size;
+}
+
+/*
+ * This function is only safe to call when there are no concurrent operations
+ * on the ring. This is primarily meant for persistent ck_ring use-cases. The
+ * function returns true if any mutations were performed on the ring.
+ */
+CK_CC_INLINE static bool
+ck_ring_repair(struct ck_ring *ring)
+{
+	bool r = false;
+
+	if (ring->p_tail != ring->p_head) {
+		ring->p_tail = ring->p_head;
+		r = true;
+	}
+
+	return r;
+}
+
+/*
+ * This can be called when no concurrent updates are occurring on the ring
+ * structure to check for consistency. This is primarily meant to be used for
+ * persistent storage of the ring. If this functions returns false, the ring
+ * is in an inconsistent state.
+ */
+CK_CC_INLINE static bool
+ck_ring_valid(const struct ck_ring *ring)
+{
+	unsigned int size = ring->size;
+	unsigned int c_head = ring->c_head;
+	unsigned int p_head = ring->p_head;
+
+	/* The ring must be a power of 2. */
+	if (size & (size - 1))
+		return false;
+
+	/* The consumer counter must always be smaller than the producer. */
+	if (c_head > p_head)
+		return false;
+
+	/* The producer may only be up to size slots ahead of consumer. */
+	if (p_head - c_head > size)
+		return false;
+
+	return true;
 }
 
 CK_CC_INLINE static void
