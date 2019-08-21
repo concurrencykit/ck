@@ -239,7 +239,7 @@ CK_PR_FAA_S(8,  uint8_t,  "xaddb")
 		bool ret;						\
 		__asm__ __volatile__(CK_PR_LOCK_PREFIX I " %0; setz %1"	\
 					: "+m" (*(C *)target),		\
-					  "=rm" (ret)			\
+					  "=qm" (ret)			\
 					:				\
 					: "memory", "cc");		\
 		return ret;						\
@@ -354,7 +354,7 @@ CK_PR_CAS_S(8,  uint8_t,  "cmpxchgb")
 					: "q"   (set),				\
 					  "a"   (compare)			\
 					: "memory", "cc");			\
-		return (bool)z;							\
+		return z;							\
 	}
 
 CK_PR_CAS_O(ptr, void, void *, char, "l", "eax")
