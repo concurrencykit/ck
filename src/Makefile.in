@@ -66,3 +66,15 @@ ck_barrier_mcs.o: $(SDIR)/ck_barrier_mcs.c
 clean:
 	rm -rf $(TARGET_DIR)/*.dSYM $(TARGET_DIR)/*~ $(TARGET_DIR)/*.o \
 		$(OBJECTS) $(TARGET_DIR)/libck.a $(TARGET_DIR)/libck.so
+	rm -rf $(AUTODEPS)	
+
+# create a list of auto dependencies
+AUTODEPS:= $(patsubst %.o,$(TARGET_DIR)/%.d, $(OBJECTS))
+
+# include by auto dependencies
+-include $(AUTODEPS)
+
+%.o: $(TARGET_DIR)/%.d
+
+$(TARGET_DIR)/%.d: $(SDIR)/%.c
+	$(CC) $(CFLAGS) -MM -MP -MF $@ $<
