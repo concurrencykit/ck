@@ -524,8 +524,9 @@ case $PLATFORM in
 	*)
 		RTM_ENABLE="CK_MD_RTM_DISABLE"
 		LSE_ENABLE="CK_MD_LSE_DISABLE"
-		PLATFORM=
+		PLATFORM=unknown
 		MM="${MM:-"CK_MD_RMO"}"
+		USE_CC_BUILTINS=1
 		;;
 esac
 
@@ -837,3 +838,12 @@ generate Makefile.in $P_PWD/Makefile
 touch src/*.c
 echo "success"
 generate_stdout
+
+if test "$PROFILE" = "unknown"; then
+	echo
+	echo "WARNING: your target architecture is not a first-class citizen."
+	echo
+	echo "The test suite may not work as intended. Consider reaching out "
+	echo "to the mailing list about having the project add first-class "
+	echo "support for your architecture."
+fi
