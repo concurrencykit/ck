@@ -267,13 +267,11 @@ struct affinity {
 #define AFFINITY_INITIALIZER {0, 0}
 
 #ifdef __linux__
-#ifndef gettid
 static pid_t
-gettid(void)
+common_gettid(void)
 {
 	return syscall(__NR_gettid);
 }
-#endif /* gettid */
 
 CK_CC_UNUSED static int
 aff_iterate(struct affinity *acb)
@@ -285,7 +283,7 @@ aff_iterate(struct affinity *acb)
 	CPU_ZERO(&s);
 	CPU_SET(c % CORES, &s);
 
-	if (sched_setaffinity(gettid(), sizeof(s), &s) != 0)
+	if (sched_setaffinity(common_gettid(), sizeof(s), &s) != 0)
 		perror("WARNING: Could not affine thread");
 	
         return 0;
@@ -300,7 +298,7 @@ aff_iterate_core(struct affinity *acb, unsigned int *core)
 	CPU_ZERO(&s);
 	CPU_SET((*core) % CORES, &s);
 
-	if (sched_setaffinity(gettid(), sizeof(s), &s) != 0)
+	if (sched_setaffinity(common_gettid(), sizeof(s), &s) != 0)
 		perror("WARNING: Could not affine thread");
 	
         return 0;
