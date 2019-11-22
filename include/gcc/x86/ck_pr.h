@@ -309,6 +309,22 @@ CK_PR_GENERATE(xor)
 /*
  * Atomic compare and swap.
  */
+#ifdef __GCC_ASM_FLAG_OUTPUTS__
+#define CK_PR_CAS(S, M, T, C, I)						\
+	CK_CC_INLINE static bool						\
+	ck_pr_cas_##S(M *target, T compare, T set)				\
+	{									\
+		bool z;								\
+		__asm__ __volatile__(CK_PR_LOCK_PREFIX I " %3, %0"		\
+					: "+m"    (*(C *)target),		\
+					  "=@ccz" (z),				\
+					  /* RAX is clobbered by cmpxchg. */	\
+					  "+a"    (compare)			\
+					: "q"     (set)				\
+					: "memory", "cc");			\
+		return z;							\
+	}
+#else
 #define CK_PR_CAS(S, M, T, C, I)						\
 	CK_CC_INLINE static bool						\
 	ck_pr_cas_##S(M *target, T compare, T set)				\
@@ -322,6 +338,7 @@ CK_PR_GENERATE(xor)
 					: "memory", "cc");			\
 		return z;							\
 	}
+#endif
 
 CK_PR_CAS(ptr, void, void *, char, "cmpxchgl")
 
@@ -340,34 +357,50 @@ CK_PR_CAS_S(8,  uint8_t,  "cmpxchgb")
 /*
  * Compare and swap, set *v to old value of target.
  */
-#define CK_PR_CAS_O(S, M, T, C, I, R)						\
+#ifdef __GCC_ASM_FLAG_OUTPUTS__
+#define CK_PR_CAS_O(S, M, T, C, I)						\
 	CK_CC_INLINE static bool						\
 	ck_pr_cas_##S##_value(M *target, T compare, T set, M *v)		\
 	{									\
 		bool z;								\
 		__asm__ __volatile__(CK_PR_LOCK_PREFIX "cmpxchg" I " %3, %0;"	\
-				     "mov %% " R ", %2;"			\
-				     "setz %1;"					\
-					: "+m"  (*(C *)target),			\
-					  "=a"  (z),				\
-					  "=m"  (*(C *)v)			\
-					: "q"   (set),				\
-					  "a"   (compare)			\
+					: "+m"    (*(C *)target),		\
+					  "=@ccz" (z),				\
+					  "+a"    (compare)			\
+					: "q"     (set)				\
 					: "memory", "cc");			\
+		*(T *)v = compare;						\
 		return z;							\
 	}
+#else
+#define CK_PR_CAS_O(S, M, T, C, I)						\
+	CK_CC_INLINE static bool						\
+	ck_pr_cas_##S##_value(M *target, T compare, T set, M *v)		\
+	{									\
+		bool z;								\
+		__asm__ __volatile__(CK_PR_LOCK_PREFIX "cmpxchg" I " %3, %0;"	\
+				     "setz %1;"					\
+					: "+m"  (*(C *)target),			\
+					  "=q"  (z),				\
+					  "+a"  (compare)			\
+					: "q"   (set)				\
+					: "memory", "cc");			\
+		*(T *)v = compare;						\
+		return z;							\
+	}
+#endif
 
-CK_PR_CAS_O(ptr, void, void *, char, "l", "eax")
+CK_PR_CAS_O(ptr, void, void *, char, "l")
 
-#define CK_PR_CAS_O_S(S, T, I, R)	\
-	CK_PR_CAS_O(S, T, T, T, I, R)
+#define CK_PR_CAS_O_S(S, T, I)	\
+	CK_PR_CAS_O(S, T, T, T, I)
 
-CK_PR_CAS_O_S(char, char, "b", "al")
-CK_PR_CAS_O_S(int, int, "l", "eax")
-CK_PR_CAS_O_S(uint, unsigned int, "l", "eax")
-CK_PR_CAS_O_S(32, uint32_t, "l", "eax")
-CK_PR_CAS_O_S(16, uint16_t, "w", "ax")
-CK_PR_CAS_O_S(8,  uint8_t,  "b", "al")
+CK_PR_CAS_O_S(char, char, "b")
+CK_PR_CAS_O_S(int, int, "l")
+CK_PR_CAS_O_S(uint, unsigned int, "l")
+CK_PR_CAS_O_S(32, uint32_t, "l")
+CK_PR_CAS_O_S(16, uint16_t, "w")
+CK_PR_CAS_O_S(8,  uint8_t,  "b")
 
 #undef CK_PR_CAS_O_S
 #undef CK_PR_CAS_O
