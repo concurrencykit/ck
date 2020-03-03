@@ -10,7 +10,7 @@
 		    static ck_spinlock_hclh_t CK_CC_CACHELINE *local_lock[CORES / 2]
 
 #define LOCK_STATE ck_spinlock_hclh_t *na = malloc(MAX(sizeof(ck_spinlock_hclh_t), 64))
-#define LOCK ck_spinlock_hclh_lock(&glob_lock, &local_lock[(core % CORES) / 2], na)
+#define LOCK ck_spinlock_hclh_lock(&glob_lock, &local_lock[core % (CORES / 2)], na)
 #define UNLOCK ck_spinlock_hclh_unlock(&na)
 #define LOCK_INIT do {							\
 	int _i;								\
