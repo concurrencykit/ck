@@ -325,7 +325,7 @@ done
 HEADERS=${HEADERS:-"${PREFIX}/include"}
 LIBRARY=${LIBRARY:-"${PREFIX}/lib"}
 MANDIR=${MANDIR:-"${PREFIX}/share/man"}
-GZIP=${GZIP:-"gzip -c"}
+GZIP=${GZIP-"gzip -c"}
 POINTER_PACK_ENABLE=${POINTER_PACK_ENABLE:-"CK_MD_POINTER_PACK_DISABLE"}
 DISABLE_DOUBLE=${DISABLE_DOUBLE:-"CK_PR_ENABLE_DOUBLE"}
 PPC32_LWSYNC_ENABLE=${PPC32_LWSYNC_ENABLE:-"CK_MD_PPC32_LWSYNC_DISABLE"}
@@ -583,21 +583,26 @@ else
 	echo "success [$BUILD_DIR]"
 fi
 
-printf "Finding gzip tool................"
-GZIP=`pathsearch "${GZIP:-gzip}"`
-if test -z "$GZIP" -o ! -x "$GZIP"; then
+if test -n "$GZIP"; then
+	printf "Finding gzip tool................"
 	GZIP=`pathsearch "${GZIP:-gzip}"`
-	GZIP="$GZIP"
+	if test -z "$GZIP" -o ! -x "$GZIP"; then
+		GZIP=`pathsearch "${GZIP:-gzip}"`
+		GZIP="$GZIP"
+	fi
+
+	if test -z "$GZIP"; then
+		echo "not found"
+	else
+		echo "success [$GZIP]"
+		GZIP="$GZIP -c"
+		GZIP_SUFFIX=".gz"
+	fi
 fi
 
 if test -z "$GZIP"; then
-	echo "not found"
 	GZIP=cat
 	GZIP_SUFFIX=""
-else
-	echo "success [$GZIP]"
-	GZIP="$GZIP -c"
-	GZIP_SUFFIX=".gz"
 fi
 
 printf "Finding suitable compiler........"
