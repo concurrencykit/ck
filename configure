@@ -202,7 +202,7 @@ for option; do
 		echo "  --memory-model=N         Specify memory model (currently tso, pso or rmo)"
 		echo "  --vma-bits=N             Specify valid number of VMA bits"
 		echo "  --platform=N             Force the platform type, instead of relying on autodetection"
-		echo "  --use-cc-builtins        Use the compiler atomic bultin functions, instead of the CK implementation"
+		echo "  --use-cc-builtins        Use the compiler atomic builtin functions, instead of the CK implementation"
 		echo "  --disable-double         Don't generate any of the functions using the \"double\" type"
 		echo
 		echo "The following options will affect specific platform-dependent generated code."
