@@ -605,6 +605,37 @@ if test -z "$GZIP"; then
 	GZIP_SUFFIX=""
 fi
 
+if test "$PROFILE"; then
+	printf "Using user-specified profile....."
+
+	if test -z "$CC"; then
+		echo "failed [specify compiler]"
+		exit $EXIT_FAILURE
+	fi
+
+	if test ! -f build/ck.build.$PROFILE; then
+		echo "failed [$PROFILE]"
+		exit $EXIT_FAILURE
+	fi
+
+	echo "success [$PROFILE]"
+	printf "Generating header files.........."
+	generate include/ck_md.h.in include/ck_md.h
+	generate include/freebsd/ck_md.h.in include/freebsd/ck_md.h
+	echo "success"
+	printf "Generating build files..........."
+	generate src/Makefile.in src/Makefile
+	generate doc/Makefile.in doc/Makefile
+	generate build/ck.build.in build/ck.build
+	generate build/regressions.build.in build/regressions.build
+	generate build/ck.pc.in build/ck.pc
+	generate build/ck.spec.in build/ck.spec
+	generate Makefile.in Makefile
+	echo "success"
+	generate_stdout
+	exit $EXIT_SUCCESS
+fi
+
 printf "Finding suitable compiler........"
 if test ! -x "${CC}"; then
 	CC=`pathsearch "${CC:-cc}"`
@@ -778,37 +809,6 @@ done
 printf "Detecting git SHA................"
 get_git_sha
 echo "$GIT_MSG [$GIT_SHA]"
-
-if test "$PROFILE"; then
-    printf "Using user-specified profile....."
-
-	if test -z "$CC"; then
-		echo "failed [specify compiler]"
-		exit $EXIT_FAILURE
-	fi
-
-	if test ! -f build/ck.build.$PROFILE; then
-		echo "failed [$PROFILE]"
-		exit $EXIT_FAILURE
-	fi
-
-	echo "success [$PROFILE]"
-	printf "Generating header files.........."
-	generate include/ck_md.h.in include/ck_md.h
-	generate include/freebsd/ck_md.h.in include/freebsd/ck_md.h
-	echo "success"
-	printf "Generating build files..........."
-	generate src/Makefile.in src/Makefile
-	generate doc/Makefile.in doc/Makefile
-	generate build/ck.build.in build/ck.build
-	generate build/regressions.build.in build/regressions.build
-	generate build/ck.pc.in build/ck.pc
-	generate build/ck.spec.in build/ck.spec
-	generate Makefile.in Makefile
-	echo "success"
-	generate_stdout
-	exit $EXIT_SUCCESS
-fi
 
 # Platform will be used as a macro.
 PROFILE="${PROFILE:-$PLATFORM}"
