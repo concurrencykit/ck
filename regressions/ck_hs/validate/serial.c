@@ -159,7 +159,7 @@ run_test(unsigned int is, unsigned int ad)
 
 	for (j = 0; j < size; j++) {
 		for (i = 0; i < sizeof(test) / sizeof(*test); i++) {
-			unsigned long long h_1;
+			unsigned long h_1;
 
 			h = CK_HS_HASH(&hs[j], hs_hash, test[i]);
 			h_1 = ck_hs_hash(&hs[j], test[i]);
