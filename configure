@@ -146,6 +146,7 @@ generate_stdout()
 	echo "           SRC_DIR = $BUILD_DIR"
 	echo "            SYSTEM = $SYSTEM"
 	echo "           PROFILE = $PROFILE"
+	echo "                AR = $AR"
 	echo "                CC = $CC"
 	echo "          COMPILER = $COMPILER"
 	echo "            CFLAGS = $CFLAGS"
@@ -215,6 +216,7 @@ for option; do
 		echo "  --cores=N                Specify number of cores available on target machine"
 		echo
 		echo "The following environment variables may be used:"
+		echo "   AR       AR archiver command"
 		echo "   CC       C compiler command"
 		echo "   CFLAGS   C compiler flags"
 		echo "   LDFLAGS  Linker flags"
@@ -644,6 +646,15 @@ if test ! -x "${CC}"; then
 	fi
 fi
 assert "$CC" "not found"
+
+printf "Finding suitable archiver........"
+if test ! -x "${AR}"; then
+	AR=`pathsearch "${AR:-ar}"`
+	if test -z "$AR" -o ! -x "$AR"; then
+		AR=`pathsearch "${AR:-ar}"`
+	fi
+fi
+assert "$AR" "not found"
 
 cat << EOF > .1.c
 #include <stdio.h>
