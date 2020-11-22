@@ -119,6 +119,7 @@ generate()
 	    -e "s#@GZIP_SUFFIX@#$GZIP_SUFFIX#g"			\
 	    -e "s#@POINTER_PACK_ENABLE@#$POINTER_PACK_ENABLE#g"	\
 	    -e "s#@DISABLE_DOUBLE@#$DISABLE_DOUBLE#g"		\
+	    -e "s#@DISABLE_STATIC@#$DISABLE_STATIC#g"		\
 	    -e "s#@SSE_DISABLE@#$SSE_DISABLE#g"			\
 	    -e "s#@PPC32_LWSYNC_ENABLE@#$PPC32_LWSYNC_ENABLE#g"	\
 	    -e "s#@RTM_ENABLE@#$RTM_ENABLE#g"			\
@@ -156,6 +157,7 @@ generate_stdout()
 	echo "    LDNAME_VERSION = $LDNAME_VERSION"
 	echo "      LDNAME_MAJOR = $LDNAME_MAJOR"
 	echo "           LDFLAGS = $LDFLAGS"
+	echo "        STATIC_LIB = $DISABLE_STATIC"
 	echo "              GZIP = $GZIP"
 	echo "             CORES = $CORES"
 	echo "      POINTER_PACK = $POINTER_PACK_ENABLE"
@@ -205,6 +207,7 @@ for option; do
 		echo "  --platform=N             Force the platform type, instead of relying on autodetection"
 		echo "  --use-cc-builtins        Use the compiler atomic builtin functions, instead of the CK implementation"
 		echo "  --disable-double         Don't generate any of the functions using the \"double\" type"
+		echo "  --disable-static         Don't compile a static version of the ck lib"
 		echo
 		echo "The following options will affect specific platform-dependent generated code."
 		echo "  --disable-sse            Do not use any SSE instructions (x86)"
@@ -293,6 +296,9 @@ for option; do
 	--disable-double)
 		DISABLE_DOUBLE="CK_PR_DISABLE_DOUBLE"
 		;;
+	--disable-static)
+		DISABLE_STATIC=1
+		;;
 	--platform=*)
 		PLATFORM=$value
 		;;
@@ -330,6 +336,7 @@ MANDIR=${MANDIR:-"${PREFIX}/share/man"}
 GZIP=${GZIP-"gzip -c"}
 POINTER_PACK_ENABLE=${POINTER_PACK_ENABLE:-"CK_MD_POINTER_PACK_DISABLE"}
 DISABLE_DOUBLE=${DISABLE_DOUBLE:-"CK_PR_ENABLE_DOUBLE"}
+DISABLE_STATIC=${DISABLE_STATIC:-"0"}
 PPC32_LWSYNC_ENABLE=${PPC32_LWSYNC_ENABLE:-"CK_MD_PPC32_LWSYNC_DISABLE"}
 RTM_ENABLE=${RTM_ENABLE_SET:-"CK_MD_RTM_DISABLE"}
 SSE_DISABLE=${SSE_DISABLE:-"CK_MD_SSE_ENABLE"}
@@ -717,13 +724,24 @@ elif test "$COMPILER" = "gcc" || test "$COMPILER" = "clang" || test "$COMPILER" 
 	if test "$WANT_PIC" = "yes"; then
 		LDFLAGS="$LDFLAGS -shared -fPIC"
 		CFLAGS="$CFLAGS -fPIC"
-		ALL_LIBS="libck.so libck.a"
-		INSTALL_LIBS="install-so install-lib"
+
+		if [ "$DISABLE_STATIC" -eq 1 ]; then
+			ALL_LIBS="libck.so"
+			INSTALL_LIBS="install-so"
+		else
+			ALL_LIBS="libck.so libck.a"
+			INSTALL_LIBS="install-so install-lib"
+		fi
 	else
 		LDFLAGS="$LDFLAGS -fno-PIC"
 		CFLAGS="$CFLAGS -fno-PIC"
-		ALL_LIBS="libck.a"
-		INSTALL_LIBS="install-lib"
+		if [ "$DISABLE_STATIC" -eq 1 ]; then
+			echo "Error: You have choosen to disable PIC, yet you also disabled the static lib." 1>&2
+			exit $EXIT_FAILURE
+		else
+			ALL_LIBS="libck.a"
+			INSTALL_LIBS="install-lib"
+		fi
 	fi
 
 	CFLAGS="-D_XOPEN_SOURCE=600 -D_BSD_SOURCE -D_DEFAULT_SOURCE -std=gnu99 -pedantic -Wall -W -Wundef -Wendif-labels -Wshadow -Wpointer-arith -Wcast-align -Wcast-qual -Wwrite-strings -Wstrict-prototypes -Wmissing-prototypes -Wnested-externs -Winline -Wdisabled-optimization -fstrict-aliasing -O2 -pipe -Wno-parentheses $CFLAGS"
