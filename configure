@@ -647,15 +647,6 @@ if test ! -x "${CC}"; then
 fi
 assert "$CC" "not found"
 
-printf "Finding suitable archiver........"
-if test ! -x "${AR}"; then
-	AR=`pathsearch "${AR:-ar}"`
-	if test -z "$AR" -o ! -x "$AR"; then
-		AR=`pathsearch "${AR:-ar}"`
-	fi
-fi
-assert "$AR" "not found"
-
 cat << EOF > .1.c
 #include <stdio.h>
 int main(void) {
@@ -735,6 +726,17 @@ elif test "$COMPILER" = "gcc" || test "$COMPILER" = "clang" || test "$COMPILER" 
 else
 	assert "" "unknown compiler"
 fi
+
+printf "Finding suitable archiver........"
+if test ! -x "${AR}"; then
+	AR=`pathsearch "${AR:-ar}"`
+	if test -z "$AR" -o ! -x "$AR"; then
+		AR=`pathsearch "${AR:-ar}"`
+	else
+		echo "success [$AR]"
+	fi
+fi
+assert "$AR" "not found"
 
 printf "Detecting VMA bits..............."
 VMA="unknown"
