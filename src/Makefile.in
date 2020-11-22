@@ -25,7 +25,7 @@ libck.so: $(OBJECTS)
 	$(LD) $(LDFLAGS) -o $(TARGET_DIR)/libck.so $(OBJECTS)
 
 libck.a: $(OBJECTS)
-	ar rcs $(TARGET_DIR)/libck.a $(OBJECTS)
+	$(AR) rcs $(TARGET_DIR)/libck.a $(OBJECTS)
 
 ck_array.o: $(INCLUDE_DIR)/ck_array.h $(SDIR)/ck_array.c
 	$(CC) $(CFLAGS) -c -o $(TARGET_DIR)/ck_array.o $(SDIR)/ck_array.c
