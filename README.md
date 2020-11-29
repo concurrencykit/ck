@@ -106,7 +106,7 @@ A concurrently readable friendly derivative of the BSD-queue interface. Coupled 
 
 ##### ck_hs
 
-An extremely efficient single-writer-many-reader hash set, that satisfies lock-freedom with bounded concurrency without any usage of atomic operations and allows for recycling of unused or deleted slots. This data structure is recommended for use as a general hash-set if it is possible to compute values from keys. Learn more at https://engineering.backtrace.io/posts/workload-specialization/ and http://concurrencykit.org/articles/ck_hs.html.
+An extremely efficient single-writer-many-reader hash set, that satisfies lock-freedom with bounded concurrency without any usage of atomic operations and allows for recycling of unused or deleted slots. This data structure is recommended for use as a general hash-set if it is possible to compute values from keys. Learn more at https://engineering.backtrace.io/workload-specialization/ and http://concurrencykit.org/articles/ck_hs.html.
 
 ##### ck_ht
 
