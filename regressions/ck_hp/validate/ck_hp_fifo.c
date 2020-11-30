@@ -55,6 +55,7 @@ static struct affinity a;
 static int size;
 static unsigned int barrier;
 static unsigned int e_barrier;
+static unsigned int s_barrier;
 
 static void *
 test(void *c)
@@ -97,6 +98,9 @@ test(void *c)
 			ck_hp_free(&record, &fifo_entry->hazard, fifo_entry, fifo_entry);
 		}
 	}
+
+	ck_pr_inc_uint(&s_barrier);
+	while (ck_pr_load_uint(&s_barrier) < (unsigned int)nthr);
 
 	for (i = 0; i < ITERATIONS; i++) {
 		for (j = 0; j < size; j++) {
