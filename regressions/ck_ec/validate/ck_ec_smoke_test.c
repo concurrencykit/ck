@@ -46,7 +46,7 @@ static void wait32(const struct ck_ec_wait_state *state,
 	assert(state->ops == &test_ops);
 	syscall(SYS_futex, address,
 		FUTEX_WAIT_BITSET, expected, deadline,
-		NULL, deadline, 0);
+		NULL, FUTEX_BITSET_MATCH_ANY, 0);
 	return;
 }
 
@@ -68,7 +68,7 @@ static void wait64(const struct ck_ec_wait_state *state,
 
 	syscall(SYS_futex, low_half,
 		FUTEX_WAIT_BITSET, (uint32_t)expected, deadline,
-		NULL, deadline, 0);
+		NULL, FUTEX_BITSET_MATCH_ANY, 0);
 	return;
 }
 
