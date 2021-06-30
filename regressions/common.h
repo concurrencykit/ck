@@ -44,6 +44,9 @@
 #elif defined(__FreeBSD__)
 #include <sys/param.h>
 #include <sys/cpuset.h>
+#elif defined(__NetBSD__)
+#include <pthread.h>
+#include <sched.h>
 #endif
 
 #if defined(_WIN32)
@@ -354,6 +357,39 @@ aff_iterate_core(struct affinity *acb CK_CC_UNUSED, unsigned int *core)
 	CPU_SET(*core, &mask);
 	return (cpuset_setaffinity(CPU_LEVEL_WHICH, CPU_WHICH_TID, -1,
 	    sizeof(mask), &mask));
+}
+#elif defined(__NetBSD__)
+CK_CC_UNUSED static int
+aff_iterate(struct affinity *acb CK_CC_UNUSED)
+{
+	unsigned int c;
+	cpuset_t *mask;
+
+	c = ck_pr_faa_uint(&acb->request, acb->delta) % CORES;
+	mask = cpuset_create();
+	if (!mask)
+            return -1;
+	cpuset_zero(mask);
+	cpuset_set(c, mask);
+	int ret = pthread_setaffinity_np(pthread_self(), cpuset_size(mask), mask);
+	cpuset_destroy(mask);
+	return ret;
+}
+
+CK_CC_UNUSED static int
+aff_iterate_core(struct affinity *acb CK_CC_UNUSED, unsigned int *core)
+{
+	cpuset_t *mask;
+
+	*core = ck_pr_faa_uint(&acb->request, acb->delta) % CORES;
+	mask = cpuset_create();
+	if (!mask)
+            return -1;
+	cpuset_zero(mask);
+	cpuset_set(*core, mask);
+	int ret = pthread_setaffinity_np(pthread_self(), cpuset_size(mask), mask);
+	cpuset_destroy(mask);
+	return ret;
 }
 #else
 CK_CC_UNUSED static int
