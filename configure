@@ -741,6 +741,9 @@ elif test "$COMPILER" = "gcc" || test "$COMPILER" = "clang" || test "$COMPILER" 
 		ENVIRONMENT=64
 		PLATFORM=x86_64
 	fi
+	if test "$SYSTEM" = "netbsd"; then
+		CFLAGS="$CFLAGS -D_NETBSD_SOURCE"
+	fi
 else
 	assert "" "unknown compiler"
 fi
