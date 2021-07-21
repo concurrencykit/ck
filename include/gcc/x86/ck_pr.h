@@ -120,7 +120,7 @@ CK_PR_FENCE(unlock, CK_MD_X86_MFENCE)
 		return v;					\
 	}
 
-CK_PR_FAS(ptr, void, void *, char, "xchgl")
+CK_PR_FAS(ptr, void, void *, uint32_t, "xchgl")
 
 #define CK_PR_FAS_S(S, T, I) CK_PR_FAS(S, T, T, T, I)
 
@@ -146,7 +146,7 @@ CK_PR_FAS_S(8,  uint8_t,  "xchgb")
 		return (r);						\
 	}
 
-CK_PR_LOAD(ptr, void, void *, char, "movl")
+CK_PR_LOAD(ptr, void, void *, uint32_t, "movl")
 
 #define CK_PR_LOAD_S(S, T, I) CK_PR_LOAD(S, T, T, T, I)
 
@@ -171,7 +171,7 @@ CK_PR_LOAD_S(8,  uint8_t,  "movb")
 		return;						\
 	}
 
-CK_PR_STORE(ptr, void, const void *, char, "movl")
+CK_PR_STORE(ptr, void, const void *, uint32_t, "movl")
 
 #define CK_PR_STORE_S(S, T, I) CK_PR_STORE(S, T, T, T, I)
 
@@ -200,7 +200,7 @@ CK_PR_STORE_S(8,  uint8_t, "movb")
 		return (d);						\
 	}
 
-CK_PR_FAA(ptr, void, uintptr_t, char, "xaddl")
+CK_PR_FAA(ptr, void, uintptr_t, uint32_t, "xaddl")
 
 #define CK_PR_FAA_S(S, T, I) CK_PR_FAA(S, T, T, T, I)
 
@@ -248,7 +248,7 @@ CK_PR_FAA_S(8,  uint8_t,  "xaddb")
 #define CK_PR_UNARY_S(K, S, T, I) CK_PR_UNARY(K, S, T, T, I)
 
 #define CK_PR_GENERATE(K)				\
-	CK_PR_UNARY(K, ptr, void, char, #K "l") 	\
+	CK_PR_UNARY(K, ptr, void, uint32_t, #K "l") 	\
 	CK_PR_UNARY_S(K, char, char, #K "b")		\
 	CK_PR_UNARY_S(K, int, int, #K "l")		\
 	CK_PR_UNARY_S(K, uint, unsigned int, #K "l")	\
@@ -288,7 +288,7 @@ CK_PR_GENERATE(not)
 #define CK_PR_BINARY_S(K, S, T, I) CK_PR_BINARY(K, S, T, T, T, I)
 
 #define CK_PR_GENERATE(K)					\
-	CK_PR_BINARY(K, ptr, void, uintptr_t, char, #K "l")	\
+	CK_PR_BINARY(K, ptr, void, uintptr_t, uint32_t, #K "l")	\
 	CK_PR_BINARY_S(K, char, char, #K "b")			\
 	CK_PR_BINARY_S(K, int, int, #K "l")			\
 	CK_PR_BINARY_S(K, uint, unsigned int, #K "l")		\
@@ -369,7 +369,7 @@ CK_PR_GENERATE(xor)
 	}
 #endif
 
-CK_PR_CAS(ptr, void, void *, char, "cmpxchgl")
+CK_PR_CAS(ptr, void, void *, uint32_t, "cmpxchgl")
 
 #define CK_PR_CAS_S(S, T, I) CK_PR_CAS(S, T, T, T, I)
 
@@ -401,11 +401,11 @@ CK_PR_CAS_S(8,  uint8_t,  "cmpxchgb")
 
 #define CK_PR_BT_S(K, S, T, I) CK_PR_BT(K, S, T, T, T, I)
 
-#define CK_PR_GENERATE(K)					\
-	CK_PR_BT(K, ptr, void, uint32_t, char, #K "l %2, %0")	\
-	CK_PR_BT_S(K, uint, unsigned int, #K "l %2, %0")	\
-	CK_PR_BT_S(K, int, int, #K "l %2, %0")			\
-	CK_PR_BT_S(K, 32, uint32_t, #K "l %2, %0")		\
+#define CK_PR_GENERATE(K)						\
+	CK_PR_BT(K, ptr, void, uint32_t, uint32_t, #K "l %2, %0")	\
+	CK_PR_BT_S(K, uint, unsigned int, #K "l %2, %0")		\
+	CK_PR_BT_S(K, int, int, #K "l %2, %0")				\
+	CK_PR_BT_S(K, 32, uint32_t, #K "l %2, %0")			\
 	CK_PR_BT_S(K, 16, uint16_t, #K "w %w2, %0")
 
 CK_PR_GENERATE(btc)
