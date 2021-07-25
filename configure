@@ -551,8 +551,8 @@ else
 fi
 
 if test "$USE_CC_BUILTINS"; then
-	CFLAGS="$CFLAGS -DCK_CC_BUILTINS"
-	PC_CFLAGS="-DCK_CC_BULITINS"
+	CFLAGS="$CFLAGS -DCK_USE_CC_BUILTINS=1"
+	PC_CFLAGS="-DCK_USE_CC_BUILTINS=1"
 fi
 
 # `which` on Solaris sucks
