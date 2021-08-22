@@ -735,7 +735,7 @@ elif test "$COMPILER" = "gcc" || test "$COMPILER" = "clang" || test "$COMPILER" 
 		fi
 	fi
 
-	CFLAGS="-D_XOPEN_SOURCE=600 -D_BSD_SOURCE -D_DEFAULT_SOURCE -std=gnu99 -pedantic -Wall -W -Wundef -Wendif-labels -Wshadow -Wpointer-arith -Wcast-align -Wcast-qual -Wwrite-strings -Wstrict-prototypes -Wmissing-prototypes -Wnested-externs -Winline -Wdisabled-optimization -fstrict-aliasing -O2 -pipe -Wno-parentheses $CFLAGS"
+	CFLAGS="-D_BSD_SOURCE -D_DEFAULT_SOURCE -std=gnu99 -pedantic -Wall -W -Wundef -Wendif-labels -Wshadow -Wpointer-arith -Wcast-align -Wcast-qual -Wwrite-strings -Wstrict-prototypes -Wmissing-prototypes -Wnested-externs -Winline -Wdisabled-optimization -fstrict-aliasing -O2 -pipe -Wno-parentheses $CFLAGS"
 	PTHREAD_CFLAGS="-pthread"
 	if test "$COMPILER" = "mingw64"; then
 		ENVIRONMENT=64
@@ -743,6 +743,9 @@ elif test "$COMPILER" = "gcc" || test "$COMPILER" = "clang" || test "$COMPILER" 
 	fi
 	if test "$SYSTEM" = "netbsd"; then
 		CFLAGS="$CFLAGS -D_NETBSD_SOURCE"
+	fi
+	if test "$SYSTEM" != "dragonflybsd"; then
+		CFLAGS="$CFLAGS -D_XOPEN_SOURCE=600"
 	fi
 else
 	assert "" "unknown compiler"

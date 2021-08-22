@@ -34,10 +34,14 @@
 #include <stdlib.h>
 #include <sys/time.h>
 
-#ifdef __linux__
+#if defined(__linux__) || defined(__DragonFly__)
 #include <sched.h>
 #include <sys/types.h>
 #include <sys/syscall.h>
+#if defined(__DragonFly__)
+#include <sys/sched.h>
+#include <pthread_np.h>
+#endif
 #elif defined(__MACH__)
 #include <mach/mach.h>
 #include <mach/thread_policy.h>
@@ -269,11 +273,15 @@ struct affinity {
 
 #define AFFINITY_INITIALIZER {0, 0}
 
-#ifdef __linux__
+#if defined(__linux__) || defined(__DragonFly__)
 static pid_t
 common_gettid(void)
 {
+#if defined(__linux__)
 	return syscall(__NR_gettid);
+#else
+	return pthread_getthreadid_np();
+#endif
 }
 
 CK_CC_UNUSED static int
