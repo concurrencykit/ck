@@ -424,6 +424,9 @@ case $PLATFORM in
 		LDFLAGS="-m64 $LDFLAGS"
 		;;
 	i386|i486|i586|i686|i586_i686|pentium*|athlon*|k5|k6|k6_2|k6_3)
+		if test "${SSE_DISABLE}" = "CK_MD_SSE_ENABLE"; then
+			CFLAGS="$CFLAGS -msse -msse2"
+		fi
 		LSE_ENABLE="CK_MD_LSE_DISABLE"
 		MM="${MM:-"CK_MD_TSO"}"
 		case $SYSTEM in
