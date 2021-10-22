@@ -45,7 +45,7 @@ struct ck_spinlock_anderson_thread {
 typedef struct ck_spinlock_anderson_thread ck_spinlock_anderson_thread_t;
 
 struct ck_spinlock_anderson {
-	struct ck_spinlock_anderson_thread *slots;
+	struct ck_spinlock_anderson_thread *slots_;
 	unsigned int count;
 	unsigned int wrap;
 	unsigned int mask;
@@ -56,19 +56,19 @@ typedef struct ck_spinlock_anderson ck_spinlock_anderson_t;
 
 CK_CC_INLINE static void
 ck_spinlock_anderson_init(struct ck_spinlock_anderson *lock,
-    struct ck_spinlock_anderson_thread *slots,
+    struct ck_spinlock_anderson_thread *slots_,
     unsigned int count)
 {
 	unsigned int i;
 
-	slots[0].locked = false;
-	slots[0].position = 0;
+	slots_[0].locked = false;
+	slots_[0].position = 0;
 	for (i = 1; i < count; i++) {
-		slots[i].locked = true;
-		slots[i].position = i;
+		slots_[i].locked = true;
+		slots_[i].position = i;
 	}
 
-	lock->slots = slots;
+	lock->slots_ = slots_;
 	lock->count = count;
 	lock->mask = count - 1;
 	lock->next = 0;
@@ -94,7 +94,7 @@ ck_spinlock_anderson_locked(struct ck_spinlock_anderson *lock)
 	bool r;
 
 	position = ck_pr_load_uint(&lock->next) & lock->mask;
-	r = ck_pr_load_uint(&lock->slots[position].locked);
+	r = ck_pr_load_uint(&lock->slots_[position].locked);
 	ck_pr_fence_acquire();
 	return r;
 }
@@ -135,14 +135,14 @@ ck_spinlock_anderson_lock(struct ck_spinlock_anderson *lock,
 	 * Spin until slot is marked as unlocked. First slot is initialized to
 	 * false.
 	 */
-	while (ck_pr_load_uint(&lock->slots[position].locked) == true)
+	while (ck_pr_load_uint(&lock->slots_[position].locked) == true)
 		ck_pr_stall();
 
 	/* Prepare slot for potential re-use by another thread. */
-	ck_pr_store_uint(&lock->slots[position].locked, true);
+	ck_pr_store_uint(&lock->slots_[position].locked, true);
 	ck_pr_fence_lock();
 
-	*slot = lock->slots + position;
+	*slot = lock->slots_ + position;
 	return;
 }
 
@@ -160,7 +160,7 @@ ck_spinlock_anderson_unlock(struct ck_spinlock_anderson *lock,
 	else
 		position = (slot->position + 1) % lock->count;
 
-	ck_pr_store_uint(&lock->slots[position].locked, false);
+	ck_pr_store_uint(&lock->slots_[position].locked, false);
 	return;
 }
 #endif /* CK_F_SPINLOCK_ANDERSON */
