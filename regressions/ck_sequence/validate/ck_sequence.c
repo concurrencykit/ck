@@ -124,7 +124,7 @@ main(int argc, char *argv[])
 
 	n_threads = atoi(argv[1]) - 1;
 	if (n_threads <= 0) {
-		ck_error("ERROR: Number of threads must be greater than 0\n");
+		return 0; /* nothing to do */
 	}
 
 	threads = malloc(sizeof(pthread_t) * n_threads);
