@@ -73,7 +73,7 @@ function(void)
 	ck_stack_entry_t *s;
 
 	record = malloc(sizeof *record);
-	ck_epoch_register(&epoch, record);
+	ck_epoch_register(&epoch, record, NULL);
 
 	/*
 	 * We are using an epoch section here to guarantee no

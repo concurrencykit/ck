@@ -89,7 +89,7 @@ function(void)
 	struct object *n;
 
 	record = malloc(sizeof *record);
-	ck_epoch_register(&epoch, record);
+	ck_epoch_register(&epoch, record, NULL);
 
 	n = malloc(sizeof *n);
 	if (n == NULL)
