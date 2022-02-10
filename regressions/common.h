@@ -320,13 +320,19 @@ aff_iterate(struct affinity *acb)
 {
 	thread_affinity_policy_data_t policy;
 	unsigned int c;
+	int err;
 
 	c = ck_pr_faa_uint(&acb->request, acb->delta) % CORES;
 	policy.affinity_tag = c;
-	return thread_policy_set(mach_thread_self(),
+	err = thread_policy_set(mach_thread_self(),
 				 THREAD_AFFINITY_POLICY,
 				 (thread_policy_t)&policy,
 				 THREAD_AFFINITY_POLICY_COUNT);
+	if (err == KERN_NOT_SUPPORTED)
+		return 0;
+	if (err != 0)
+		errno = EINVAL;
+	return err;
 }
 
 CK_CC_UNUSED static int
