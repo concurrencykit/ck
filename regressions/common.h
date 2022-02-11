@@ -43,6 +43,7 @@
 #include <pthread_np.h>
 #endif
 #elif defined(__MACH__)
+#include <errno.h>
 #include <mach/mach.h>
 #include <mach/thread_policy.h>
 #elif defined(__FreeBSD__)
