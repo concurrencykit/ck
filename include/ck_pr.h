@@ -64,6 +64,8 @@
 #include "gcc/arm/ck_pr.h"
 #elif defined(__aarch64__)
 #include "gcc/aarch64/ck_pr.h"
+#elif defined(__riscv) && __riscv_xlen == 64
+#include "gcc/riscv64/ck_pr.h"
 #elif !defined(__GNUC__)
 #error Your platform is unsupported
 #endif
