@@ -3,10 +3,16 @@ env:
   ARCH: amd64
 
 task:
-  freebsd_instance:
-    matrix:
-      image: freebsd-12-0-release-amd64
-      image: freebsd-11-2-release-amd64
+  matrix:
+   - name: freebsd12-amd64
+     freebsd_instance:
+       image_family: freebsd-12-3-snap
+   - name: freebsd13-amd64
+     freebsd_instance:
+       image_family: freebsd-13-1-snap
+   - name: freebsd14-amd64
+     freebsd_instance:
+       image_family: freebsd-14-0-snap
   script:
    - cc --version
    - export CFLAGS="-DITERATE=400 -DPAIRS_S=100 -DITERATIONS=24"
