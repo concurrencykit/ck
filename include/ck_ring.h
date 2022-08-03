@@ -282,7 +282,7 @@ _ck_ring_enqueue_reserve_mp(struct ck_ring *ring,
 				if (size != NULL)
 					*size = (producer - consumer) & mask;
 
-				return false;
+				return NULL;
 			}
 
 			producer = new_producer;
