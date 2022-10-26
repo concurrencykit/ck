@@ -68,7 +68,7 @@ NULL or (void *)UINTPTR_MAX will result in undefined behavior.
 .It CK_HT_MODE_DIRECT
 The hash table is meant to store key-value pointers where
 the key is of fixed width field compatible with the
-.Tn uintptr_t
+.Vt uintptr_t
 type. The key will be directly compared with other keys for
 equality. Entries of this hash table are expected to be interacted
 with using the
@@ -155,7 +155,7 @@ The behavior of
 is undefined if
 .Fa ht
 is not a pointer to a
-.Tn ck_ht_t
+.Vt ck_ht_t
 object.
 .El
 .Sh SEE ALSO

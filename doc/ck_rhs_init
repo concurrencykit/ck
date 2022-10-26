@@ -140,7 +140,7 @@ The behavior of
 is undefined if
 .Fa hs
 is not a pointer to a
-.Tn ck_rhs_t
+.Vt ck_rhs_t
 object.
 .El
 .Sh SEE ALSO

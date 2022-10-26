@@ -51,7 +51,7 @@ The behavior of
 is undefined if
 .Fa epoch
 is not a pointer to a
-.Tn ck_epoch_t
+.Vt ck_epoch_t
 object.
 .El
 .Sh SEE ALSO
