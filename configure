@@ -529,7 +529,7 @@ case $PLATFORM in
 	"riscv32"|"riscv")
 		RTM_ENABLE="CK_MD_RTM_DISABLE"
 		MM="${MM:-"CK_MD_RMO"}"
-		PLATFORM=riscv
+		PLATFORM=riscv32
 		ENVIRONMENT=32
 		;;
 	"riscv64")
