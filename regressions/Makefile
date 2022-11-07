@@ -18,7 +18,6 @@ DIR=array	\
     queue	\
     ring	\
     rwlock	\
-    swlock	\
     sequence	\
     spinlock	\
     stack	\
