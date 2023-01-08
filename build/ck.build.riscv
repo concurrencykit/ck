@@ -1,1 +1,1 @@
-CFLAGS+=-mabi=ilp32
+CFLAGS+=-mabi=ilp32d
