@@ -206,7 +206,7 @@ refcheck:
 
 install:
 	mkdir -p $(DESTDIR)/$(MANDIR)/man3 || exit
-	cp *$(GZIP_SUFFIX) $(DESTDIR)/$(MANDIR)/man3 || exit
+	cp -p *$(GZIP_SUFFIX) $(DESTDIR)/$(MANDIR)/man3 || exit
 
 uninstall:
 	for target in $(OBJECTS); do 			  \
