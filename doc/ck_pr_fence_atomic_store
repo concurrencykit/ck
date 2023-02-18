@@ -42,7 +42,7 @@ The
 .Fn ck_pr_fence_atomic_store
 function enforces the ordering of any
 atomic read-modify-write operations relative to
-any load operations following the function invocation. This function
+any store operations following the function invocation. This function
 always serve as an implicit compiler barrier. On
 architectures implementing CK_MD_TSO, this operation
 only serves as a compiler barrier and no fences

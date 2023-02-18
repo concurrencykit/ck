@@ -39,6 +39,7 @@ Concurrency Kit has specialized assembly for the following architectures:
  * `arm`
  * `ppc`
  * `ppc64`
+ * `riscv64`
  * `s390x`
  * `sparcv9+`
  * `x86`

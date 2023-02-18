@@ -502,6 +502,11 @@ rdtsc(void)
 
 	__asm __volatile__ ("mrs %0, cntvct_el0" : "=r" (r) : : "memory");
 	return r;
+#elif defined(__riscv) && __riscv_xlen == 64
+	uint64_t r;
+
+	__asm __volatile__("rdtime %0" : "=r" (r) :: "memory");
+	return r;
 #else
 	return 0;
 #endif
