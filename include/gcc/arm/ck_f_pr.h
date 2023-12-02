@@ -20,7 +20,7 @@
 #define CK_F_PR_CAS_16_VALUE
 #define CK_F_PR_CAS_32
 #define CK_F_PR_CAS_32_VALUE
-#if defined(__ARM_ARCH_7__) || defined(__ARM_ARCH_7A__)
+#if defined(__ARM_ARCH_7__) || defined(__ARM_ARCH_7A__) || defined(__ARM_ARCH_7VE__)
 #define CK_F_PR_CAS_64
 #define CK_F_PR_CAS_64_VALUE
 #define CK_F_PR_CAS_DOUBLE
@@ -33,7 +33,7 @@
 #define CK_F_PR_CAS_INT
 #define CK_F_PR_CAS_INT_VALUE
 #define CK_F_PR_CAS_PTR
-#if defined(__ARM_ARCH_7__) || defined(__ARM_ARCH_7A__)
+#if defined(__ARM_ARCH_7__) || defined(__ARM_ARCH_7A__) || defined(__ARM_ARCH_7VE__)
 #define CK_F_PR_CAS_PTR_2
 #define CK_F_PR_CAS_PTR_2_VALUE
 #endif
@@ -97,7 +97,7 @@
 #define CK_F_PR_INC_UINT
 #define CK_F_PR_LOAD_16
 #define CK_F_PR_LOAD_32
-#if defined(__ARM_ARCH_7__) || defined(__ARM_ARCH_7A__)
+#if defined(__ARM_ARCH_7__) || defined(__ARM_ARCH_7A__) || defined(__ARM_ARCH_7VE__)
 #define CK_F_PR_LOAD_64
 #define CK_F_PR_LOAD_DOUBLE
 #endif
@@ -134,7 +134,7 @@
 #define CK_F_PR_STALL
 #define CK_F_PR_STORE_16
 #define CK_F_PR_STORE_32
-#if defined(__ARM_ARCH_7__) || defined(__ARM_ARCH_7A__)
+#if defined(__ARM_ARCH_7__) || defined(__ARM_ARCH_7A__) || defined(__ARM_ARCH_7VE__)
 #define CK_F_PR_STORE_64
 #define CK_F_PR_STORE_DOUBLE
 #endif

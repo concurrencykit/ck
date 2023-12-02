@@ -54,7 +54,7 @@ ck_pr_stall(void)
 	return;
 }
 
-#if defined(__ARM_ARCH_7__) || defined(__ARM_ARCH_7A__)
+#if defined(__ARM_ARCH_7__) || defined(__ARM_ARCH_7A__) || defined(__ARM_ARCH_7VE__)
 #define CK_ISB __asm __volatile("isb" : : "r" (0) : "memory")
 #define CK_DMB __asm __volatile("dmb" : : "r" (0) : "memory")
 #define CK_DSB __asm __volatile("dsb" : : "r" (0) : "memory")
@@ -132,7 +132,7 @@ CK_PR_LOAD_S(char, char, "ldrb")
 #undef CK_PR_LOAD_S
 #undef CK_PR_LOAD
 
-#if defined(__ARM_ARCH_7__) || defined(__ARM_ARCH_7A__)
+#if defined(__ARM_ARCH_7__) || defined(__ARM_ARCH_7A__) || defined(__ARM_ARCH_7VE__)
 
 #define CK_PR_DOUBLE_LOAD(T, N) 		\
 CK_CC_INLINE static T				\
@@ -181,7 +181,7 @@ CK_PR_STORE_S(char, char, "strb")
 #undef CK_PR_STORE_S
 #undef CK_PR_STORE
 
-#if defined(__ARM_ARCH_7__) || defined(__ARM_ARCH_7A__)
+#if defined(__ARM_ARCH_7__) || defined(__ARM_ARCH_7A__) || defined(__ARM_ARCH_7VE__)
 
 #define CK_PR_DOUBLE_STORE(T, N)				\
 CK_CC_INLINE static void					\
