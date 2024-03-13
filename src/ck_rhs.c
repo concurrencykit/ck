@@ -915,6 +915,7 @@ ck_rhs_put_robin_hood(struct ck_rhs *hs,
 	void *key;
 	long prevs[CK_RHS_MAX_RH];
 	int prev_probes[CK_RHS_MAX_RH];
+	long last_slot = -1;
 	unsigned int prevs_nb = 0;
 	unsigned int i;
 
@@ -940,10 +941,12 @@ restart:
 			desc->in_rh = false;
 
 			for (i = 0; i < prevs_nb; i++) {
-
-				ck_rhs_set_probes(map, prevs[i], prev_probes[i]);
+				if (i > 0)
+					ck_rhs_set_probes(map, prevs[i], prev_probes[i - 1]);
 				ck_rhs_unset_rh(map, prevs[i]);
 			}
+			if (last_slot != -1)
+				ck_rhs_set_probes(map, last_slot, prev_probes[prevs_nb - 1]);
 
 			return -1;
 		}
@@ -954,6 +957,8 @@ restart:
 	if (first != -1) {
 		desc = ck_rhs_desc(map, first);
 		int old_probes = desc->probes;
+
+		last_slot = first;
 
 		desc->probes = n_probes;
 		h = ck_rhs_get_first_offset(map, first, n_probes);
