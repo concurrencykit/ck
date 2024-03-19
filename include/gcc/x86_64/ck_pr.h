@@ -223,7 +223,7 @@ ck_pr_load_ptr_2(const void *t, void *v)
 
 #define CK_PR_LOAD_2(S, W, T)							\
 	CK_CC_INLINE static void						\
-	ck_pr_md_load_##S##_##W(const T t[2], T v[2])				\
+	ck_pr_md_load_##S##_##W(const T t[W], T v[W]) 				\
 	{									\
 		ck_pr_load_64_2((const uint64_t *)(const void *)t,		\
 				(uint64_t *)(void *)v);				\
