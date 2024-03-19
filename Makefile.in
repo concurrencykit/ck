@@ -13,7 +13,7 @@ LDNAME=@LDNAME@
 LDNAME_VERSION=@LDNAME_VERSION@
 LDNAME_MAJOR=@LDNAME_MAJOR@
 
-all: doc
+all: @EXTRA_BUILD@
 	$(MAKE) -C src all || exit
 	@echo
 	@echo

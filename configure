@@ -41,6 +41,7 @@ PREFIX=${PREFIX:-"/usr/local"}
 LDNAME="libck.so"
 LDNAME_VERSION="libck.so.$VERSION"
 LDNAME_MAJOR="libck.so.$VERSION_MAJOR"
+EXTRA_BUILD='doc'
 
 OPTION_CHECKING=1
 
@@ -134,6 +135,7 @@ generate()
 	    -e "s#@LDNAME_VERSION@#$LDNAME_VERSION#g"		\
 	    -e "s#@PC_CFLAGS@#$PC_CFLAGS#g"			\
 	    -e "s#@GIT_SHA@#$GIT_SHA#g"			        \
+	    -e "s#@EXTRA_BUILD@#$EXTRA_BUILD#g"			\
 		$1 > $2
 }
 
@@ -158,10 +160,10 @@ generate_stdout()
 	echo "      LDNAME_MAJOR = $LDNAME_MAJOR"
 	echo "           LDFLAGS = $LDFLAGS"
 	echo "        STATIC_LIB = $DISABLE_STATIC"
+	echo "       EXTRA_BUILD = $EXTRA_BUILD"
 	echo "              GZIP = $GZIP"
 	echo "             CORES = $CORES"
 	echo "      POINTER_PACK = $POINTER_PACK_ENABLE"
-	echo "      PPC32_LWSYNC = $PPC32_LWSYNC_ENABLE"
 	echo "          VMA_BITS = $VMA_BITS"
 	echo "      MEMORY_MODEL = $MM"
 	echo "               RTM = $RTM_ENABLE"
