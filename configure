@@ -159,7 +159,7 @@ generate_stdout()
 	echo "      LDNAME_MAJOR = $LDNAME_MAJOR"
 	echo "           LDFLAGS = $LDFLAGS"
 	echo "        SHARED_LIB = `expr $DISABLE_SHARED = 0`"
-	echo "        STATIC_LIB = $DISABLE_STATIC"
+	echo "        STATIC_LIB = `expr $DISABLE_STATIC = 0`"
 	echo "              GZIP = $GZIP"
 	echo "             CORES = $CORES"
 	echo "      POINTER_PACK = $POINTER_PACK_ENABLE"
@@ -177,14 +177,14 @@ generate_stdout()
 
 for option; do
 	case "$option" in
-	*=?*)
+	--*=?*)
 		optname=`echo $option|cut -c 3-`
 		value=`expr "$optname" : '[^=]*=\(.*\)'`
 		;;
-	*=)
+	--*=)
 		value=
 		;;
-	*)
+	--*)
 		value=yes
 		;;
 	esac
@@ -322,8 +322,8 @@ for option; do
 		fi
 		;;
 	*=*)
-		optname=`echo $option|cut -c 3-`
-		NAME=`expr "$optname" : '\([^=]*\)='`
+		value=`echo $option|cut -d '=' -f 2-`
+		NAME=`expr "$option" : '\([^=]*\)='`
 		eval "$NAME='$value'"
 		export $NAME
 		;;
