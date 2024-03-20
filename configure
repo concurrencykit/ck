@@ -164,6 +164,7 @@ generate_stdout()
 	echo "              GZIP = $GZIP"
 	echo "             CORES = $CORES"
 	echo "      POINTER_PACK = $POINTER_PACK_ENABLE"
+	echo "      PPC32_LWSYNC = $PPC32_LWSYNC_ENABLE"
 	echo "          VMA_BITS = $VMA_BITS"
 	echo "      MEMORY_MODEL = $MM"
 	echo "               RTM = $RTM_ENABLE"
