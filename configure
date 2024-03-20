@@ -162,7 +162,7 @@ generate_stdout()
 	echo "           LDFLAGS = $LDFLAGS"
 	echo "        SHARED_LIB = `expr $DISABLE_SHARED = 0`"
 	echo "        STATIC_LIB = `expr $DISABLE_STATIC = 0`"
-  echo "       EXTRA_BUILD = $EXTRA_BUILD"
+	echo "       EXTRA_BUILD = $EXTRA_BUILD"
 	echo "              GZIP = $GZIP"
 	echo "             CORES = $CORES"
 	echo "      POINTER_PACK = $POINTER_PACK_ENABLE"
