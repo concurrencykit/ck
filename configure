@@ -882,22 +882,22 @@ PROFILE="${PROFILE:-$PLATFORM}"
 PLATFORM="__${PLATFORM}__"
 
 printf "Generating header files.........."
-generate include/ck_md.h.in include/ck_md.h
-generate include/freebsd/ck_md.h.in include/freebsd/ck_md.h
+mkdir -p $P_PWD/include
+mkdir -p $P_PWD/include/freebsd
+generate include/ck_md.h.in $P_PWD/include/ck_md.h
+generate include/freebsd/ck_md.h.in $P_PWD/include/freebsd/ck_md.h
 echo "success"
 
 printf "Generating build files..........."
 
 mkdir -p $P_PWD/doc
 mkdir -p $P_PWD/build
-mkdir -p $P_PWD/include
 mkdir -p $P_PWD/src
 
 if test "$P_PWD" '!=' "$BUILD_DIR"; then
 	mkdir -p $P_PWD/regressions
 	cp $BUILD_DIR/regressions/Makefile.unsupported $P_PWD/regressions/Makefile &> /dev/null
 	cp $BUILD_DIR/build/ck.build.$PROFILE $P_PWD/build/ck.build.$PROFILE &> /dev/null
-	cp $BUILD_DIR/include/ck_md.h $P_PWD/include/ck_md.h &> /dev/null
 fi
 
 generate src/Makefile.in $P_PWD/src/Makefile
