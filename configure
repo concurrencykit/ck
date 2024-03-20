@@ -120,6 +120,7 @@ generate()
 	    -e "s#@GZIP_SUFFIX@#$GZIP_SUFFIX#g"			\
 	    -e "s#@POINTER_PACK_ENABLE@#$POINTER_PACK_ENABLE#g"	\
 	    -e "s#@DISABLE_DOUBLE@#$DISABLE_DOUBLE#g"		\
+	    -e "s#@DISABLE_SHARED@#$DISABLE_SHARED#g"		\
 	    -e "s#@DISABLE_STATIC@#$DISABLE_STATIC#g"		\
 	    -e "s#@SSE_DISABLE@#$SSE_DISABLE#g"			\
 	    -e "s#@PPC32_LWSYNC_ENABLE@#$PPC32_LWSYNC_ENABLE#g"	\
@@ -159,8 +160,9 @@ generate_stdout()
 	echo "    LDNAME_VERSION = $LDNAME_VERSION"
 	echo "      LDNAME_MAJOR = $LDNAME_MAJOR"
 	echo "           LDFLAGS = $LDFLAGS"
-	echo "        STATIC_LIB = $DISABLE_STATIC"
-	echo "       EXTRA_BUILD = $EXTRA_BUILD"
+	echo "        SHARED_LIB = `expr $DISABLE_SHARED = 0`"
+	echo "        STATIC_LIB = `expr $DISABLE_STATIC = 0`"
+  echo "       EXTRA_BUILD = $EXTRA_BUILD"
 	echo "              GZIP = $GZIP"
 	echo "             CORES = $CORES"
 	echo "      POINTER_PACK = $POINTER_PACK_ENABLE"
@@ -178,14 +180,14 @@ generate_stdout()
 
 for option; do
 	case "$option" in
-	*=?*)
+	--*=?*)
 		optname=`echo $option|cut -c 3-`
 		value=`expr "$optname" : '[^=]*=\(.*\)'`
 		;;
-	*=)
+	--*=)
 		value=
 		;;
-	*)
+	--*)
 		value=yes
 		;;
 	esac
@@ -299,6 +301,9 @@ for option; do
 	--disable-double)
 		DISABLE_DOUBLE="CK_PR_DISABLE_DOUBLE"
 		;;
+	--disable-shared)
+		DISABLE_SHARED=1
+		;;
 	--disable-static)
 		DISABLE_STATIC=1
 		;;
@@ -308,7 +313,7 @@ for option; do
 	--build=*|--host=*|--target=*|--exec-prefix=*|--bindir=*|--sbindir=*|\
 	--sysconfdir=*|--datadir=*|--libexecdir=*|--localstatedir=*|\
 	--enable-static|\
-	--sharedstatedir=*|--infodir=*|--enable-shared|--disable-shared|\
+	--sharedstatedir=*|--infodir=*|--enable-shared|\
 	--cache-file=*|--srcdir=*)
 		# ignore for compat with regular configure
 		;;
@@ -320,8 +325,8 @@ for option; do
 		fi
 		;;
 	*=*)
-		optname=`echo $option|cut -c 3-`
-		NAME=`expr "$optname" : '\([^=]*\)='`
+		value=`echo $option|cut -d '=' -f 2-`
+		NAME=`expr "$option" : '\([^=]*\)='`
 		eval "$NAME='$value'"
 		export $NAME
 		;;
@@ -339,6 +344,7 @@ MANDIR=${MANDIR:-"${PREFIX}/share/man"}
 GZIP=${GZIP-"gzip -c"}
 POINTER_PACK_ENABLE=${POINTER_PACK_ENABLE:-"CK_MD_POINTER_PACK_DISABLE"}
 DISABLE_DOUBLE=${DISABLE_DOUBLE:-"CK_PR_ENABLE_DOUBLE"}
+DISABLE_SHARED=${DISABLE_SHARED:-"0"}
 DISABLE_STATIC=${DISABLE_STATIC:-"0"}
 PPC32_LWSYNC_ENABLE=${PPC32_LWSYNC_ENABLE:-"CK_MD_PPC32_LWSYNC_DISABLE"}
 RTM_ENABLE=${RTM_ENABLE_SET:-"CK_MD_RTM_DISABLE"}
@@ -734,9 +740,15 @@ elif test "$COMPILER" = "gcc" || test "$COMPILER" = "clang" || test "$COMPILER" 
 		LDFLAGS="$LDFLAGS -shared -fPIC"
 		CFLAGS="$CFLAGS -fPIC"
 
-		if [ "$DISABLE_STATIC" -eq 1 ]; then
+		if [ "$DISABLE_SHARED" -eq 1 ] && [ "$DISABLE_STATIC" -eq 1 ]; then
+			echo "Error: You have choosen to disable the shared lib, yet you also disabled the static lib." 1>&2
+			exit $EXIT_FAILURE
+		elif [ "$DISABLE_STATIC" -eq 1 ]; then
 			ALL_LIBS="libck.so"
 			INSTALL_LIBS="install-so"
+		elif [ "$DISABLE_SHARED" -eq 1 ]; then
+			ALL_LIBS="libck.a"
+			INSTALL_LIBS="install-lib"
 		else
 			ALL_LIBS="libck.so libck.a"
 			INSTALL_LIBS="install-so install-lib"
