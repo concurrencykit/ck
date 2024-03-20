@@ -157,7 +157,7 @@ generate_stdout()
 	echo "    LDNAME_VERSION = $LDNAME_VERSION"
 	echo "      LDNAME_MAJOR = $LDNAME_MAJOR"
 	echo "           LDFLAGS = $LDFLAGS"
-	echo "        STATIC_LIB = $DISABLE_STATIC"
+	echo "        STATIC_LIB = `expr $DISABLE_STATIC = 0`"
 	echo "              GZIP = $GZIP"
 	echo "             CORES = $CORES"
 	echo "      POINTER_PACK = $POINTER_PACK_ENABLE"
