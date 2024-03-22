@@ -32,7 +32,7 @@ EXIT_SUCCESS=0
 EXIT_FAILURE=1
 WANT_PIC=yes
 
-P_PWD=`pwd`
+BUILD_DIR=`pwd`
 MAINTAINER='sbahra@repnop.org'
 VERSION=${VERSION:-'0.7.1'}
 VERSION_MAJOR='0'
@@ -129,8 +129,8 @@ generate()
 	    -e "s#@VMA_BITS@#$VMA_BITS_R#g"			\
 	    -e "s#@VMA_BITS_VALUE@#$VMA_BITS_VALUE_R#g"		\
 	    -e "s#@MM@#$MM#g"					\
-	    -e "s#@BUILD_DIR@#$P_PWD#g"				\
-	    -e "s#@SRC_DIR@#$BUILD_DIR#g"			\
+	    -e "s#@BUILD_DIR@#$BUILD_DIR#g"			\
+	    -e "s#@SRC_DIR@#$SRC_DIR#g"				\
 	    -e "s#@LDNAME@#$LDNAME#g"				\
 	    -e "s#@LDNAME_MAJOR@#$LDNAME_MAJOR#g"		\
 	    -e "s#@LDNAME_VERSION@#$LDNAME_VERSION#g"		\
@@ -146,8 +146,8 @@ generate_stdout()
 	echo
 	echo "           VERSION = $VERSION"
 	echo "           GIT_SHA = $GIT_SHA"
-	echo "         BUILD_DIR = $P_PWD"
-	echo "           SRC_DIR = $BUILD_DIR"
+	echo "         BUILD_DIR = $BUILD_DIR"
+	echo "           SRC_DIR = $SRC_DIR"
 	echo "            SYSTEM = $SYSTEM"
 	echo "           PROFILE = $PROFILE"
 	echo "                AR = $AR"
@@ -607,13 +607,13 @@ fi
 if test -z "$DIRNAME"; then
 	echo "not found (out of source build unsupported)"
 else
-	printf "Determining build directory......"
+	printf "Determining source directory......"
 
-	BUILD_DIR=`$DIRNAME $0`
+	SRC_DIR=`$DIRNAME $0`
 	cd `$DIRNAME $0`
-	BUILD_DIR=`pwd`
+	SRC_DIR=`pwd`
 
-	echo "success [$BUILD_DIR]"
+	echo "success [$SRC_DIR]"
 fi
 
 if test -n "$GZIP"; then
@@ -882,31 +882,31 @@ PROFILE="${PROFILE:-$PLATFORM}"
 PLATFORM="__${PLATFORM}__"
 
 printf "Generating header files.........."
-mkdir -p $P_PWD/include
-mkdir -p $P_PWD/include/freebsd
-generate include/ck_md.h.in $P_PWD/include/ck_md.h
-generate include/freebsd/ck_md.h.in $P_PWD/include/freebsd/ck_md.h
+mkdir -p $BUILD_DIR/include
+mkdir -p $BUILD_DIR/include/freebsd
+generate include/ck_md.h.in $BUILD_DIR/include/ck_md.h
+generate include/freebsd/ck_md.h.in $BUILD_DIR/include/freebsd/ck_md.h
 echo "success"
 
 printf "Generating build files..........."
 
-mkdir -p $P_PWD/doc
-mkdir -p $P_PWD/build
-mkdir -p $P_PWD/src
+mkdir -p $BUILD_DIR/doc
+mkdir -p $BUILD_DIR/build
+mkdir -p $BUILD_DIR/src
 
-if test "$P_PWD" '!=' "$BUILD_DIR"; then
-	mkdir -p $P_PWD/regressions
-	cp $BUILD_DIR/regressions/Makefile.unsupported $P_PWD/regressions/Makefile &> /dev/null
-	cp $BUILD_DIR/build/ck.build.$PROFILE $P_PWD/build/ck.build.$PROFILE &> /dev/null
+if test "$BUILD_DIR" '!=' "$SRC_DIR"; then
+	mkdir -p $BUILD_DIR/regressions
+	cp $SRC_DIR/regressions/Makefile.unsupported $BUILD_DIR/regressions/Makefile &> /dev/null
+	cp $SRC_DIR/build/ck.build.$PROFILE $BUILD_DIR/build/ck.build.$PROFILE &> /dev/null
 fi
 
-generate src/Makefile.in $P_PWD/src/Makefile
-generate doc/Makefile.in $P_PWD/doc/Makefile
-generate build/ck.build.in $P_PWD/build/ck.build
-generate build/regressions.build.in $P_PWD/build/regressions.build
-generate build/ck.pc.in $P_PWD/build/ck.pc
-generate build/ck.spec.in $P_PWD/build/ck.spec
-generate Makefile.in $P_PWD/Makefile
+generate src/Makefile.in $BUILD_DIR/src/Makefile
+generate doc/Makefile.in $BUILD_DIR/doc/Makefile
+generate build/ck.build.in $BUILD_DIR/build/ck.build
+generate build/regressions.build.in $BUILD_DIR/build/regressions.build
+generate build/ck.pc.in $BUILD_DIR/build/ck.pc
+generate build/ck.spec.in $BUILD_DIR/build/ck.spec
+generate Makefile.in $BUILD_DIR/Makefile
 touch src/*.c
 echo "success"
 generate_stdout
