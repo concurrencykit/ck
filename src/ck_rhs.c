@@ -1145,7 +1145,7 @@ ck_rhs_apply(struct ck_rhs *hs,
     void *cl)
 {
 	const void *insert;
-	const void  *object, *delta = false;
+	const void  *object, *delta = NULL;
 	unsigned long n_probes;
 	long slot, first;
 	struct ck_rhs_map *map;
