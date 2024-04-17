@@ -1,20 +1,21 @@
 env:
   CIRRUS_CLONE_DEPTH: 1
-  ARCH: amd64
 
 task:
   matrix:
-   - name: freebsd12-amd64
-     freebsd_instance:
-       image_family: freebsd-12-3-snap
    - name: freebsd13-amd64
      freebsd_instance:
-       image_family: freebsd-13-1-snap
+       image_family: freebsd-13-3
    - name: freebsd14-amd64
      freebsd_instance:
-       image_family: freebsd-14-0-snap
+       image_family: freebsd-14-0
+   - name: linux-arm64
+     arm_container:
+       image: ubuntu:latest
+     setup_script: |
+       apt-get update
+       apt-get install -y gcc make
   script:
    - cc --version
-   - export CFLAGS="-DITERATE=400 -DPAIRS_S=100 -DITERATIONS=24"
-   - ./tools/ci-build.sh --cores=$(sysctl -n hw.ncpu)
+   - ./tools/ci-build.sh
    - make check

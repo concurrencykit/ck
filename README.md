@@ -1,18 +1,17 @@
 ### Continuous Integration
 
-| Drone | Travis | Cirrus |
-| -------- | ------ | ------- |
-| [![Build Status](https://cloud.drone.io/api/badges/concurrencykit/ck/status.svg)](https://cloud.drone.io/concurrencykit/ck) | [![Build Status](https://travis-ci.org/concurrencykit/ck.svg)](https://travis-ci.org/concurrencykit/ck) | [![Build Status](https://api.cirrus-ci.com/github/concurrencykit/ck.svg?branch=master)](https://cirrus-ci.com/github/concurrencykit/ck) |
+| GitHub Actions | Cirrus |
+| -------- | ------- |
+| [![Build Status](https://github.com/concurrencykit/ck/workflows/CI/badge.svg)](https://github.com/concurrencykit/ck/actions?query=workflow%3ACI+branch%3Amaster) | [![Build Status](https://api.cirrus-ci.com/github/concurrencykit/ck.svg?branch=master)](https://cirrus-ci.com/github/concurrencykit/ck) |
 
 Compilers tested in the past include gcc, clang, cygwin, icc, mingw32, mingw64 and suncc across all supported architectures. All new architectures are required to pass the integration test and under-go extensive code review.
 
 Continuous integration is currently enabled for the following targets:
- * `darwin/clang/x86-64`
+ * `darwin/clang/arm64`
  * `freebsd/clang/x86-64`
  * `linux/gcc/arm64`
  * `linux/gcc/x86-64`
  * `linux/clang/x86-64`
- * `linux/clang/ppc64le`
 
 ### Compile and Build
 

@@ -1,0 +1,30 @@
+name: CI
+on:
+  push:
+    branches: [master]
+    tags: ["*"]
+  pull_request:
+  workflow_dispatch:
+jobs:
+  test:
+    name: ${{ matrix.os }} - ${{ matrix.compiler }} - ${{ github.event_name }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-latest
+          - macos-latest
+        compiler:
+          - gcc
+          - clang
+        exclude:
+          - os: macos-latest
+            compiler: gcc
+    steps:
+      - uses: actions/checkout@v4
+      - run: ${{ matrix.compiler }} --version
+      - name: Build
+        run: ./tools/ci-build.sh CC=${{ matrix.compiler }}
+      - name: Test
+        run: make check
