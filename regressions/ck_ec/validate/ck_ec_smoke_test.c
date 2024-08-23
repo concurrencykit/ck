@@ -61,7 +61,7 @@ static void wait64(const struct ck_ec_wait_state *state,
 #if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
 	low_half = address;
 #elif __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
-	low_half = (uintptr_t)address + sizeof(uint32_t);
+	low_half = (void *)((uintptr_t)address + sizeof(uint32_t));
 #else
 # error "__BYTE_ORDER__ must be defined."
 #endif
@@ -90,7 +90,7 @@ static void wake64(const struct ck_ec_ops *ops, const uint64_t *address)
 #if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
 	low_half = address;
 #elif __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
-	low_half = (uintptr_t)address + sizeof(uint32_t);
+	low_half = (void *)((uintptr_t)address + sizeof(uint32_t));
 #else
 # error "__BYTE_ORDER__ must be defined."
 #endif
