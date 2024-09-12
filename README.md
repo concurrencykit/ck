@@ -1,3 +1,7 @@
+# Concurrrency Kit
+
+Modern concurrency primitives and building blocks for high performance applications.
+
 ### Continuous Integration
 
 | GitHub Actions | Cirrus |
