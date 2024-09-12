@@ -186,6 +186,10 @@ ck_hp_member_scan(ck_stack_entry_t *entry, unsigned int degree, void *pointer)
 	return (false);
 }
 
+/*
+ * This will cache as many pointers as possible in a supplied cache, where
+ * the limit is statically defined as CK_HP_CACHE pointers.
+ */
 CK_CC_INLINE static void *
 ck_hp_member_cache(struct ck_hp *global, void **cache, unsigned int *n_hazards)
 {
@@ -204,8 +208,12 @@ ck_hp_member_cache(struct ck_hp *global, void **cache, unsigned int *n_hazards)
 			continue;
 
 		for (i = 0; i < global->degree; i++) {
-			if (hazards > CK_HP_CACHE)
-				break;
+			/*
+			 * If our limit has been hit, return a cursor to the caller
+			 * for slow path linear walk.
+			 */
+			if (hazards >= CK_HP_CACHE)
+				goto leave;
 
 			pointer = ck_pr_load_ptr(&record->pointers[i]);
 			if (pointer != NULL)
@@ -213,6 +221,7 @@ ck_hp_member_cache(struct ck_hp *global, void **cache, unsigned int *n_hazards)
 		}
 	}
 
+leave:
 	*n_hazards = hazards;
 	return (entry);
 }
@@ -236,8 +245,15 @@ ck_hp_reclaim(struct ck_hp_record *thread)
 	qsort(cache, n_hazards, sizeof(void *), hazard_compare);
 
 	previous = NULL;
+
+	/*
+	 * Search every potential hazard in the thread-local list across
+	 * all other records.
+	 */
 	CK_STACK_FOREACH_SAFE(&thread->pending, entry, next) {
 		hazard = ck_hp_hazard_container(entry);
+
+		/* First, we will search the local cache. */
 		match = bsearch(&hazard->pointer, cache, n_hazards,
 				  sizeof(void *), hazard_compare);
 		if (match != NULL) {
@@ -245,6 +261,13 @@ ck_hp_reclaim(struct ck_hp_record *thread)
 			continue;
 		}
 
+		/*
+		 * And then finally, if we were unable to store all hazards
+		 * in the cache, we will have to resort to the slow path of
+		 * scanning remaining records.
+		 *
+		 * It is fine that there may be duplicates from the cache.
+		 */
 		if (marker != NULL &&
 		    ck_hp_member_scan(marker, global->degree, hazard->pointer)) {
 			previous = entry;
