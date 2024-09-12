@@ -17,5 +17,5 @@ task:
        apt-get install -y gcc make
   script:
    - cc --version
-   - ./tools/ci-build.sh
+   - ./tools/ci-build.sh --cores=2
    - make check
