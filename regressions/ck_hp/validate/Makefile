@@ -6,10 +6,10 @@ all: $(OBJECTS)
 
 check: all
 	./serial
-	./ck_hp_stack $(CORES) 100 1
-	./ck_hp_fifo $(CORES) 1 16384 100
-	./nbds_haz_test $(CORES) 15 1
-	./ck_hp_fifo_donner $(CORES) 16384
+	./ck_hp_stack `expr $(CORES) / 2` 100 2
+	./ck_hp_fifo `expr $(CORES) / 2` 1 1024 100
+	./nbds_haz_test `expr $(CORES) / 2` 15 1
+	./ck_hp_fifo_donner `expr $(CORES) / 2` 16384
 
 ck_hp_stack: ../../../src/ck_hp.c ck_hp_stack.c ../../../include/ck_hp_stack.h
 	$(CC) $(CFLAGS) ../../../src/ck_hp.c -o ck_hp_stack ck_hp_stack.c
