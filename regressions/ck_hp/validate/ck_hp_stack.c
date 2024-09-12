@@ -51,7 +51,7 @@ static unsigned int barrier;
 static unsigned int e_barrier;
 
 #ifndef PAIRS
-#define PAIRS 5000000
+#define PAIRS 500000
 #endif
 
 struct node {
