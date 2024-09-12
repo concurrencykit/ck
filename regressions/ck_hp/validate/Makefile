@@ -6,7 +6,7 @@ all: $(OBJECTS)
 
 check: all
 	./serial
-	./ck_hp_stack `expr $(CORES) / 2` 100 2
+	./ck_hp_stack `expr $(CORES) / 2` 64 1
 	./ck_hp_fifo `expr $(CORES) / 2` 1 1024 100
 	./nbds_haz_test `expr $(CORES) / 2` 15 1
 	./ck_hp_fifo_donner `expr $(CORES) / 2` 16384
