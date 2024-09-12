@@ -92,11 +92,25 @@ ck_hp_fifo_enqueue_mpmc(ck_hp_record_t *record,
 		if (tail != ck_pr_load_ptr(&fifo->tail))
 			continue;
 
+		/* Grab a snapshot of the node after the last. */
 		next = ck_pr_load_ptr(&tail->next);
+
+		/* Check for an intermittent update to avoid write traffic. */
+		if (tail != ck_pr_load_ptr(&fifo->tail))
+			continue;
+
+		/* The tail is out of date and requires forwarding. */
 		if (next != NULL) {
+			/*
+			 * Forward the tailer pointer if it is observed as not
+			 * being the last.
+			 */
 			ck_pr_cas_ptr(&fifo->tail, tail, next);
 			continue;
-		} else if (ck_pr_cas_ptr(&fifo->tail->next, next, entry) == true)
+		}
+
+		/* Update the tail next entry to the new node or try again. */
+		if (ck_pr_cas_ptr(&tail->next, NULL, entry) == true)
 			break;
 	}
 
@@ -126,7 +140,7 @@ ck_hp_fifo_tryenqueue_mpmc(ck_hp_record_t *record,
 	if (next != NULL) {
 		ck_pr_cas_ptr(&fifo->tail, tail, next);
 		return false;
-	} else if (ck_pr_cas_ptr(&fifo->tail->next, next, entry) == false)
+	} else if (ck_pr_cas_ptr(&tail->next, NULL, entry) == false)
 		return false;
 
 	ck_pr_fence_atomic();
@@ -143,24 +157,31 @@ ck_hp_fifo_dequeue_mpmc(ck_hp_record_t *record,
 
 	for (;;) {
 		head = ck_pr_load_ptr(&fifo->head);
-		ck_pr_fence_load();
-		tail = ck_pr_load_ptr(&fifo->tail);
 		ck_hp_set_fence(record, 0, head);
 		if (head != ck_pr_load_ptr(&fifo->head))
 			continue;
 
+		tail = ck_pr_load_ptr(&fifo->tail);
+		ck_pr_fence_load();
 		next = ck_pr_load_ptr(&head->next);
 		ck_hp_set_fence(record, 1, next);
+
 		if (head != ck_pr_load_ptr(&fifo->head))
 			continue;
 
-		if (head == tail) {
-			if (next == NULL)
-				return NULL;
+		if (next == NULL) {
+			/* Stale reference is fine. */
+			ck_hp_set(record, 0, NULL);
+			ck_hp_set(record, 1, NULL);
+			return NULL;
+		}
 
+		if (head == tail) {
 			ck_pr_cas_ptr(&fifo->tail, tail, next);
 			continue;
-		} else if (ck_pr_cas_ptr(&fifo->head, head, next) == true)
+		}
+
+		if (ck_pr_cas_ptr(&fifo->head, head, next) == true)
 			break;
 	}
 
