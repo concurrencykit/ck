@@ -24,7 +24,7 @@
 .\" SUCH DAMAGE.
 .\"
 .\"
-.Dd November 12, 2024
+.Dd November 16, 2024
 .Dt ck_pr_fence_acqrel 3
 .Sh NAME
 .Nm ck_pr_fence_acqrel
@@ -39,7 +39,8 @@ Concurrency Kit (libck, \-lck)
 .Fn ck_pr_fence_strict_acqrel void
 .Sh DESCRIPTION
 This function enforces the ordering of any memory aquire and release operations
-relative to the invocation of the function on both the subsequent and preceeding ends. This function effectively combines the 
+relative to the invocation of the function on both the subsequent and preceeding ends. Any read/write happening before 
+this fence cannot be reordered to after, and vice-versa. This function effectively combines the 
 invocations of an acquire and a release fence, normally called by two different threads, allowing for code simplicity.
 This function always serves as an implicit compiler barrier.
 On architectures with CK_MD_TSO or CK_MD_PSO specified (total store ordering
