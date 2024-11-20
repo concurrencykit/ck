@@ -36,22 +36,23 @@ Concurrency Kit (libck, \-lck)
 .Ft void
 .Fn ck_pr_fence_unlock void
 .Sh DESCRIPTION
-This function enforces the ordering of any memory operations preceding and related to
+This function enforces the ordering of any memory operations related to
 the release of a lock relative to the invocation of the function.
 Any realted operations (or operations in the critical section) that were performed prior to the invocation of
 .Fn ck_pr_fence_unlock
 will complete before any subsequent related operations.
-Because of this, 
-.Fn ck_pr_fence_unlock
-will require less overhead than a traditional full fence such as mfence
-as the compiler is still free to order around the specified operations.
 This function always serves as an implicit compiler barrier.
-On architectures with CK_MD_TSO or CK_MD_PSO specified (total store ordering
-and partial store ordering respectively), this operation only serves
-as a compiler barrier and no fence instructions will be emitted. To
-force the unconditional emission of a fence, use
+On architectures with CK_MD_TSO (total store ordering), this operation only serves
+as a compiler barrier and no fence instructions will be emitted.
+Architectures implementing CK_MD_PSO or CK_MD_RMO (partial store ordering and relaxed memory ordering respectively)
+always emit a fence.
+On SPARSv9 
+.Fn ck_pr_fence_unlock
+only enforces ordering on load-store and store-load, instead of the full range that 
+.Fn ck_pr_fence_lock
+does
+To force the unconditional emission of a fence, use
 .Fn ck_pr_fence_strict_unlock .
-Architectures implementing CK_MD_RMO always emit a fence.
 .Sh EXAMPLE
 .Bd -literal -offset indent
 

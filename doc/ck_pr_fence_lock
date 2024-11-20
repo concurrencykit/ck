@@ -36,22 +36,19 @@ Concurrency Kit (libck, \-lck)
 .Ft void
 .Fn ck_pr_fence_lock void
 .Sh DESCRIPTION
-This function enforces the ordering of any memory operations preceding and related to
-the acquisition of a lock relative to the invocation of the function.
+This function enforces the ordering of any memory operations
+relative to the invocation of the function.
 Any realted operations that were performed prior to the invocation of
 .Fn ck_pr_fence_lock
 will complete before any subsequent related operations inside the critical section.
-Because of this, 
-.Fn ck_pr_fence_lock
-will require less overhead than a traditional full fence such as mfence
-as the compiler is still free to order around the specified operations.
 This function always serves as an implicit compiler barrier.
-On architectures with CK_MD_TSO or CK_MD_PSO specified (total store ordering
-and partial store ordering respectively), this operation only serves
-as a compiler barrier and no fence instructions will be emitted. To
-force the unconditional emission of a fence, use
+On architectures with CK_MD_TSO (total store ordering), this operation only serves
+as a compiler barrier and no fence instructions will be emitted.
+Architectures implementing CK_MD_PSO or CK_MD_RMO (partial store ordering and relaxed memory ordering respectively)
+always emit a fence.
+On SPARCv9, lock enforces ordering of load-load, load-store, store-store, and store-load.
+To force the unconditional emission of a fence, use
 .Fn ck_pr_fence_strict_lock .
-Architectures implementing CK_MD_RMO always emit a fence.
 .Sh EXAMPLE
 .Bd -literal -offset indent
 
@@ -69,8 +66,8 @@ function(void)
     ck_spinlock_lock(&lock);   // Acquire the spinlock
 
     /*
-     * Inside the critical section. All stores to prior variables
-     * related to acquiring the lock are now visible.
+     * Inside the critical section. Operations preceeding the
+     * increment to shared_data are guaranteed to be visible
      */
     shared_data += 1;
 
