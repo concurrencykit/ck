@@ -24,7 +24,7 @@
 .\" SUCH DAMAGE.
 .\"
 .\"
-.Dd November 9, 2024
+.Dd November 24, 2024
 .Dt ck_pr_fence_lock 3
 .Sh NAME
 .Nm ck_pr_fence_lock
@@ -36,76 +36,36 @@ Concurrency Kit (libck, \-lck)
 .Ft void
 .Fn ck_pr_fence_lock void
 .Sh DESCRIPTION
-This function enforces the ordering of any memory operations
-relative to the invocation of the function.
-Any realted operations that were performed prior to the invocation of
-.Fn ck_pr_fence_lock
-will complete before any subsequent related operations inside the critical section.
-This function always serves as an implicit compiler barrier.
-On architectures with CK_MD_TSO (total store ordering), this operation only serves
-as a compiler barrier and no fence instructions will be emitted.
-Architectures implementing CK_MD_PSO or CK_MD_RMO (partial store ordering and relaxed memory ordering respectively)
-always emit a fence.
-On SPARCv9, lock enforces ordering of load-load, load-store, store-store, and store-load.
+This function serves as an optimization surrounding atomic lock operations.
+Atomic operations will enforce their own ordering and therefore 
+this function always serves as an implicit compiler barrier.
+On architectures with CK_MD_TSO (total store ordering),
+this operation only serves as a compiler barrier and no fence instructions 
+will be emitted. Architectures implementing CK_MD_PSO or CK_MD_RMO 
+(partial store ordering and relaxed memory ordering respectively)
+always emit a fence. On SPARCv9, 
+.Fn ck_pr_fence_lock 
+enforces ordering of load-load, load-store, store-store, and store-load. 
 To force the unconditional emission of a fence, use
 .Fn ck_pr_fence_strict_lock .
-.Sh EXAMPLE
-.Bd -literal -offset indent
 
-#include <ck_pr.h>
-#include <ck_spinlock.h>
-#include <stdio.h>
-
-static int shared_data = 0;
-ck_spinlock_t lock = CK_SPINLOCK_INITIALIZER;
-
-void
-function(void)
-{
-    ck_pr_fence_lock();
-    ck_spinlock_lock(&lock);   // Acquire the spinlock
-
-    /*
-     * Inside the critical section. Operations preceeding the
-     * increment to shared_data are guaranteed to be visible
-     */
-    shared_data += 1;
-
-    ck_spinlock_unlock(&lock); // Release the spinlock
-
-    return;
-}
-.Ed
 .Sh RETURN VALUES
 This function has no return value.
 .Sh SEE ALSO
-.Xr ck_pr_stall 3 ,
-.Xr ck_pr_fence_unlock 3 ,
+.Xr ck_pr_fence_acqrel 3 ,
+.Xr ck_pr_fence_acquire 3 ,
 .Xr ck_pr_fence_atomic 3 ,
-.Xr ck_pr_fence_atomic_store 3 ,
 .Xr ck_pr_fence_atomic_load 3 ,
+.Xr ck_pr_fence_atomic_store 3 ,
+.Xr ck_pr_fence_load 3 ,
 .Xr ck_pr_fence_load_atomic 3 ,
-.Xr ck_pr_fence_load_store 3 ,
 .Xr ck_pr_fence_load_depends 3 ,
-.Xr ck_pr_fence_store 3 ,
+.Xr ck_pr_fence_load_store 3 ,
 .Xr ck_pr_fence_memory 3 ,
-.Xr ck_pr_barrier 3 ,
-.Xr ck_pr_fas 3 ,
-.Xr ck_pr_load 3 ,
-.Xr ck_pr_store 3 ,
-.Xr ck_pr_faa 3 ,
-.Xr ck_pr_inc 3 ,
-.Xr ck_pr_dec 3 ,
-.Xr ck_pr_neg 3 ,
-.Xr ck_pr_not 3 ,
-.Xr ck_pr_add 3 ,
-.Xr ck_pr_sub 3 ,
-.Xr ck_pr_and 3 ,
-.Xr ck_pr_or 3 ,
-.Xr ck_pr_xor 3 ,
-.Xr ck_pr_cas 3 ,
-.Xr ck_pr_btc 3 ,
-.Xr ck_pr_bts 3 ,
-.Xr ck_pr_btr 3
+.Xr ck_pr_fence_release 3 ,
+.Xr ck_pr_fence_store 3 ,
+.Xr ck_pr_fence_store_atomic 3 ,
+.Xr ck_pr_fence_store_load 3 ,
+.Xr ck_pr_fence_unlock 3 
 .Pp
 Additional information available at http://concurrencykit.org/
