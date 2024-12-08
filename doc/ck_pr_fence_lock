@@ -36,9 +36,7 @@ Concurrency Kit (libck, \-lck)
 .Ft void
 .Fn ck_pr_fence_lock void
 .Sh DESCRIPTION
-This function serves as an optimization surrounding atomic lock operations.
-Atomic operations will enforce their own ordering and therefore 
-this function always serves as an implicit compiler barrier.
+This function serves as an implicit compiler barrier.
 On architectures with CK_MD_TSO (total store ordering),
 this operation only serves as a compiler barrier and no fence instructions 
 will be emitted. Architectures implementing CK_MD_PSO or CK_MD_RMO 
