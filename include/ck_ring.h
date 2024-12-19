@@ -346,7 +346,7 @@ _ck_ring_enqueue_mp(struct ck_ring *ring,
 			/*
 			 * Slow path.  Either the buffer is full or we have a
 			 * stale snapshot of p_head.  Execute a second read of
-			 * p_read that must be ordered wrt the snapshot of
+			 * p_head that must be ordered wrt the snapshot of
 			 * c_head.
 			 */
 			ck_pr_fence_load();
