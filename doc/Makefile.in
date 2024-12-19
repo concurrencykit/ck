@@ -142,6 +142,9 @@ OBJECTS=CK_ARRAY_FOREACH		\
 	ck_pr_fence_store		\
 	ck_pr_fence_store_atomic	\
 	ck_pr_fence_store_load		\
+	ck_pr_fence_lock		\
+	ck_pr_fence_unlock		\
+	ck_pr_fence_acqrel		\
 	ck_pr_stall			\
 	ck_pr_faa			\
 	ck_pr_inc			\
