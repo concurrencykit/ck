@@ -140,7 +140,7 @@ ck_pr_md_load_##N(const T *target)		\
 {						\
 	register T ret;				\
 						\
-	__asm __volatile("ldrexd %0, [%1]" 	\
+	__asm __volatile("ldrexd %0, %H0, [%1]"	\
 	    : "=&r" (ret)			\
 	    : "r" (target)			\
 	    : "memory", "cc");			\
@@ -190,8 +190,8 @@ ck_pr_md_store_##N(const T *target, T value)			\
 	T tmp;							\
 	uint32_t flag;						\
 	__asm __volatile("1: 		\n"			\
-	    		 "ldrexd	%0, [%2]\n"		\
-			 "strexd	%1, %3, [%2]\n"		\
+			 "ldrexd	%0, %H0, [%2]\n"	\
+			 "strexd	%1, %3, %H3, [%2]\n"	\
 			 "teq		%1, #0\n"		\
 			 "it ne		\n"			\
 			 "bne		1b\n"			\
@@ -215,11 +215,11 @@ ck_pr_cas_##N##_value(T *target, T compare, T set, T *value)	\
         int tmp;						\
 								\
 	__asm__ __volatile__("1:"				\
-			     "ldrexd %0, [%4];"			\
+			     "ldrexd %0, %H0, [%4];"		\
 			     "cmp    %Q0, %Q2;"			\
 			     "ittt eq;"				\
 			     "cmpeq  %R0, %R2;"			\
-			     "strexdeq %1, %3, [%4];"		\
+			     "strexdeq %1, %3, %H3, [%4];"	\
 			     "cmpeq  %1, #1;"			\
 			     "beq 1b;"				\
 				:"=&r" (previous), "=&r" (tmp)	\
@@ -260,11 +260,11 @@ ck_pr_cas_##N(T *target, T compare, T set)	\
 						\
 	__asm__ __volatile__("1:"		\
 			     "mov %0, #0;"	\
-			     "ldrexd %1, [%4];"	\
+			     "ldrexd %1, %H1, [%4];" \
 			     "cmp    %Q1, %Q2;"	\
 			     "itttt eq;"	\
 			     "cmpeq  %R1, %R2;"	\
-			     "strexdeq %1, %3, [%4];" \
+			     "strexdeq %1, %3, %H3, [%4];" \
 			     "moveq %0, #1;"	\
 			     "cmpeq  %1, #1;"	\
 			     "beq 1b;"		\
