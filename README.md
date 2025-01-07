@@ -1,4 +1,4 @@
-# Concurrrency Kit
+# Concurrency Kit
 
 Modern concurrency primitives and building blocks for high performance applications.
 
