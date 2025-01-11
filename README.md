@@ -22,12 +22,12 @@ Continuous integration is currently enabled for the following targets:
 ### Compile and Build
 
 * Step 1.
-        `./configure`
-        For additional options try `./configure --help`
+   `./configure`
+   For additional options try `./configure --help`
 
 * Step 2.
-        In order to compile regressions (requires POSIX threads) use
-        `make regressions`. In order to compile libck use `make all` or `make`.
+   In order to compile regressions (requires POSIX threads) use
+   `make regressions`. In order to compile libck use `make all` or `make`.
 
 * Step 3.
 	In order to install use `make install`
