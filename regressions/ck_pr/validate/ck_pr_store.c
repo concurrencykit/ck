@@ -67,7 +67,8 @@
 	{									\
 		uint##m##_t f = 0;						\
 		uint##w##_t j = (uint##w##_t)-1;				\
-		ck_pr_store_##w((uint##w##_t *)(void *)&f, j);			\
+		void *f_p = &f;							\
+		ck_pr_store_##w((uint##w##_t *)f_p, j);				\
 		if (f != j) {							\
 			printf("FAIL [%#" PRIx##m " != %#" PRIx##w "]\n", f, j);\
 			exit(EXIT_FAILURE);					\
