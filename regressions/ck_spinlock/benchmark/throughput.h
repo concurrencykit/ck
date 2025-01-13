@@ -200,7 +200,7 @@ main(int argc, char *argv[])
 	fprintf(stderr, "done\n\n");
 
 	for (i = 0, v = 0; i < nthr; i++) {
-		printf("%d %15" PRIu64 "\n", i, count[i].value);
+		printf("%.2d %15" PRIu64 "\n", i, count[i].value);
 		v += count[i].value;
 	}
 
