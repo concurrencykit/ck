@@ -10,6 +10,7 @@ OBJECTS=ck_ticket.THROUGHPUT ck_ticket.LATENCY			\
 	ck_ticket_pb.THROUGHPUT ck_ticket_pb.LATENCY		\
 	ck_anderson.THROUGHPUT ck_anderson.LATENCY		\
 	ck_spinlock.THROUGHPUT ck_spinlock.LATENCY		\
+	pthread.THROUGHPUT pthread.LATENCY			\
 	ck_hclh.THROUGHPUT ck_hclh.LATENCY
 
 all: $(OBJECTS)
@@ -79,6 +80,12 @@ ck_anderson.THROUGHPUT: ck_anderson.c
 
 ck_anderson.LATENCY: ck_anderson.c
 	$(CC) -DLATENCY $(CFLAGS) -o ck_anderson.LATENCY ck_anderson.c -lm
+
+pthread.THROUGHPUT: pthread.c
+	$(CC) -DTHROUGHPUT $(CFLAGS) -o pthread.THROUGHPUT pthread.c -lm
+
+pthread.LATENCY: pthread.c
+	$(CC) -DLATENCY $(CFLAGS) -o pthread.LATENCY pthread.c -lm
 
 clean:
 	rm -rf *.dSYM *.exe $(OBJECTS)
