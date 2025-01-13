@@ -158,8 +158,8 @@ _ck_ring_enqueue_reserve_sp(struct ck_ring *ring,
 }
 
 /*
- * This is to be called to commit and make visible a region of previously
- * reserved with reverse_sp.
+ * This is commits and makes visible (to dequeue) a region previously reserved
+ * with reserve_sp.
  */
 CK_CC_FORCE_INLINE static void
 _ck_ring_enqueue_commit_sp(struct ck_ring *ring)
