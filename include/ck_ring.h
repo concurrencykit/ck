@@ -158,7 +158,7 @@ _ck_ring_enqueue_reserve_sp(struct ck_ring *ring,
 }
 
 /*
- * This is commits and makes visible (to dequeue) a region previously reserved
+ * This commits and makes visible (to dequeue) a region previously reserved
  * with reserve_sp.
  */
 CK_CC_FORCE_INLINE static void
