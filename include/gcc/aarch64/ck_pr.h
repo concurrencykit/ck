@@ -194,7 +194,7 @@ CK_PR_STORE_S_64(double, double, "str")
         {							\
                 T previous = 0;					\
                 T tmp = 0;					\
-                __asm__ __volatile__("1:"			\
+                __asm__ __volatile__("1:\n"			\
                                      "ldxr" W " %" R "0, [%2]\n"\
                                      "neg %" R "0, %" R "0\n"	\
                                      "stxr" W " %w1, %" R "0, [%2]\n"	\
