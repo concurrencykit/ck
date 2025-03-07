@@ -182,7 +182,7 @@ CK_PR_STORE_S(double, double, "sd")
 	{								\
 		T previous;						\
 		int tmp;						\
-		__asm__ __volatile__("1:"				\
+		__asm__ __volatile__("1:\n"				\
 				     "li %[tmp], 1\n"			\
 				     "lr." W " %[p], %[t]\n"		\
 				     "bne %[p], %[c], 2f\n"		\
@@ -203,7 +203,7 @@ CK_PR_STORE_S(double, double, "sd")
 	{								\
 		T previous;						\
 		int tmp;						\
-		__asm__ __volatile__("1:"				\
+		__asm__ __volatile__("1:\n"				\
 				     "li %[tmp], 1\n"			\
 				     "lr." W " %[p], %[t]\n"		\
 				     "bne %[p], %[c], 2f\n"		\
@@ -413,7 +413,7 @@ CK_PR_DEC_S(int, int, "w")
 	CK_CC_INLINE static void					\
 	ck_pr_neg_##N(M *target)					\
 	{								\
-		__asm__ __volatile__("1:"				\
+		__asm__ __volatile__("1:\n"				\
 				     "lr." W " t0, %0\n"		\
 				     "sub t0, zero, t0\n"		\
 				     "sc." W " t1, t0, %0\n"		\
@@ -440,7 +440,7 @@ CK_PR_NEG_S(int, int, "w")
 	CK_CC_INLINE static void					\
 	ck_pr_not_##N(M *target)					\
 	{								\
-		__asm__ __volatile__("1:"				\
+		__asm__ __volatile__("1:\n"				\
 				     "lr." W " t0, %0\n"		\
 				     "not t0, t0\n"			\
 				     "sc." W " t1, t0, %0\n"		\

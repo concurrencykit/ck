@@ -37,7 +37,7 @@ ck_pr_cas_64_2_value(uint64_t target[2], uint64_t compare[2], uint64_t set[2], u
 {
         uint64_t tmp1, tmp2;
 
-        __asm__ __volatile__("1:"
+        __asm__ __volatile__("1:\n"
                              "ldxp %0, %1, [%4]\n"
                              "mov %2, %0\n"
                              "mov %3, %1\n"
@@ -71,7 +71,7 @@ ck_pr_cas_64_2(uint64_t target[2], uint64_t compare[2], uint64_t set[2])
 {
         uint64_t tmp1, tmp2;
 
-        __asm__ __volatile__("1:"
+        __asm__ __volatile__("1:\n"
                              "ldxp %0, %1, [%2]\n"
                              "eor %0, %0, %3\n"
                              "eor %1, %1, %4\n"
@@ -125,7 +125,7 @@ ck_pr_cas_ptr_2(void *target, void *compare, void *set)
                 T previous;						\
                 T tmp;							\
                 __asm__ __volatile__(					\
-                                     "1:"				\
+                                     "1:\n"				\
                                      "ldxr" W " %" R "0, [%2]\n"	\
                                      "cmp  %" R "0, %" R "4\n"		\
                                      "b.ne 2f\n"			\
@@ -166,7 +166,7 @@ CK_PR_CAS_S(char, char, "b", "w")
         {							\
                 T previous;					\
                 T tmp;						\
-                __asm__ __volatile__("1:"			\
+                __asm__ __volatile__("1:\n"			\
                                      "ldxr" W " %" R "0, [%2]\n"\
                                      "stxr" W " %w1, %" R "3, [%2]\n"\
                                      "cbnz %w1, 1b\n"		\
@@ -197,7 +197,7 @@ CK_PR_FAS(char, char, char, "b", "w")
         {							\
                 T previous = 0;					\
                 T tmp = 0;					\
-                __asm__ __volatile__("1:"			\
+                __asm__ __volatile__("1:\n"			\
                                      "ldxr" W " %" R "0, [%2]\n"\
                                       I "\n"			\
                                      "stxr" W " %w1, %" R "0, [%2]\n"	\
@@ -238,7 +238,7 @@ CK_PR_UNARY_S(char, char, "b")
         {							\
                 T previous;					\
                 T tmp;						\
-                __asm__ __volatile__("1:"			\
+                __asm__ __volatile__("1:\n"			\
                                      "ldxr" W " %" R "0, [%2]\n"\
                                       I " %" R "0, %" R "0, %" R "3\n"	\
                                      "stxr" W " %w1, %" R "0, [%2]\n"	\
@@ -285,7 +285,7 @@ ck_pr_faa_ptr(void *target, uintptr_t delta)
 {
         uintptr_t previous, r, tmp;
 
-        __asm__ __volatile__("1:"
+        __asm__ __volatile__("1:\n"
                              "ldxr %0, [%3]\n"
                              "add %1, %4, %0\n"
                              "stxr %w2, %1, [%3]\n"
@@ -305,7 +305,7 @@ ck_pr_faa_64(uint64_t *target, uint64_t delta)
 {
         uint64_t previous, r, tmp;
 
-        __asm__ __volatile__("1:"
+        __asm__ __volatile__("1:\n"
                              "ldxr %0, [%3]\n"
                              "add %1, %4, %0\n"
                              "stxr %w2, %1, [%3]\n"
@@ -325,7 +325,7 @@ ck_pr_faa_64(uint64_t *target, uint64_t delta)
         ck_pr_faa_##S(T *target, T delta)				\
         {								\
                 T previous, r, tmp;					\
-                __asm__ __volatile__("1:"				\
+                __asm__ __volatile__("1:\n"				\
                                      "ldxr" W " %w0, [%3]\n"		\
                                      "add %w1, %w4, %w0\n"		\
                                      "stxr" W " %w2, %w1, [%3]\n"	\
