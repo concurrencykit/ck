@@ -1,0 +1,1 @@
+CFLAGS+=-mabi=lp64d
