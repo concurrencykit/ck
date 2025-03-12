@@ -1,4 +1,7 @@
-.PHONY: all check clean dist distclean doc install install-headers regressions uninstall
+.PHONY: all check clean dist distclean doc install install-headers regressions uninstall install-dll
+
+# Path joining function to avoid double-slash issues with empty DESTDIR on mingw shell
+joinpath = $(strip $(1))$(if $(2),/$(patsubst /%,%,$(2)),)
 
 BUILD_DIR=@BUILD_DIR@
 SRC_DIR=@SRC_DIR@
@@ -6,12 +9,19 @@ CFLAGS=@CFLAGS@
 VERSION=@VERSION@
 VERSION_MAJOR=@VERSION_MAJOR@
 PREFIX=@PREFIX@
+DLL=@DLL@
 LIBRARY=@LIBRARY@
 HEADERS=@HEADERS@
 PKGCONFIG_DATA=@LIBRARY@/pkgconfig
 LDNAME=@LDNAME@
 LDNAME_VERSION=@LDNAME_VERSION@
 LDNAME_MAJOR=@LDNAME_MAJOR@
+
+# Pre-compute destination paths to avoid repeated function calls
+DEST_HEADERS = $(call joinpath,$(DESTDIR),$(HEADERS))
+DEST_LIBRARY = $(call joinpath,$(DESTDIR),$(LIBRARY))
+DEST_DLL = $(call joinpath,$(DESTDIR),$(DLL))
+DEST_PKGCONFIG = $(call joinpath,$(DESTDIR),$(PKGCONFIG_DATA))
 
 all: @EXTRA_BUILD@
 	$(MAKE) -C src all || exit
@@ -33,55 +43,65 @@ check: regressions
 	@echo ---[ Unit tests have completed successfully.
 
 install-headers:
-	mkdir -p $(DESTDIR)/$(HEADERS) || exit
-	cp -p $(SRC_DIR)/include/*.h $(DESTDIR)/$(HEADERS) || exit
-	chmod 644 $(DESTDIR)/$(HEADERS)/ck_*.h || exit
-	mkdir -p $(DESTDIR)/$(HEADERS)/gcc || exit
-	cp -r $(SRC_DIR)/include/gcc/* $(DESTDIR)/$(HEADERS)/gcc || exit
-	cp -p include/ck_md.h $(DESTDIR)/$(HEADERS)/ck_md.h || exit
-	chmod 755 $(DESTDIR)/$(HEADERS)/gcc
-	chmod 644 $(DESTDIR)/$(HEADERS)/gcc/ck_*.h $(DESTDIR)/$(HEADERS)/gcc/*/ck_*.h || exit
-	mkdir -p $(DESTDIR)/$(HEADERS)/spinlock || exit
-	cp -pr $(SRC_DIR)/include/spinlock/* $(DESTDIR)/$(HEADERS)/spinlock || exit
-	chmod 755 $(DESTDIR)/$(HEADERS)/spinlock
-	chmod 644 $(DESTDIR)/$(HEADERS)/spinlock/*.h || exit
+	mkdir -p $(DEST_HEADERS) || exit
+	cp -p $(SRC_DIR)/include/*.h $(DEST_HEADERS) || exit
+	chmod 644 $(DEST_HEADERS)/ck_*.h || exit
+	mkdir -p $(DEST_HEADERS)/gcc || exit
+	cp -r $(SRC_DIR)/include/gcc/* $(DEST_HEADERS)/gcc || exit
+	cp -p include/ck_md.h $(DEST_HEADERS)/ck_md.h || exit
+	chmod 755 $(DEST_HEADERS)/gcc
+	chmod 644 $(DEST_HEADERS)/gcc/ck_*.h $(DEST_HEADERS)/gcc/*/ck_*.h || exit
+	mkdir -p $(DEST_HEADERS)/spinlock || exit
+	cp -pr $(SRC_DIR)/include/spinlock/* $(DEST_HEADERS)/spinlock || exit
+	chmod 755 $(DEST_HEADERS)/spinlock
+	chmod 644 $(DEST_HEADERS)/spinlock/*.h || exit
+
+# Add install-dll target for MinGW builds
+install-dll:
+	mkdir -p $(DEST_DLL)
+	mkdir -p $(DEST_LIBRARY)
+	cp src/libck.dll $(DEST_DLL)/libck.dll
+	cp src/libck.dll.a $(DEST_LIBRARY)/libck.dll.a
+	chmod 755 $(DEST_DLL)/libck.dll
 
 install-so:
-	mkdir -p $(DESTDIR)/$(LIBRARY)
-	cp src/libck.so $(DESTDIR)/$(LIBRARY)/$(LDNAME_VERSION)
-	ln -sf $(LDNAME_VERSION) $(DESTDIR)/$(LIBRARY)/$(LDNAME)
-	ln -sf $(LDNAME_VERSION) $(DESTDIR)/$(LIBRARY)/$(LDNAME_MAJOR)
-	chmod 755 $(DESTDIR)/$(LIBRARY)/$(LDNAME_VERSION)	\
-		  $(DESTDIR)/$(LIBRARY)/$(LDNAME)		\
-		  $(DESTDIR)/$(LIBRARY)/$(LDNAME_MAJOR)
+	mkdir -p $(DEST_LIBRARY)
+	cp src/libck.so $(DEST_LIBRARY)/$(LDNAME_VERSION)
+	ln -sf $(LDNAME_VERSION) $(DEST_LIBRARY)/$(LDNAME)
+	ln -sf $(LDNAME_VERSION) $(DEST_LIBRARY)/$(LDNAME_MAJOR)
+	chmod 755 $(DEST_LIBRARY)/$(LDNAME_VERSION) \
+		  $(DEST_LIBRARY)/$(LDNAME) \
+		  $(DEST_LIBRARY)/$(LDNAME_MAJOR)
 
 install-lib:
-	mkdir -p $(DESTDIR)/$(LIBRARY)
-	cp src/libck.a $(DESTDIR)/$(LIBRARY)/libck.a
-	chmod 644 $(DESTDIR)/$(LIBRARY)/libck.a
+	mkdir -p $(DEST_LIBRARY)
+	cp src/libck.a $(DEST_LIBRARY)/libck.a
+	chmod 644 $(DEST_LIBRARY)/libck.a
 
 install: all install-headers @INSTALL_LIBS@
 	$(MAKE) -C doc install
-	mkdir -p $(DESTDIR)/$(LIBRARY) || exit
-	mkdir -p $(DESTDIR)/$(PKGCONFIG_DATA) || exit
-	chmod 755 $(DESTDIR)/$(PKGCONFIG_DATA)
-	cp -p build/ck.pc $(DESTDIR)/$(PKGCONFIG_DATA)/ck.pc || exit
+	mkdir -p $(DEST_LIBRARY) || exit
+	mkdir -p $(DEST_PKGCONFIG) || exit
+	chmod 755 $(DEST_PKGCONFIG)
+	cp -p build/ck.pc $(DEST_PKGCONFIG)/ck.pc || exit
 	@echo
 	@echo
 	@echo ---[ Concurrency Kit has installed successfully.
 
 uninstall:
 	$(MAKE) -C doc uninstall
-	rm -f $(DESTDIR)/$(LIBRARY)/$(LDNAME_VERSION)	\
-	      $(DESTDIR)/$(LIBRARY)/$(LDNAME)		\
-	      $(DESTDIR)/$(LIBRARY)/$(LDNAME_MAJOR)
-	rm -f $(DESTDIR)/$(LIBRARY)/libck.so*
-	rm -f $(DESTDIR)/$(LIBRARY)/libck.a
-	rm -f $(DESTDIR)/$(HEADERS)/ck_*.h
-	rm -f $(DESTDIR)/$(HEADERS)/spinlock/*.h
-	rm -f $(DESTDIR)/$(HEADERS)/gcc/ck_*.h
-	rm -f $(DESTDIR)/$(HEADERS)/gcc/*/ck_*.h
-	rm -f $(DESTDIR)/$(PKGCONFIG_DATA)/ck.pc
+	rm -f $(DEST_LIBRARY)/$(LDNAME_VERSION) \
+		  $(DEST_LIBRARY)/$(LDNAME) \
+		  $(DEST_LIBRARY)/$(LDNAME_MAJOR)
+	rm -f $(DEST_LIBRARY)/libck.so*
+	rm -f $(DEST_DLL)/libck.dll
+	rm -f $(DEST_LIBRARY)/libck.dll.a
+	rm -f $(DEST_LIBRARY)/libck.a
+	rm -f $(DEST_HEADERS)/ck_*.h
+	rm -f $(DEST_HEADERS)/spinlock/*.h
+	rm -f $(DEST_HEADERS)/gcc/ck_*.h
+	rm -f $(DEST_HEADERS)/gcc/*/ck_*.h
+	rm -f $(DEST_PKGCONFIG)/ck.pc
 
 clean:
 	$(MAKE) -C doc clean
@@ -100,4 +120,3 @@ distclean: clean
 	rm -f $(BUILD_DIR)/build/ck.pc
 	rm -f $(BUILD_DIR)/Makefile
 	rm -f $(BUILD_DIR)/doc/Makefile
-

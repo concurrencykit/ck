@@ -43,6 +43,32 @@ LDNAME_VERSION="libck.so.$VERSION"
 LDNAME_MAJOR="libck.so.$VERSION_MAJOR"
 EXTRA_BUILD='doc'
 
+# Detect MSYS2 environment
+MSYS2_ENV=""
+if [ -n "$MSYSTEM" ]; then
+    MSYS2_ENV="$MSYSTEM"
+    echo "Detected MSYS2 environment: $MSYSTEM"
+    
+    # Get the MSYS2 installation prefix
+    case "$MSYSTEM" in
+        UCRT64)
+            MSYS_PREFIX="/ucrt64"
+            ;;
+        CLANG64)
+            MSYS_PREFIX="/clang64"
+            ;;
+        MINGW64)
+            MSYS_PREFIX="/mingw64"
+            ;;
+        MINGW32)
+            MSYS_PREFIX="/mingw32"
+            ;;
+        *)
+            MSYS_PREFIX="/usr"
+            ;;
+    esac
+fi
+
 OPTION_CHECKING=1
 
 export CFLAGS
@@ -108,6 +134,7 @@ generate()
  	    -e "s#@CFLAGS@#$CFLAGS#g"				\
  	    -e "s#@HEADERS@#$HEADERS#g"				\
 	    -e "s#@LIBRARY@#$LIBRARY#g"				\
+		-e "s#@DLL@#$DLL#g" \
 	    -e "s#@PREFIX@#$PREFIX#g"				\
 	    -e "s#@CORES@#$CORES#g"				\
 	    -e "s#@ALL_LIBS@#$ALL_LIBS#g"			\
@@ -728,61 +755,109 @@ if test "$COMPILER" = "suncc"; then
 	LDFLAGS="-G -z text -h libck.so.$VERSION_MAJOR $LDFLAGS"
 	CFLAGS="-xO5 $CFLAGS"
 	PTHREAD_CFLAGS="-mt -lpthread"
-elif test "$COMPILER" = "gcc" || test "$COMPILER" = "clang" || test "$COMPILER" = "mingw32" || test "$COMPILER" = "mingw64"; then
-	LD=$CC
-	SONAME="$LDNAME_MAJOR"
-	if test "$SYSTEM" = "darwin"; then
-		CC_WL_OPT="-install_name"
-		LDNAME="libck.dylib"
-		LDNAME_VERSION="libck.$VERSION.dylib"
-		LDNAME_MAJOR="libck.$VERSION_MAJOR.dylib"
-		SONAME="$LIBRARY/$LDNAME_MAJOR"
-	else
-		CC_WL_OPT="-soname"
-	fi
+elif test "$COMPILER" = "mingw32" || test "$COMPILER" = "mingw64"; then
+    
+    LD=$CC
+    LDNAME="libck.dll" 
+    LDNAME_VERSION="libck.dll"
+    LDNAME_MAJOR="libck.dll"
 
-	LDFLAGS="-Wl,$CC_WL_OPT,$SONAME $LDFLAGS"
-	if test "$WANT_PIC" = "yes"; then
-		LDFLAGS="$LDFLAGS -shared -fPIC"
-		CFLAGS="$CFLAGS -fPIC"
+	# Adjust installation paths for MSYS2 environment
+    if [ -n "$MSYS2_ENV" ] && [ -z "$PREFIX_OVERRIDE" ]; then
+        # Only change PREFIX if user hasn't explicitly specified one
+        if [ "$PREFIX" = "/usr/local" ]; then
+            PREFIX="$MSYS_PREFIX"
+            LIBRARY="$PREFIX/lib"
+            HEADERS="$PREFIX/include"
+			MANDIR="$PREFIX/share/man3"
+        fi
+    fi
+    
+    DLL="$PREFIX/bin"
 
-		if [ "$DISABLE_SHARED" -eq 1 ] && [ "$DISABLE_STATIC" -eq 1 ]; then
-			echo "Error: You have choosen to disable the shared lib, yet you also disabled the static lib." 1>&2
-			exit $EXIT_FAILURE
-		elif [ "$DISABLE_STATIC" -eq 1 ]; then
-			ALL_LIBS="libck.so"
-			INSTALL_LIBS="install-so"
-		elif [ "$DISABLE_SHARED" -eq 1 ]; then
-			ALL_LIBS="libck.a"
-			INSTALL_LIBS="install-lib"
-		else
-			ALL_LIBS="libck.so libck.a"
-			INSTALL_LIBS="install-so install-lib"
-		fi
-	else
-		LDFLAGS="$LDFLAGS -fno-PIC"
-		CFLAGS="$CFLAGS -fno-PIC"
-		if [ "$DISABLE_STATIC" -eq 1 ]; then
-			echo "Error: You have choosen to disable PIC, yet you also disabled the static lib." 1>&2
-			exit $EXIT_FAILURE
-		else
-			ALL_LIBS="libck.a"
-			INSTALL_LIBS="install-lib"
-		fi
-	fi
+    if test "$WANT_PIC" = "yes"; then
+        LDFLAGS="$LDFLAGS -shared -Wl,--out-implib,libck.dll.a"
+        CFLAGS="$CFLAGS -fPIC"
+        
+        if [ "$DISABLE_SHARED" -eq 1 ] && [ "$DISABLE_STATIC" -eq 1 ]; then
+            echo "Error: You have choosen to disable the shared lib, yet you also disabled the static lib." 1>&2
+            exit $EXIT_FAILURE
+        elif [ "$DISABLE_STATIC" -eq 1 ]; then
+            ALL_LIBS="libck.dll"
+            INSTALL_LIBS="install-dll"
+        elif [ "$DISABLE_SHARED" -eq 1 ]; then
+            ALL_LIBS="libck.a"
+            INSTALL_LIBS="install-lib"
+        else
+            ALL_LIBS="libck.dll libck.a"
+            INSTALL_LIBS="install-dll install-lib"
+        fi
+    else
+        LDFLAGS="$LDFLAGS -fno-PIC"
+        CFLAGS="$CFLAGS -fno-PIC"
+        if [ "$DISABLE_STATIC" -eq 1 ]; then
+            echo "Error: You have choosen to disable PIC, yet you also disabled the static lib." 1>&2
+            exit $EXIT_FAILURE
+        else
+            ALL_LIBS="libck.a"
+            INSTALL_LIBS="install-lib"
+        fi
+    fi
+    
+    CFLAGS="-D_BSD_SOURCE -D_DEFAULT_SOURCE -std=gnu99 -pedantic -Wall -W -Wundef -Wendif-labels -Wshadow -Wpointer-arith -Wcast-align -Wcast-qual -Wwrite-strings -Wstrict-prototypes -Wmissing-prototypes -Wnested-externs -Winline -Wdisabled-optimization -fstrict-aliasing -O2 -pipe -Wno-parentheses $CFLAGS"
+    PTHREAD_CFLAGS="-pthread"
 
-	CFLAGS="-D_BSD_SOURCE -D_DEFAULT_SOURCE -std=gnu99 -pedantic -Wall -W -Wundef -Wendif-labels -Wshadow -Wpointer-arith -Wcast-align -Wcast-qual -Wwrite-strings -Wstrict-prototypes -Wmissing-prototypes -Wnested-externs -Winline -Wdisabled-optimization -fstrict-aliasing -O2 -pipe -Wno-parentheses $CFLAGS"
-	PTHREAD_CFLAGS="-pthread"
-	if test "$COMPILER" = "mingw64"; then
-		ENVIRONMENT=64
-		PLATFORM=x86_64
-	fi
-	if test "$SYSTEM" = "netbsd"; then
-		CFLAGS="$CFLAGS -D_NETBSD_SOURCE"
-	fi
-	if test "$SYSTEM" != "dragonflybsd"; then
-		CFLAGS="$CFLAGS -D_XOPEN_SOURCE=600"
-	fi
+    # Set environment for MinGW64
+    if test "$COMPILER" = "mingw64"; then
+        ENVIRONMENT=64
+        PLATFORM=x86_64
+    fi
+elif test "$COMPILER" = "gcc" || test "$COMPILER" = "clang"; then
+    # Standard Unix/Linux handling
+    LD=$CC
+    SONAME="$LDNAME_MAJOR"
+    if test "$SYSTEM" = "darwin"; then
+        CC_WL_OPT="-install_name"
+        LDNAME="libck.dylib"
+        LDNAME_VERSION="libck.$VERSION.dylib"
+        LDNAME_MAJOR="libck.$VERSION_MAJOR.dylib"
+        SONAME="$LIBRARY/$LDNAME_MAJOR"
+    else
+        CC_WL_OPT="-soname"
+    fi
+
+    LDFLAGS="-Wl,$CC_WL_OPT,$SONAME $LDFLAGS"
+    if test "$WANT_PIC" = "yes"; then
+        LDFLAGS="$LDFLAGS -shared -fPIC"
+        CFLAGS="$CFLAGS -fPIC"
+
+        if [ "$DISABLE_SHARED" -eq 1 ] && [ "$DISABLE_STATIC" -eq 1 ]; then
+            echo "Error: You have choosen to disable the shared lib, yet you also disabled the static lib." 1>&2
+            exit $EXIT_FAILURE
+        elif [ "$DISABLE_STATIC" -eq 1 ]; then
+            ALL_LIBS="libck.so"
+            INSTALL_LIBS="install-so"
+        elif [ "$DISABLE_SHARED" -eq 1 ]; then
+            ALL_LIBS="libck.a"
+            INSTALL_LIBS="install-lib"
+        else
+            ALL_LIBS="libck.so libck.a"
+            INSTALL_LIBS="install-so install-lib"
+        fi
+    else
+        LDFLAGS="$LDFLAGS -fno-PIC"
+        CFLAGS="$CFLAGS -fno-PIC"
+        if [ "$DISABLE_STATIC" -eq 1 ]; then
+            echo "Error: You have choosen to disable PIC, yet you also disabled the static lib." 1>&2
+            exit $EXIT_FAILURE
+        else
+            ALL_LIBS="libck.a"
+            INSTALL_LIBS="install-lib"
+        fi
+    fi
+
+    CFLAGS="-D_BSD_SOURCE -D_DEFAULT_SOURCE -std=gnu99 -pedantic -Wall -W -Wundef -Wendif-labels -Wshadow -Wpointer-arith -Wcast-align -Wcast-qual -Wwrite-strings -Wstrict-prototypes -Wmissing-prototypes -Wnested-externs -Winline -Wdisabled-optimization -fstrict-aliasing -O2 -pipe -Wno-parentheses $CFLAGS"
+    PTHREAD_CFLAGS="-pthread"
 else
 	assert "" "unknown compiler"
 fi

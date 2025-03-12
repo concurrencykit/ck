@@ -36,6 +36,9 @@ all: $(ALL_LIBS)
 
 libck.so: $(OBJECTS)
 	$(LD) $(LDFLAGS) -o $(TARGET_DIR)/libck.so $(OBJECTS)
+	
+libck.dll: $(OBJECTS)
+	$(LD) $(LDFLAGS) -o $(TARGET_DIR)/libck.dll $(OBJECTS)
 
 libck.a: $(OBJECTS)
 	$(AR) rcs $(TARGET_DIR)/libck.a $(OBJECTS)

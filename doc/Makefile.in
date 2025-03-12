@@ -1,11 +1,16 @@
 .PHONY: clean install uninstall
 
+# Path joining function to avoid double-slash issues with empty DESTDIR
+joinpath = $(strip $(1))$(if $(2),/$(patsubst /%,%,$(2)),)
+
 MANDIR=@MANDIR@
 GZIP=@GZIP@
 GZIP_SUFFIX=.3@GZIP_SUFFIX@
 BUILD_DIR=@BUILD_DIR@
 SRC_DIR=@SRC_DIR@
 HTML_SUFFIX=.html
+
+DEST_MANDIR = $(call joinpath,$(DESTDIR),$(MANDIR))
 
 OBJECTS=CK_ARRAY_FOREACH		\
 	ck_array_buffer			\
@@ -208,14 +213,13 @@ refcheck:
 	@./refcheck.pl $(OBJECTS)
 
 install:
-	mkdir -p $(DESTDIR)/$(MANDIR)/man3 || exit
-	cp -p *$(GZIP_SUFFIX) $(DESTDIR)/$(MANDIR)/man3 || exit
+	mkdir -p $(call joinpath,$(DESTDIR),$(MANDIR)/man3) || exit
+	cp -p *$(GZIP_SUFFIX) $(call joinpath,$(DESTDIR),$(MANDIR)/man3) || exit
 
 uninstall:
 	for target in $(OBJECTS); do 			  \
-		rm -f $(DESTDIR)/$(MANDIR)/man3/$$target$(GZIP_SUFFIX); \
+		rm -f $(call joinpath,$(DESTDIR),$(MANDIR)/man3)/$$target$(GZIP_SUFFIX); \
 	done
 
 clean:
 	rm -f $(BUILD_DIR)/doc/*~ $(BUILD_DIR)/doc/*$(GZIP_SUFFIX) $(BUILD_DIR)/doc/*$(HTML_SUFFIX)
-

@@ -20,6 +20,7 @@ include/freebsd/ck_md.h
 LOG
 /Makefile
 *.o
+.vscode
 regressions/ck_array/validate/serial
 regressions/ck_backoff/validate/validate
 regressions/ck_bag/validate/order
