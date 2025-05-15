@@ -151,7 +151,7 @@ CK_PR_STORE_S(char, char, "stb")
 	ck_pr_cas_##N##_value(M *target, T compare, T set, M *value)	\
 	{								\
 		T previous;						\
-		__asm__ __volatile__("1:"				\
+		__asm__ __volatile__("1:;"				\
 				     "lwarx %0, 0, %1;"			\
 				     "cmpw  0, %0, %3;"			\
 				     "bne-  2f;"			\
@@ -170,7 +170,7 @@ CK_PR_STORE_S(char, char, "stb")
 	ck_pr_cas_##N(M *target, T compare, T set)			\
 	{								\
 		T previous;						\
-		__asm__ __volatile__("1:"				\
+		__asm__ __volatile__("1:;"				\
 				     "lwarx %0, 0, %1;"			\
 				     "cmpw  0, %0, %3;"			\
 				     "bne-  2f;"			\
@@ -199,7 +199,7 @@ CK_PR_CAS_S(int, int)
 	ck_pr_fas_##N(M *target, T v)				\
 	{							\
 		T previous;					\
-		__asm__ __volatile__("1:"			\
+		__asm__ __volatile__("1:;"			\
 				     "l" W "arx %0, 0, %1;"	\
 				     "st" W "cx. %2, 0, %1;"	\
 				     "bne- 1b;"			\
@@ -222,7 +222,7 @@ CK_PR_FAS(uint, unsigned int, unsigned int, "w")
 	ck_pr_##O##_##N(M *target)				\
 	{							\
 		T previous;					\
-		__asm__ __volatile__("1:"			\
+		__asm__ __volatile__("1:;"			\
 				     "l" W "arx %0, 0, %1;"	\
 				      I ";"			\
 				     "st" W "cx. %0, 0, %1;"	\
@@ -256,7 +256,7 @@ CK_PR_UNARY_S(int, int, "w")
 	ck_pr_##O##_##N(M *target, T delta)			\
 	{							\
 		T previous;					\
-		__asm__ __volatile__("1:"			\
+		__asm__ __volatile__("1:;"			\
 				     "l" W "arx %0, 0, %1;"	\
 				      I " %0, %2, %0;"		\
 				     "st" W "cx. %0, 0, %1;"	\
@@ -293,7 +293,7 @@ ck_pr_faa_ptr(void *target, uintptr_t delta)
 {
 	uintptr_t previous, r;
 
-	__asm__ __volatile__("1:"
+	__asm__ __volatile__("1:;"
 			     "lwarx %0, 0, %2;"
 			     "add %1, %3, %0;"
 			     "stwcx. %1, 0, %2;"
@@ -312,7 +312,7 @@ ck_pr_faa_ptr(void *target, uintptr_t delta)
 	ck_pr_faa_##S(T *target, T delta)				\
 	{								\
 		T previous, r;						\
-		__asm__ __volatile__("1:"				\
+		__asm__ __volatile__("1:;"				\
 				     "l" W "arx %0, 0, %2;"		\
 				     "add %1, %3, %0;"			\
 				     "st" W "cx. %1, 0, %2;"		\
