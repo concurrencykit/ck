@@ -52,13 +52,14 @@ jobs:
       - run: make check
 
   freebsd:
-    name: "FreeBSD ${{ matrix.version }} / ${{ matrix.arch }}"
+    name: "FreeBSD ${{ matrix.version }} / ${{ matrix.arch }} / ${{ matrix.cc }}"
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
         version: ['13.3', '14.2', '15.0']
-        arch:   ['x86_64', 'aarch64']
+        arch: ['x86_64', 'aarch64']
+        cc: ['clang', 'gcc']
     steps:
       - uses: actions/checkout@v4
 
@@ -66,14 +67,14 @@ jobs:
         uses: vmactions/freebsd-vm@v1.2.0
         with:
           release: ${{ matrix.version }}
-          arch:    ${{ matrix.arch }}
-          mem:     6144
-          cpu:     2
-          usesh:   true
-          sync:    rsync
+          arch: ${{ matrix.arch }}
+          mem: 6144
+          cpu: 2
+          usesh: true
+          sync: rsync
           prepare: |
             pkg install -y gcc gmake
           run: |
-            cc --version
-            ./tools/ci-build.sh --cores=2
+            ${{ matrix.cc }} --version
+            ./tools/ci-build.sh CC=${{ matrix.cc }} --cores=2
             make check
