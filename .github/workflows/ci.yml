@@ -1,30 +1,80 @@
 name: CI
 on:
   push:
-    branches: [master]
+    branches: ["*"]
     tags: ["*"]
   pull_request:
   workflow_dispatch:
+
 jobs:
-  test:
-    name: ${{ matrix.os }} - ${{ matrix.compiler }} - ${{ github.event_name }}
-    runs-on: ${{ matrix.os }}
+  linux:
+    name: Linux ${{ matrix.arch }} / ${{ matrix.cc }}
+    runs-on: ${{ matrix.runner }}
     strategy:
       fail-fast: false
       matrix:
-        os:
-          - ubuntu-latest
-          - macos-latest
-        compiler:
-          - gcc
-          - clang
-        exclude:
-          - os: macos-latest
-            compiler: gcc
+        arch: [x86_64, arm64]
+        cc: [gcc, clang]
+        include:
+          - arch: x86_64
+            runner: ubuntu-latest
+          - arch: arm64
+            runner: ubuntu-22.04-arm
     steps:
       - uses: actions/checkout@v4
-      - run: ${{ matrix.compiler }} --version
+
+      - name: Install compilers
+        run: sudo apt-get update && sudo apt-get install -y gcc clang
+
+      - name: Compiler version
+        run: ${{ matrix.cc }} --version
+
       - name: Build
-        run: ./tools/ci-build.sh CC=${{ matrix.compiler }}
+        run: ./tools/ci-build.sh CC=${{ matrix.cc }} --cores=2
+
       - name: Test
         run: make check
+
+  macos:
+    name: macOS ${{ matrix.variant }}
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - variant: arm64
+            runner: macos-latest    # Arm64
+          - variant: x86_64
+            runner: macos-13        # x86-64
+    steps:
+      - uses: actions/checkout@v4
+      - run: ./tools/ci-build.sh --cores=2
+      - run: make check
+
+  freebsd:
+    name: "FreeBSD ${{ matrix.version }} / ${{ matrix.arch }} / ${{ matrix.cc }}"
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        version: ['13.3', '14.2', '15.0']
+        arch: ['x86_64', 'aarch64']
+        cc: ['clang', 'gcc']
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build & Test inside FreeBSD
+        uses: vmactions/freebsd-vm@v1.2.0
+        with:
+          release: ${{ matrix.version }}
+          arch: ${{ matrix.arch }}
+          mem: 6144
+          cpu: 2
+          usesh: true
+          sync: rsync
+          prepare: |
+            pkg install -y gcc gmake
+          run: |
+            ${{ matrix.cc }} --version
+            ./tools/ci-build.sh CC=${{ matrix.cc }} --cores=2
+            make check

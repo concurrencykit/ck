@@ -4,9 +4,7 @@ Modern concurrency primitives and building blocks for high performance applicati
 
 ### Continuous Integration
 
-| GitHub Actions | Cirrus |
-| -------- | ------- |
-| [![Build Status](https://github.com/concurrencykit/ck/workflows/CI/badge.svg)](https://github.com/concurrencykit/ck/actions?query=workflow%3ACI+branch%3Amaster) | [![Build Status](https://api.cirrus-ci.com/github/concurrencykit/ck.svg?branch=master)](https://cirrus-ci.com/github/concurrencykit/ck) |
+[![Build Status](https://github.com/concurrencykit/ck/workflows/CI/badge.svg)](https://github.com/concurrencykit/ck/actions?query=workflow%3ACI+branch%3Amaster)
 
 Compilers tested in the past include gcc, clang, cygwin, icc, mingw32, mingw64
 and suncc across all supported architectures. All new architectures are
@@ -50,7 +48,7 @@ Concurrency Kit has specialized assembly for the following architectures:
  * `sparcv9+`
  * `x86`
  * `x86_64`
- 
+
 ### Features
 
 #### Concurrency Primitives
