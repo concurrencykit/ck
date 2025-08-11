@@ -513,7 +513,7 @@ case $PLATFORM in
 		PLATFORM=loongarch64
 		ENVIRONMENT=64
 		;;
-	"ppc64"|"ppc64le"|"powerpc64")
+	"ppc64"|"ppc64le"|"powerpc64"|"powerpc64le")
 		RTM_ENABLE="CK_MD_RTM_DISABLE"
 		LSE_ENABLE="CK_MD_LSE_DISABLE"
 		MM="${MM:-"CK_MD_RMO"}"
