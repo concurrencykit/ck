@@ -21,7 +21,7 @@ jobs:
           - arch: arm64
             runner: ubuntu-22.04-arm
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Install compilers
         run: sudo apt-get update && sudo apt-get install -y gcc clang
@@ -47,7 +47,7 @@ jobs:
           - variant: x86_64
             runner: macos-13        # x86-64
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - run: ./tools/ci-build.sh --cores=2
       - run: make check
 
@@ -61,7 +61,7 @@ jobs:
         arch: ['x86_64', 'aarch64']
         cc: ['clang', 'gcc']
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Build & Test inside FreeBSD
         uses: vmactions/freebsd-vm@v1.2.1
