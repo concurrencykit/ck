@@ -198,6 +198,7 @@ for option; do
 		echo
 		echo "The following options may be used for cross-building."
 		echo "  --profile=N              Use custom build profile (use in conjunction with \$CC)"
+		echo "  --compiler=N             Force compiler type (gcc, clang, suncc) to skip detection"
 		echo
 		echo "The following options may be used to modify installation behavior."
 		echo "  --includedir=N           Headers directory (default is ${PREFIX}/include)"
@@ -273,6 +274,9 @@ for option; do
 		;;
 	--profile=*)
 		PROFILE=$value
+		;;
+	--compiler=*)
+		COMPILER=$value
 		;;
 	--prefix=*)
 		PREFIX=$value
@@ -676,13 +680,15 @@ if test "$PROFILE"; then
 fi
 
 printf "Finding suitable compiler........"
-if test ! -x "${CC}"; then
-	CC=`pathsearch "${CC:-cc}"`
-	if test -z "$CC" -o ! -x "$CC"; then
-		CC=`pathsearch "${CC:-gcc}"`
+if test -z "$COMPILER"; then
+	if test ! -x "${CC}"; then
+		CC=`pathsearch "${CC:-cc}"`
+		if test -z "$CC" -o ! -x "$CC"; then
+			CC=`pathsearch "${CC:-gcc}"`
+		fi
 	fi
+	assert "$CC" "not found"
 fi
-assert "$CC" "not found"
 
 cat << EOF > .1.c
 #include <stdio.h>
@@ -712,6 +718,7 @@ int main(void) {
 }
 EOF
 
+if test -z "$COMPILER"; then
 $CC -o .1 .1.c
 COMPILER=`./.1 2> /dev/null`
 r=$?
@@ -721,6 +728,9 @@ if test "$r" -ne 0; then
 	assert "" "update compiler"
 else
 	echo "success [$CC]"
+fi
+else
+    echo "success [$CC] (manual)"
 fi
 
 if test "$COMPILER" = "suncc"; then
