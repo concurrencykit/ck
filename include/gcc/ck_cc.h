@@ -66,6 +66,14 @@
 #define CK_CC_FORCE_INLINE CK_CC_UNUSED __attribute__((always_inline)) inline
 #define CK_CC_RESTRICT __restrict__
 
+#if defined(__GNUC__) && (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 5))
+#define CK_CC_DEPRECATED(m) __attribute__((deprecated(m)))
+#elif defined(__GNUC__) && (__GNUC__ > 3 || (__GNUC__ == 3 && __GNUC_MINOR__ >= 1))
+#define CK_CC_DEPRECATED(m) __attribute__((deprecated))
+#else
+#define CK_CC_DEPRECATED(m)
+#endif
+
 /*
  * Packed attribute.
  */
