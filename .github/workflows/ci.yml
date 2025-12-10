@@ -45,7 +45,7 @@ jobs:
           - variant: arm64
             runner: macos-latest    # Arm64
           - variant: x86_64
-            runner: macos-13        # x86-64
+            runner: macos-15-intel  # x86-64
     steps:
       - uses: actions/checkout@v5
       - run: ./tools/ci-build.sh --cores=2
