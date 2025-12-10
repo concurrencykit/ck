@@ -195,10 +195,18 @@ ck_hs_map_destroy(struct ck_malloc *m, struct ck_hs_map *map, bool defer)
 }
 
 void
-ck_hs_destroy(struct ck_hs *hs)
+ck_hs_deinit(struct ck_hs *hs)
 {
 
 	ck_hs_map_destroy(hs->m, hs->map, false);
+	return;
+}
+
+void
+ck_hs_destroy(struct ck_hs *hs)
+{
+
+	ck_hs_deinit(hs);
 	return;
 }
 

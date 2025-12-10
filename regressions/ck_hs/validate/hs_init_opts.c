@@ -215,7 +215,7 @@ run_happy_path_test(void)
 
 	ck_hs_gc(hs, 0, 0);
 
-	ck_hs_destroy(hs);
+	ck_hs_deinit(hs);
 
 	return;
 }

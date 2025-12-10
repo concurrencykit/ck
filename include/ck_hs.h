@@ -198,7 +198,6 @@ bool ck_hs_move(ck_hs_t *, ck_hs_t *, ck_hs_hash_cb_t *,
 bool ck_hs_init(ck_hs_t *, unsigned int, ck_hs_hash_cb_t *,
     ck_hs_compare_cb_t *, struct ck_malloc *, unsigned long, unsigned long);
 bool ck_hs_init_from_options(ck_hs_t *, const struct ck_hs_init_options *);
-void ck_hs_destroy(ck_hs_t *);
 void *ck_hs_get(ck_hs_t *, unsigned long, const void *);
 bool ck_hs_put(ck_hs_t *, unsigned long, const void *);
 bool ck_hs_put_unique(ck_hs_t *, unsigned long, const void *);
@@ -212,5 +211,8 @@ unsigned long ck_hs_count(ck_hs_t *);
 bool ck_hs_reset(ck_hs_t *);
 bool ck_hs_reset_size(ck_hs_t *, unsigned long);
 void ck_hs_stat(ck_hs_t *, struct ck_hs_stat *);
+void ck_hs_deinit(ck_hs_t *);
+
+void ck_hs_destroy(ck_hs_t *) CK_CC_DEPRECATED("use ck_hs_deinit instead");
 
 #endif /* CK_HS_H */

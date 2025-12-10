@@ -89,7 +89,7 @@ static void
 set_destroy(void)
 {
 
-	ck_hs_destroy(&hs);
+	ck_hs_deinit(&hs);
 	return;
 }
 
