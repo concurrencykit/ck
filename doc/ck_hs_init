@@ -39,6 +39,29 @@ Concurrency Kit (libck, \-lck)
 .Fn ck_hs_compare_cb_t "const void *c1" "const void *c2"
 .Ft bool
 .Fn ck_hs_init "ck_hs_t *hs" "unsigned int mode" "ck_hs_hash_cb_t *hash_function" "ck_hs_compare_cb_t *compare" "struct ck_malloc *allocator" "unsigned long capacity" "unsigned long seed"
+.Pp
+.Dv struct ck_hs_init_options options = CK_HS_INIT_OPTIONS_INITIALIZER;
+.Pp
+.Dv #define CK_HS_INIT_OPTIONS_SIZE_V0 ...
+.Pp
+.Dv #define CK_HS_INIT_OPTIONS_SIZE_V1 ...
+.Pp
+.Bd -literal -offset
+struct ck_hs_init_options {
+	/* v0 fields */
+	uintptr_t options_size;
+	uintptr_t mode;
+	ck_hs_hash_cb_t *hash_function;
+	ck_hs_compare_cb_t *compare;
+	struct ck_malloc *allocator;
+	uintptr_t capacity;
+	uintptr_t seed;
+	/* v1 fields */
+	uintptr_t key_offset;
+};
+.Ed
+.Ft bool
+.Fn ck_hs_init_from_options "ck_hs_t *hs" "const struct ck_hs_init_options *options"
 .Sh DESCRIPTION
 The
 .Fn ck_hs_init
@@ -127,6 +150,41 @@ The argument
 .Fa seed
 specifies the initial seed used by the underlying hash function.
 The user is free to choose a value of their choice.
+.Pp
+The
+.Xr ck_hs_init_from_options 3
+function takes all the values required for initializing the hash set
+from a ck_hs_init_options struct.  The options struct's first field
+.Fa options_size
+is used to version the options and must be initialized with either the
+size of the struct, or one of the following:
+.Bl -tag -width indent
+.It CK_HS_INIT_OPTIONS_SIZE_V0
+The options struct contains the fields
+.Fa options_size ,
+.Fa mode ,
+.Fa hash_function ,
+.Fa compare ,
+.Fa allocator ,
+.Fa capacity ,
+and
+.Fa seed .
+The semantics for these fields is exactly as the corresponding arguments of
+.Xr ck_hs_init 3 .
+.It CK_HS_INIT_OPTIONS_SIZE_V1
+The options struct additionally contains the field
+.Fa key_offset .
+If this field is non-zero, then the hash set must have mode
+CK_HS_MODE_OBJECT set, and the field gives the offset of an embedded
+key field within the object.  The offset is subsequenty added to the
+object to pass the address of the embedded key to the
+.Fa hash_function
+and
+.Fa compare
+functions.
+The maximum supported offset is 65535.
+.El
+Future versions of concurrency kit may define more option fields.
 .Sh RETURN VALUES
 Upon successful completion
 .Fn ck_hs_init

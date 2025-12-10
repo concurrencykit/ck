@@ -1,11 +1,14 @@
 .PHONY: check clean distribution
 
-OBJECTS=serial
+OBJECTS=serial hs_init_opts
 
 all: $(OBJECTS)
 
 serial: serial.c ../../../include/ck_hs.h ../../../src/ck_hs.c
 	$(CC) $(CFLAGS) -o serial serial.c ../../../src/ck_hs.c
+
+hs_init_opts: hs_init_opts.c ../../../include/ck_hs.h ../../../src/ck_hs.c
+	$(CC) $(CFLAGS) -o hs_init_opts hs_init_opts.c ../../../src/ck_hs.c
 
 check: all
 	./serial

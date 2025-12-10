@@ -117,6 +117,77 @@ ck_hs_hash(const struct ck_hs *hs, const void *k)
 	return hs->hf(k, hs->seed);
 }
 
+/*
+ * An extensible struct of options for `ck_hs_init_from_options`.  The
+ * fields in this struct must not be rearranged and ach field must
+ * have the same width as an uintptr_t.  Adding new fields to this
+ * struct is forwards compatible.
+ */
+struct ck_hs_init_options {
+	/* -- V0 options start here -- */
+
+	/*
+	 * The size of this options struct.  This is set automatically
+	 * by `CK_HS_INIT_OPTIONS_INITIALIZER`, or it should be set
+	 * expicitly to the size of the smallest required version of
+	 * the struct. Version specific sizes are given by
+	 * `CK_HS_INIT_OPTIONS_SIZE_V<version>` constants.
+	 */
+	uintptr_t options_size;
+
+	/*
+	 * Hash set mode.
+	 */
+	uintptr_t mode;
+
+	/*
+	 * Key hash function.
+	 */
+	ck_hs_hash_cb_t *hash_function;
+
+	/*
+	 * Key comparator function.
+	 */
+	ck_hs_compare_cb_t *compare;
+
+	/*
+	 * Allocator used for the hash set.
+	 */
+	struct ck_malloc *allocator;
+
+	/*
+	 * Initial capacity of the hash set.
+	 */
+	uintptr_t capacity;
+
+	/*
+	 * Hash function seed.
+	 */
+	uintptr_t seed;
+
+	/* -- V1 options start here -- */
+
+	/*
+	 * When mode is CK_HS_MODE_OBJECT, then the offset in bytes
+	 * from the start of the object to the start of the key within
+	 * the object.  The hash and key comparator functions will
+	 * then be called with the address of the embedded key rather
+	 * than the object.
+	 */
+	uintptr_t key_offset;
+};
+
+/*
+ * The zeroth version of the options struct has only the same fields
+ * that `ck_hs_init` takes.
+ */
+#define CK_HS_INIT_OPTIONS_SIZE_V0 (7 * sizeof(uintptr_t))
+
+/* The first version of the options struct adds `key_offset`. */
+#define CK_HS_INIT_OPTIONS_SIZE_V1 (8 * sizeof(uintptr_t))
+
+#define CK_HS_INIT_OPTIONS_INITIALIZER { .options_size = sizeof(struct ck_hs_init_options) }
+
 typedef void *ck_hs_apply_fn_t(void *, void *);
 bool ck_hs_apply(ck_hs_t *, unsigned long, const void *, ck_hs_apply_fn_t *, void *);
 void ck_hs_iterator_init(ck_hs_iterator_t *);
@@ -126,6 +197,7 @@ bool ck_hs_move(ck_hs_t *, ck_hs_t *, ck_hs_hash_cb_t *,
     ck_hs_compare_cb_t *, struct ck_malloc *);
 bool ck_hs_init(ck_hs_t *, unsigned int, ck_hs_hash_cb_t *,
     ck_hs_compare_cb_t *, struct ck_malloc *, unsigned long, unsigned long);
+bool ck_hs_init_from_options(ck_hs_t *, const struct ck_hs_init_options *);
 void ck_hs_destroy(ck_hs_t *);
 void *ck_hs_get(ck_hs_t *, unsigned long, const void *);
 bool ck_hs_put(ck_hs_t *, unsigned long, const void *);
