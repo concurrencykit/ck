@@ -122,7 +122,7 @@ ck_array_put(struct ck_array *array, void *value)
 	}
 
 	target->values[array->n_entries++] = value;
-	return false;
+	return true;
 }
 
 int
