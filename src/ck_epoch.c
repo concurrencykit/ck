@@ -594,7 +594,8 @@ ck_epoch_poll_deferred(struct ck_epoch_record *record, ck_stack_t *deferred)
 
 	/* We are at a grace period if all threads are inactive. */
 	if (active == false) {
-		record->epoch = epoch;
+		ck_pr_store_uint(&record->epoch, epoch);
+
 		for (epoch = 0; epoch < CK_EPOCH_LENGTH; epoch++)
 			ck_epoch_dispatch(record, epoch, deferred);
 
