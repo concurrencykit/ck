@@ -347,6 +347,15 @@ ck_epoch_scan(struct ck_epoch *global,
 		active = ck_pr_load_uint(&cr->active);
 		*af |= active;
 
+		/*
+		 * We are able to get away without an additional load here given the
+		 * monotonic nature of epoch in this implementation. At most, we will yield
+		 * a false positive leading to additional delays.
+		 *
+		 * The epoch itself is monotonic, even if a re-ordering occurs, a newer
+		 * epoch will not invalidate safety and an older epoch only delays
+		 * reclamation.
+		 */
 		if (active != 0 && ck_pr_load_uint(&cr->epoch) != epoch)
 			return cr;
 
