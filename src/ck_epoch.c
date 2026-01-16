@@ -383,7 +383,7 @@ ck_epoch_dispatch(struct ck_epoch_record *record, unsigned int e, ck_stack_t *de
 
 	/* We don't require accuracy around peak calculation. */
 	if (n_pending > n_peak)
-		ck_pr_store_uint(&record->n_peak, n_peak);
+		ck_pr_store_uint(&record->n_peak, n_pending);
 
 	if (i > 0) {
 		ck_pr_add_uint(&record->n_dispatch, i);
