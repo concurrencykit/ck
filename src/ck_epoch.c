@@ -339,7 +339,7 @@ ck_epoch_scan(struct ck_epoch *global,
 		cr = ck_epoch_record_container(cursor);
 
 		state = ck_pr_load_uint(&cr->state);
-		if (state & CK_EPOCH_STATE_FREE) {
+		if (state == CK_EPOCH_STATE_FREE) {
 			cursor = CK_STACK_NEXT(cursor);
 			continue;
 		}
