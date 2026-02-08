@@ -272,7 +272,7 @@ static inline void *
 ck_hs_cursor_match(const struct ck_hs_cursor *cursor)
 {
 
-	return CK_CC_DECONST_PTR(ck_pr_load_ptr(cursor->match));
+	return CK_CC_DECONST_PTR(CK_HS_VMA(ck_pr_load_ptr(cursor->match)));
 }
 
 static inline void
