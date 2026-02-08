@@ -188,6 +188,175 @@ struct ck_hs_init_options {
 
 #define CK_HS_INIT_OPTIONS_INITIALIZER { .options_size = sizeof(struct ck_hs_init_options) }
 
+#define CK_HS_EMPTY	NULL
+#define CK_HS_TOMBSTONE	((void *)~(uintptr_t)0)
+
+#define CK_HS_G         (2)
+#define CK_HS_G_MASK    (CK_HS_G - 1)
+
+#if defined(CK_F_PR_LOAD_8) && defined(CK_F_PR_STORE_8)
+#define CK_HS_WORD          uint8_t
+#define CK_HS_WORD_MAX      UINT8_MAX
+#define CK_HS_STORE(x, y)   ck_pr_store_8(x, y)
+#define CK_HS_LOAD(x)       ck_pr_load_8(x)
+#elif defined(CK_F_PR_LOAD_16) && defined(CK_F_PR_STORE_16)
+#define CK_HS_WORD          uint16_t
+#define CK_HS_WORD_MAX      UINT16_MAX
+#define CK_HS_STORE(x, y)   ck_pr_store_16(x, y)
+#define CK_HS_LOAD(x)       ck_pr_load_16(x)
+#elif defined(CK_F_PR_LOAD_32) && defined(CK_F_PR_STORE_32)
+#define CK_HS_WORD          uint32_t
+#define CK_HS_WORD_MAX      UINT32_MAX
+#define CK_HS_STORE(x, y)   ck_pr_store_32(x, y)
+#define CK_HS_LOAD(x)       ck_pr_load_32(x)
+#else
+#error "ck_hs is not supported on your platform."
+#endif
+
+struct ck_hs_map {
+        unsigned int generation[CK_HS_G];
+        unsigned int probe_maximum;
+        unsigned long mask;
+        unsigned long step;
+        unsigned int probe_limit;
+        unsigned int tombstones;
+        unsigned long n_entries;
+        unsigned long capacity;
+        unsigned long size;
+        CK_HS_WORD *probe_bound;
+        const void **entries;
+};
+
+/*
+ * A cursor can be used to cache the result of a hash set operation. However,
+ * if any insertions have occurred then the result of the cursor is invalid.
+ * It is up to the user to manage tracking of mutations to the hash set or risk
+ * corruption.
+ */
+struct ck_hs_cursor {
+	const void **first;
+	const void **match;
+	unsigned long h;
+	unsigned long n_probes;
+};
+typedef struct ck_hs_cursor ck_hs_cursor_t;
+
+bool ck_hs_grow(ck_hs_t *, unsigned long);
+
+static inline void
+ck_hs_map_postinsert(struct ck_hs *hs, struct ck_hs_map *map)
+{
+
+	map->n_entries++;
+	if ((map->n_entries << 1) > map->capacity)
+		ck_hs_grow(hs, map->capacity << 1);
+
+	return;
+}
+
+static inline void
+ck_hs_map_signal(struct ck_hs_map *map, unsigned long h)
+{
+
+	h &= CK_HS_G_MASK;
+	ck_pr_store_uint(&map->generation[h], map->generation[h] + 1);
+	ck_pr_fence_store();
+	return;
+}
+
+static inline void *
+ck_hs_cursor_match(const struct ck_hs_cursor *cursor)
+{
+
+	return CK_CC_DECONST_PTR(ck_pr_load_ptr(cursor->match));
+}
+
+static inline void
+ck_hs_map_bound_set(struct ck_hs_map *m,
+    unsigned long h,
+    unsigned long n_probes)
+{
+        unsigned long offset = h & m->mask;
+
+        if (n_probes > m->probe_maximum)
+                ck_pr_store_uint(&m->probe_maximum, n_probes);
+
+        if (m->probe_bound != NULL && m->probe_bound[offset] < n_probes) {
+                if (n_probes > CK_HS_WORD_MAX)
+                        n_probes = CK_HS_WORD_MAX;
+
+                CK_HS_STORE(&m->probe_bound[offset], n_probes);
+                ck_pr_fence_store();
+        }
+
+        return;
+}
+
+static inline const void *
+ck_hs_marshal(unsigned int mode, const void *val, unsigned long h)
+{
+#ifdef CK_HS_PP
+        const void *insert;
+
+        if (mode & CK_HS_MODE_OBJECT) {
+                insert = (void *)((uintptr_t)CK_HS_VMA(val) |
+                    ((h >> 25) << CK_MD_VMA_BITS));
+        } else {
+                insert = val;
+        }
+
+        return insert;
+#else
+        (void)mode;
+        (void)h;
+
+        return val;
+#endif
+}
+
+/*
+ * Updates the value. NULL requests deletion.
+ */
+static inline void
+ck_hs_cursor_set(ck_hs_t *hs, struct ck_hs_cursor *cursor, void *value)
+{
+	struct ck_hs_map *map = hs->map;
+	const void *insert;
+
+	if (value == NULL) {
+		if (cursor->match == NULL)
+			return;
+
+		ck_pr_store_ptr(cursor->match, CK_HS_TOMBSTONE);
+		hs->map->n_entries--;
+		hs->map->tombstones++;
+		return;
+	}
+
+	ck_hs_map_bound_set(map, cursor->h, cursor->n_probes);
+
+	insert = ck_hs_marshal(hs->mode, value, cursor->h);
+	if (cursor->first != NULL) {
+		ck_pr_store_ptr(cursor->first, insert);
+
+		/* Modifying a probe sequence, let readers know. */
+		if (cursor->match != NULL) {
+			ck_hs_map_signal(map, cursor->h);
+			ck_pr_store_ptr(cursor->match, CK_HS_TOMBSTONE);
+		}
+	} else {
+		bool m = cursor->match;
+		ck_pr_store_ptr(cursor->match, insert);
+
+		if (m == true)
+			ck_hs_map_postinsert(hs, map);
+	}
+
+	return;
+}
+
+bool ck_hs_cursor(ck_hs_cursor_t *output, ck_hs_t *, unsigned long h, const void *key);
+
 typedef void *ck_hs_apply_fn_t(void *, void *);
 bool ck_hs_apply(ck_hs_t *, unsigned long, const void *, ck_hs_apply_fn_t *, void *);
 void ck_hs_iterator_init(ck_hs_iterator_t *);
@@ -204,7 +373,6 @@ bool ck_hs_put_unique(ck_hs_t *, unsigned long, const void *);
 bool ck_hs_set(ck_hs_t *, unsigned long, const void *, void **);
 bool ck_hs_fas(ck_hs_t *, unsigned long, const void *, void **);
 void *ck_hs_remove(ck_hs_t *, unsigned long, const void *);
-bool ck_hs_grow(ck_hs_t *, unsigned long);
 bool ck_hs_rebuild(ck_hs_t *);
 bool ck_hs_gc(ck_hs_t *, unsigned long, unsigned long);
 unsigned long ck_hs_count(ck_hs_t *);

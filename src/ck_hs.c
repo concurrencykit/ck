@@ -50,30 +50,6 @@
 #define CK_HS_VMA(x)	\
 	((void *)((uintptr_t)(x) & CK_HS_VMA_MASK))
 
-#define CK_HS_EMPTY     NULL
-#define CK_HS_TOMBSTONE ((void *)~(uintptr_t)0)
-#define CK_HS_G		(2)
-#define CK_HS_G_MASK	(CK_HS_G - 1)
-
-#if defined(CK_F_PR_LOAD_8) && defined(CK_F_PR_STORE_8)
-#define CK_HS_WORD          uint8_t
-#define CK_HS_WORD_MAX	    UINT8_MAX
-#define CK_HS_STORE(x, y)   ck_pr_store_8(x, y)
-#define CK_HS_LOAD(x)       ck_pr_load_8(x)
-#elif defined(CK_F_PR_LOAD_16) && defined(CK_F_PR_STORE_16)
-#define CK_HS_WORD          uint16_t
-#define CK_HS_WORD_MAX	    UINT16_MAX
-#define CK_HS_STORE(x, y)   ck_pr_store_16(x, y)
-#define CK_HS_LOAD(x)       ck_pr_load_16(x)
-#elif defined(CK_F_PR_LOAD_32) && defined(CK_F_PR_STORE_32)
-#define CK_HS_WORD          uint32_t
-#define CK_HS_WORD_MAX	    UINT32_MAX
-#define CK_HS_STORE(x, y)   ck_pr_store_32(x, y)
-#define CK_HS_LOAD(x)       ck_pr_load_32(x)
-#else
-#error "ck_hs is not supported on your platform."
-#endif
-
 /*
  * The key offset is stored in the high bits of the mode field in
  * ck_hs_t.  This is binary compatible with all existing clients
@@ -86,31 +62,6 @@ enum ck_hs_probe_behavior {
 	CK_HS_PROBE_TOMBSTONE,	/* Short-circuit on tombstone. */
 	CK_HS_PROBE_INSERT	/* Short-circuit on probe bound if tombstone found. */
 };
-
-struct ck_hs_map {
-	unsigned int generation[CK_HS_G];
-	unsigned int probe_maximum;
-	unsigned long mask;
-	unsigned long step;
-	unsigned int probe_limit;
-	unsigned int tombstones;
-	unsigned long n_entries;
-	unsigned long capacity;
-	unsigned long size;
-	CK_HS_WORD *probe_bound;
-	const void **entries;
-};
-
-static inline void
-ck_hs_map_signal(struct ck_hs_map *map, unsigned long h)
-{
-
-	h &= CK_HS_G_MASK;
-	ck_pr_store_uint(&map->generation[h],
-	    map->generation[h] + 1);
-	ck_pr_fence_store();
-	return;
-}
 
 static bool 
 _ck_hs_next(struct ck_hs *hs, struct ck_hs_map *map,
@@ -306,27 +257,6 @@ ck_hs_map_probe_next(struct ck_hs_map *map,
 	    (stride | CK_HS_PROBE_L1)) & map->mask;
 }
 
-static inline void
-ck_hs_map_bound_set(struct ck_hs_map *m,
-    unsigned long h,
-    unsigned long n_probes)
-{
-	unsigned long offset = h & m->mask;
-
-	if (n_probes > m->probe_maximum)
-		ck_pr_store_uint(&m->probe_maximum, n_probes);
-
-	if (m->probe_bound != NULL && m->probe_bound[offset] < n_probes) {
-		if (n_probes > CK_HS_WORD_MAX)
-			n_probes = CK_HS_WORD_MAX;
-
-		CK_HS_STORE(&m->probe_bound[offset], n_probes);
-		ck_pr_fence_store();
-	}
-
-	return;
-}
-
 static inline unsigned int
 ck_hs_map_bound_get(struct ck_hs_map *m, unsigned long h)
 {
@@ -422,17 +352,6 @@ restart:
 	ck_pr_store_ptr(&hs->map, update);
 	ck_hs_map_destroy(hs->m, map, true);
 	return true;
-}
-
-static void
-ck_hs_map_postinsert(struct ck_hs *hs, struct ck_hs_map *map)
-{
-
-	map->n_entries++;
-	if ((map->n_entries << 1) > map->capacity)
-		ck_hs_grow(hs, map->capacity << 1);
-
-	return;
 }
 
 bool
@@ -551,28 +470,6 @@ leave:
 
 	*priority = pr;
 	return cursor;
-}
-
-static inline const void *
-ck_hs_marshal(unsigned int mode, const void *val, unsigned long h)
-{
-#ifdef CK_HS_PP
-	const void *insert;
-
-	if (mode & CK_HS_MODE_OBJECT) {
-		insert = (void *)((uintptr_t)CK_HS_VMA(val) |
-		    ((h >> 25) << CK_MD_VMA_BITS));
-	} else {
-		insert = val;
-	}
-
-	return insert;
-#else
-	(void)mode;
-	(void)h;
-
-	return val;
-#endif
 }
 
 bool
@@ -695,6 +592,34 @@ ck_hs_fas(struct ck_hs *hs,
 	}
 
 	*previous = CK_CC_DECONST_PTR(object);
+	return true;
+}
+
+bool
+ck_hs_cursor(struct ck_hs_cursor *cursor,
+    struct ck_hs *hs,
+    unsigned long h,
+    const void *key)
+{
+	const void **slot, **first, *object;
+	unsigned long n_probes;
+	struct ck_hs_map *map;
+
+	for (;;) {
+		map = hs->map;
+
+		slot = ck_hs_map_probe(hs, map, &n_probes, &first, h, key, &object, map->probe_limit, CK_HS_PROBE_INSERT);
+		if (slot == NULL && first == NULL) {
+			if (ck_hs_grow(hs, map->capacity << 1) == false)
+				return false;
+		} else {
+			break;
+		}
+	}
+
+	cursor->first = first;
+	cursor->match = slot;
+	cursor->n_probes = n_probes;
 	return true;
 }
 
