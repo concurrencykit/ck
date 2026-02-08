@@ -213,6 +213,10 @@ struct ck_hs_init_options {
 #error "ck_hs is not supported on your platform."
 #endif
 
+#define CK_HS_VMA_MASK ((uintptr_t)((1ULL << CK_MD_VMA_BITS) - 1))
+#define CK_HS_VMA(x)    \
+        ((void *)((uintptr_t)(x) & CK_HS_VMA_MASK))
+
 struct ck_hs_map {
         unsigned int generation[CK_HS_G];
         unsigned int probe_maximum;

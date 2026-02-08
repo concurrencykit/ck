@@ -46,10 +46,6 @@
 #define CK_HS_PROBE_L1_DEFAULT CK_MD_CACHELINE
 #endif
 
-#define CK_HS_VMA_MASK ((uintptr_t)((1ULL << CK_MD_VMA_BITS) - 1))
-#define CK_HS_VMA(x)	\
-	((void *)((uintptr_t)(x) & CK_HS_VMA_MASK))
-
 /*
  * The key offset is stored in the high bits of the mode field in
  * ck_hs_t.  This is binary compatible with all existing clients
@@ -620,6 +616,7 @@ ck_hs_cursor(struct ck_hs_cursor *cursor,
 	cursor->first = first;
 	cursor->match = slot;
 	cursor->n_probes = n_probes;
+	cursor->h = h;
 	return true;
 }
 
