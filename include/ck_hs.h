@@ -80,6 +80,8 @@ typedef bool ck_hs_compare_cb_t(const void *, const void *);
 #define CK_HS_KEY_MASK ((1U << ((sizeof(void *) * 8) - CK_MD_VMA_BITS)) - 1)
 #endif
 
+typedef bool ck_hs_tombstone_cb_t(const void *);
+
 struct ck_hs_map;
 struct ck_hs {
 	struct ck_malloc *m;
@@ -88,6 +90,7 @@ struct ck_hs {
 	unsigned long seed;
 	ck_hs_hash_cb_t *hf;
 	ck_hs_compare_cb_t *compare;
+	ck_hs_tombstone_cb_t *tombstone;
 };
 typedef struct ck_hs ck_hs_t;
 
@@ -175,6 +178,12 @@ struct ck_hs_init_options {
 	 * than the object.
 	 */
 	uintptr_t key_offset;
+
+	/*
+	 * Custom tombstone function, returns true if the slot is no longer
+	 * needed and can be replaced.
+	 */
+	ck_hs_tombstone_cb_t *tombstone;
 };
 
 /*
@@ -271,6 +280,9 @@ ck_hs_map_signal(struct ck_hs_map *map, unsigned long h)
 static inline void *
 ck_hs_cursor_match(const struct ck_hs_cursor *cursor)
 {
+
+	if (cursor->match == NULL)
+		return NULL;
 
 	return CK_CC_DECONST_PTR(CK_HS_VMA(ck_pr_load_ptr(cursor->match)));
 }
@@ -381,6 +393,7 @@ bool ck_hs_rebuild(ck_hs_t *);
 bool ck_hs_gc(ck_hs_t *, unsigned long, unsigned long);
 unsigned long ck_hs_count(ck_hs_t *);
 bool ck_hs_reset(ck_hs_t *);
+void ck_hs_reinit(ck_hs_t *);
 bool ck_hs_reset_size(ck_hs_t *, unsigned long);
 void ck_hs_stat(ck_hs_t *, struct ck_hs_stat *);
 void ck_hs_deinit(ck_hs_t *);

@@ -59,6 +59,13 @@ enum ck_hs_probe_behavior {
 	CK_HS_PROBE_INSERT	/* Short-circuit on probe bound if tombstone found. */
 };
 
+CK_CC_INLINE static bool
+ck_hs_tombstone(struct ck_hs *hs, const void *value)
+{
+
+	return value == CK_HS_TOMBSTONE || (hs->tombstone != NULL && hs->tombstone((void *)(uintptr_t)CK_HS_VMA(value)));
+}
+
 static bool 
 _ck_hs_next(struct ck_hs *hs, struct ck_hs_map *map,
     struct ck_hs_iterator *i, void **key)
@@ -70,7 +77,7 @@ _ck_hs_next(struct ck_hs *hs, struct ck_hs_map *map,
 
 	do {
 		value = CK_CC_DECONST_PTR(map->entries[i->offset]);
-		if (value != CK_HS_EMPTY && value != CK_HS_TOMBSTONE) {
+		if (value != CK_HS_EMPTY && ck_hs_tombstone(hs, value) == false) {
 #ifdef CK_HS_PP
 			if (hs->mode & CK_HS_MODE_OBJECT)
 				value = CK_HS_VMA(value);
@@ -237,6 +244,39 @@ ck_hs_reset(struct ck_hs *hs)
 	return ck_hs_reset_size(hs, previous->capacity);
 }
 
+void
+ck_hs_reinit(struct ck_hs *hs)
+{
+	struct ck_hs_map *map = hs->map;
+	const unsigned long n_entries = map->capacity;
+	unsigned long prefix = 0;
+	unsigned long limit;
+
+	if (hs->mode & CK_HS_MODE_DELETE)
+		prefix = sizeof(CK_HS_WORD) * n_entries;
+
+	/* We should probably use a more intelligent heuristic for default probe length. */
+	limit = ck_internal_max(n_entries >> (CK_HS_PROBE_L1_SHIFT + 2), CK_HS_PROBE_L1_DEFAULT);
+	if (limit > UINT_MAX)
+		limit = UINT_MAX;
+
+	map->probe_limit = (unsigned int)limit;
+	map->probe_maximum = 0;
+	map->n_entries = 0;
+
+	memset(map->entries, 0, sizeof(void *) * n_entries);
+	memset(map->generation, 0, sizeof map->generation);
+
+	if (hs->mode & CK_HS_MODE_DELETE) {
+		map->probe_bound = (CK_HS_WORD *)&map[1];
+		memset(map->probe_bound, 0, prefix);
+	} else {
+		map->probe_bound = NULL;
+	}
+
+	return;
+}
+
 static inline unsigned long
 ck_hs_map_probe_next(struct ck_hs_map *map,
     unsigned long offset,
@@ -298,7 +338,7 @@ restart:
 		unsigned long h;
 
 		previous = map->entries[k];
-		if (previous == CK_HS_EMPTY || previous == CK_HS_TOMBSTONE)
+		if (previous == CK_HS_EMPTY || ck_hs_tombstone(hs, previous) == true) 
 			continue;
 
 #ifdef CK_HS_PP
@@ -417,7 +457,7 @@ ck_hs_map_probe(struct ck_hs *hs,
 			if (val == CK_HS_EMPTY)
 				goto leave;
 
-			if (val == CK_HS_TOMBSTONE) {
+			if (ck_hs_tombstone(hs, val) == true) {
 				if (pr == NULL) {
 					pr = cursor;
 					*n_probes = probes;
@@ -505,7 +545,7 @@ ck_hs_gc(struct ck_hs *hs, unsigned long cycles, unsigned long seed)
 		unsigned long n_probes, offset, h;
 
 		entry = map->entries[(i + seed) & map->mask];
-		if (entry == CK_HS_EMPTY || entry == CK_HS_TOMBSTONE)
+		if (entry == CK_HS_EMPTY || ck_hs_tombstone(hs, entry) == true)
 			continue;
 
 #ifdef CK_HS_PP
@@ -939,6 +979,7 @@ ck_hs_init_from_options(struct ck_hs *hs,
 		return false;
 
 	*hs = init;
+	hs->tombstone = opts.tombstone;
 	return true;
 }
 
