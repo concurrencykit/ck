@@ -874,6 +874,10 @@ ck_hs_get(struct ck_hs *hs,
 
 	do {
 		map = ck_pr_load_ptr(&hs->map);
+		/*
+		 * We avoid a load fence here on and instead rely on the subsequent
+		 * ordered load (a stale value is benign and leads to a reprobe).
+		 */
 		generation = &map->generation[h & CK_HS_G_MASK];
 		g = ck_pr_load_uint(generation);
 		probe  = ck_hs_map_bound_get(map, h);
