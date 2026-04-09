@@ -362,17 +362,16 @@ ck_hs_cursor_set(ck_hs_t *hs, struct ck_hs_cursor *cursor, void *value)
 	if (cursor->first != NULL) {
 		ck_pr_store_ptr(cursor->first, insert);
 
-		/* Modifying a probe sequence, let readers know. */
 		if (cursor->match != NULL) {
+			/* Moving existing entry to an earlier slot. */
 			ck_hs_map_signal(map, cursor->h);
 			ck_pr_store_ptr(cursor->match, CK_HS_TOMBSTONE);
+		} else {
+			/* New entry into a tombstone slot. */
+			ck_hs_map_postinsert(hs, map);
 		}
 	} else {
-		bool m = cursor->match;
 		ck_pr_store_ptr(cursor->match, insert);
-
-		if (m == true)
-			ck_hs_map_postinsert(hs, map);
 	}
 
 	return;
