@@ -343,6 +343,13 @@ ck_hs_cursor_set(ck_hs_t *hs, struct ck_hs_cursor *cursor, void *value)
 		if (cursor->match == NULL)
 			return;
 
+		if (*cursor->match == CK_HS_TOMBSTONE)
+			return;
+
+		if (hs->tombstone != NULL &&
+		    hs->tombstone((void *)(uintptr_t)CK_HS_VMA(*cursor->match)))
+			return;
+
 		ck_pr_store_ptr(cursor->match, CK_HS_TOMBSTONE);
 		hs->map->n_entries--;
 		hs->map->tombstones++;
