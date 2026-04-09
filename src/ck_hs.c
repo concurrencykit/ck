@@ -200,6 +200,7 @@ ck_hs_map_create(struct ck_hs *hs, unsigned long entries)
 	map->step = ck_cc_ffsl(n_entries);
 	map->mask = n_entries - 1;
 	map->n_entries = 0;
+	map->tombstones = 0;
 
 	/* Align map allocation to cache line. */
 	map->entries = (void *)(((uintptr_t)&map[1] + prefix +
@@ -263,6 +264,7 @@ ck_hs_reinit(struct ck_hs *hs)
 	map->probe_limit = (unsigned int)limit;
 	map->probe_maximum = 0;
 	map->n_entries = 0;
+	map->tombstones = 0;
 
 	memset(map->entries, 0, sizeof(void *) * n_entries);
 	memset(map->generation, 0, sizeof map->generation);
