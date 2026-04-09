@@ -360,18 +360,36 @@ ck_hs_cursor_set(ck_hs_t *hs, struct ck_hs_cursor *cursor, void *value)
 
 	insert = ck_hs_marshal(hs->mode, value, cursor->h);
 	if (cursor->first != NULL) {
+		const void *existing = (cursor->match != NULL) ?
+		    ck_pr_load_ptr(cursor->match) : NULL;
+		bool is_new = (existing == NULL || existing == CK_HS_EMPTY ||
+		    existing == CK_HS_TOMBSTONE);
+
+		if (is_new == false && hs->tombstone != NULL)
+			is_new = hs->tombstone((void *)(uintptr_t)CK_HS_VMA(existing));
+
 		ck_pr_store_ptr(cursor->first, insert);
 
-		if (cursor->match != NULL) {
+		if (is_new == false) {
 			/* Moving existing entry to an earlier slot. */
 			ck_hs_map_signal(map, cursor->h);
 			ck_pr_store_ptr(cursor->match, CK_HS_TOMBSTONE);
 		} else {
-			/* New entry into a tombstone slot. */
+			/* No existing live entry to replace. */
 			ck_hs_map_postinsert(hs, map);
 		}
 	} else {
+		const void *existing = ck_pr_load_ptr(cursor->match);
+		bool is_new = (existing == NULL || existing == CK_HS_EMPTY ||
+		    existing == CK_HS_TOMBSTONE);
+
+		if (is_new == false && hs->tombstone != NULL)
+			is_new = hs->tombstone((void *)(uintptr_t)CK_HS_VMA(existing));
+
 		ck_pr_store_ptr(cursor->match, insert);
+
+		if (is_new == true)
+			ck_hs_map_postinsert(hs, map);
 	}
 
 	return;
