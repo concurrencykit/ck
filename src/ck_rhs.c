@@ -333,31 +333,44 @@ ck_rhs_destroy(struct ck_rhs *hs)
 	return;
 }
 
-static struct ck_rhs_map *
-ck_rhs_map_create(struct ck_rhs *hs, unsigned long entries)
+static unsigned long
+ck_rhs_map_capacity(unsigned long entries)
 {
-	struct ck_rhs_map *map;
-	unsigned long size, n_entries, limit;
+	unsigned long n_entries;
 
 	n_entries = ck_internal_power_2(entries);
 	if (n_entries < CK_RHS_PROBE_L1)
 		n_entries = CK_RHS_PROBE_L1;
 
+	return n_entries;
+}
+
+size_t
+ck_rhs_map_size(struct ck_rhs *hs, unsigned long entries)
+{
+	unsigned long n_entries;
+
+	n_entries = ck_rhs_map_capacity(entries);
+
 	if (hs->mode & CK_RHS_MODE_READ_MOSTLY)
-		size = sizeof(struct ck_rhs_map) +
+		return sizeof(struct ck_rhs_map) +
 		    (sizeof(void *) * n_entries +
 		     sizeof(struct ck_rhs_no_entry_desc) * n_entries +
 		     2 * CK_MD_CACHELINE - 1);
 	else
-		size = sizeof(struct ck_rhs_map) +
+		return sizeof(struct ck_rhs_map) +
 		    (sizeof(struct ck_rhs_entry_desc) * n_entries +
 		     CK_MD_CACHELINE - 1);
-	map = hs->m->malloc(size);
-	if (map == NULL)
-		return NULL;
-	map->read_mostly = !!(hs->mode & CK_RHS_MODE_READ_MOSTLY);
+}
 
-	map->size = size;
+static void
+ck_rhs_map_init(struct ck_rhs *hs, struct ck_rhs_map *map, unsigned long entries)
+{
+	unsigned long n_entries, limit;
+
+	n_entries = ck_rhs_map_capacity(entries);
+	map->read_mostly = !!(hs->mode & CK_RHS_MODE_READ_MOSTLY);
+	map->size = ck_rhs_map_size(hs, n_entries);
 	/* We should probably use a more intelligent heuristic for default probe length. */
 	limit = ck_internal_max(n_entries >> (CK_RHS_PROBE_L1_SHIFT + 2), CK_RHS_PROBE_L1_DEFAULT);
 	if (limit > UINT_MAX)
@@ -394,6 +407,21 @@ ck_rhs_map_create(struct ck_rhs *hs, unsigned long entries)
 
 	/* Commit entries purge with respect to map publication. */
 	ck_pr_fence_store();
+	return;
+}
+
+static struct ck_rhs_map *
+ck_rhs_map_create(struct ck_rhs *hs, unsigned long entries)
+{
+	struct ck_rhs_map *map;
+	size_t size;
+
+	size = ck_rhs_map_size(hs, entries);
+
+	map = hs->m->malloc(size);
+	if (map == NULL)
+		return NULL;
+	ck_rhs_map_init(hs, map, entries);
 	return map;
 }
 
@@ -419,6 +447,22 @@ ck_rhs_reset(struct ck_rhs *hs)
 
 	previous = hs->map;
 	return ck_rhs_reset_size(hs, previous->capacity);
+}
+
+void
+ck_rhs_reset_preallocated(struct ck_rhs *hs,
+    unsigned long capacity,
+    void *memory)
+{
+	struct ck_rhs_map *map, *previous;
+
+	previous = hs->map;
+	map = memory;
+	ck_rhs_map_init(hs, map, capacity);
+
+	ck_pr_store_ptr(&hs->map, map);
+	ck_rhs_map_destroy(hs->m, previous, true);
+	return;
 }
 
 static inline unsigned long
