@@ -56,16 +56,10 @@
 #include "gcc/sparcv9/ck_pr.h"
 #elif defined(__ppc64__)
 #include "gcc/ppc64/ck_pr.h"
-#elif defined(__s390x__)
-#include "gcc/s390x/ck_pr.h"
 #elif defined(__ppc__)
 #include "gcc/ppc/ck_pr.h"
 #elif defined(__arm__)
 #include "gcc/arm/ck_pr.h"
-#elif defined(__aarch64__)
-#include "gcc/aarch64/ck_pr.h"
-#elif defined(__riscv) && __riscv_xlen == 64
-#include "gcc/riscv64/ck_pr.h"
 #elif !defined(__GNUC__)
 #error Your platform is unsupported
 #endif
