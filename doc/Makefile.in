@@ -107,7 +107,9 @@ OBJECTS=CK_ARRAY_FOREACH		\
 	ck_rhs_grow			\
 	ck_rhs_rebuild			\
 	ck_rhs_count			\
+	ck_rhs_map_size			\
 	ck_rhs_reset			\
+	ck_rhs_reset_preallocated	\
 	ck_rhs_reset_size		\
 	ck_rhs_stat			\
 	ck_rwcohort			\

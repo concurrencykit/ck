@@ -24,56 +24,40 @@
 .\" SUCH DAMAGE.
 .\"
 .\"
-.Dd September 17, 2012
-.Dt CK_RHS_RESET 3
+.Dd April 26, 2026
+.Dt CK_RHS_MAP_SIZE 3
 .Sh NAME
-.Nm ck_rhs_reset
-.Nd remove all keys from a hash set
+.Nm ck_rhs_map_size
+.Nd return the backing map allocation size for a hash set capacity
 .Sh LIBRARY
 Concurrency Kit (libck, \-lck)
 .Sh SYNOPSIS
 .In ck_rhs.h
-.Ft bool
-.Fn ck_rhs_reset "ck_rhs_t *hs"
+.Ft size_t
+.Fn ck_rhs_map_size "ck_rhs_t *hs" "unsigned long size"
 .Sh DESCRIPTION
 The
-.Fn ck_rhs_reset 3
-function will remove all keys stored in the hash
-set pointed to by the
-.Fa hs
-argument.
+.Fn ck_rhs_map_size 3
+function returns the number of bytes required for backing memory
+capable of storing a hash set with enough capacity for
+.Fa size
+entries using the configuration of
+.Fa hs .
+.Pp
+This is intended to size caller-managed backing memory for
+.Xr ck_rhs_reset_preallocated 3 .
 .Sh RETURN VALUES
-If successful,
-.Fn ck_rhs_reset 3
-will return true and will otherwise return false on failure. This
-function will only fail if a replacement hash set could not be
-allocated internally.
+The
+.Fn ck_rhs_map_size 3
+function returns the required backing allocation size in bytes.
 .Sh ERRORS
 Behavior is undefined if
 .Fa hs
-is uninitialized. Behavior is
-undefined if this function is called by a non-writer
-thread.
+is uninitialized.
 .Sh SEE ALSO
 .Xr ck_rhs_init 3 ,
-.Xr ck_rhs_move 3 ,
-.Xr ck_rhs_destroy 3 ,
-.Xr CK_RHS_HASH 3 ,
-.Xr ck_rhs_iterator_init 3 ,
-.Xr ck_rhs_next 3 ,
-.Xr ck_rhs_get 3 ,
-.Xr ck_rhs_put 3 ,
-.Xr ck_rhs_put_unique 3 ,
-.Xr ck_rhs_set 3 ,
-.Xr ck_rhs_fas 3 ,
-.Xr ck_rhs_remove 3 ,
-.Xr ck_rhs_map_size 3 ,
-.Xr ck_rhs_reset_preallocated 3 ,
+.Xr ck_rhs_reset 3 ,
 .Xr ck_rhs_reset_size 3 ,
-.Xr ck_rhs_grow 3 ,
-.Xr ck_rhs_gc 3 ,
-.Xr ck_rhs_rebuild 3 ,
-.Xr ck_rhs_count 3 ,
-.Xr ck_rhs_stat 3
+.Xr ck_rhs_reset_preallocated 3
 .Pp
 Additional information available at http://concurrencykit.org/

@@ -24,56 +24,54 @@
 .\" SUCH DAMAGE.
 .\"
 .\"
-.Dd September 17, 2012
-.Dt CK_RHS_RESET 3
+.Dd April 26, 2026
+.Dt CK_RHS_RESET_PREALLOCATED 3
 .Sh NAME
-.Nm ck_rhs_reset
-.Nd remove all keys from a hash set
+.Nm ck_rhs_reset_preallocated
+.Nd remove all keys from a hash set using caller-provided backing memory
 .Sh LIBRARY
 Concurrency Kit (libck, \-lck)
 .Sh SYNOPSIS
 .In ck_rhs.h
-.Ft bool
-.Fn ck_rhs_reset "ck_rhs_t *hs"
+.Ft void
+.Fn ck_rhs_reset_preallocated "ck_rhs_t *hs" "unsigned long size" "void *memory"
 .Sh DESCRIPTION
 The
-.Fn ck_rhs_reset 3
-function will remove all keys stored in the hash
-set pointed to by the
+.Fn ck_rhs_reset_preallocated 3
+function removes all keys stored in the hash set pointed to by the
 .Fa hs
-argument.
+argument and creates a new generation of the hash set that is backed by
+the caller-provided
+.Fa memory
+buffer.
+.Pp
+The
+.Fa memory
+argument must be non-NULL and must refer to a region of at least
+.Fn ck_rhs_map_size 3
+bytes for the requested
+.Fa size
+and hash set configuration. The allocation referenced by
+.Fa memory
+must be safe to reclaim through the
+.Li free
+callback configured for
+.Fa hs .
+Ownership of this backing memory is transferred to the hash set and it
+will later be reclaimed through that callback.
 .Sh RETURN VALUES
-If successful,
-.Fn ck_rhs_reset 3
-will return true and will otherwise return false on failure. This
-function will only fail if a replacement hash set could not be
-allocated internally.
+This function does not return a value.
 .Sh ERRORS
 Behavior is undefined if
 .Fa hs
-is uninitialized. Behavior is
-undefined if this function is called by a non-writer
-thread.
+is uninitialized. Behavior is undefined if
+.Fa memory
+is NULL or too small for the requested capacity. Behavior is undefined
+if this function is called by a non-writer thread.
 .Sh SEE ALSO
 .Xr ck_rhs_init 3 ,
-.Xr ck_rhs_move 3 ,
-.Xr ck_rhs_destroy 3 ,
-.Xr CK_RHS_HASH 3 ,
-.Xr ck_rhs_iterator_init 3 ,
-.Xr ck_rhs_next 3 ,
-.Xr ck_rhs_get 3 ,
-.Xr ck_rhs_put 3 ,
-.Xr ck_rhs_put_unique 3 ,
-.Xr ck_rhs_set 3 ,
-.Xr ck_rhs_fas 3 ,
-.Xr ck_rhs_remove 3 ,
 .Xr ck_rhs_map_size 3 ,
-.Xr ck_rhs_reset_preallocated 3 ,
-.Xr ck_rhs_reset_size 3 ,
-.Xr ck_rhs_grow 3 ,
-.Xr ck_rhs_gc 3 ,
-.Xr ck_rhs_rebuild 3 ,
-.Xr ck_rhs_count 3 ,
-.Xr ck_rhs_stat 3
+.Xr ck_rhs_reset 3 ,
+.Xr ck_rhs_reset_size 3
 .Pp
 Additional information available at http://concurrencykit.org/
