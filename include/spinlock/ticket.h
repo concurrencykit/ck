@@ -289,8 +289,10 @@ CK_ELIDE_PROTOTYPE(ck_spinlock_ticket, ck_spinlock_ticket_t,
     ck_spinlock_ticket_locked, ck_spinlock_ticket_lock,
     ck_spinlock_ticket_locked, ck_spinlock_ticket_unlock)
 
+#ifdef CK_F_SPINLOCK_TICKET_TRYLOCK
 CK_ELIDE_TRYLOCK_PROTOTYPE(ck_spinlock_ticket, ck_spinlock_ticket_t,
     ck_spinlock_ticket_locked, ck_spinlock_ticket_trylock)
+#endif /* CK_F_SPINLOCK_TICKET_TRYLOCK */
 
 #endif /* CK_F_SPINLOCK_TICKET */
 #endif /* CK_SPINLOCK_TICKET_H */
