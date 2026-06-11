@@ -145,7 +145,16 @@ ck_stack_trypop_upmc(struct ck_stack *target, struct ck_stack_entry **r)
 #ifndef CK_F_STACK_BATCH_POP_UPMC
 #define CK_F_STACK_BATCH_POP_UPMC
 /*
- * Pop all items off the stack.
+ * Pop all items off the stack. This operation is wait-free.
+ *
+ * This may also be used in the presence of concurrent
+ * ck_stack_pop_mpmc and ck_stack_trypop_mpmc consumers, provided that
+ * the entries it returns are neither pushed back onto the stack nor
+ * have their memory recycled or unmapped until a grace period has
+ * elapsed (all pop operations initiated before this call have
+ * completed). It does not advance the generation counter, so without
+ * that discipline an in-flight pop holding a pre-batch snapshot may
+ * succeed against a re-pushed entry (see ck_stack_batch_pop_mpmc).
  */
 CK_CC_INLINE static struct ck_stack_entry *
 ck_stack_batch_pop_upmc(struct ck_stack *target)
@@ -250,18 +259,92 @@ ck_stack_trypop_mpmc(struct ck_stack *target, struct ck_stack_entry **r)
 #endif /* CK_F_STACK_TRYPOP_MPMC */
 #endif /* CK_F_PR_CAS_PTR_2_VALUE */
 
+#ifndef CK_F_STACK_BATCH_POP_MPMC_WF
+#define CK_F_STACK_BATCH_POP_MPMC_WF
+/*
+ * Wait-free variant of ck_stack_batch_pop_mpmc, available on all
+ * platforms. The generation is advanced before the head is swapped,
+ * with the fence ordering the two updates at the coherence point, so
+ * the removal invariant ck_stack_pop_mpmc relies upon (every removal
+ * advances the generation) holds and the returned entries may be
+ * re-pushed immediately. Relative to the double-wide CAS variant,
+ * concurrent compare-and-swap based producers and consumers may incur
+ * an additional spurious retry, and the generation is advanced even
+ * if the stack is observed empty. On platforms whose atomic
+ * fetch-and-add or swap primitives are emulated through a CAS loop,
+ * this operation is only lock-free.
+ */
+CK_CC_INLINE static struct ck_stack_entry *
+ck_stack_batch_pop_mpmc_wf(struct ck_stack *target)
+{
+	struct ck_stack_entry *entry;
+
+	ck_pr_add_ptr(&target->generation, 1);
+	ck_pr_fence_atomic();
+
+	entry = ck_pr_fas_ptr(&target->head, NULL);
+	ck_pr_fence_load();
+	return entry;
+}
+#endif /* CK_F_STACK_BATCH_POP_MPMC_WF */
+
 #ifndef CK_F_STACK_BATCH_POP_MPMC
 #define CK_F_STACK_BATCH_POP_MPMC
+#ifdef CK_F_PR_CAS_PTR_2_VALUE
 /*
- * This is equivalent to the UP/MC version as NULL does not need a
- * a generation count.
+ * While NULL itself does not require a generation count, the generation
+ * must still be advanced: ck_stack_pop_mpmc relies on every removal
+ * incrementing it. If the batch removal were to leave the generation
+ * unchanged, a concurrent ck_stack_pop_mpmc holding a pre-batch
+ * (head, generation) snapshot would succeed against a re-pushed head
+ * entry, re-introducing the ABA problem the generation exists to
+ * prevent.
+ *
+ * This variant therefore permits the returned entries to be re-pushed
+ * immediately, with the same re-use freedom ck_stack_pop_mpmc provides
+ * (entry memory must remain type-stable for the lifetime of the
+ * stack). If wait-freedom is required, ck_stack_batch_pop_mpmc_wf
+ * provides the same guarantees at the cost of potential additional
+ * spurious retries for concurrent operations. If all removed entries
+ * are instead recycled only after a grace period, the cheaper
+ * ck_stack_batch_pop_upmc may be used in place of this operation.
+ */
+CK_CC_INLINE static struct ck_stack_entry *
+ck_stack_batch_pop_mpmc(struct ck_stack *target)
+{
+	struct ck_stack original, update;
+
+	original.generation = ck_pr_load_ptr(&target->generation);
+	ck_pr_fence_load();
+	original.head = ck_pr_load_ptr(&target->head);
+	if (original.head == NULL)
+		return NULL;
+
+	update.generation = original.generation + 1;
+	update.head = NULL;
+
+	while (ck_pr_cas_ptr_2_value(target, &original, &update, &original) == false) {
+		if (original.head == NULL)
+			return NULL;
+
+		update.generation = original.generation + 1;
+	}
+
+	ck_pr_fence_load();
+	return original.head;
+}
+#else
+/*
+ * Without a double-wide CAS, defer to the wait-free variant, which
+ * maintains the same removal invariant on every platform.
  */
 CK_CC_INLINE static struct ck_stack_entry *
 ck_stack_batch_pop_mpmc(struct ck_stack *target)
 {
 
-	return ck_stack_batch_pop_upmc(target);
+	return ck_stack_batch_pop_mpmc_wf(target);
 }
+#endif /* CK_F_PR_CAS_PTR_2_VALUE */
 #endif /* CK_F_STACK_BATCH_POP_MPMC */
 
 #ifndef CK_F_STACK_PUSH_MPNC
