@@ -89,12 +89,35 @@ ck_array_initialized(struct ck_array *array)
 	return ck_pr_load_ptr(&array->active) != NULL;
 }
 
-#define CK_ARRAY_FOREACH(a, i, b)		   	\
-	(i)->snapshot = ck_pr_load_ptr(&(a)->active);	\
-	ck_pr_fence_load();				\
-	for (unsigned int _ck_i = 0;		   	\
-	    _ck_i < (a)->active->n_committed &&		\
-	    ((*b) = (a)->active->values[_ck_i], 1);	\
+CK_CC_INLINE static unsigned int
+_ck_array_length(struct _ck_array *a)
+{
+	unsigned int n = ck_pr_load_uint(&a->n_committed);
+
+	/*
+	 * Orders the bound load before the value loads of the iteration
+	 * it bounds. The value at an index below n_committed is
+	 * published with a store fence before the n_committed store, so
+	 * this pairing guarantees the values read are at least as
+	 * recent as the bound.
+	 */
+	ck_pr_fence_load();
+	return n;
+}
+
+/*
+ * All iteration accesses must go through the snapshot rather than the
+ * array, otherwise a concurrent commit may swap the active vector
+ * mid-iteration, mixing the new vector's bound with the old vector's
+ * values (the new bound may exceed the old vector's allocation).
+ */
+#define CK_ARRAY_FOREACH(a, i, b)					\
+	(i)->snapshot = ck_pr_load_ptr(&(a)->active);			\
+	ck_pr_fence_load();						\
+	for (unsigned int _ck_i = 0,					\
+	    _ck_limit = _ck_array_length((i)->snapshot);		\
+	    _ck_i < _ck_limit &&					\
+	    ((*b) = ck_pr_load_ptr(&(i)->snapshot->values[_ck_i]), 1);	\
 	    _ck_i++)
 
 #endif /* CK_ARRAY_H */
