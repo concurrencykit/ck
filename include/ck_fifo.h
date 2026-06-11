@@ -375,10 +375,20 @@ ck_fifo_mpmc_dequeue(struct ck_fifo_mpmc *fifo,
 			/*
 			 * The head is guaranteed to always point at a stub
 			 * entry. If the stub entry has no references then the
-			 * queue is empty.
+			 * queue is empty. However, the head snapshot may have
+			 * been re-used by this point (dequeued elsewhere and
+			 * re-enqueued as the tail with a re-initialized next
+			 * pointer), so the empty observation is only valid if
+			 * the head has not moved since it was read.
 			 */
-			if (next.pointer == NULL)
+			if (next.pointer == NULL) {
+				ck_pr_fence_load();
+				if (ck_pr_load_ptr(&fifo->head.generation) !=
+				    head.generation)
+					continue;
+
 				return false;
+			}
 
 			/* Forward the tail pointer if necessary. */
 			update.generation = tail.generation + 1;
