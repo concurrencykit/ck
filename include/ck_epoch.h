@@ -148,13 +148,32 @@ ck_epoch_begin(ck_epoch_record_t *record, ck_epoch_section_t *section)
 #endif
 
 		/*
-		 * This load is allowed to be re-ordered prior to setting
-		 * active flag due to monotonic nature of the global epoch.
-		 * However, stale values lead to measurable performance
-		 * degradation in some torture tests so we disallow early load
-		 * of global epoch.
+		 * This load must not be performed before the active flag is
+		 * visible (an active section may otherwise observe a global
+		 * epoch more than one generation ahead of its record's
+		 * epoch, an invariant relied upon by the reclamation logic
+		 * and asserted by the torture regression), and stale values
+		 * lead to measurable performance degradation in some torture
+		 * tests. We therefore disallow early load of global epoch.
 		 */
 		g_epoch = ck_pr_load_uint(&epoch->epoch);
+
+		/*
+		 * While the observation above may be stale (this only delays
+		 * reclamation), the loads within the section must not be
+		 * satisfied before it. Otherwise, the record may advertise
+		 * an epoch newer than the section's actual view of memory,
+		 * leading a reclaimer to conclude that no references could
+		 * have been acquired from a previous epoch generation while
+		 * the section in fact holds one.
+		 *
+		 * On TSO architectures, loads are always satisfied in
+		 * program order, so the ordering is unconditional and the
+		 * fence below is unnecessary: it compiles to a compiler
+		 * barrier only, with no instruction emitted. It is a real
+		 * load-load barrier only on weakly-ordered targets.
+		 */
+		ck_pr_fence_load();
 		ck_pr_store_uint(&record->epoch, g_epoch);
 	} else {
 		ck_pr_store_uint(&record->active, record->active + 1);

@@ -352,9 +352,12 @@ ck_epoch_scan(struct ck_epoch *global,
 		 * monotonic nature of epoch in this implementation. At most, we will yield
 		 * a false positive leading to additional delays.
 		 *
-		 * The epoch itself is monotonic, even if a re-ordering occurs, a newer
-		 * epoch will not invalidate safety and an older epoch only delays
-		 * reclamation.
+		 * The epoch itself is monotonic: an older observation of a record's
+		 * epoch only delays reclamation, and a newer observation does not
+		 * invalidate safety because ck_epoch_begin orders the record's
+		 * global epoch observation before the loads of its section. A
+		 * record epoch therefore never advertises a view of memory newer
+		 * than the one its section actually holds.
 		 */
 		if (active != 0 && ck_pr_load_uint(&cr->epoch) != epoch)
 			return cr;
