@@ -84,7 +84,13 @@ ck_pr_stall(void)
 
 CK_PR_FENCE(atomic, CK_DMB_ST)
 CK_PR_FENCE(atomic_store, CK_DMB_ST)
-CK_PR_FENCE(atomic_load, CK_DMB_ST)
+/*
+ * The RMW-to-load ordering this fence provides requires a full barrier:
+ * dmb st only orders stores against stores and would allow a subsequent
+ * load to be satisfied before the atomic operation is visible, breaking
+ * Dekker-style synchronization in the locks relying on this fence.
+ */
+CK_PR_FENCE(atomic_load, CK_DMB)
 CK_PR_FENCE(store_atomic, CK_DMB_ST)
 CK_PR_FENCE(load_atomic, CK_DMB)
 CK_PR_FENCE(store, CK_DMB_ST)
