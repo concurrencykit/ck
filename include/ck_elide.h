@@ -290,7 +290,7 @@ _ck_elide_fallback(int *retry,
 	ck_elide_##N##_trylock(T *lock)					\
 	{								\
 									\
-		return TL_P(lock);					\
+		return TL(lock);					\
 	}
 #endif /* !CK_F_PR_RTM */
 

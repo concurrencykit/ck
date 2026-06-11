@@ -17,6 +17,7 @@ DIR=array	\
     pr		\
     queue	\
     ring	\
+    rtm		\
     rwlock	\
     sequence	\
     spinlock	\
@@ -73,6 +74,7 @@ all:
 	$(MAKE) -C ./ck_hp/benchmark all
 	$(MAKE) -C ./ck_ec/validate all
 	$(MAKE) -C ./ck_ec/benchmark all
+	$(MAKE) -C ./ck_rtm/validate all
 
 clean:
 	$(MAKE) -C ./ck_array/validate clean
@@ -123,6 +125,7 @@ clean:
 	$(MAKE) -C ./ck_hp/benchmark clean
 	$(MAKE) -C ./ck_ec/validate clean
 	$(MAKE) -C ./ck_ec/benchmark clean
+	$(MAKE) -C ./ck_rtm/validate clean
 
 check: all
 	rc=0; 							\
