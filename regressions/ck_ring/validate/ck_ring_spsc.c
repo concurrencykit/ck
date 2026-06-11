@@ -25,6 +25,7 @@
  */
 
 #include <assert.h>
+#include <limits.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <pthread.h>
@@ -155,6 +156,44 @@ test(void *c)
 	return NULL;
 }
 
+static void
+test_valid(void)
+{
+	ck_ring_t br;
+
+	ck_ring_init(&br, 4);
+	if (ck_ring_valid(&br) == false) {
+		ck_error("ERROR: Initialized ring should be valid.\n");
+	}
+
+	/*
+	 * The counters are free-running: a ring whose producer has
+	 * wrapped around UINT_MAX while entries are in flight is in a
+	 * legitimate state.
+	 */
+	br.c_head = UINT_MAX - 1;
+	br.p_tail = br.p_head = 1;
+	if (ck_ring_valid(&br) == false) {
+		ck_error("ERROR: Wrapped ring should be valid.\n");
+	}
+
+	/* The producer may never be more than size slots ahead. */
+	br.c_head = 0;
+	br.p_tail = br.p_head = 5;
+	if (ck_ring_valid(&br) == true) {
+		ck_error("ERROR: Overflowed ring should be invalid.\n");
+	}
+
+	/* The size must be a power of 2. */
+	ck_ring_init(&br, 4);
+	br.size = 3;
+	if (ck_ring_valid(&br) == true) {
+		ck_error("ERROR: Non-power-of-2 ring should be invalid.\n");
+	}
+
+	return;
+}
+
 int
 main(int argc, char *argv[])
 {
@@ -165,6 +204,8 @@ main(int argc, char *argv[])
 	if (argc != 4) {
 		ck_error("Usage: validate <threads> <affinity delta> <size>\n");
 	}
+
+	test_valid();
 
 	a.request = 0;
 	a.delta = atoi(argv[2]);

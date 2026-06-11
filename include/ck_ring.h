@@ -105,11 +105,14 @@ ck_ring_valid(const struct ck_ring *ring)
 	if (size & (size - 1))
 		return false;
 
-	/* The consumer counter must always be smaller than the producer. */
-	if (c_head > p_head)
-		return false;
-
-	/* The producer may only be up to size slots ahead of consumer. */
+	/*
+	 * The producer may only be up to size slots ahead of the
+	 * consumer. The counters are free-running and may legitimately
+	 * wrap, so they must only ever be compared through their
+	 * unsigned difference: a direct ordering comparison would
+	 * falsely report corruption once the producer wraps around
+	 * UINT_MAX ahead of the consumer.
+	 */
 	if (p_head - c_head >= size)
 		return false;
 
@@ -241,10 +244,13 @@ _ck_ring_dequeue_sc(struct ck_ring *ring,
 	memcpy(target, buffer, size);
 
 	/*
-	 * Make sure copy is completed with respect to consumer
-	 * update.
+	 * The consumer counter update is the producer's license to
+	 * overwrite the slot, so the slot loads themselves must complete
+	 * before it is published. The copy's destination stores cannot
+	 * be relied upon for this ordering as the compiler is free to
+	 * elide them (e.g. into a register).
 	 */
-	ck_pr_fence_store();
+	ck_pr_fence_load_store();
 	ck_pr_store_uint(&ring->c_head, consumer + 1);
 	return true;
 }
@@ -430,7 +436,12 @@ _ck_ring_trydequeue_mc(struct ck_ring *ring,
 	buffer = (const char *)buffer + size * (consumer & mask);
 	memcpy(data, buffer, size);
 
-	ck_pr_fence_store_atomic();
+	/*
+	 * Serialize the slot loads (not only the copy's destination
+	 * stores, which the compiler may elide) with respect to the
+	 * head update.
+	 */
+	ck_pr_fence_load_store();
 	return ck_pr_cas_uint(&ring->c_head, consumer, consumer + 1);
 }
 
@@ -463,8 +474,12 @@ _ck_ring_dequeue_mc(struct ck_ring *ring,
 		target = (const char *)buffer + ts * (consumer & mask);
 		memcpy(data, target, ts);
 
-		/* Serialize load with respect to head update. */
-		ck_pr_fence_store_atomic();
+		/*
+		 * Serialize the slot loads (not only the copy's
+		 * destination stores, which the compiler may elide) with
+		 * respect to the head update.
+		 */
+		ck_pr_fence_load_store();
 	} while (ck_pr_cas_uint_value(&ring->c_head,
 				      consumer,
 				      consumer + 1,
