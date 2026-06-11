@@ -62,6 +62,19 @@ read_thread(void *unused CK_CC_UNUSED)
 	ck_epoch_record_t *record;
 	unsigned long long i = 0;
 
+	/*
+	 * section[1] deliberately overlaps loop iterations: it is begun
+	 * at the bottom of an iteration and ended early in the following
+	 * iteration. It must be declared outside of the loop body. If it
+	 * is declared inside, then its lifetime ends at the loop's back
+	 * edge and the cross-iteration use reads an object whose value
+	 * is indeterminate. Optimizing compilers exploit this once
+	 * _ck_epoch_delref is visible for inlining (e.g. under LTO),
+	 * corrupting the record's local bucket state and live-locking
+	 * any subsequent ck_epoch_synchronize (see issue #247).
+	 */
+	ck_epoch_section_t section[2];
+
 	record = malloc(sizeof *record);
 	assert(record != NULL);
 	ck_epoch_register(&epoch, record, NULL);
@@ -75,7 +88,6 @@ read_thread(void *unused CK_CC_UNUSED)
 	while (ck_pr_load_uint(&barrier) < n_threads);
 
 	for (;;) {
-		ck_epoch_section_t section[2];
 		ck_epoch_section_t junk[CK_EPOCH_T_DEPTH];
 		unsigned int j;
 
@@ -92,6 +104,9 @@ read_thread(void *unused CK_CC_UNUSED)
 		/* Wait for the next synchronize operation. */
 		while ((ck_pr_load_uint(&epoch.epoch) & 1) ==
 		    section[0].bucket) {
+			if (ck_pr_load_uint(&leave) == 1)
+				break;
+
 			i++;
 
 			if (!(i % 10000000)) {
@@ -107,6 +122,17 @@ read_thread(void *unused CK_CC_UNUSED)
 
 				ck_pr_stall();
 			}
+		}
+
+		/*
+		 * Writers stop ticking the global epoch after a shutdown
+		 * has been signaled, so the parity flip above may never
+		 * arrive. Exit while only section[0] is held rather than
+		 * deadlocking against exited writers.
+		 */
+		if (ck_pr_load_uint(&leave) == 1) {
+			ck_epoch_end(record, &section[0]);
+			break;
 		}
 
 		ck_epoch_begin(record, &section[1]);
