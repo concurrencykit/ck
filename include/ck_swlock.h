@@ -149,9 +149,6 @@ CK_ELIDE_PROTOTYPE(ck_swlock_write, ck_swlock_t,
     ck_swlock_locked, ck_swlock_write_lock,
     ck_swlock_locked_writer, ck_swlock_write_unlock)
 
-CK_ELIDE_TRYLOCK_PROTOTYPE(ck_swlock_read, ck_swlock_t,
-    ck_swlock_locked_writer, ck_swlock_read_trylock)
-
 CK_CC_INLINE static bool
 ck_swlock_read_trylock(ck_swlock_t *rw)
 {
@@ -167,6 +164,9 @@ ck_swlock_read_trylock(ck_swlock_t *rw)
 	ck_pr_fence_lock();
 	return l == 0;
 }
+
+CK_ELIDE_TRYLOCK_PROTOTYPE(ck_swlock_read, ck_swlock_t,
+    ck_swlock_locked_writer, ck_swlock_read_trylock)
 
 CK_CC_INLINE static void
 ck_swlock_read_lock(ck_swlock_t *rw)
