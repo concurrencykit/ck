@@ -180,6 +180,45 @@ main(void)
 		ck_error("ERROR: Incorrect number of entries in table.\n");
 	}
 
+	/* Scatter tombstones while leaving the table half-populated. */
+	for (i = 0; i < sizeof(test) / sizeof(*test); i += 2) {
+		l = strlen(test[i]);
+		ck_ht_hash(&h, &ht, test[i], l);
+		ck_ht_entry_key_set(&entry, test[i], l);
+		ck_ht_remove_spmc(&ht, h, &entry);
+	}
+
+	/*
+	 * Put must fail on a present key even if a tombstone in an earlier
+	 * position of the key's probe sequence is available for re-use, and
+	 * must not leave a duplicate behind: a single remove must render the
+	 * key unobservable.
+	 */
+	for (i = 0; i < sizeof(test) / sizeof(*test); i++) {
+		l = strlen(test[i]);
+		ck_ht_hash(&h, &ht, test[i], l);
+		ck_ht_entry_key_set(&entry, test[i], l);
+
+		if (ck_ht_get_spmc(&ht, h, &entry) == false)
+			continue;
+
+		ck_ht_entry_set(&entry, h, test[i], l, "DUPLICATE");
+		if (ck_ht_put_spmc(&ht, h, &entry) == true) {
+			ck_error("ERROR: Put of existing key [%s] succeeded\n",
+			    test[i]);
+		}
+
+		ck_ht_entry_key_set(&entry, test[i], l);
+		if (ck_ht_remove_spmc(&ht, h, &entry) == false) {
+			ck_error("ERROR: Failed to delete existing entry\n");
+		}
+
+		if (ck_ht_get_spmc(&ht, h, &entry) == true) {
+			ck_error("ERROR: Able to find [%s] after delete\n",
+			    test[i]);
+		}
+	}
+
 	for (i = 0; i < sizeof(test) / sizeof(*test); i++) {
 		l = strlen(test[i]);
 		ck_ht_hash(&h, &ht, test[i], l);

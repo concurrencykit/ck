@@ -983,22 +983,25 @@ ck_ht_put_spmc(struct ck_ht *table,
 			return false;
 	}
 
+	/*
+	 * If the snapshot key is non-empty, then an identical key was found
+	 * (the probe function only returns a match or an empty slot, never
+	 * a tombstone). As store does not implement replacement, we will
+	 * fail. This must be checked before considering tombstone re-use,
+	 * otherwise an existing key would be duplicated into an earlier
+	 * tombstone slot.
+	 */
+	if (candidate != NULL && candidate->key != CK_HT_KEY_EMPTY)
+		return false;
+
 	if (priority != NULL) {
 		/* Version counter is updated before re-use. */
 		CK_HT_TYPE_STORE(&map->deletions, map->deletions + 1);
 		ck_pr_fence_store();
 
-		/* Re-use tombstone if one was found. */
+		/* Re-use earliest tombstone if one was found. */
 		candidate = priority;
 		probes = probes_wr;
-	} else if (candidate->key != CK_HT_KEY_EMPTY &&
-	    candidate->key != CK_HT_KEY_TOMBSTONE) {
-		/*
-		 * If the snapshot key is non-empty and the value field is not
-		 * a tombstone then an identical key was found. As store does
-		 * not implement replacement, we will fail.
-		 */
-		return false;
 	}
 
 	ck_ht_map_bound_set(map, h, probes);
