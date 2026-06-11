@@ -878,7 +878,7 @@ ck_ht_set_spmc(struct ck_ht *table,
 		 * observe re-use. If they observe re-use, it is at most
 		 * a tombstone.
 		 */
-		if (priority->value == CK_HT_KEY_TOMBSTONE) {
+		if (priority->key == CK_HT_KEY_TOMBSTONE) {
 			CK_HT_TYPE_STORE(&map->deletions, map->deletions + 1);
 			ck_pr_fence_store();
 		}
