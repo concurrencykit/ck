@@ -118,8 +118,8 @@ enum ck_cohort_state {
 	ck_cohort_##N##_locked(CK_COHORT_INSTANCE(N) *cohort,			\
 	    void *global_context, void *local_context)				\
 	{									\
-		return GI(cohort->local_lock, local_context) ||			\
-		    LI(cohort->global_lock, global_context);			\
+		return GI(cohort->global_lock, global_context) ||		\
+		    LI(cohort->local_lock, local_context);			\
 	}
 
 #define CK_COHORT_TRYLOCK_PROTOTYPE(N, GL, GU, GI, GTL, LL, LU, LI, LTL)	\
