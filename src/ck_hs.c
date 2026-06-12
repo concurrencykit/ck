@@ -135,7 +135,8 @@ _ck_hs_next(struct ck_hs *hs, struct ck_hs_map *map,
 		return false;
 
 	do {
-		value = CK_CC_DECONST_PTR(map->entries[i->offset]);
+		/* Load the slot once, writers may be concurrent. */
+		value = CK_CC_DECONST_PTR(ck_pr_load_ptr(&map->entries[i->offset]));
 		if (value != CK_HS_EMPTY && value != CK_HS_TOMBSTONE) {
 #ifdef CK_HS_PP
 			if (hs->mode & CK_HS_MODE_OBJECT)
@@ -169,6 +170,12 @@ ck_hs_next(struct ck_hs *hs, struct ck_hs_iterator *i, void **key)
 	return _ck_hs_next(hs, hs->map, i, key);
 }
 
+/*
+ * Safe against concurrent writers. The map is snapshot once: relocated
+ * keys may be observed twice or not at all, and the iteration must be
+ * protected by a grace period mechanism as a grow may reclaim the
+ * snapshot.
+ */
 bool
 ck_hs_next_spmc(struct ck_hs *hs, struct ck_hs_iterator *i, void **key)
 {
