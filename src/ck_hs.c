@@ -106,6 +106,19 @@ ck_hs_map_signal(struct ck_hs_map *map, unsigned long h)
 {
 
 	h &= CK_HS_G_MASK;
+
+	/*
+	 * The generation counter is the readers' signal to retry a probe
+	 * that may have raced a relocation. The new copy of a relocated
+	 * entry is stored before this function is called and the old
+	 * copy is destroyed after it returns: both stores must be
+	 * ordered with respect to the increment. If the increment were
+	 * to become visible before the new copy, a reader could observe
+	 * the new generation, probe past the not-yet-visible new copy,
+	 * find the old copy already destroyed and pass its generation
+	 * re-validation, missing a present key.
+	 */
+	ck_pr_fence_store();
 	ck_pr_store_uint(&map->generation[h],
 	    map->generation[h] + 1);
 	ck_pr_fence_store();
