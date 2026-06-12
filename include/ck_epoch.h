@@ -186,6 +186,51 @@ ck_epoch_begin(ck_epoch_record_t *record, ck_epoch_section_t *section)
 }
 
 /*
+ * Updates the epoch observation of a record with an active section
+ * without closing the section. This serves as a quiescent point: loads
+ * performed and removals published before the call are retired with
+ * respect to the new observation, as if the section was closed and
+ * re-opened. The record continues to limit the progress of the global
+ * epoch throughout, so there is no window in which the epoch may
+ * advance unobserved.
+ *
+ * This allows a writer thread that shares an epoch instance with other
+ * epoch-advancing threads to defer destruction outside of a section.
+ * The writer registers, begins a section once and calls this function
+ * periodically. A record that stops observing stalls reclamation for
+ * all threads, as any held section does.
+ *
+ * This function must only be called on a record with an active
+ * section.
+ */
+CK_CC_FORCE_INLINE static void
+ck_epoch_observe(ck_epoch_record_t *record)
+{
+	unsigned int g_epoch;
+
+	/*
+	 * Loads of the previous observation interval must not be
+	 * satisfied after the observation below and prior removals must
+	 * be visible before the new observation is published. An epoch
+	 * transition that observes the update then inherits visibility
+	 * of the removals.
+	 */
+	ck_pr_fence_release();
+
+	g_epoch = ck_pr_load_uint(&record->global->epoch);
+
+	/*
+	 * As in ck_epoch_begin, loads within the new interval must not
+	 * be satisfied before the observation itself. Otherwise, the
+	 * record may advertise an epoch newer than the actual view of
+	 * memory. On TSO, this ordering is implied by program order.
+	 */
+	ck_pr_fence_load();
+	ck_pr_store_uint(&record->epoch, g_epoch);
+	return;
+}
+
+/*
  * Marks the end of an epoch-protected section. Returns true if no more
  * sections exist for the caller.
  */
@@ -208,8 +253,21 @@ ck_epoch_end(ck_epoch_record_t *record, ck_epoch_section_t *section)
  * non-blocking deferral.
  *
  * We can get away without a fence here due to the monotonic nature
- * of the epoch counter. Worst case, this will result in some delays
- * before object destruction.
+ * of the epoch counter. A stale snapshot will file the entry under an
+ * older slot which is only dispatched later. Worst case, this will
+ * result in some delays before object destruction.
+ *
+ * The caller is responsible for the removal of the object being
+ * visible before a grace period is detected, which the usual
+ * write-side arrangements already provide. A single writer that
+ * performs all removals and all reclamation may call this function
+ * at any point. The same is true of multiple writers that serialize
+ * removals and reclamation under a common lock, and of a writer that
+ * detects the grace period itself through ck_epoch_synchronize or
+ * ck_epoch_barrier. Only concurrent writers reclaiming through
+ * ck_epoch_poll must defer within the section that removed the
+ * object, or within the observation interval of a permanently active
+ * record (see ck_epoch_observe).
  */
 CK_CC_FORCE_INLINE static void
 ck_epoch_call(ck_epoch_record_t *record,

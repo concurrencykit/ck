@@ -183,6 +183,62 @@ test_poll_arithmetic(void)
 }
 
 /*
+ * Validates ck_epoch_observe: a permanently active record which
+ * observes the epoch must permit the same dispatch progress as a
+ * record cycling sections, with the same timing of destruction.
+ */
+static void
+test_poll_observe(void)
+{
+	ck_epoch_t e;
+	ck_epoch_record_t reader, poller;
+	struct poll_object o = { 0 };
+
+	ck_epoch_init(&e);
+	ck_epoch_register(&e, &reader, NULL);
+	ck_epoch_register(&e, &poller, NULL);
+
+	/* The reader holds a single section for its lifetime. */
+	ck_epoch_begin(&reader, NULL);
+
+	ck_epoch_call(&poller, &o.epoch_entry, poll_object_destroy);
+
+	if (ck_epoch_poll(&poller) == false) {
+		ck_error("ERROR: Poll failed against observing reader.\n");
+	}
+
+	/* The reader lags: no progress is possible. */
+	if (ck_epoch_poll(&poller) == true) {
+		ck_error("ERROR: Poll progressed over a lagging observer.\n");
+	}
+
+	ck_epoch_observe(&reader);
+
+	if (ck_epoch_poll(&poller) == false) {
+		ck_error("ERROR: Poll failed against observing reader.\n");
+	}
+
+	if (o.destroyed != 0) {
+		ck_error("ERROR: Object destroyed before every active "
+		    "thread observed its deletion epoch.\n");
+	}
+
+	ck_epoch_observe(&reader);
+
+	if (ck_epoch_poll(&poller) == false) {
+		ck_error("ERROR: Poll failed against observing reader.\n");
+	}
+
+	if (o.destroyed != 1) {
+		ck_error("ERROR: Object not destroyed after every active "
+		    "thread observed its deletion epoch + 1.\n");
+	}
+
+	ck_epoch_end(&reader, NULL);
+	return;
+}
+
+/*
  * Validates ck_epoch_poll_deferred: dispatched entries must land on the
  * deferred stack exactly once, unexecuted, and the all-inactive path
  * must flush every slot.
@@ -332,12 +388,18 @@ write_thread(void *unused CK_CC_UNUSED)
 		}
 
 		for (i = 0; i < PAIRS_S; i++) {
+			/*
+			 * Concurrent writers each advance the epoch through
+			 * ck_epoch_poll, so the deferral must be made within
+			 * the section that removed the object (see
+			 * ck_epoch_call).
+			 */
 			ck_epoch_begin(record, NULL);
 			s = ck_stack_pop_upmc(&stack);
 			e = stack_container(s);
+			ck_epoch_call(record, &e->epoch_entry, destructor);
 			ck_epoch_end(record, NULL);
 
-			ck_epoch_call(record, &e->epoch_entry, destructor);
 			ck_epoch_poll(record);
 		}
 	}
@@ -367,6 +429,7 @@ main(int argc, char *argv[])
 	}
 
 	test_poll_arithmetic();
+	test_poll_observe();
 	test_poll_deferred();
 
 	n_rd = atoi(argv[1]);
