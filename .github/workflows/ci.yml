@@ -21,11 +21,6 @@ jobs:
           - arch: arm64
             runner: ubuntu-22.04-arm
     steps:
-      - name: Harden runner
-        uses: step-security/harden-runner@v2
-        with:
-          egress-policy: audit
-
       - uses: actions/checkout@v6
 
       - name: Install compilers
