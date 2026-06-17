@@ -1033,7 +1033,8 @@ ck_hs_init_from_options(struct ck_hs *hs,
 	init.m = opts.allocator;
 	init.mode = opts.mode;
 	init.mode |= opts.key_offset << CK_HS_MODE_KEY_OFFSET_BITS;
-	init.seed = opts.seed;
+	init.seed = opts.seed != 0 ? opts.seed :
+	    (unsigned long)(uintptr_t)hs ^ ((unsigned long)(uintptr_t)hs >> 17);
 	init.hf = opts.hash_function;
 	init.compare = opts.compare;
 	init.map = ck_hs_map_create(&init, opts.capacity);
