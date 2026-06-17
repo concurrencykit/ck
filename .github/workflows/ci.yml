@@ -21,6 +21,11 @@ jobs:
           - arch: arm64
             runner: ubuntu-22.04-arm
     steps:
+      - name: Monitor pipeline (cimon)
+        uses: cycodelabs/cimon-action@v1
+        with:
+          prevent: false
+
       - uses: actions/checkout@v6
 
       - name: Install compilers
