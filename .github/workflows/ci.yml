@@ -21,10 +21,10 @@ jobs:
           - arch: arm64
             runner: ubuntu-22.04-arm
     steps:
-      - name: Monitor pipeline (cimon)
-        uses: cycodelabs/cimon-action@v1
+      - name: Harden runner
+        uses: step-security/harden-runner@v2
         with:
-          prevent: false
+          egress-policy: audit
 
       - uses: actions/checkout@v6
 
