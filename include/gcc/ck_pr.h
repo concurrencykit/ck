@@ -218,7 +218,7 @@ CK_PR_CAS_O(8,  uint8_t)
 		return (d);					\
 	}
 
-CK_PR_FAA(ptr, void, void *)
+CK_PR_FAA(ptr, void, uintptr_t)
 
 #define CK_PR_FAA_S(S, T) CK_PR_FAA(S, T, T)
 
@@ -282,7 +282,7 @@ CK_PR_GENERATE(xor)
 
 #define CK_PR_UNARY_S(S, M) CK_PR_UNARY(S, M, M)
 
-CK_PR_UNARY(ptr, void, void *)
+CK_PR_UNARY(ptr, void, uintptr_t)
 CK_PR_UNARY_S(char, char)
 CK_PR_UNARY_S(int, int)
 CK_PR_UNARY_S(uint, unsigned int)
