@@ -811,7 +811,8 @@ assert "$AR" "not found"
 printf "Detecting VMA bits..............."
 VMA="unknown"
 if test "$VMA_BITS" = "unknown"; then
-	if test "$PLATFORM" = "x86" || test $PLATFORM = "x86_64"; then
+	case "$PLATFORM" in
+	x86|x86_64)
 		case $SYSTEM in
 			darwin)
 				VMA=`sysctl -n machdep.cpu.address_bits.virtual`
@@ -852,7 +853,17 @@ EOF
 					rm -f .1.c .1
 				fi
 		esac
-	fi
+		;;
+	aarch64)
+		# arm64 userspace stays within 48-bit addresses under every kernel VA
+		# configuration unless a process opts into a larger space with an
+		# explicit high mmap hint, so 48 is the bound a shipped binary can rely
+		# on. Probing here would under-measure on 39- and 42-bit configurations
+		# and over-measure on 52-bit ones, and both are wrong for a binary that
+		# runs somewhere other than where it was built.
+		VMA=48
+		;;
+	esac
 
 	VMA_BITS=$VMA
 else
