@@ -287,6 +287,66 @@ ck_hs_cursor_match(const struct ck_hs_cursor *cursor)
 	return CK_CC_DECONST_PTR(CK_HS_VMA(ck_pr_load_ptr(cursor->match)));
 }
 
+/*
+ * Prefetch the home cacheline of the key with hash h, and its probe
+ * bound where the set keeps one, ahead of a lookup: issued early enough,
+ * the lookup's first miss then overlaps whatever the caller does in
+ * between. A map swapped underneath only mis-prefetches.
+ */
+CK_CC_INLINE static void
+ck_hs_prefetch(struct ck_hs *hs, unsigned long h)
+{
+	struct ck_hs_map *map = ck_pr_load_ptr(&hs->map);
+	unsigned long offset = h & map->mask;
+
+	__builtin_prefetch(&map->entries[offset]);
+	if (map->probe_bound != NULL)
+		__builtin_prefetch(&map->probe_bound[offset]);
+
+	return;
+}
+
+/*
+ * The second stage, once the home cacheline is in: prefetch the objects
+ * named by the slots on it whose packed hash bits match h, without
+ * comparing, so the lookup's second miss, the object behind its slot,
+ * also overlaps the caller's work. Only the home line is read; a key
+ * further along its probe sequence is merely not prefetched, and a
+ * slot whose bits collide, one in 65,536, touches a line for nothing.
+ * Requires pointer packing and object mode; a no-op otherwise.
+ */
+CK_CC_INLINE static void
+ck_hs_prefetch_candidates(struct ck_hs *hs, unsigned long h)
+{
+#ifdef CK_HS_PP
+	struct ck_hs_map *map = ck_pr_load_ptr(&hs->map);
+	const void **bucket = (const void **)((uintptr_t)&map->entries[h & map->mask] &
+	    ~(CK_MD_CACHELINE - 1));
+	unsigned long hv = (h >> 25) & CK_HS_KEY_MASK;
+	unsigned int i;
+
+	if ((hs->mode & CK_HS_MODE_OBJECT) == 0)
+		return;
+
+	for (i = 0; i < CK_MD_CACHELINE / sizeof(void *); i++) {
+		const void *val = ck_pr_load_ptr(&bucket[i]);
+
+		if (val == CK_HS_EMPTY || val == CK_HS_TOMBSTONE)
+			continue;
+
+		if (((uintptr_t)val >> CK_MD_VMA_BITS) != hv)
+			continue;
+
+		__builtin_prefetch((const void *)CK_HS_VMA(val));
+	}
+#else
+	(void)hs;
+	(void)h;
+#endif
+
+	return;
+}
+
 static inline void
 ck_hs_map_bound_set(struct ck_hs_map *m,
     unsigned long h,
