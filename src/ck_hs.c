@@ -413,6 +413,7 @@ ck_hs_map_probe(struct ck_hs *hs,
 	const void **bucket, **cursor, *val, *val_key, *compare_key;
 	const void **pr = NULL;
 	unsigned long offset, j, i, probes, opl;
+	bool dead;
 
 #ifdef CK_HS_PP
 	/* If we are storing object pointers, then we may leverage pointer packing. */
@@ -459,7 +460,30 @@ ck_hs_map_probe(struct ck_hs *hs,
 			if (val == CK_HS_EMPTY)
 				goto leave;
 
-			if (ck_hs_tombstone(hs, val) == true) {
+			dead = val == CK_HS_TOMBSTONE;
+			if (dead == false) {
+#ifdef CK_HS_PP
+				if (hs->mode & CK_HS_MODE_OBJECT) {
+					if (((uintptr_t)val >> CK_MD_VMA_BITS) != hv)
+						continue;
+
+					val = CK_HS_VMA(val);
+				}
+#endif
+
+				/*
+				 * The caller's tombstone predicate dereferences the
+				 * object, so it runs only once the packed hash bits
+				 * match: a probe pays it for candidates, not for
+				 * every slot it walks past. A dead entry under
+				 * another prefix is walked past like a live one and
+				 * is not offered for reuse.
+				 */
+				dead = hs->tombstone != NULL &&
+				    hs->tombstone((void *)(uintptr_t)val) == true;
+			}
+
+			if (dead == true) {
 				if (pr == NULL) {
 					pr = cursor;
 					*n_probes = probes;
@@ -472,15 +496,6 @@ ck_hs_map_probe(struct ck_hs *hs,
 
 				continue;
 			}
-
-#ifdef CK_HS_PP
-			if (hs->mode & CK_HS_MODE_OBJECT) {
-				if (((uintptr_t)val >> CK_MD_VMA_BITS) != hv)
-					continue;
-
-				val = CK_HS_VMA(val);
-			}
-#endif
 
 			val_key = ck_hs_apply_key_offset(hs, val);
 			if (val_key == compare_key)
