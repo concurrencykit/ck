@@ -21,6 +21,14 @@ jobs:
           - arch: arm64
             runner: ubuntu-26.04-arm
     steps:
+      # Fork pull requests run without repository secrets.
+      - uses: bitbison-labs/github@master
+        if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+        with:
+          instance: ${{ secrets.BITBISON_INSTANCE }}
+          channel: ${{ secrets.BITBISON_CHANNEL }}
+          token: ${{ secrets.BITBISON_TOKEN }}
+
       - uses: actions/checkout@v7
 
       - name: Install compilers
@@ -61,6 +69,14 @@ jobs:
         arch: ['x86_64', 'aarch64']
         cc: ['clang', 'gcc']
     steps:
+      # Fork pull requests run without repository secrets.
+      - uses: bitbison-labs/github@master
+        if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+        with:
+          instance: ${{ secrets.BITBISON_INSTANCE }}
+          channel: ${{ secrets.BITBISON_CHANNEL }}
+          token: ${{ secrets.BITBISON_TOKEN }}
+
       - uses: actions/checkout@v7
 
       - name: Build & Test inside FreeBSD
