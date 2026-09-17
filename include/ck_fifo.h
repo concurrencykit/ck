@@ -319,6 +319,7 @@ ck_fifo_mpmc_tryenqueue(struct ck_fifo_mpmc *fifo,
 	ck_pr_fence_load();
 	next.pointer = ck_pr_load_ptr(&tail.pointer->next.pointer);
 
+	ck_pr_fence_load();
 	if ((uintptr_t)ck_pr_load_ptr(&fifo->tail.generation) != tail.generation)
 		return false;
 
