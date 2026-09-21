@@ -2,12 +2,7 @@
 
 #include "../../../src/ck_ec_timeutil.h"
 #include "fuzz_harness.h"
-
-#if ULONG_MAX > 4294967295
-typedef __int128 dsword_t;
-#else
-typedef int64_t dsword_t;
-#endif
+#include "int128.h"
 
 struct example {
 	struct timespec x;
@@ -69,25 +64,28 @@ static struct timespec normalize_ts(const struct timespec ts)
 	return ret;
 }
 
-static dsword_t ts_to_nanos(const struct timespec ts)
+static ck_s128_t ts_to_nanos(const struct timespec ts)
 {
-	return (dsword_t)ts.tv_sec * (NSEC_MAX + 1) + ts.tv_nsec;
+	ck_s128_t ret = ck_s128_mul(ck_s128_make_s64(ts.tv_sec),
+	    ck_s128_make_s64(NSEC_MAX + 1));
+	ret = ck_s128_add(ret, ck_s128_make_s64(ts.tv_nsec));
+	return ret;
 }
 
 static inline int test_timespec_cmp(const struct example *example)
 {
 	const struct timespec x = normalize_ts(example->y);
 	const struct timespec y = normalize_ts(example->x);
-	const dsword_t x_nanos = ts_to_nanos(x);
-	const dsword_t y_nanos = ts_to_nanos(y);
+	const ck_s128_t x_nanos = ts_to_nanos(x);
+	const ck_s128_t y_nanos = ts_to_nanos(y);
 
 	assert(timespec_cmp(x, x) == 0);
 	assert(timespec_cmp(y, y) == 0);
 	assert(timespec_cmp(x, y) == -timespec_cmp(y, x));
 
-	if (x_nanos == y_nanos) {
+	if (ck_s128_cmp(x_nanos, y_nanos) == 0) {
 		assert(timespec_cmp(x, y) == 0);
-	} else if (x_nanos < y_nanos) {
+	} else if (ck_s128_cmp(x_nanos, y_nanos) < 0) {
 		assert(timespec_cmp(x, y) == -1);
 	} else {
 		assert(timespec_cmp(x, y) == 1);
