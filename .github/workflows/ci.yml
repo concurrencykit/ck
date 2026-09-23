@@ -5,6 +5,11 @@ on:
     tags: ["*"]
   pull_request:
   workflow_dispatch:
+    inputs:
+      fast:
+        description: 'Fast build (Linux only)'
+        type: boolean
+        default: false
 
 jobs:
   linux:
@@ -45,6 +50,7 @@ jobs:
 
   macos:
     name: macOS ${{ matrix.variant }}
+    if: ${{ !inputs.fast }}
     runs-on: ${{ matrix.runner }}
     strategy:
       fail-fast: false
@@ -61,6 +67,7 @@ jobs:
 
   freebsd:
     name: "FreeBSD ${{ matrix.version }} / ${{ matrix.arch }} / ${{ matrix.cc }}"
+    if: ${{ !inputs.fast }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
