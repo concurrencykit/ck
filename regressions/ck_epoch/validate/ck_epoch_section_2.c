@@ -75,7 +75,8 @@ read_thread(void *unused CK_CC_UNUSED)
 	 */
 	ck_epoch_section_t section[2];
 
-	record = malloc(sizeof *record);
+	record = common_aligned_alloc(common_alignof(ck_epoch_record_t),
+	    sizeof(ck_epoch_record_t));
 	assert(record != NULL);
 	ck_epoch_register(&epoch, record, NULL);
 
@@ -162,7 +163,8 @@ write_thread(void *unused CK_CC_UNUSED)
 	ck_epoch_record_t *record;
 	unsigned long iterations = 0;
 
-	record = malloc(sizeof *record);
+	record = common_aligned_alloc(common_alignof(ck_epoch_record_t),
+	    sizeof(ck_epoch_record_t));
 	if (record == NULL)
 		ck_error("record allocation failure");
 

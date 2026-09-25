@@ -56,6 +56,7 @@
 
 #if defined(_WIN32)
 #include <assert.h>
+#include <malloc.h>
 #define NOMINMAX
 #include <windows.h>
 #define DELTA_EPOCH  11644473600000000ULL
@@ -266,6 +267,36 @@ prefix##_common_win_alarm(void *unused)									\
 	int alarm_event_name = 0;
 #define	COMMON_ALARM_INIT(prefix, alarm_event_name, duration)
 #endif
+
+#define common_alignof(T) __alignof__(T)
+
+/*
+ * Modelled after C11's aligned_alloc. However, these allocations must be freed
+ * with common_aligned_free(), not free().
+ */
+CK_CC_INLINE static void *
+common_aligned_alloc(size_t alignment, size_t size)
+{
+#ifdef _WIN32
+	return _aligned_malloc(size, alignment);
+#else
+	void *p;
+	if (posix_memalign(&p, alignment, size) != 0) {
+		return NULL;
+	}
+	return p;
+#endif
+}
+
+CK_CC_INLINE static void
+common_aligned_free(void *p)
+{
+#ifdef _WIN32
+	_aligned_free(p);
+#else
+	free(p);
+#endif
+}
 
 struct affinity {
 	unsigned int delta;

@@ -172,7 +172,8 @@ main(int argc, char *argv[])
 		ck_error("ERROR: Could not allocate thread structures\n");
 	}
 
-	cohorts = malloc(sizeof(struct cohort_record) * n_cohorts);
+	cohorts = common_aligned_alloc(common_alignof(struct cohort_record),
+	    sizeof(struct cohort_record) * n_cohorts);
 	if (cohorts == NULL) {
 		ck_error("ERROR: Could not allocate cohort structures\n");
 	}
@@ -185,7 +186,8 @@ main(int argc, char *argv[])
 	a.delta = atoi(argv[2]);
 	a.request = 0;
 
-	count = malloc(sizeof(*count) * nthr);
+	count = common_aligned_alloc(common_alignof(struct counters),
+	    sizeof(struct counters) * nthr);
 	if (count == NULL) {
 		ck_error("ERROR: Could not create acquisition buffer\n");
 	}

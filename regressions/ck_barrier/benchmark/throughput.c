@@ -30,6 +30,7 @@
 #include <inttypes.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include <ck_pr.h>
 #include <ck_barrier.h>
@@ -99,10 +100,12 @@ main(int argc, char *argv[])
                 ck_error("ERROR: Could not allocate thread structures\n");
         }
 
-	counters = calloc(sizeof(struct counter), nthr);
+	counters = common_aligned_alloc(common_alignof(struct counter),
+	    sizeof(*counters) * nthr);
 	if (counters == NULL) {
 		ck_error("ERROR: Could not allocate counters\n");
 	}
+	memset(counters, 0, sizeof(*counters) * nthr);
 
         a.delta = atoi(argv[2]);
 

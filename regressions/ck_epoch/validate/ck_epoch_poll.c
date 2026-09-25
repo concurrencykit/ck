@@ -292,7 +292,8 @@ read_thread(void *unused CK_CC_UNUSED)
 	ck_epoch_record_t *record CK_CC_CACHELINE;
 	ck_stack_entry_t *cursor, *n;
 
-	record = malloc(sizeof *record);
+	record = common_aligned_alloc(common_alignof(ck_epoch_record_t),
+	    sizeof(ck_epoch_record_t));
 	if (record == NULL)
 		ck_error("record allocation failure");
 
@@ -348,7 +349,8 @@ write_thread(void *unused CK_CC_UNUSED)
 	ck_epoch_record_t *record;
 	ck_stack_entry_t *s;
 
-	record = malloc(sizeof *record);
+	record = common_aligned_alloc(common_alignof(ck_epoch_record_t),
+	    sizeof(ck_epoch_record_t));
 	if (record == NULL)
 		ck_error("record allocation failure");
 	ck_epoch_register(&stack_epoch, record, NULL);
