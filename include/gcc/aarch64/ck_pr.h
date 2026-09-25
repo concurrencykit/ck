@@ -91,7 +91,7 @@ CK_PR_FENCE(unlock, CK_DMB_SY)
 	CK_CC_INLINE static T					\
 	ck_pr_md_load_##S(const M *target)			\
 	{							\
-		long r = 0;					\
+		T r = 0;					\
 		__asm__ __volatile__(I " %w0, [%1]\n"		\
 					: "=r" (r)		\
 					: "r"  (target)		\
@@ -102,7 +102,7 @@ CK_PR_FENCE(unlock, CK_DMB_SY)
 	CK_CC_INLINE static T					\
 	ck_pr_md_load_##S(const M *target)			\
 	{							\
-		long r = 0;					\
+		T r = 0;					\
 		__asm__ __volatile__(I " %0, [%1]\n"		\
 					: "=r" (r)		\
 					: "r"  (target)		\
