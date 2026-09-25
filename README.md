@@ -4,7 +4,7 @@ Modern concurrency primitives and building blocks for high performance applicati
 
 ### Continuous Integration
 
-[![Build Status](https://github.com/concurrencykit/ck/workflows/CI/badge.svg)](https://github.com/concurrencykit/ck/actions?query=workflow%3ACI+branch%3Amaster)
+[![Build Status](https://github.com/concurrencykit/ck/workflows/CI/badge.svg)](https://github.com/concurrencykit/ck/actions?query=workflow%3ACI+branch%3Amaster) [![bitbison](https://build.bitbison.io/bitbison/public/badge/ksonj2q3xf5mhrvgpzv4/badge.svg)](https://build.bitbison.io/bitbison/public/latest/ksonj2q3xf5mhrvgpzv4)
 
 Compilers tested in the past include gcc, clang, cygwin, icc, mingw32, mingw64
 and suncc across all supported architectures. All new architectures are
