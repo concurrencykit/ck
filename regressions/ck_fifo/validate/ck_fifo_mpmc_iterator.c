@@ -29,6 +29,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+#include "../../common.h"
+
 #ifdef CK_F_FIFO_MPMC
 struct example {
 	int x;
@@ -43,13 +45,15 @@ main(void)
 	struct example *examples;
 	ck_fifo_mpmc_entry_t *stub, *entries, *entry, *next;
 
-	stub = malloc(sizeof(ck_fifo_mpmc_entry_t));
+	stub = common_aligned_alloc(common_alignof(ck_fifo_mpmc_entry_t),
+	    sizeof(ck_fifo_mpmc_entry_t));
 	if (stub == NULL)
 		exit(EXIT_FAILURE);
 
 	ck_fifo_mpmc_init(&mpmc_fifo, stub);
 
-	entries = malloc(sizeof(ck_fifo_mpmc_entry_t) * length);
+	entries = common_aligned_alloc(common_alignof(ck_fifo_mpmc_entry_t),
+	    sizeof(ck_fifo_mpmc_entry_t) * length);
 	if (entries == NULL)
 		exit(EXIT_FAILURE);
 
@@ -76,8 +80,8 @@ main(void)
 	}
 
 	free(examples);
-	free(entries);
-	free(stub);
+	common_aligned_free(entries);
+	common_aligned_free(stub);
 
 	return (0);
 }

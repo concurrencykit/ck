@@ -75,7 +75,8 @@ queue_50_50(void *elements)
         unsigned long j, element_count = *(unsigned long *)elements;
 	unsigned int seed;
 
-	record = malloc(sizeof(ck_hp_record_t));
+	record = common_aligned_alloc(common_alignof(ck_hp_record_t),
+	    sizeof(ck_hp_record_t));
 	assert(record);
 
 	slots = malloc(CK_HP_FIFO_SLOTS_SIZE);
