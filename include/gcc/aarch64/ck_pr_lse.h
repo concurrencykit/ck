@@ -29,7 +29,6 @@
 #ifndef CK_PR_AARCH64_LSE_H
 #define CK_PR_AARCH64_LSE_H
 
-#error bite
 #ifndef CK_PR_H
 #error Do not include this file directly, use ck_pr.h
 #endif
