@@ -97,7 +97,7 @@ ck_pr_cas_ptr_2(void *target, void *compare, void *set)
 }
 
 
-#define CK_PR_CAS(N, M, T, W, R)					\
+#define CK_PR_CAS(N, M, T, W, R, E)					\
         CK_CC_INLINE static bool					\
         ck_pr_cas_##N##_value(M *target, T compare, T set, M *value)	\
         {								\
@@ -105,7 +105,7 @@ ck_pr_cas_ptr_2(void *target, void *compare, void *set)
                 T tmp;							\
                 __asm__ __volatile__("1:\n"				\
                                      "ldxr" W " %" R "0, [%2]\n"	\
-                                     "cmp  %" R "0, %" R "4\n"		\
+                                     "cmp  %" R "0, %" R "4" E "\n"	\
                                      "b.ne 2f\n"			\
                                      "stxr" W " %w1, %" R "3, [%2]\n"	\
                                      "cbnz %w1, 1b\n"			\
@@ -127,7 +127,7 @@ ck_pr_cas_ptr_2(void *target, void *compare, void *set)
                 __asm__ __volatile__(					\
                                      "1:\n"				\
                                      "ldxr" W " %" R "0, [%2]\n"	\
-                                     "cmp  %" R "0, %" R "4\n"		\
+                                     "cmp  %" R "0, %" R "4" E "\n"	\
                                      "b.ne 2f\n"			\
                                      "stxr" W " %w1, %" R "3, [%2]\n"	\
                                      "cbnz %w1, 1b\n"			\
@@ -141,20 +141,20 @@ ck_pr_cas_ptr_2(void *target, void *compare, void *set)
                 return (previous == compare);				\
         }
 
-CK_PR_CAS(ptr, void, void *, "", "")
+CK_PR_CAS(ptr, void, void *, "", "", "")
 
-#define CK_PR_CAS_S(N, M, W, R)	CK_PR_CAS(N, M, M, W, R)
-CK_PR_CAS_S(64, uint64_t, "", "")
+#define CK_PR_CAS_S(N, M, W, R, E)	CK_PR_CAS(N, M, M, W, R, E)
+CK_PR_CAS_S(64, uint64_t, "", "", "")
 #ifndef CK_PR_DISABLE_DOUBLE
-CK_PR_CAS_S(double, double, "", "")
+CK_PR_CAS_S(double, double, "", "", "")
 #endif
-CK_PR_CAS_S(32, uint32_t, "", "w")
-CK_PR_CAS_S(uint, unsigned int, "", "w")
-CK_PR_CAS_S(int, int, "", "w")
-CK_PR_CAS_S(16, uint16_t, "h", "w")
-CK_PR_CAS_S(8, uint8_t, "b", "w")
-CK_PR_CAS_S(short, short, "h", "w")
-CK_PR_CAS_S(char, char, "b", "w")
+CK_PR_CAS_S(32, uint32_t, "", "w", "")
+CK_PR_CAS_S(uint, unsigned int, "", "w", "")
+CK_PR_CAS_S(int, int, "", "w", "")
+CK_PR_CAS_S(16, uint16_t, "h", "w", ", uxth")
+CK_PR_CAS_S(8, uint8_t, "b", "w", ", uxtb")
+CK_PR_CAS_S(short, short, "h", "w", ", uxth")
+CK_PR_CAS_S(char, char, "b", "w", ", uxtb")
 
 
 #undef CK_PR_CAS_S
