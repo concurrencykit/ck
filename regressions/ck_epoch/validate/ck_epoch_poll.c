@@ -285,6 +285,115 @@ test_poll_deferred(void)
 	return;
 }
 
+/*
+ * Validates ck_epoch_pending and ck_epoch_dispatched: a snapshot stays
+ * outstanding until every deferred call it covers has been dispatched,
+ * even while calls issued after the snapshot are dispatched ahead of
+ * them, and a slot refilled after its dispatch does not revive it.
+ */
+static void
+test_poll_pending(void)
+{
+	ck_epoch_t e;
+	ck_epoch_record_t reader, advancer, record;
+	struct poll_object old = { 0 }, young = { 0 }, late = { 0 };
+	ck_epoch_pending_t p;
+	unsigned int i, reordered = 0;
+
+	ck_epoch_init(&e);
+	ck_epoch_register(&e, &reader, NULL);
+	ck_epoch_register(&e, &advancer, NULL);
+	ck_epoch_register(&e, &record, NULL);
+
+	/* An empty record has nothing outstanding. */
+	p = ck_epoch_pending(&record);
+	if (ck_epoch_dispatched(&record, &p) == false) {
+		ck_error("ERROR: Empty record reported outstanding calls.\n");
+	}
+
+	/* The reader pins a section; the old call is filed under e. */
+	ck_epoch_begin(&reader, NULL);
+	ck_epoch_call(&record, &old.epoch_entry, poll_object_destroy);
+	p = ck_epoch_pending(&record);
+
+	if (ck_epoch_dispatched(&record, &p) == true) {
+		ck_error("ERROR: Snapshot reported dispatched before any poll.\n");
+	}
+
+	/*
+	 * Other writers advance the global epoch while this record does
+	 * not poll: its old slot is passed over for a full turn.
+	 */
+	for (i = 0; i < CK_EPOCH_LENGTH - 1; i++) {
+		if (ck_epoch_poll(&advancer) == false) {
+			ck_error("ERROR: Advancer failed against current-epoch "
+			    "reader.\n");
+		}
+
+		ck_epoch_end(&reader, NULL);
+		ck_epoch_begin(&reader, NULL);
+	}
+
+	/* A younger call is filed under the current epoch. */
+	ck_epoch_call(&record, &young.epoch_entry, poll_object_destroy);
+
+	/*
+	 * Poll with a reader at the current epoch each time.  The young
+	 * call is dispatched before the old one; the snapshot must not
+	 * report completion until the old one has been dispatched.
+	 */
+	for (i = 0; i < 2 * CK_EPOCH_LENGTH; i++) {
+		if (ck_epoch_poll(&record) == false) {
+			ck_error("ERROR: Poll failed against current-epoch "
+			    "reader.\n");
+		}
+
+		if (young.destroyed != 0 && old.destroyed == 0)
+			reordered = 1;
+
+		if (ck_epoch_dispatched(&record, &p) != (old.destroyed != 0)) {
+			ck_error("ERROR: Snapshot state %u does not follow the "
+			    "old call (destroyed %u, young destroyed %u).\n",
+			    p, old.destroyed, young.destroyed);
+		}
+
+		if (old.destroyed != 0)
+			break;
+
+		ck_epoch_end(&reader, NULL);
+		ck_epoch_begin(&reader, NULL);
+	}
+
+	if (old.destroyed != 1 || young.destroyed != 1) {
+		ck_error("ERROR: Calls not dispatched (old %u, young %u).\n",
+		    old.destroyed, young.destroyed);
+	}
+
+	if (reordered == 0) {
+		ck_error("ERROR: Young call was not dispatched ahead of the old "
+		    "one; test did not exercise reordering.\n");
+	}
+
+	/* A call filed after completion does not revive the snapshot. */
+	ck_epoch_call(&record, &late.epoch_entry, poll_object_destroy);
+	if (ck_epoch_dispatched(&record, &p) == false) {
+		ck_error("ERROR: Completed snapshot revived by a later call.\n");
+	}
+
+	/* With no active thread, a poll flushes every slot. */
+	ck_epoch_end(&reader, NULL);
+	p = ck_epoch_pending(&record);
+	if (ck_epoch_poll(&record) == false || late.destroyed != 1) {
+		ck_error("ERROR: Poll failed to flush with no active threads.\n");
+	}
+
+	if (ck_epoch_dispatched(&record, &p) == false) {
+		ck_error("ERROR: Snapshot outstanding after a full flush.\n");
+	}
+
+	return;
+}
+
 static void *
 read_thread(void *unused CK_CC_UNUSED)
 {
@@ -433,6 +542,7 @@ main(int argc, char *argv[])
 	test_poll_arithmetic();
 	test_poll_observe();
 	test_poll_deferred();
+	test_poll_pending();
 
 	n_rd = atoi(argv[1]);
 	n_wr = atoi(argv[2]);
