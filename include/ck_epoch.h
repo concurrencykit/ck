@@ -305,6 +305,47 @@ ck_epoch_call_strict(ck_epoch_record_t *record,
 }
 
 /*
+ * Opaque snapshot of the deferred calls present on a record.  Used to find
+ * out when every call that was pending at the time of the snapshot has been
+ * dispatched, regardless of the order in which ck_epoch_poll dispatches.
+ */
+typedef unsigned int ck_epoch_pending_t;
+
+/*
+ * Take a snapshot of the record's pending deferred calls.  Must be called by
+ * the record's owner with no concurrent ck_epoch_call on the record.
+ */
+CK_CC_FORCE_INLINE static ck_epoch_pending_t
+ck_epoch_pending(const ck_epoch_record_t *record)
+{
+	ck_epoch_pending_t p = 0;
+	unsigned int i;
+
+	for (i = 0; i < CK_EPOCH_LENGTH; i++) {
+		if (CK_STACK_ISEMPTY(&record->pending[i]) == false)
+			p |= 1U << i;
+	}
+
+	return p;
+}
+
+/*
+ * Returns true once every deferred call present in the snapshot has been
+ * dispatched by ck_epoch_poll, ck_epoch_poll_deferred or ck_epoch_reclaim,
+ * and narrows the snapshot to what is still outstanding.  Dispatch empties
+ * a slot in full, and only dispatch empties a slot, so a slot that is empty
+ * now has had its snapshot contents dispatched even if it has since been
+ * refilled.  Same ownership requirements as ck_epoch_pending.
+ */
+CK_CC_FORCE_INLINE static bool
+ck_epoch_dispatched(const ck_epoch_record_t *record, ck_epoch_pending_t *p)
+{
+
+	*p &= ck_epoch_pending(record);
+	return *p == 0;
+}
+
+/*
  * This callback is used for synchronize_wait to allow for custom blocking
  * behavior.
  */
