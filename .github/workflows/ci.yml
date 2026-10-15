@@ -72,7 +72,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        version: ['13.3', '14.2', '15.0']
+        version: ['14.2', '15.0']
         arch: ['x86_64', 'aarch64']
         cc: ['clang', 'gcc']
     steps:
