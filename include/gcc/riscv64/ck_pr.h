@@ -111,7 +111,7 @@ CK_PR_FENCE(unlock, CK_FENCE_RW_RW)
 	CK_CC_INLINE static T					\
 	ck_pr_md_load_##S(const M *target)			\
 	{							\
-		long r = 0;					\
+		T r = 0;					\
 		__asm__ __volatile__(I " %0, 0(%1)\n"		\
 					: "=r" (r)		\
 					: "r"  (target)		\
@@ -310,7 +310,7 @@ CK_PR_FAS_S(uint, unsigned int, "w")
 	}
 #define CK_PR_ADD_S(N, T, W)	CK_PR_ADD(N, T, T, T, W)
 
-CK_PR_ADD(ptr, void, void *, uint64_t, "d")
+CK_PR_ADD(ptr, void, uintptr_t, uint64_t, "d")
 CK_PR_ADD_S(64, uint64_t, "d")
 CK_PR_ADD_S(32, uint32_t, "w")
 CK_PR_ADD_S(uint, unsigned int, "w")
@@ -338,7 +338,7 @@ CK_PR_ADD_S(int, int, "w")
 	}
 #define CK_PR_INC_S(N, T, W)	CK_PR_INC(N, T, T, W)
 
-CK_PR_INC(ptr, void, void *, "d")
+CK_PR_INC(ptr, void, uintptr_t, "d")
 CK_PR_INC_S(64, uint64_t, "d")
 CK_PR_INC_S(32, uint32_t, "w")
 CK_PR_INC_S(uint, unsigned int, "w")
@@ -372,7 +372,7 @@ CK_PR_INC_S(int, int, "w")
 	}
 #define CK_PR_SUB_S(N, T, W)	CK_PR_SUB(N, T, T, T, W)
 
-CK_PR_SUB(ptr, void, void *, uint64_t, "d")
+CK_PR_SUB(ptr, void, uintptr_t, uint64_t, "d")
 CK_PR_SUB_S(64, uint64_t, "d")
 CK_PR_SUB_S(32, uint32_t, "w")
 CK_PR_SUB_S(uint, unsigned int, "w")
@@ -397,7 +397,7 @@ CK_PR_SUB_S(int, int, "w")
 	}
 #define CK_PR_DEC_S(N, T, W)	CK_PR_DEC(N, T, T, W)
 
-CK_PR_DEC(ptr, void, void *, "d")
+CK_PR_DEC(ptr, void, uintptr_t, "d")
 CK_PR_DEC_S(64, uint64_t, "d")
 CK_PR_DEC_S(32, uint32_t, "w")
 CK_PR_DEC_S(uint, unsigned int, "w")

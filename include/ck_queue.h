@@ -213,7 +213,7 @@ struct {									\
 } while (0)
 
 #define CK_SLIST_REMOVE_PREVPTR(prevp, elm, field) do {				\
-	ck_pr_store_ptr(prevptr, (elm)->field.csle_next);			\
+	ck_pr_store_ptr(prevp, (elm)->field.csle_next);				\
 } while (0)
 
 #define CK_SLIST_MOVE(head1, head2, field) do {					\
@@ -221,12 +221,14 @@ struct {									\
 } while (0)
 
 /*
- * This operation is not applied atomically.
+ * This operation is not applied atomically, but each store to a head's
+ * first pointer is atomic with respect to concurrent readers: a reader
+ * observes either the previous or the new list.
  */
 #define CK_SLIST_SWAP(a, b, type) do {						\
-	struct type *swap_first = (a)->cslh_first;				\
-	(a)->cslh_first = (b)->cslh_first;					\
-	(b)->cslh_first = swap_first;						\
+	struct type *swap_first = CK_SLIST_FIRST(a);				\
+	ck_pr_store_ptr(&(a)->cslh_first, CK_SLIST_FIRST(b));			\
+	ck_pr_store_ptr(&(b)->cslh_first, swap_first);				\
 } while (0)
 
 /*
@@ -343,15 +345,18 @@ struct {								\
 } while (0)
 
 /*
- * This operation is not applied atomically.
+ * This operation is not applied atomically, but each store to a head's
+ * first pointer is atomic with respect to concurrent readers: a reader
+ * observes either the previous or the new list. The tail pointers are
+ * only accessed by the serialized writers.
  */
 #define CK_STAILQ_SWAP(head1, head2, type) do {				\
 	struct type *swap_first = CK_STAILQ_FIRST(head1);		\
 	struct type **swap_last = (head1)->cstqh_last;			\
-	CK_STAILQ_FIRST(head1) = CK_STAILQ_FIRST(head2);		\
+	ck_pr_store_ptr(&(head1)->cstqh_first, CK_STAILQ_FIRST(head2));	\
 	(head1)->cstqh_last = (head2)->cstqh_last;			\
-	CK_STAILQ_FIRST(head2) = swap_first;				\
-	(head2)->cstqh_last = swap_last;					\
+	ck_pr_store_ptr(&(head2)->cstqh_first, swap_first);		\
+	(head2)->cstqh_last = swap_last;				\
 	if (CK_STAILQ_EMPTY(head1))					\
 		(head1)->cstqh_last = &(head1)->cstqh_first;		\
 	if (CK_STAILQ_EMPTY(head2))					\
@@ -440,13 +445,19 @@ struct {									\
 /*
  * This operation is not applied atomically.
  */
+/*
+ * This operation is not applied atomically, but each store to a head's
+ * first pointer is atomic with respect to concurrent readers: a reader
+ * observes either the previous or the new list. The prev pointers are
+ * only accessed by the serialized writers.
+ */
 #define CK_LIST_SWAP(head1, head2, type, field) do {			\
-	struct type *swap_tmp = (head1)->clh_first;			\
-	(head1)->clh_first = (head2)->clh_first;				\
-	(head2)->clh_first = swap_tmp;					\
-	if ((swap_tmp = (head1)->clh_first) != NULL)			\
+	struct type *swap_tmp = CK_LIST_FIRST(head1);			\
+	ck_pr_store_ptr(&(head1)->clh_first, CK_LIST_FIRST(head2));	\
+	ck_pr_store_ptr(&(head2)->clh_first, swap_tmp);			\
+	if ((swap_tmp = CK_LIST_FIRST(head1)) != NULL)			\
 		swap_tmp->field.cle_prev = &(head1)->clh_first;		\
-	if ((swap_tmp = (head2)->clh_first) != NULL)			\
+	if ((swap_tmp = CK_LIST_FIRST(head2)) != NULL)			\
 		swap_tmp->field.cle_prev = &(head2)->clh_first;		\
 } while (0)
 

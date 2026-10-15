@@ -48,13 +48,13 @@ ck_ec_smoke_test: ../../../src/ck_ec.c ck_ec_smoke_test.c ../../../src/ck_ec_tim
 prop_test_slow_wakeup: ../../../src/ck_ec.c prop_test_slow_wakeup.c ../../../src/ck_ec_timeutil.h ../../../include/ck_ec.h fuzz_harness.h
 	$(CC) $(CFLAGS) $(FUZZ_CFLAGS) ../../../src/ck_ec.c -o prop_test_slow_wakeup prop_test_slow_wakeup.c
 
-prop_test_timeutil_add: ../../../src/ck_ec.c prop_test_timeutil_add.c ../../../src/ck_ec_timeutil.h ../../../include/ck_ec.h fuzz_harness.h
+prop_test_timeutil_add: ../../../src/ck_ec.c prop_test_timeutil_add.c ../../../src/ck_ec_timeutil.h ../../../include/ck_ec.h fuzz_harness.h int128.h
 	$(CC) $(CFLAGS) $(FUZZ_CFLAGS) ../../../src/ck_ec.c -o prop_test_timeutil_add prop_test_timeutil_add.c
 
-prop_test_timeutil_add_ns: ../../../src/ck_ec.c prop_test_timeutil_add_ns.c ../../../src/ck_ec_timeutil.h ../../../include/ck_ec.h fuzz_harness.h
+prop_test_timeutil_add_ns: ../../../src/ck_ec.c prop_test_timeutil_add_ns.c ../../../src/ck_ec_timeutil.h ../../../include/ck_ec.h fuzz_harness.h int128.h
 	$(CC) $(CFLAGS) $(FUZZ_CFLAGS) ../../../src/ck_ec.c -o prop_test_timeutil_add_ns prop_test_timeutil_add_ns.c
 
-prop_test_timeutil_cmp: ../../../src/ck_ec.c prop_test_timeutil_cmp.c ../../../src/ck_ec_timeutil.h ../../../include/ck_ec.h fuzz_harness.h
+prop_test_timeutil_cmp: ../../../src/ck_ec.c prop_test_timeutil_cmp.c ../../../src/ck_ec_timeutil.h ../../../include/ck_ec.h fuzz_harness.h int128.h
 	$(CC) $(CFLAGS) $(FUZZ_CFLAGS) ../../../src/ck_ec.c -o prop_test_timeutil_cmp prop_test_timeutil_cmp.c
 
 prop_test_timeutil_scale: ../../../src/ck_ec.c prop_test_timeutil_scale.c ../../../src/ck_ec_timeutil.h ../../../include/ck_ec.h fuzz_harness.h

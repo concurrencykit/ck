@@ -104,6 +104,74 @@ test_foreach(void)
 	return;
 }
 
+static void
+test_prevptr_and_swap(void)
+{
+	struct test_list a = CK_SLIST_HEAD_INITIALIZER(a);
+	struct test_list b = CK_SLIST_HEAD_INITIALIZER(b);
+	struct test entries[4], *n, **prevp;
+	int i;
+
+	/* a: 3 -> 2 -> 1 */
+	for (i = 1; i <= 3; i++) {
+		entries[i].value = i;
+		CK_SLIST_INSERT_HEAD(&a, &entries[i], list_entry);
+	}
+
+	/* Unlink the middle element through its prev pointer. */
+	CK_SLIST_FOREACH_PREVPTR(n, prevp, &a, list_entry) {
+		if (n->value == 2)
+			break;
+	}
+
+	if (n == NULL) {
+		ck_error("Failed to find element via FOREACH_PREVPTR.\n");
+	}
+
+	CK_SLIST_REMOVE_PREVPTR(prevp, n, list_entry);
+
+	n = CK_SLIST_FIRST(&a);
+	if (n == NULL || n->value != 3) {
+		ck_error("List head is corrupt after REMOVE_PREVPTR.\n");
+	}
+
+	n = CK_SLIST_NEXT(n, list_entry);
+	if (n == NULL || n->value != 1 ||
+	    CK_SLIST_NEXT(n, list_entry) != NULL) {
+		ck_error("List is corrupt after REMOVE_PREVPTR.\n");
+	}
+
+	/* Link the element back in front of its old successor. */
+	CK_SLIST_FOREACH_PREVPTR(n, prevp, &a, list_entry) {
+		if (n->value == 1)
+			break;
+	}
+
+	CK_SLIST_INSERT_PREVPTR(prevp, n, &entries[2], list_entry);
+
+	i = 3;
+	CK_SLIST_FOREACH(n, &a, list_entry) {
+		if (n->value != i--) {
+			ck_error("List is corrupt after INSERT_PREVPTR.\n");
+		}
+	}
+
+	CK_SLIST_SWAP(&a, &b, test);
+
+	if (CK_SLIST_EMPTY(&a) == false) {
+		ck_error("List a is not empty after swap.\n");
+	}
+
+	i = 3;
+	CK_SLIST_FOREACH(n, &b, list_entry) {
+		if (n->value != i--) {
+			ck_error("List b is corrupt after swap.\n");
+		}
+	}
+
+	return;
+}
+
 static void *
 execute(void *c)
 {
@@ -159,6 +227,8 @@ main(int argc, char *argv[])
 	if (CK_SLIST_EMPTY(&head) == false) {
 		ck_error("List is not empty after bulk removal.\n");
 	}
+
+	test_prevptr_and_swap();
 
 	fprintf(stderr, "done (success)\n");
 

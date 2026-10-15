@@ -295,6 +295,39 @@ run_test(unsigned int is, unsigned int ad)
 	return;
 }
 
+static void
+test_reset_preallocated(void)
+{
+	ck_rhs_t hs;
+	size_t size;
+	void *buffer;
+	unsigned long h;
+
+	if (ck_rhs_init(&hs, CK_RHS_MODE_SPMC | CK_RHS_MODE_OBJECT,
+	    hs_hash, hs_compare, &my_allocator, 16, 6602834) == false) {
+		ck_error("ck_rhs_init (preallocated)\n");
+	}
+
+	h = test[0][0];
+	if (ck_rhs_put(&hs, h, test[0]) == false)
+		ck_error("ck_rhs_put (preallocated)\n");
+
+	size = ck_rhs_map_size(&hs, 64);
+	buffer = hs_malloc(size);
+	if (buffer == NULL)
+		ck_error("hs_malloc (preallocated)\n");
+
+	ck_rhs_reset_preallocated(&hs, 64, buffer);
+	if (ck_rhs_count(&hs) != 0)
+		ck_error("ck_rhs_reset_preallocated failed to clear entries\n");
+
+	if (ck_rhs_put(&hs, h, test[0]) == false)
+		ck_error("ck_rhs_put after ck_rhs_reset_preallocated\n");
+
+	ck_rhs_destroy(&hs);
+	return;
+}
+
 int
 main(void)
 {
@@ -305,6 +338,7 @@ main(void)
 		break;
 	}
 
+	test_reset_preallocated();
 	return 0;
 }
 

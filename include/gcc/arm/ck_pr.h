@@ -84,7 +84,13 @@ ck_pr_stall(void)
 
 CK_PR_FENCE(atomic, CK_DMB_ST)
 CK_PR_FENCE(atomic_store, CK_DMB_ST)
-CK_PR_FENCE(atomic_load, CK_DMB_ST)
+/*
+ * The RMW-to-load ordering this fence provides requires a full barrier:
+ * dmb st only orders stores against stores and would allow a subsequent
+ * load to be satisfied before the atomic operation is visible, breaking
+ * Dekker-style synchronization in the locks relying on this fence.
+ */
+CK_PR_FENCE(atomic_load, CK_DMB)
 CK_PR_FENCE(store_atomic, CK_DMB_ST)
 CK_PR_FENCE(load_atomic, CK_DMB)
 CK_PR_FENCE(store, CK_DMB_ST)
@@ -341,6 +347,8 @@ ck_pr_cas_ptr(void *target, void *compare, void *set)
 	ck_pr_cas_##N##_value(T *target, T compare, T set, T *value)	\
 	{								\
 		T previous = 0, tmp = 0;				\
+		uint32_t _compare = (uint32_t)compare &		\
+		    (0xffffffffU >> (32 - 8 * sizeof(T)));		\
 		__asm__ __volatile__("1:;"				\
 				     "ldrex" W " %0, [%2];"		\
 				     "cmp   %0, %4;"			\
@@ -356,7 +364,7 @@ ck_pr_cas_ptr(void *target, void *compare, void *set)
 		    			  "+&r" (tmp)			\
 					: "r"   (target),		\
 					  "r"   (set),			\
-					  "r"   (compare)		\
+					  "r"   (_compare)		\
 					: "memory", "cc");		\
 		*value = previous; 					\
 		return (previous == compare);				\
@@ -365,6 +373,8 @@ ck_pr_cas_ptr(void *target, void *compare, void *set)
 	ck_pr_cas_##N(T *target, T compare, T set)			\
 	{								\
 		T previous = 0, tmp = 0;				\
+		uint32_t _compare = (uint32_t)compare &		\
+		    (0xffffffffU >> (32 - 8 * sizeof(T)));		\
 		__asm__ __volatile__("1:;"				\
 				     "ldrex" W " %0, [%2];"		\
 				     "cmp   %0, %4;"			\
@@ -376,7 +386,7 @@ ck_pr_cas_ptr(void *target, void *compare, void *set)
 		    			  "+&r" (tmp)			\
 					: "r"   (target),		\
 					  "r"   (set),			\
-					  "r"   (compare)		\
+					  "r"   (_compare)		\
 					: "memory", "cc");		\
 		return (previous == compare);				\
 	}

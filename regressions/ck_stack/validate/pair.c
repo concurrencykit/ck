@@ -214,7 +214,8 @@ main(int argc, char *argv[])
 	affinerator.request = 0;
 	affinerator.delta = d;
 
-	bucket = malloc(sizeof(struct entry) * nthr);
+	bucket = common_aligned_alloc(common_alignof(struct entry),
+	    sizeof(struct entry) * nthr);
 	assert(bucket != NULL);
 
 	thread = malloc(sizeof(pthread_t) * nthr);

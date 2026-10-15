@@ -82,6 +82,7 @@ enum ck_rhs_probe_behavior {
 	CK_RHS_PROBE_INSERT,	/* Short-circuit on probe bound if tombstone found. */
 
 	CK_RHS_PROBE_ROBIN_HOOD,/* Look for the first slot available for the entry we are about to replace, only used to internally implement Robin Hood */
+	CK_RHS_PROBE_ROBIN_HOOD_NO_RELOCATE, /* Continue a Robin Hood probe without selecting another relocation candidate. */
 	CK_RHS_PROBE_NO_RH,	/* Don't do the RH dance */
 };
 struct ck_rhs_entry_desc {
@@ -333,31 +334,44 @@ ck_rhs_destroy(struct ck_rhs *hs)
 	return;
 }
 
-static struct ck_rhs_map *
-ck_rhs_map_create(struct ck_rhs *hs, unsigned long entries)
+static unsigned long
+ck_rhs_map_capacity(unsigned long entries)
 {
-	struct ck_rhs_map *map;
-	unsigned long size, n_entries, limit;
+	unsigned long n_entries;
 
 	n_entries = ck_internal_power_2(entries);
 	if (n_entries < CK_RHS_PROBE_L1)
 		n_entries = CK_RHS_PROBE_L1;
 
+	return n_entries;
+}
+
+size_t
+ck_rhs_map_size(struct ck_rhs *hs, unsigned long entries)
+{
+	unsigned long n_entries;
+
+	n_entries = ck_rhs_map_capacity(entries);
+
 	if (hs->mode & CK_RHS_MODE_READ_MOSTLY)
-		size = sizeof(struct ck_rhs_map) +
+		return sizeof(struct ck_rhs_map) +
 		    (sizeof(void *) * n_entries +
 		     sizeof(struct ck_rhs_no_entry_desc) * n_entries +
 		     2 * CK_MD_CACHELINE - 1);
 	else
-		size = sizeof(struct ck_rhs_map) +
+		return sizeof(struct ck_rhs_map) +
 		    (sizeof(struct ck_rhs_entry_desc) * n_entries +
 		     CK_MD_CACHELINE - 1);
-	map = hs->m->malloc(size);
-	if (map == NULL)
-		return NULL;
-	map->read_mostly = !!(hs->mode & CK_RHS_MODE_READ_MOSTLY);
+}
 
-	map->size = size;
+static void
+ck_rhs_map_init(struct ck_rhs *hs, struct ck_rhs_map *map, unsigned long entries)
+{
+	unsigned long n_entries, limit;
+
+	n_entries = ck_rhs_map_capacity(entries);
+	map->read_mostly = !!(hs->mode & CK_RHS_MODE_READ_MOSTLY);
+	map->size = ck_rhs_map_size(hs, n_entries);
 	/* We should probably use a more intelligent heuristic for default probe length. */
 	limit = ck_internal_max(n_entries >> (CK_RHS_PROBE_L1_SHIFT + 2), CK_RHS_PROBE_L1_DEFAULT);
 	if (limit > UINT_MAX)
@@ -394,6 +408,21 @@ ck_rhs_map_create(struct ck_rhs *hs, unsigned long entries)
 
 	/* Commit entries purge with respect to map publication. */
 	ck_pr_fence_store();
+	return;
+}
+
+static struct ck_rhs_map *
+ck_rhs_map_create(struct ck_rhs *hs, unsigned long entries)
+{
+	struct ck_rhs_map *map;
+	size_t size;
+
+	size = ck_rhs_map_size(hs, entries);
+
+	map = hs->m->malloc(size);
+	if (map == NULL)
+		return NULL;
+	ck_rhs_map_init(hs, map, entries);
 	return map;
 }
 
@@ -419,6 +448,22 @@ ck_rhs_reset(struct ck_rhs *hs)
 
 	previous = hs->map;
 	return ck_rhs_reset_size(hs, previous->capacity);
+}
+
+void
+ck_rhs_reset_preallocated(struct ck_rhs *hs,
+    unsigned long capacity,
+    void *memory)
+{
+	struct ck_rhs_map *map, *previous;
+
+	previous = hs->map;
+	map = memory;
+	ck_rhs_map_init(hs, map, capacity);
+
+	ck_pr_store_ptr(&hs->map, map);
+	ck_rhs_map_destroy(hs->m, previous, true);
+	return;
 }
 
 static inline unsigned long
@@ -606,7 +651,8 @@ ck_rhs_map_probe_rm(struct ck_rhs *hs,
 	compare = key;
 #endif
  	*object = NULL;
-	if (behavior != CK_RHS_PROBE_ROBIN_HOOD) {
+	if (behavior != CK_RHS_PROBE_ROBIN_HOOD &&
+	    behavior != CK_RHS_PROBE_ROBIN_HOOD_NO_RELOCATE) {
 		probes = 0;
 		offset = h & map->mask;
 	} else {
@@ -633,7 +679,8 @@ ck_rhs_map_probe_rm(struct ck_rhs *hs,
 		if (k == CK_RHS_EMPTY)
 			goto leave;
 
-		if (behavior != CK_RHS_PROBE_NO_RH) {
+		if (behavior != CK_RHS_PROBE_NO_RH &&
+		    behavior != CK_RHS_PROBE_ROBIN_HOOD_NO_RELOCATE) {
 			struct ck_rhs_entry_desc *desc = (void *)&map->entries.no_entries.descs[offset];
 
 			if (pr == -1 &&
@@ -649,7 +696,8 @@ ck_rhs_map_probe_rm(struct ck_rhs *hs,
 			}
 		}
 
-		if (behavior != CK_RHS_PROBE_ROBIN_HOOD) {
+		if (behavior != CK_RHS_PROBE_ROBIN_HOOD &&
+		    behavior != CK_RHS_PROBE_ROBIN_HOOD_NO_RELOCATE) {
 #ifdef CK_RHS_PP
 			if (hs->mode & CK_RHS_MODE_OBJECT) {
 				if (((uintptr_t)k >> CK_MD_VMA_BITS) != hv) {
@@ -719,7 +767,8 @@ ck_rhs_map_probe(struct ck_rhs *hs,
 #endif
 
  	*object = NULL;
-	if (behavior != CK_RHS_PROBE_ROBIN_HOOD) {
+	if (behavior != CK_RHS_PROBE_ROBIN_HOOD &&
+	    behavior != CK_RHS_PROBE_ROBIN_HOOD_NO_RELOCATE) {
 		probes = 0;
 		offset = h & map->mask;
 	} else {
@@ -747,7 +796,8 @@ ck_rhs_map_probe(struct ck_rhs *hs,
 		k = ck_pr_load_ptr(&map->entries.descs[offset].entry);
 		if (k == CK_RHS_EMPTY)
 			goto leave;
-		if ((behavior != CK_RHS_PROBE_NO_RH)) {
+		if (behavior != CK_RHS_PROBE_NO_RH &&
+		    behavior != CK_RHS_PROBE_ROBIN_HOOD_NO_RELOCATE) {
 			struct ck_rhs_entry_desc *desc = &map->entries.descs[offset];
 
 			if (pr == -1 &&
@@ -763,7 +813,8 @@ ck_rhs_map_probe(struct ck_rhs *hs,
 			}
 		}
 
-		if (behavior != CK_RHS_PROBE_ROBIN_HOOD) {
+		if (behavior != CK_RHS_PROBE_ROBIN_HOOD &&
+		    behavior != CK_RHS_PROBE_ROBIN_HOOD_NO_RELOCATE) {
 #ifdef CK_RHS_PP
 			if (hs->mode & CK_RHS_MODE_OBJECT) {
 				if (((uintptr_t)k >> CK_MD_VMA_BITS) != hv) {
@@ -934,7 +985,7 @@ restart:
 
 	slot = map->probe_func(hs, map, &n_probes, &first, h, key, &object,
 	    map->probe_limit, prevs_nb == CK_RHS_MAX_RH ?
-	    CK_RHS_PROBE_NO_RH : CK_RHS_PROBE_ROBIN_HOOD);
+	    CK_RHS_PROBE_ROBIN_HOOD_NO_RELOCATE : CK_RHS_PROBE_ROBIN_HOOD);
 
 	if (slot == -1 && first == -1) {
 		if (ck_rhs_grow(hs, map->capacity << 1) == false) {
@@ -992,6 +1043,7 @@ restart:
 		desc->in_rh = false;
 		desc = ck_rhs_desc(map, orig_slot);
 	}
+	ck_rhs_unset_rh(map, orig_slot);
 	return 0;
 }
 
@@ -1053,7 +1105,9 @@ ck_rhs_do_backward_shift_delete(struct ck_rhs *hs, long slot)
 				tmp_offset = ck_rhs_map_probe_next(map, offset,
 				    probe);
 				while (probe < max_probes) {
-					if (h == (unsigned long)ck_rhs_get_first_offset(map, tmp_offset, probe))
+					/* probe_next advances to probe + 1. */
+					if (h == (unsigned long)ck_rhs_get_first_offset(map,
+					    tmp_offset, probe + 1))
 						break;
 					probe++;
 					tmp_offset = ck_rhs_map_probe_next(map, tmp_offset, probe);
@@ -1085,11 +1139,13 @@ ck_rhs_fas(struct ck_rhs *hs,
 	const void *object;
 	const void *insert;
 	unsigned long n_probes;
-	struct ck_rhs_map *map = hs->map;
+	struct ck_rhs_map *map;
 	struct ck_rhs_entry_desc *desc, *desc2;
 
 	*previous = NULL;
 restart:
+	map = hs->map;
+
 	slot = map->probe_func(hs, map, &n_probes, &first, h, key, &object,
 	    ck_rhs_map_bound_get(map, h), CK_RHS_PROBE);
 
@@ -1106,10 +1162,15 @@ restart:
 		desc2 = ck_rhs_desc(map, first);
 		desc->in_rh = true;
 		ret = ck_rhs_put_robin_hood(hs, first, desc2);
-		desc->in_rh = false;
+		/*
+		 * A return of 1 means the table was grown, so map and every
+		 * descriptor taken from it now belong to the retired map.
+		 * The replacement map starts with in_rh clear throughout.
+		 */
 		if (CK_CC_UNLIKELY(ret == 1))
 			goto restart;
-		else if (CK_CC_UNLIKELY(ret != 0))
+		desc->in_rh = false;
+		if (CK_CC_UNLIKELY(ret != 0))
 			return false;
 		ck_pr_store_ptr(ck_rhs_entry_addr(map, first), insert);
 		ck_pr_inc_uint(&map->generation[h & CK_RHS_G_MASK]);
@@ -1199,11 +1260,12 @@ restart:
 		}
 		desc2 = ck_rhs_desc(map, first);
 		int ret = ck_rhs_put_robin_hood(hs, first, desc2);
+		/* See the note in ck_rhs_fas regarding the retired map. */
+		if (CK_CC_UNLIKELY(ret == 1))
+			goto restart;
 		if (slot != -1)
 			desc->in_rh = false;
 
-		if (CK_CC_UNLIKELY(ret == 1))
-			goto restart;
 		if (CK_CC_UNLIKELY(ret == -1))
 			return false;
 		/* If an earlier bucket was found, then store entry there. */
@@ -1276,11 +1338,12 @@ restart:
 		}
 		desc2 = ck_rhs_desc(map, first);
 		int ret = ck_rhs_put_robin_hood(hs, first, desc2);
+		/* See the note in ck_rhs_fas regarding the retired map. */
+		if (CK_CC_UNLIKELY(ret == 1))
+			goto restart;
 		if (slot != -1)
 			desc->in_rh = false;
 
-		if (CK_CC_UNLIKELY(ret == 1))
-			goto restart;
 		if (CK_CC_UNLIKELY(ret == -1))
 			return false;
 		/* If an earlier bucket was found, then store entry there. */

@@ -77,7 +77,9 @@ test(void *c)
 
 	for (i = 0; i < ITERATIONS; i++) {
 		for (j = 0; j < size; j++) {
-			fifo_entry = malloc(sizeof(ck_fifo_mpmc_entry_t));
+			fifo_entry = common_aligned_alloc(
+			    common_alignof(ck_fifo_mpmc_entry_t),
+			    sizeof(ck_fifo_mpmc_entry_t));
 			entry = malloc(sizeof(struct entry));
 			entry->tid = context->tid;
 			ck_fifo_mpmc_enqueue(&fifo, fifo_entry, entry);
@@ -93,7 +95,9 @@ test(void *c)
 
 	for (i = 0; i < ITERATIONS; i++) {
 		for (j = 0; j < size; j++) {
-			fifo_entry = malloc(sizeof(ck_fifo_mpmc_entry_t));
+			fifo_entry = common_aligned_alloc(
+			    common_alignof(ck_fifo_mpmc_entry_t),
+			    sizeof(ck_fifo_mpmc_entry_t));
 			entry = malloc(sizeof(struct entry));
 			entry->tid = context->tid;
 			while (ck_fifo_mpmc_tryenqueue(&fifo, fifo_entry, entry) == false)
@@ -107,6 +111,54 @@ test(void *c)
 			}
 		}
 	}
+#endif
+
+	return (NULL);
+}
+
+/*
+ * Hammer the queue with immediate re-use of dequeued nodes. The queue
+ * is seeded with one more entry than there are threads and every
+ * dequeued node is re-enqueued right away, so at most nthr entries are
+ * in flight and the queue is never empty: any false return from
+ * ck_fifo_mpmc_dequeue indicates the empty path validated a stale,
+ * re-used head snapshot.
+ */
+static void *
+test_nonempty(void *c)
+{
+#ifdef CK_F_FIFO_MPMC
+	struct context *context = c;
+	struct entry *entry;
+	ck_fifo_mpmc_entry_t *garbage;
+	int i, j;
+
+	if (aff_iterate(&a)) {
+		perror("ERROR: Could not affine thread");
+		exit(EXIT_FAILURE);
+	}
+
+	ck_pr_inc_uint(&barrier);
+	while (ck_pr_load_uint(&barrier) < (unsigned int)nthr)
+		ck_pr_stall();
+
+	for (i = 0; i < ITERATIONS; i++) {
+		for (j = 0; j < size; j++) {
+			if (ck_fifo_mpmc_dequeue(&fifo, &entry, &garbage) == false) {
+				ck_error("ERROR [%u] Queue should never be "
+				    "empty under re-use.\n", context->tid);
+			}
+
+			if (entry->tid < 0 || entry->tid >= nthr) {
+				ck_error("ERROR [%u] Incorrect value in entry.\n",
+				    entry->tid);
+			}
+
+			ck_fifo_mpmc_enqueue(&fifo, garbage, entry);
+		}
+	}
+#else
+	(void)c;
 #endif
 
 	return (NULL);
@@ -139,16 +191,42 @@ main(int argc, char *argv[])
 	thread = malloc(sizeof(pthread_t) * nthr);
 	assert(thread);
 
-	ck_fifo_mpmc_init(&fifo, malloc(sizeof(ck_fifo_mpmc_entry_t)));
+	ck_fifo_mpmc_init(&fifo,
+	    common_aligned_alloc(common_alignof(ck_fifo_mpmc_entry_t),
+		sizeof(ck_fifo_mpmc_entry_t)));
 	ck_fifo_mpmc_deinit(&fifo, &garbage);
 	if (garbage == NULL)
 		ck_error("ERROR: Expected non-NULL stub node on deinit.\n");
-	free(garbage);
-	ck_fifo_mpmc_init(&fifo, malloc(sizeof(ck_fifo_mpmc_entry_t)));
+	common_aligned_free(garbage);
+	ck_fifo_mpmc_init(&fifo,
+	    common_aligned_alloc(common_alignof(ck_fifo_mpmc_entry_t),
+		sizeof(ck_fifo_mpmc_entry_t)));
 
 	for (i = 0; i < nthr; i++) {
 		context[i].tid = i;
 		r = pthread_create(thread + i, NULL, test, context + i);
+		assert(r == 0);
+	}
+
+	for (i = 0; i < nthr; i++)
+		pthread_join(thread[i], NULL);
+
+	/* Seed the queue for the never-empty re-use round. */
+	for (i = 0; i < nthr + 1; i++) {
+		struct entry *entry = malloc(sizeof(struct entry));
+
+		assert(entry != NULL);
+		entry->tid = 0;
+		ck_fifo_mpmc_enqueue(&fifo,
+		    common_aligned_alloc(common_alignof(ck_fifo_mpmc_entry_t),
+			sizeof(ck_fifo_mpmc_entry_t)),
+		    entry);
+	}
+
+	ck_pr_store_uint(&barrier, 0);
+
+	for (i = 0; i < nthr; i++) {
+		r = pthread_create(thread + i, NULL, test_nonempty, context + i);
 		assert(r == 0);
 	}
 

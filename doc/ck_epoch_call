@@ -24,7 +24,7 @@
 .\" SUCH DAMAGE.
 .\"
 .\"
-.Dd September 2, 2012
+.Dd June 11, 2026
 .Dt CK_EPOCH_CALL 3
 .Sh NAME
 .Nm ck_epoch_call
@@ -53,6 +53,28 @@ The function will execute at some time in the future via calls to
 .Fn ck_epoch_barrier 3
 or
 .Fn ck_epoch_poll 3 .
+.Pp
+The deferral itself requires no memory ordering on behalf of the
+caller: a stale epoch snapshot only delays the execution of
+.Fa function .
+The caller is however responsible for the removal of the object
+associated with
+.Fa entry
+being visible before a grace period is detected, which the usual
+write-side arrangements already provide.
+A single writer that performs all removals and all reclamation may
+call this function at any point.
+The same is true of multiple writers that serialize removals and
+reclamation under a common lock, and of a writer that detects the
+grace period itself through
+.Fn ck_epoch_synchronize 3
+or
+.Fn ck_epoch_barrier 3 .
+Only concurrent writers reclaiming through
+.Fn ck_epoch_poll 3
+must defer within the epoch section that removed the object, or
+within the observation interval of a permanently active record (see
+.Fn ck_epoch_observe ) .
 .Sh EXAMPLE
 .Bd -literal -offset indent
 
@@ -89,7 +111,7 @@ function(void)
 	struct object *n;
 
 	record = malloc(sizeof *record);
-	ck_epoch_register(&epoch, record, NULL);
+	ck_epoch_register(epoch, record, NULL);
 
 	n = malloc(sizeof *n);
 	if (n == NULL)
@@ -99,15 +121,19 @@ function(void)
 
 	/*
 	 * We are using an epoch section here because there are multiple
-	 * writers. It is also an option to use other forms of blocking
-	 * write-side synchronization such as mutexes.
+	 * writers, each of which may advance the epoch through
+	 * ck_epoch_poll. The deferral is performed within the section so
+	 * that the removal of the previous object is visible by the time
+	 * a grace period is detected. It is also an option to use other
+	 * forms of blocking write-side synchronization such as mutexes,
+	 * in which case the deferral may occur outside of a section.
 	 */
-	ck_epoch_begin(record);
+	ck_epoch_begin(record, NULL);
 	n = ck_pr_fas_ptr(&global, n);
-	ck_epoch_end(record);
 
 	/* Defer destruction of previous object. */
 	ck_epoch_call(record, &n->epoch_entry, destroy_object);
+	ck_epoch_end(record, NULL);
 
 	/* Poll epoch sub-system in non-blocking manner. */
 	ck_epoch_poll(record);

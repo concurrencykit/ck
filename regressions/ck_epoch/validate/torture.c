@@ -117,7 +117,8 @@ read_thread(void *unused CK_CC_UNUSED)
 {
 	ck_epoch_record_t *record;
 
-	record = malloc(sizeof *record);
+	record = common_aligned_alloc(common_alignof(ck_epoch_record_t),
+	    sizeof(ck_epoch_record_t));
 	assert(record != NULL);
 	ck_epoch_register(&epoch, record, NULL);
 
@@ -149,7 +150,8 @@ write_thread(void *unused CK_CC_UNUSED)
 	bool c = ck_pr_faa_uint(&first, 1);
 	uint64_t ac = 0;
 
-	record = malloc(sizeof *record);
+	record = common_aligned_alloc(common_alignof(ck_epoch_record_t),
+	    sizeof(ck_epoch_record_t));
 	assert(record != NULL);
 	ck_epoch_register(&epoch, record, NULL);
 

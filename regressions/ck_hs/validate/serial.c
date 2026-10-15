@@ -375,10 +375,90 @@ run_test(unsigned int is, unsigned int ad)
 	return;
 }
 
+/* All keys collide: every key shares a single probe sequence. */
+static unsigned long
+hs_collide(const void *object, unsigned long seed)
+{
+
+	(void)object;
+	(void)seed;
+	return 0;
+}
+
+/*
+ * Validates the relocation branch of ck_hs_set: with all keys on one
+ * probe sequence, removing an early key guarantees that a set of a
+ * later key finds a tombstone in an earlier position and relocates the
+ * entry, exercising the new copy, generation signal and old copy
+ * destruction sequence. The in-place branch is validated through a key
+ * with no earlier tombstone available.
+ */
+static void
+test_set_relocation(unsigned int mode)
+{
+	ck_hs_t hs;
+	void *prev;
+	unsigned long h;
+	char a0[] = "A-key";
+	char b0[] = "B-key", b1[] = "B-key";
+	char c0[] = "C-key", c1[] = "C-key";
+
+	if (ck_hs_init(&hs, CK_HS_MODE_SPMC | CK_HS_MODE_OBJECT | mode,
+	    hs_collide, hs_compare, &my_allocator, 64, 6602834) == false)
+		ck_error("ck_hs_init (collide)\n");
+
+	h = CK_HS_HASH(&hs, hs_collide, a0);
+
+	if (ck_hs_put_unique(&hs, h, a0) == false ||
+	    ck_hs_put_unique(&hs, h, b0) == false ||
+	    ck_hs_put_unique(&hs, h, c0) == false)
+		ck_error("ERROR: Failed to populate colliding set.\n");
+
+	/* A tombstone now precedes both B and C on the sequence. */
+	if (ck_hs_remove(&hs, h, a0) != a0)
+		ck_error("ERROR: Failed to remove head of sequence.\n");
+
+	/*
+	 * C relocates into the tombstone: the old instance must be
+	 * returned and the new instance must be the one found.
+	 */
+	if (ck_hs_set(&hs, h, c1, &prev) == false || prev != c0)
+		ck_error("ERROR: Set failed to replace relocated entry.\n");
+
+	if (ck_hs_get(&hs, h, c1) != c1)
+		ck_error("ERROR: Failed to find entry after relocation.\n");
+
+	if (ck_hs_get(&hs, h, b0) != b0)
+		ck_error("ERROR: Lost untouched entry after relocation.\n");
+
+	/* B has no earlier tombstone: replacement occurs in place. */
+	if (ck_hs_set(&hs, h, b1, &prev) == false || prev != b0)
+		ck_error("ERROR: Set failed to replace in place.\n");
+
+	if (ck_hs_get(&hs, h, b1) != b1)
+		ck_error("ERROR: Failed to find entry after replacement.\n");
+
+	if (ck_hs_count(&hs) != 2)
+		ck_error("ERROR: Unexpected count after set operations.\n");
+
+	/* Compaction must preserve all entries. */
+	if (ck_hs_gc(&hs, 0, 0) == false)
+		ck_error("ERROR: Failed to compact the set.\n");
+
+	if (ck_hs_get(&hs, h, c1) != c1 || ck_hs_get(&hs, h, b1) != b1)
+		ck_error("ERROR: Lost entry after compaction.\n");
+
+	ck_hs_deinit(&hs);
+	return;
+}
+
 int
 main(void)
 {
 	unsigned int k;
+
+	test_set_relocation(0);
+	test_set_relocation(CK_HS_MODE_DELETE);
 
 	for (k = 16; k <= 64; k <<= 1) {
 		run_test(k, 0);

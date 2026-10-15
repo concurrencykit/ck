@@ -148,13 +148,32 @@ ck_epoch_begin(ck_epoch_record_t *record, ck_epoch_section_t *section)
 #endif
 
 		/*
-		 * This load is allowed to be re-ordered prior to setting
-		 * active flag due to monotonic nature of the global epoch.
-		 * However, stale values lead to measurable performance
-		 * degradation in some torture tests so we disallow early load
-		 * of global epoch.
+		 * This load must not be performed before the active flag is
+		 * visible (an active section may otherwise observe a global
+		 * epoch more than one generation ahead of its record's
+		 * epoch, an invariant relied upon by the reclamation logic
+		 * and asserted by the torture regression), and stale values
+		 * lead to measurable performance degradation in some torture
+		 * tests. We therefore disallow early load of global epoch.
 		 */
 		g_epoch = ck_pr_load_uint(&epoch->epoch);
+
+		/*
+		 * While the observation above may be stale (this only delays
+		 * reclamation), the loads within the section must not be
+		 * satisfied before it. Otherwise, the record may advertise
+		 * an epoch newer than the section's actual view of memory,
+		 * leading a reclaimer to conclude that no references could
+		 * have been acquired from a previous epoch generation while
+		 * the section in fact holds one.
+		 *
+		 * On TSO architectures, loads are always satisfied in
+		 * program order, so the ordering is unconditional and the
+		 * fence below is unnecessary: it compiles to a compiler
+		 * barrier only, with no instruction emitted. It is a real
+		 * load-load barrier only on weakly-ordered targets.
+		 */
+		ck_pr_fence_load();
 		ck_pr_store_uint(&record->epoch, g_epoch);
 	} else {
 		ck_pr_store_uint(&record->active, record->active + 1);
@@ -163,6 +182,51 @@ ck_epoch_begin(ck_epoch_record_t *record, ck_epoch_section_t *section)
 	if (section != NULL)
 		_ck_epoch_addref(record, section);
 
+	return;
+}
+
+/*
+ * Updates the epoch observation of a record with an active section
+ * without closing the section. This serves as a quiescent point: loads
+ * performed and removals published before the call are retired with
+ * respect to the new observation, as if the section was closed and
+ * re-opened. The record continues to limit the progress of the global
+ * epoch throughout, so there is no window in which the epoch may
+ * advance unobserved.
+ *
+ * This allows a writer thread that shares an epoch instance with other
+ * epoch-advancing threads to defer destruction outside of a section.
+ * The writer registers, begins a section once and calls this function
+ * periodically. A record that stops observing stalls reclamation for
+ * all threads, as any held section does.
+ *
+ * This function must only be called on a record with an active
+ * section.
+ */
+CK_CC_FORCE_INLINE static void
+ck_epoch_observe(ck_epoch_record_t *record)
+{
+	unsigned int g_epoch;
+
+	/*
+	 * Loads of the previous observation interval must not be
+	 * satisfied after the observation below and prior removals must
+	 * be visible before the new observation is published. An epoch
+	 * transition that observes the update then inherits visibility
+	 * of the removals.
+	 */
+	ck_pr_fence_release();
+
+	g_epoch = ck_pr_load_uint(&record->global->epoch);
+
+	/*
+	 * As in ck_epoch_begin, loads within the new interval must not
+	 * be satisfied before the observation itself. Otherwise, the
+	 * record may advertise an epoch newer than the actual view of
+	 * memory. On TSO, this ordering is implied by program order.
+	 */
+	ck_pr_fence_load();
+	ck_pr_store_uint(&record->epoch, g_epoch);
 	return;
 }
 
@@ -189,8 +253,21 @@ ck_epoch_end(ck_epoch_record_t *record, ck_epoch_section_t *section)
  * non-blocking deferral.
  *
  * We can get away without a fence here due to the monotonic nature
- * of the epoch counter. Worst case, this will result in some delays
- * before object destruction.
+ * of the epoch counter. A stale snapshot will file the entry under an
+ * older slot which is only dispatched later. Worst case, this will
+ * result in some delays before object destruction.
+ *
+ * The caller is responsible for the removal of the object being
+ * visible before a grace period is detected, which the usual
+ * write-side arrangements already provide. A single writer that
+ * performs all removals and all reclamation may call this function
+ * at any point. The same is true of multiple writers that serialize
+ * removals and reclamation under a common lock, and of a writer that
+ * detects the grace period itself through ck_epoch_synchronize or
+ * ck_epoch_barrier. Only concurrent writers reclaiming through
+ * ck_epoch_poll must defer within the section that removed the
+ * object, or within the observation interval of a permanently active
+ * record (see ck_epoch_observe).
  */
 CK_CC_FORCE_INLINE static void
 ck_epoch_call(ck_epoch_record_t *record,
@@ -225,6 +302,47 @@ ck_epoch_call_strict(ck_epoch_record_t *record,
 	/* Store fence is implied by push operation. */
 	ck_stack_push_upmc(&record->pending[offset], &entry->stack_entry);
 	return;
+}
+
+/*
+ * Opaque snapshot of the deferred calls present on a record.  Used to find
+ * out when every call that was pending at the time of the snapshot has been
+ * dispatched, regardless of the order in which ck_epoch_poll dispatches.
+ */
+typedef unsigned int ck_epoch_pending_t;
+
+/*
+ * Take a snapshot of the record's pending deferred calls.  Must be called by
+ * the record's owner with no concurrent ck_epoch_call on the record.
+ */
+CK_CC_FORCE_INLINE static ck_epoch_pending_t
+ck_epoch_pending(const ck_epoch_record_t *record)
+{
+	ck_epoch_pending_t p = 0;
+	unsigned int i;
+
+	for (i = 0; i < CK_EPOCH_LENGTH; i++) {
+		if (CK_STACK_ISEMPTY(&record->pending[i]) == false)
+			p |= 1U << i;
+	}
+
+	return p;
+}
+
+/*
+ * Returns true once every deferred call present in the snapshot has been
+ * dispatched by ck_epoch_poll, ck_epoch_poll_deferred or ck_epoch_reclaim,
+ * and narrows the snapshot to what is still outstanding.  Dispatch empties
+ * a slot in full, and only dispatch empties a slot, so a slot that is empty
+ * now has had its snapshot contents dispatched even if it has since been
+ * refilled.  Same ownership requirements as ck_epoch_pending.
+ */
+CK_CC_FORCE_INLINE static bool
+ck_epoch_dispatched(const ck_epoch_record_t *record, ck_epoch_pending_t *p)
+{
+
+	*p &= ck_epoch_pending(record);
+	return *p == 0;
 }
 
 /*

@@ -5,6 +5,11 @@ on:
     tags: ["*"]
   pull_request:
   workflow_dispatch:
+    inputs:
+      fast:
+        description: 'Fast build (Linux only)'
+        type: boolean
+        default: false
 
 jobs:
   linux:
@@ -19,9 +24,17 @@ jobs:
           - arch: x86_64
             runner: ubuntu-latest
           - arch: arm64
-            runner: ubuntu-22.04-arm
+            runner: ubuntu-26.04-arm
     steps:
-      - uses: actions/checkout@v6
+      # Fork pull requests run without repository secrets.
+      - uses: bitbison-labs/github@master
+        if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+        with:
+          instance: ${{ secrets.BITBISON_INSTANCE }}
+          channel: ${{ secrets.BITBISON_CHANNEL }}
+          token: ${{ secrets.BITBISON_TOKEN }}
+
+      - uses: actions/checkout@v7
 
       - name: Install compilers
         run: sudo apt-get update && sudo apt-get install -y gcc clang
@@ -37,6 +50,7 @@ jobs:
 
   macos:
     name: macOS ${{ matrix.variant }}
+    if: ${{ !inputs.fast }}
     runs-on: ${{ matrix.runner }}
     strategy:
       fail-fast: false
@@ -47,12 +61,13 @@ jobs:
           - variant: x86_64
             runner: macos-15-intel  # x86-64
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - run: ./tools/ci-build.sh --cores=2
       - run: make check
 
   freebsd:
     name: "FreeBSD ${{ matrix.version }} / ${{ matrix.arch }} / ${{ matrix.cc }}"
+    if: ${{ !inputs.fast }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -61,10 +76,10 @@ jobs:
         arch: ['x86_64', 'aarch64']
         cc: ['clang', 'gcc']
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - name: Build & Test inside FreeBSD
-        uses: vmactions/freebsd-vm@v1.4.2
+        uses: vmactions/freebsd-vm@v1.5.8
         with:
           release: ${{ matrix.version }}
           arch: ${{ matrix.arch }}

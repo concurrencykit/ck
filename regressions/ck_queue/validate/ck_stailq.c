@@ -103,6 +103,75 @@ test_foreach(void)
 	return;
 }
 
+static void
+stailq_check(struct test_list *list, int from, int to)
+{
+	struct test *n;
+	int i = from;
+
+	CK_STAILQ_FOREACH(n, list, list_entry) {
+		if (n->value != i++) {
+			ck_error("Expected %d, but got %d.\n",
+			    i - 1, n->value);
+		}
+	}
+
+	if (i != to + 1) {
+		ck_error("Expected %d entries, but got %d.\n",
+		    to - from + 1, i - from);
+	}
+
+	return;
+}
+
+static void
+test_swap(void)
+{
+	struct test_list a = CK_STAILQ_HEAD_INITIALIZER(a);
+	struct test_list b = CK_STAILQ_HEAD_INITIALIZER(b);
+	struct test entries[6];
+	int i;
+
+	/* a: 1 -> 2 -> 3, b: empty */
+	for (i = 1; i <= 3; i++) {
+		entries[i].value = i;
+		CK_STAILQ_INSERT_TAIL(&a, &entries[i], list_entry);
+	}
+
+	CK_STAILQ_SWAP(&a, &b, test);
+
+	if (CK_STAILQ_EMPTY(&b) == true) {
+		ck_error("List b is empty after swap.\n");
+	}
+
+	if (CK_STAILQ_EMPTY(&a) == false) {
+		ck_error("List a is not empty after swap.\n");
+	}
+
+	stailq_check(&b, 1, 3);
+
+	/* Verify the swapped tail pointer of b is usable. */
+	entries[4].value = 4;
+	CK_STAILQ_INSERT_TAIL(&b, &entries[4], list_entry);
+	stailq_check(&b, 1, 4);
+
+	/* Verify the reset tail pointer of the emptied a is usable. */
+	entries[5].value = 5;
+	CK_STAILQ_INSERT_TAIL(&a, &entries[5], list_entry);
+	stailq_check(&a, 5, 5);
+
+	/* Swap two non-empty lists. */
+	CK_STAILQ_SWAP(&a, &b, test);
+	stailq_check(&a, 1, 4);
+	stailq_check(&b, 5, 5);
+
+	entries[0].value = 5;
+	CK_STAILQ_INSERT_TAIL(&a, &entries[0], list_entry);
+	stailq_check(&a, 1, 5);
+
+	return;
+}
+
 static void *
 execute(void *c)
 {
@@ -158,6 +227,8 @@ main(int argc, char *argv[])
 	if (CK_STAILQ_EMPTY(&head) == false) {
 		ck_error("List is not empty after bulk removal.\n");
 	}
+
+	test_swap();
 
 	for (i = 1; i <= goal; i++) {
 		n = malloc(sizeof *n);

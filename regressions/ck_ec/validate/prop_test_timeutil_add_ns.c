@@ -2,12 +2,7 @@
 
 #include "../../../src/ck_ec_timeutil.h"
 #include "fuzz_harness.h"
-
-#if ULONG_MAX > 4294967295
-typedef unsigned __int128 dword_t;
-#else
-typedef uint64_t dword_t;
-#endif
+#include "int128.h"
 
 struct example {
 	struct timespec ts;
@@ -45,41 +40,55 @@ static const struct example examples[] = {
 	}
 };
 
+static struct timespec normalize_ts(const struct timespec ts)
+{
+	struct timespec ret = ts;
+
+	if (ret.tv_sec < 0) {
+		ret.tv_sec = ~ret.tv_sec;
+	}
+
+	if (ret.tv_nsec < 0) {
+		ret.tv_nsec = ~ret.tv_nsec;
+	}
+
+	ret.tv_nsec %= NSEC_MAX + 1;
+	return ret;
+}
+
+static ck_s128_t ts_to_nanos(const struct timespec ts)
+{
+	ck_s128_t ret = ck_s128_mul(ck_s128_make_s64(ts.tv_sec),
+	    ck_s128_make_s64(NSEC_MAX + 1));
+	ret = ck_s128_add(ret, ck_s128_make_s64(ts.tv_nsec));
+	return ret;
+}
+
 static inline int test_timespec_add_ns(const struct example *example)
 {
-	struct timespec ts = {
-		.tv_sec = example->ts.tv_sec,
-		.tv_nsec = example->ts.tv_nsec
-	};
+	const struct timespec ts = normalize_ts(example->ts);
 	const uint32_t ns = example->ns;
-
-	if (ts.tv_sec < 0) {
-		ts.tv_sec = ~ts.tv_sec;
-	}
-
-	if (ts.tv_nsec < 0) {
-		ts.tv_nsec = ~ts.tv_nsec;
-	}
-
-	ts.tv_nsec %= NSEC_MAX + 1;
 
 	const struct timespec actual = timespec_add_ns(ts, ns);
 
-	dword_t nanos =
-	    (dword_t)ts.tv_sec * (NSEC_MAX + 1) + ts.tv_nsec;
+	ck_s128_t nanos = ts_to_nanos(ts);
 
 	if (ns > NSEC_MAX) {
-		nanos += NSEC_MAX + 1;
+		nanos = ck_s128_add(nanos, ck_s128_make_s64(NSEC_MAX + 1));
 	} else {
-		nanos += ns;
+		nanos = ck_s128_add(nanos, ck_s128_make_s64(ns));
 	}
 
-	if (nanos / (NSEC_MAX + 1) > TIME_MAX) {
+	const ck_s128_t ceiling = ts_to_nanos(
+	    (struct timespec) { TIME_MAX, NSEC_MAX });
+
+	if (ck_s128_cmp(nanos, ceiling) > 0) {
 		assert(actual.tv_sec == TIME_MAX);
 		assert(actual.tv_nsec == NSEC_MAX);
 	} else {
-		assert(actual.tv_sec == (time_t)(nanos / (NSEC_MAX + 1)));
-		assert(actual.tv_nsec == (long)(nanos % (NSEC_MAX + 1)));
+		assert(ck_s128_cmp(ts_to_nanos(actual), nanos) == 0);
+		assert(actual.tv_nsec >= 0);
+		assert(actual.tv_nsec <= NSEC_MAX);
 	}
 
 	return 0;

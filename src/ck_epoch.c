@@ -352,9 +352,12 @@ ck_epoch_scan(struct ck_epoch *global,
 		 * monotonic nature of epoch in this implementation. At most, we will yield
 		 * a false positive leading to additional delays.
 		 *
-		 * The epoch itself is monotonic, even if a re-ordering occurs, a newer
-		 * epoch will not invalidate safety and an older epoch only delays
-		 * reclamation.
+		 * The epoch itself is monotonic: an older observation of a record's
+		 * epoch only delays reclamation, and a newer observation does not
+		 * invalidate safety because ck_epoch_begin orders the record's
+		 * global epoch observation before the loads of its section. A
+		 * record epoch therefore never advertises a view of memory newer
+		 * than the one its section actually holds.
 		 */
 		if (active != 0 && ck_pr_load_uint(&cr->epoch) != epoch)
 			return cr;
@@ -578,7 +581,6 @@ ck_epoch_poll_deferred(struct ck_epoch_record *record, ck_stack_t *deferred)
 	unsigned int epoch;
 	struct ck_epoch_record *cr = NULL;
 	struct ck_epoch *global = record->global;
-	unsigned int n_dispatch;
 
 	epoch = ck_pr_load_uint(&global->epoch);
 
@@ -586,20 +588,29 @@ ck_epoch_poll_deferred(struct ck_epoch_record *record, ck_stack_t *deferred)
 	ck_pr_fence_memory();
 
 	/*
-	 * At this point, epoch is the current global epoch value.
-	 * There may or may not be active threads which observed epoch - 1.
-	 * (ck_epoch_scan() will tell us that). However, there should be
-	 * no active threads which observed epoch - 2.
+	 * At this point, epoch is the current global epoch value. There
+	 * may or may not be active threads which observed epoch - 1
+	 * (ck_epoch_scan() will tell us that), but there can be no
+	 * active threads which observed epoch - 2.
 	 *
-	 * Note that checking epoch - 2 is necessary, as race conditions can
-	 * allow another thread to increment the global epoch before this
-	 * thread runs.
+	 * No dispatch may occur before the scan completes: the deletion
+	 * of an object is not required to be visible before the epoch
+	 * snapshot taken by the corresponding ck_epoch_call, which
+	 * carries no fence. An object filed under slot epoch - 2 may
+	 * therefore have only become invisible to readers at epoch - 1,
+	 * and may still be held by a thread active at epoch - 1. A slot
+	 * is quiescent only once every active thread has observed the
+	 * epoch succeeding the slot's effective deletion epoch.
 	 */
-	n_dispatch = ck_epoch_dispatch(record, epoch - 2, deferred);
-
 	cr = ck_epoch_scan(global, cr, epoch, &active);
-	if (cr != NULL)
-		return (n_dispatch > 0);
+	if (cr != NULL) {
+		/*
+		 * A thread active at epoch - 1 may still hold references
+		 * to objects filed under slot epoch - 2, so nothing may
+		 * be dispatched.
+		 */
+		return false;
+	}
 
 	/* We are at a grace period if all threads are inactive. */
 	if (active == false) {
@@ -614,14 +625,17 @@ ck_epoch_poll_deferred(struct ck_epoch_record *record, ck_stack_t *deferred)
 	/*
 	 * If an active thread exists, rely on epoch observation.
 	 *
-	 * All the active threads entered the epoch section during
-	 * the current epoch. Therefore, we can now run the handlers
-	 * for the immediately preceding epoch and attempt to
+	 * All the active threads entered the epoch section during the
+	 * current epoch. An object filed under slot epoch - 2 was, at
+	 * the latest, effectively deleted at epoch - 1, and the
+	 * visibility of its deletion is inherited by every thread that
+	 * observed the transition to the current epoch. The handlers
+	 * for that slot may therefore run now. We also attempt to
 	 * advance the epoch if it hasn't been already.
 	 */
 	(void)ck_pr_cas_uint(&global->epoch, epoch, epoch + 1);
 
-	ck_epoch_dispatch(record, epoch - 1, deferred);
+	ck_epoch_dispatch(record, epoch - 2, deferred);
 	return true;
 }
 

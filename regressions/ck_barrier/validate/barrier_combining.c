@@ -90,7 +90,8 @@ main(int argc, char *argv[])
 	ck_barrier_combining_group_t *init_root;
 	int i;
 
-	init_root = malloc(sizeof(ck_barrier_combining_group_t));
+	init_root = common_aligned_alloc(common_alignof(ck_barrier_combining_group_t),
+	    sizeof(ck_barrier_combining_group_t));
 	if (init_root == NULL) {
 		ck_error("ERROR: Could not allocate initial barrier structure\n");
 	}
@@ -110,7 +111,8 @@ main(int argc, char *argv[])
 		ck_error("ERROR: Number of threads must be greater than 0\n");
 	}
 
-	groupings = malloc(sizeof(ck_barrier_combining_group_t) * ngroups);
+	groupings = common_aligned_alloc(common_alignof(ck_barrier_combining_group_t),
+	    sizeof(ck_barrier_combining_group_t) * ngroups);
 	if (groupings == NULL) {
 		ck_error("Could not allocate thread barrier grouping structures\n");
 	}

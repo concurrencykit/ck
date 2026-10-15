@@ -70,11 +70,13 @@ thread.
 .Xr ck_rhs_set 3 ,
 .Xr ck_rhs_fas 3 ,
 .Xr ck_rhs_remove 3 ,
+.Xr ck_rhs_map_size 3 ,
 .Xr ck_rhs_grow 3 ,
 .Xr ck_rhs_gc 3 ,
 .Xr ck_rhs_rebuild 3 ,
 .Xr ck_rhs_count 3 ,
 .Xr ck_rhs_reset 3 ,
+.Xr ck_rhs_reset_preallocated 3 ,
 .Xr ck_rhs_stat 3
 .Pp
 Additional information available at http://concurrencykit.org/

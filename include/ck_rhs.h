@@ -126,8 +126,10 @@ bool ck_rhs_grow(ck_rhs_t *, unsigned long);
 bool ck_rhs_rebuild(ck_rhs_t *);
 bool ck_rhs_gc(ck_rhs_t *);
 unsigned long ck_rhs_count(ck_rhs_t *);
+size_t ck_rhs_map_size(ck_rhs_t *, unsigned long);
 bool ck_rhs_reset(ck_rhs_t *);
 bool ck_rhs_reset_size(ck_rhs_t *, unsigned long);
+void ck_rhs_reset_preallocated(ck_rhs_t *, unsigned long, void *);
 void ck_rhs_stat(ck_rhs_t *, struct ck_rhs_stat *);
 bool ck_rhs_set_load_factor(ck_rhs_t *, unsigned int);
 

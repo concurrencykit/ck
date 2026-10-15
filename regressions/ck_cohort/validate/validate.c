@@ -73,6 +73,34 @@ ck_spinlock_fas_trylock_with_context(ck_spinlock_fas_t *lock, void *context)
 	return ck_spinlock_fas_trylock(lock);
 }
 
+static void
+ck_spinlock_dec_lock_with_context(ck_spinlock_dec_t *lock, void *context)
+{
+	(void)context;
+	ck_spinlock_dec_lock(lock);
+}
+
+static void
+ck_spinlock_dec_unlock_with_context(ck_spinlock_dec_t *lock, void *context)
+{
+	(void)context;
+	ck_spinlock_dec_unlock(lock);
+}
+
+static bool
+ck_spinlock_dec_locked_with_context(ck_spinlock_dec_t *lock, void *context)
+{
+	(void)context;
+	return ck_spinlock_dec_locked(lock);
+}
+
+static bool
+ck_spinlock_dec_trylock_with_context(ck_spinlock_dec_t *lock, void *context)
+{
+	(void)context;
+	return ck_spinlock_dec_trylock(lock);
+}
+
 CK_COHORT_TRYLOCK_PROTOTYPE(fas_fas,
 	ck_spinlock_fas_lock_with_context, ck_spinlock_fas_unlock_with_context,
 	ck_spinlock_fas_locked_with_context, ck_spinlock_fas_trylock_with_context,
@@ -80,6 +108,58 @@ CK_COHORT_TRYLOCK_PROTOTYPE(fas_fas,
 	ck_spinlock_fas_locked_with_context, ck_spinlock_fas_trylock_with_context)
 static CK_COHORT_INSTANCE(fas_fas) *cohorts;
 static int n_cohorts;
+
+/*
+ * A cohort with distinct global and local lock types. The two lock
+ * representations invert each other (dec is unlocked at 1, fas at 0),
+ * so a locked predicate that transposes the global and local arguments
+ * yields the wrong answer in both the idle and held states. With
+ * identical lock types, such a transposition is invisible.
+ */
+CK_COHORT_TRYLOCK_PROTOTYPE(dec_fas,
+	ck_spinlock_dec_lock_with_context, ck_spinlock_dec_unlock_with_context,
+	ck_spinlock_dec_locked_with_context, ck_spinlock_dec_trylock_with_context,
+	ck_spinlock_fas_lock_with_context, ck_spinlock_fas_unlock_with_context,
+	ck_spinlock_fas_locked_with_context, ck_spinlock_fas_trylock_with_context)
+
+static void
+heterogeneous_test(void)
+{
+	ck_spinlock_dec_t global_dec = CK_SPINLOCK_DEC_INITIALIZER;
+	ck_spinlock_fas_t local_fas = CK_SPINLOCK_FAS_INITIALIZER;
+	CK_COHORT_INSTANCE(dec_fas) cohort;
+
+	CK_COHORT_INIT(dec_fas, &cohort, &global_dec, &local_fas,
+	    CK_COHORT_DEFAULT_LOCAL_PASS_LIMIT);
+
+	if (CK_COHORT_LOCKED(dec_fas, &cohort, NULL, NULL) == true) {
+		ck_error("ERROR: Idle heterogeneous cohort reports locked\n");
+	}
+
+	CK_COHORT_LOCK(dec_fas, &cohort, NULL, NULL);
+
+	if (CK_COHORT_LOCKED(dec_fas, &cohort, NULL, NULL) == false) {
+		ck_error("ERROR: Held heterogeneous cohort reports unlocked\n");
+	}
+
+	if (CK_COHORT_TRYLOCK(dec_fas, &cohort, NULL, NULL, NULL) == true) {
+		ck_error("ERROR: Trylock succeeded on held heterogeneous cohort\n");
+	}
+
+	CK_COHORT_UNLOCK(dec_fas, &cohort, NULL, NULL);
+
+	if (CK_COHORT_LOCKED(dec_fas, &cohort, NULL, NULL) == true) {
+		ck_error("ERROR: Released heterogeneous cohort reports locked\n");
+	}
+
+	if (CK_COHORT_TRYLOCK(dec_fas, &cohort, NULL, NULL, NULL) == false) {
+		ck_error("ERROR: Trylock failed on idle heterogeneous cohort\n");
+	}
+
+	CK_COHORT_UNLOCK(dec_fas, &cohort, NULL, NULL);
+
+	return;
+}
 
 static void *
 thread(void *null CK_CC_UNUSED)
@@ -178,10 +258,15 @@ main(int argc, char *argv[])
 
 	a.delta = atoi(argv[3]);
 
+	fprintf(stderr, "Testing heterogeneous cohort...");
+	heterogeneous_test();
+	fprintf(stderr, "done\n");
+
 	fprintf(stderr, "Creating cohorts...");
 	cohorts = malloc(sizeof(CK_COHORT_INSTANCE(fas_fas)) * n_cohorts);
 	for (i = 0 ; i < n_cohorts ; i++) {
 		local_lock = malloc(sizeof(ck_spinlock_fas_t));
+		ck_spinlock_fas_init(local_lock);
 		CK_COHORT_INIT(fas_fas, cohorts + i, &global_fas_lock, local_lock,
 		    CK_COHORT_DEFAULT_LOCAL_PASS_LIMIT);
 	}

@@ -74,11 +74,104 @@ serial(ck_stack_t *stack)
 	return;
 }
 
+/*
+ * The batch pop implementations are exercised through volatile
+ * function pointers in the cold single-shot tests below, where the
+ * compiler would otherwise warn about failing to honor the inline
+ * request.
+ */
+static ck_stack_entry_t *(*volatile batch_pop)(ck_stack_t *) =
+    ck_stack_batch_pop_mpmc;
+static ck_stack_entry_t *(*volatile batch_pop_wf)(ck_stack_t *) =
+    ck_stack_batch_pop_mpmc_wf;
+
+/*
+ * Validate that a batch pop implementation advances the generation
+ * counter on every platform, with or without a double-wide CAS.
+ */
+static void
+batch_advance(ck_stack_t *stack, ck_stack_entry_t *(*batch)(ck_stack_t *))
+{
+	ck_stack_entry_t *entry;
+	struct entry a;
+	char *generation;
+
+	ck_stack_init(stack);
+	ck_stack_push_mpmc(stack, &a.next);
+
+	generation = ck_pr_load_ptr(&stack->generation);
+	entry = batch(stack);
+	assert(entry == &a.next);
+	assert(ck_pr_load_ptr(&stack->generation) == generation + 1);
+	assert(CK_STACK_ISEMPTY(stack));
+	return;
+}
+
+#ifdef CK_F_STACK_POP_MPMC
+/*
+ * Validate that a batch pop implementation advances the generation
+ * counter: a ck_stack_pop_mpmc whose (head, generation) snapshot
+ * predates the batch removal must not succeed against a re-pushed
+ * head entry, otherwise it installs a successor owned by the batch
+ * popper (ABA).
+ */
+static void
+batch_generation(ck_stack_t *stack, ck_stack_entry_t *(*batch)(ck_stack_t *))
+{
+	struct ck_stack original, update;
+	ck_stack_entry_t *entry;
+	struct entry a, b;
+
+	ck_stack_init(stack);
+	ck_stack_push_mpmc(stack, &b.next);
+	ck_stack_push_mpmc(stack, &a.next);
+
+	/*
+	 * Equivalent to a concurrent ck_stack_pop_mpmc that stalls after
+	 * computing its target state.
+	 */
+	original.generation = ck_pr_load_ptr(&stack->generation);
+	ck_pr_fence_load();
+	original.head = ck_pr_load_ptr(&stack->head);
+	update.generation = original.generation + 1;
+	update.head = original.head->next;
+
+	/* The batch removal must invalidate the snapshot above. */
+	entry = batch(stack);
+	assert(entry == &a.next);
+
+	/* The previous head address is re-used by a producer. */
+	ck_stack_push_mpmc(stack, &a.next);
+
+	/* The stalled pop now resumes and must fail. */
+	if (ck_pr_cas_ptr_2(stack, &original, &update) == true) {
+		fprintf(stderr, "ERROR: Stale pop succeeded after batch pop "
+		    "(generation was not advanced).\n");
+		exit(EXIT_FAILURE);
+	}
+
+	/*
+	 * The stack must be left with a as its only entry, with the
+	 * generation advanced exactly once by the batch removal.
+	 */
+	assert(ck_pr_load_ptr(&stack->head) == &a.next);
+	assert(ck_pr_load_ptr(&stack->generation) == original.generation + 1);
+	assert(a.next.next == NULL);
+	return;
+}
+#endif
+
 int
 main(void)
 {
 	ck_stack_t stack CK_CC_CACHELINE;
 
 	serial(&stack);
+	batch_advance(&stack, batch_pop);
+	batch_advance(&stack, batch_pop_wf);
+#ifdef CK_F_STACK_POP_MPMC
+	batch_generation(&stack, batch_pop);
+	batch_generation(&stack, batch_pop_wf);
+#endif
 	return (0);
 }

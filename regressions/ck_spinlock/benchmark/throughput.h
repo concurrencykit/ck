@@ -173,7 +173,8 @@ main(int argc, char *argv[])
 	a.delta = atoi(argv[2]);
 	a.request = 0;
 
-	count = malloc(sizeof(*count) * nthr);
+	count = common_aligned_alloc(common_alignof(struct counters),
+	    sizeof(struct counters) * nthr);
 	if (count == NULL) {
 		ck_error("ERROR: Could not create acquisition buffer\n");
 		exit(EXIT_FAILURE);
