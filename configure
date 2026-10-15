@@ -681,13 +681,24 @@ fi
 
 printf "Finding suitable compiler........"
 if test -z "$COMPILER"; then
-	if test ! -x "${CC}"; then
-		CC=`pathsearch "${CC:-cc}"`
-		if test -z "$CC" -o ! -x "$CC"; then
-			CC=`pathsearch "${CC:-gcc}"`
+	if test -n "$CC"; then
+		# CC is a command, not a path: it may carry a launcher or
+		# driver flags ("ccache cc -m64"). Resolve its first word
+		# and keep the rest. A CC that does not resolve is an
+		# error; falling back to a compiler the caller did not
+		# name would build with the wrong toolchain silently.
+		cc_bin=`set -- $CC; echo "$1"`
+		if test ! -x "$cc_bin"; then
+			cc_bin=`pathsearch "$cc_bin"`
 		fi
+		assert "$cc_bin" "$CC: not found"
+	else
+		CC=`pathsearch cc`
+		if test -z "$CC"; then
+			CC=`pathsearch gcc`
+		fi
+		assert "$CC" "not found"
 	fi
-	assert "$CC" "not found"
 fi
 
 cat << EOF > .1.c
