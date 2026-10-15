@@ -953,6 +953,7 @@ ck_hs_move(struct ck_hs *hs,
 	hs->m = m;
 	hs->hf = hf;
 	hs->compare = compare;
+	hs->tombstone = source->tombstone;
 	return true;
 }
 
