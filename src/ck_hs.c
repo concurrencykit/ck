@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2015 Samy Al Bahra.
+ * Copyright 2012-2026 Samy Al Bahra.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -458,9 +458,8 @@ ck_hs_map_probe(struct ck_hs *hs,
 
 				/*
 				 * If no eligible slot has been found yet, continue probe
-				 * sequence with original probe limit. No entry for this
-				 * bucket exists past its probe bound, so the remainder of
-				 * the probe sequence is only a search for a free slot.
+				 * sequence with original probe limit. Past the probe bound,
+				 * we search only for EMPTY slots.
 				 */
 				probe_limit = opl;
 				past_bound = true;
@@ -499,14 +498,11 @@ ck_hs_map_probe(struct ck_hs *hs,
 					*n_probes = probes;
 
 					/*
-					 * If the key is known to be absent, or no entry for
-					 * this bucket can exist past this point, then the
-					 * first tombstone is sufficient. Continuing to an
-					 * empty slot would consume it unnecessarily, and
-					 * deletion never recovers empty slots.
+					 * If the key is known to be absent or no entry for
+					 * this bucket can exist past this point then the
+					 * first tombstone is sufficient.
 					 */
-					if (behavior == CK_HS_PROBE_TOMBSTONE ||
-					    past_bound == true) {
+					if (behavior == CK_HS_PROBE_TOMBSTONE || past_bound == true) {
 						/*
 						 * There is no match; the slot to use
 						 * is the tombstone, returned through

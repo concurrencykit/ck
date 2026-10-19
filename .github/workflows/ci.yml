@@ -72,14 +72,14 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        version: ['13.3', '14.2', '15.0']
+        version: ['14.2', '15.0']
         arch: ['x86_64', 'aarch64']
         cc: ['clang', 'gcc']
     steps:
       - uses: actions/checkout@v7
 
       - name: Build & Test inside FreeBSD
-        uses: vmactions/freebsd-vm@v1.5.8
+        uses: vmactions/freebsd-vm@v1.5.9
         with:
           release: ${{ matrix.version }}
           arch: ${{ matrix.arch }}

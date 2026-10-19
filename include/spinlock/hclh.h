@@ -99,6 +99,8 @@ ck_spinlock_hclh_lock(struct ck_spinlock_hclh **glob_queue,
 			ck_pr_load_uint(&previous->splice) == false)
 			ck_pr_stall();
 
+		ck_pr_fence_lock();
+
 		/* We're head of the global queue, we're done */
 		if (ck_pr_load_int(&previous->cluster_id) == thread->cluster_id &&
 				ck_pr_load_uint(&previous->splice) == false)

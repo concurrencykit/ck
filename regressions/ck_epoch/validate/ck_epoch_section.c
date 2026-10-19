@@ -154,11 +154,20 @@ barrier_work(void *arg)
 static void *
 reader_work(void *arg)
 {
-	ck_epoch_record_t local_record;
+	ck_epoch_record_t *local_record;
 	ck_epoch_section_t section;
 	struct obj *o;
 
-	ck_epoch_register(&epc, &local_record, NULL);
+	/*
+	 * The record must outlive this thread: it stays on the epoch's
+	 * list after ck_epoch_unregister, where a concurrent barrier
+	 * scans it.
+	 */
+	local_record = malloc(sizeof(*local_record));
+	if (local_record == NULL)
+		abort();
+
+	ck_epoch_register(&epc, local_record, NULL);
 
 	o = (struct obj *)arg;
 
@@ -167,12 +176,12 @@ reader_work(void *arg)
 	 * so the object should not be destroyed for the lifetime of this
 	 * thread.
 	 */
-	ck_epoch_begin(&local_record, &section);
+	ck_epoch_begin(local_record, &section);
 	usleep((common_rand() % 100) * 1000);
 	assert(ck_pr_load_uint(&o->destroyed) == 0);
-	ck_epoch_end(&local_record, &section);
+	ck_epoch_end(local_record, &section);
 
-	ck_epoch_unregister(&local_record);
+	ck_epoch_unregister(local_record);
 
 	return NULL;
 }
