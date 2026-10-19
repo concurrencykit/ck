@@ -420,7 +420,7 @@ ck_hs_map_probe(struct ck_hs *hs,
 	const void **bucket, **cursor, *val, *val_key, *compare_key;
 	const void **pr = NULL;
 	unsigned long offset, j, i, probes, opl;
-	bool dead;
+	bool dead, past_bound = false;
 
 #ifdef CK_HS_PP
 	/* If we are storing object pointers, then we may leverage pointer packing. */
@@ -458,9 +458,12 @@ ck_hs_map_probe(struct ck_hs *hs,
 
 				/*
 				 * If no eligible slot has been found yet, continue probe
-				 * sequence with original probe limit.
+				 * sequence with original probe limit. No entry for this
+				 * bucket exists past its probe bound, so the remainder of
+				 * the probe sequence is only a search for a free slot.
 				 */
 				probe_limit = opl;
+				past_bound = true;
 			}
 
 			val = ck_pr_load_ptr(cursor);
@@ -495,7 +498,15 @@ ck_hs_map_probe(struct ck_hs *hs,
 					pr = cursor;
 					*n_probes = probes;
 
-					if (behavior == CK_HS_PROBE_TOMBSTONE) {
+					/*
+					 * If the key is known to be absent, or no entry for
+					 * this bucket can exist past this point, then the
+					 * first tombstone is sufficient. Continuing to an
+					 * empty slot would consume it unnecessarily, and
+					 * deletion never recovers empty slots.
+					 */
+					if (behavior == CK_HS_PROBE_TOMBSTONE ||
+					    past_bound == true) {
 						val = CK_HS_EMPTY;
 						goto leave;
 					}
