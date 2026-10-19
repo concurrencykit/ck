@@ -74,6 +74,7 @@ regressions/ck_hs/benchmark/parallel_bytestring
 regressions/ck_hs/benchmark/parallel_bytestring.delete
 regressions/ck_hs/benchmark/serial
 regressions/ck_hs/validate/serial
+regressions/ck_hs/validate/probe
 regressions/ck_ht/benchmark/parallel_bytestring
 regressions/ck_ht/benchmark/parallel_bytestring.delete
 regressions/ck_ht/benchmark/parallel_direct
