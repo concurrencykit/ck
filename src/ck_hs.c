@@ -538,6 +538,7 @@ ck_hs_map_probe(struct ck_hs *hs,
 					 */
 					if (behavior == CK_HS_PROBE_TOMBSTONE || past_bound == true) {
 						val = CK_HS_EMPTY;
+						cursor = NULL;
 						goto leave;
 					}
 				}
