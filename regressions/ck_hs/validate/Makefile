@@ -1,6 +1,6 @@
 .PHONY: check clean distribution
 
-OBJECTS=serial hs_init_opts
+OBJECTS=serial hs_init_opts probe
 
 all: $(OBJECTS)
 
@@ -10,8 +10,12 @@ serial: serial.c ../../../include/ck_hs.h ../../../src/ck_hs.c
 hs_init_opts: hs_init_opts.c ../../../include/ck_hs.h ../../../src/ck_hs.c
 	$(CC) $(CFLAGS) -o hs_init_opts hs_init_opts.c ../../../src/ck_hs.c
 
+probe: probe.c ../../../include/ck_hs.h ../../../src/ck_hs.c
+	$(CC) $(CFLAGS) -I../../../src -o probe probe.c
+
 check: all
 	./serial
+	./probe
 
 clean:
 	rm -rf *~ *.o $(OBJECTS) *.dSYM *.exe
