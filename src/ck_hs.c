@@ -795,6 +795,8 @@ restart:
 		if (object != NULL) {
 			ck_hs_map_signal(map, h);
 			ck_pr_store_ptr(slot, CK_HS_TOMBSTONE);
+		} else {
+			map->tombstones--;
 		}
 	} else {
 		/*
@@ -851,6 +853,8 @@ restart:
 		if (object != NULL) {
 			ck_hs_map_signal(map, h);
 			ck_pr_store_ptr(slot, CK_HS_TOMBSTONE);
+		} else {
+			map->tombstones--;
 		}
 	} else {
 		/*
@@ -901,6 +905,7 @@ restart:
 	if (first != NULL) {
 		/* Insert val into first bucket in probe sequence. */
 		ck_pr_store_ptr(first, insert);
+		map->tombstones--;
 	} else {
 		/* An empty slot was found. */
 		ck_pr_store_ptr(slot, insert);
