@@ -598,9 +598,11 @@ ck_hs_gc(struct ck_hs *hs, unsigned long cycles, unsigned long seed)
 		if (first != NULL) {
 			const void *insert = ck_hs_marshal(hs->mode, entry, h);
 
+			ck_hs_map_tombstone_take(map, first);
 			ck_pr_store_ptr(first, insert);
 			ck_hs_map_signal(map, h);
 			ck_pr_store_ptr(slot, CK_HS_TOMBSTONE);
+			map->tombstones++;
 		}
 
 		if (cycles == 0) {
@@ -655,9 +657,11 @@ ck_hs_fas(struct ck_hs *hs,
 	insert = ck_hs_marshal(hs->mode, val, h);
 
 	if (first != NULL) {
+		ck_hs_map_tombstone_take(map, first);
 		ck_pr_store_ptr(first, insert);
 		ck_hs_map_signal(map, h);
 		ck_pr_store_ptr(slot, CK_HS_TOMBSTONE);
+		map->tombstones++;
 	} else {
 		ck_pr_store_ptr(slot, insert);
 	}
@@ -758,13 +762,13 @@ restart:
 		 * This follows the same semantics as ck_hs_set, please refer to that
 		 * function for documentation.
 		 */
+		ck_hs_map_tombstone_take(map, first);
 		ck_pr_store_ptr(first, insert);
 
 		if (object != NULL) {
 			ck_hs_map_signal(map, h);
 			ck_pr_store_ptr(slot, CK_HS_TOMBSTONE);
-		} else {
-			map->tombstones--;
+			map->tombstones++;
 		}
 	} else {
 		/*
@@ -809,6 +813,7 @@ restart:
 
 	if (first != NULL) {
 		/* If an earlier bucket was found, then store entry there. */
+		ck_hs_map_tombstone_take(map, first);
 		ck_pr_store_ptr(first, insert);
 
 		/*
@@ -821,8 +826,7 @@ restart:
 		if (object != NULL) {
 			ck_hs_map_signal(map, h);
 			ck_pr_store_ptr(slot, CK_HS_TOMBSTONE);
-		} else {
-			map->tombstones--;
+			map->tombstones++;
 		}
 	} else {
 		/*
@@ -872,8 +876,8 @@ restart:
 
 	if (first != NULL) {
 		/* Insert val into first bucket in probe sequence. */
+		ck_hs_map_tombstone_take(map, first);
 		ck_pr_store_ptr(first, insert);
-		map->tombstones--;
 	} else {
 		/* An empty slot was found. */
 		ck_pr_store_ptr(slot, insert);

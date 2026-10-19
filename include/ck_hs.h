@@ -404,6 +404,21 @@ ck_hs_marshal(unsigned int mode, const void *val, unsigned long h)
 }
 
 /*
+ * The tombstone count is the markers in place. Writing a marker adds one;
+ * a slot taken for an insertion gives one back only if it held a marker,
+ * since an entry dead by the caller's predicate was never counted.
+ */
+static inline void
+ck_hs_map_tombstone_take(struct ck_hs_map *map, const void **slot)
+{
+
+	if (ck_pr_load_ptr(slot) == CK_HS_TOMBSTONE)
+		map->tombstones--;
+
+	return;
+}
+
+/*
  * Updates the value. NULL requests deletion.
  */
 static inline void
@@ -416,7 +431,9 @@ ck_hs_cursor_set(ck_hs_t *hs, struct ck_hs_cursor *cursor, void *value)
 		if (cursor->match == NULL)
 			return;
 
-		if (*cursor->match == CK_HS_TOMBSTONE)
+		/* An absent key's cursor rests on the empty slot that ended its probe. */
+		if (*cursor->match == CK_HS_EMPTY ||
+		    *cursor->match == CK_HS_TOMBSTONE)
 			return;
 
 		if (hs->tombstone != NULL &&
@@ -441,12 +458,14 @@ ck_hs_cursor_set(ck_hs_t *hs, struct ck_hs_cursor *cursor, void *value)
 		if (is_new == false && hs->tombstone != NULL)
 			is_new = hs->tombstone((void *)(uintptr_t)CK_HS_VMA(existing));
 
+		ck_hs_map_tombstone_take(map, cursor->first);
 		ck_pr_store_ptr(cursor->first, insert);
 
 		if (is_new == false) {
 			/* Moving existing entry to an earlier slot. */
 			ck_hs_map_signal(map, cursor->h);
 			ck_pr_store_ptr(cursor->match, CK_HS_TOMBSTONE);
+			map->tombstones++;
 		} else {
 			/* No existing live entry to replace. */
 			ck_hs_map_postinsert(hs, map);
@@ -459,6 +478,7 @@ ck_hs_cursor_set(ck_hs_t *hs, struct ck_hs_cursor *cursor, void *value)
 		if (is_new == false && hs->tombstone != NULL)
 			is_new = hs->tombstone((void *)(uintptr_t)CK_HS_VMA(existing));
 
+		ck_hs_map_tombstone_take(map, cursor->match);
 		ck_pr_store_ptr(cursor->match, insert);
 
 		if (is_new == true)
